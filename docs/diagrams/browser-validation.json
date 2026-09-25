@@ -1,0 +1,170 @@
+{
+  "checkedAt": "2026-09-25T07:21:59.378Z",
+  "platform": "darwin",
+  "arch": "arm64",
+  "node": "v25.9.0",
+  "scope": "Offline documentation browser validation, not Windows product validation",
+  "networkRequests": 0,
+  "viewports": [
+    {
+      "width": 1440,
+      "sections": 20,
+      "images": 20,
+      "allImagesLoaded": true,
+      "bodyOverflow": false,
+      "brokenAnchors": 0
+    },
+    {
+      "width": 390,
+      "sections": 20,
+      "images": 20,
+      "allImagesLoaded": true,
+      "bodyOverflow": false,
+      "brokenAnchors": 0
+    }
+  ],
+  "svgGeometry": [
+    {
+      "id": "00-roadmap",
+      "width": 440,
+      "height": 1605.5,
+      "textLabels": 2,
+      "clippedText": []
+    },
+    {
+      "id": "01-architecture",
+      "width": 928,
+      "height": 1132.3536376953125,
+      "textLabels": 2,
+      "clippedText": []
+    },
+    {
+      "id": "02-turn",
+      "width": 1059,
+      "height": 1153,
+      "textLabels": 33,
+      "clippedText": []
+    },
+    {
+      "id": "03-api",
+      "width": 556,
+      "height": 1742,
+      "textLabels": 5,
+      "clippedText": []
+    },
+    {
+      "id": "04-graph",
+      "width": 767.25,
+      "height": 1322.5,
+      "textLabels": 6,
+      "clippedText": []
+    },
+    {
+      "id": "05-runtime",
+      "width": 1030.11669921875,
+      "height": 1496,
+      "textLabels": 16,
+      "clippedText": []
+    },
+    {
+      "id": "06-cancellation",
+      "width": 899.5,
+      "height": 1334,
+      "textLabels": 33,
+      "clippedText": []
+    },
+    {
+      "id": "07-model",
+      "width": 498,
+      "height": 1384.5,
+      "textLabels": 3,
+      "clippedText": []
+    },
+    {
+      "id": "08-tools",
+      "width": 810,
+      "height": 2023.5,
+      "textLabels": 10,
+      "clippedText": []
+    },
+    {
+      "id": "09-checkpoints",
+      "width": 684.58203125,
+      "height": 2016.671875,
+      "textLabels": 7,
+      "clippedText": []
+    },
+    {
+      "id": "10-memory",
+      "width": 471,
+      "height": 1881.707275390625,
+      "textLabels": 3,
+      "clippedText": []
+    },
+    {
+      "id": "11-memory-data",
+      "width": 1444.3671875,
+      "height": 1217.75,
+      "textLabels": 8,
+      "clippedText": []
+    },
+    {
+      "id": "12-memory-forget",
+      "width": 440,
+      "height": 2119,
+      "textLabels": 3,
+      "clippedText": []
+    },
+    {
+      "id": "13-audio",
+      "width": 1061,
+      "height": 1793,
+      "textLabels": 47,
+      "clippedText": []
+    },
+    {
+      "id": "14-vision-proactive",
+      "width": 922,
+      "height": 1242,
+      "textLabels": 7,
+      "clippedText": []
+    },
+    {
+      "id": "15-ui-avatar",
+      "width": 969.5338745117188,
+      "height": 1294.5,
+      "textLabels": 6,
+      "clippedText": []
+    },
+    {
+      "id": "16-isolation",
+      "width": 1368,
+      "height": 659,
+      "textLabels": 2,
+      "clippedText": []
+    },
+    {
+      "id": "17-desktop",
+      "width": 440,
+      "height": 1589.5,
+      "textLabels": 5,
+      "clippedText": []
+    },
+    {
+      "id": "18-delivery",
+      "width": 440,
+      "height": 1839,
+      "textLabels": 3,
+      "clippedText": []
+    },
+    {
+      "id": "19-reuse",
+      "width": 513.25,
+      "height": 1623.5,
+      "textLabels": 3,
+      "clippedText": []
+    }
+  ],
+  "failures": [],
+  "status": "PASS"
+}

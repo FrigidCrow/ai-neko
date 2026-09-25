@@ -1,0 +1,1112 @@
+{
+  "schema_version": 1,
+  "app_id": "ai-neko",
+  "stage": "M0",
+  "started_at_utc": "2026-09-25T07:18:12.519018+00:00",
+  "duration_seconds": 17.961,
+  "status": "PASS",
+  "environment": {
+    "system": "Darwin",
+    "release": "25.6.0",
+    "version": "Darwin Kernel Version 25.6.0: Fri Jul 31 19:11:03 PDT 2026; root:xnu-12377.161.14~5/RELEASE_ARM64_T8132",
+    "machine": "arm64",
+    "python": "3.11.15",
+    "python_implementation": "CPython",
+    "python_pointer_bits": 64,
+    "pinned_python": "3.11.15",
+    "python_matches_pin": true
+  },
+  "source": {
+    "git_commit": null,
+    "git_dirty": true,
+    "tree_sha256": "824bbb62c84636219cf423c332ac5e94dc8cf4d5beaaef9f8901d23518aed967",
+    "manifest": [
+      {
+        "path": ".python-version",
+        "sha256": "db82937e1f1830581a9553c7814f5c5fcacb6dfdef8310b43e9a812c887acaf5"
+      },
+      {
+        "path": "AGENTS.md",
+        "sha256": "169f040106ce35f9fedce812abc1767373e6ab22c306bdd62fbbbd1bd4a3cca3"
+      },
+      {
+        "path": "pyproject.toml",
+        "sha256": "45d7a0a230dd389789087ccb3f031d99ed5916265ee4dd6d50d5b71640383439"
+      },
+      {
+        "path": "scripts/m0_smoke.py",
+        "sha256": "8e9c73fc68d918104469bf737d83b2bb42aac3d351fce1ee2cac63a4283cc310"
+      },
+      {
+        "path": "scripts/windows-m0.ps1",
+        "sha256": "5f283e8a4b23ea1d3e800d08d1e9a9367b8585ba37dbbc4b6eea6bc13d0266f1"
+      },
+      {
+        "path": "src/ai_neko/__init__.py",
+        "sha256": "0af20bfe535ad6f047cf931f5f15581106fe64742f7b1ff909d246bb8214fcde"
+      },
+      {
+        "path": "src/ai_neko/__main__.py",
+        "sha256": "7216ca473f4d63597e1230e5930dc23095a725e742ac3115346d22962e680fdd"
+      },
+      {
+        "path": "src/ai_neko/app/__init__.py",
+        "sha256": "c559be6cfcad20083ce892bd5c736e5547de1571adbcd5d9c5a1550361f588d2"
+      },
+      {
+        "path": "src/ai_neko/app/server.py",
+        "sha256": "cb9940e7eea592ca3b10055d6a5e303eb82bd2623cdbbb024d8bc59c8bfe4437"
+      },
+      {
+        "path": "src/ai_neko/config/__init__.py",
+        "sha256": "63cd2a0b2613b9ade4b7fcb9ad33337fbca8f864d9c9198b0a769a316ac6fe8b"
+      },
+      {
+        "path": "src/ai_neko/config/paths.py",
+        "sha256": "a59c89070100391be5464c617c1cfe59584f49d671bfd121ec5b2713a9240b1b"
+      },
+      {
+        "path": "src/ai_neko/config/settings.py",
+        "sha256": "6bae37ef698cad195270d31dd898a759cc5efb22db53083fb7ae5a147876aca0"
+      },
+      {
+        "path": "src/ai_neko/graph/__init__.py",
+        "sha256": "d9152e6547aa627bcb4ecff609853df52ef8e026645a65c55fdec8ba06de59ac"
+      },
+      {
+        "path": "src/ai_neko/graph/__main__.py",
+        "sha256": "9a5579516876c7c58a1fa81a56ae015c4079253762970966bf9e3480519e3dd6"
+      },
+      {
+        "path": "src/ai_neko/graph/service.py",
+        "sha256": "e6d419db6092d6a679e6a2df86ff802290fbbbb71152229804d2e8c83c51b8a2"
+      },
+      {
+        "path": "tests/test_config.py",
+        "sha256": "bcbf8ea88f6312277b197adae9d61f8a664624be9896c9c6b6c6c578a1bc6e41"
+      },
+      {
+        "path": "tests/test_graph.py",
+        "sha256": "7e37a4d9c884ea152638f1eddf23ccb05ac5c049bf6cf079416a05533c265de4"
+      },
+      {
+        "path": "tests/test_server_process.py",
+        "sha256": "e33d5177abe287368a2a0c59657fe4843e759fc2774bdc9eae3d35075bd3d0b3"
+      },
+      {
+        "path": "uv.lock",
+        "sha256": "31a1464604231c7ffbfaae210b7eeafdd6347016326214832b0bf9d1738a476f"
+      }
+    ]
+  },
+  "source_unchanged_during_run": true,
+  "dependencies": {
+    "lock_sha256": "31a1464604231c7ffbfaae210b7eeafdd6347016326214832b0bf9d1738a476f",
+    "packages": [
+      {
+        "name": "ai-neko",
+        "locked": "0.1.0",
+        "installed": "0.1.0",
+        "local_project": true
+      },
+      {
+        "name": "aiosqlite",
+        "locked": "0.22.1",
+        "installed": "0.22.1",
+        "local_project": false
+      },
+      {
+        "name": "annotated-doc",
+        "locked": "0.0.5",
+        "installed": "0.0.5",
+        "local_project": false
+      },
+      {
+        "name": "annotated-types",
+        "locked": "0.8.0",
+        "installed": "0.8.0",
+        "local_project": false
+      },
+      {
+        "name": "anyio",
+        "locked": "4.15.1",
+        "installed": "4.15.1",
+        "local_project": false
+      },
+      {
+        "name": "certifi",
+        "locked": "2026.7.22",
+        "installed": "2026.7.22",
+        "local_project": false
+      },
+      {
+        "name": "charset-normalizer",
+        "locked": "3.5.1",
+        "installed": "3.5.1",
+        "local_project": false
+      },
+      {
+        "name": "click",
+        "locked": "8.5.0",
+        "installed": "8.5.0",
+        "local_project": false
+      },
+      {
+        "name": "colorama",
+        "locked": "0.4.6",
+        "installed": null,
+        "local_project": false
+      },
+      {
+        "name": "distro",
+        "locked": "1.9.0",
+        "installed": "1.9.0",
+        "local_project": false
+      },
+      {
+        "name": "fastapi",
+        "locked": "0.141.1",
+        "installed": "0.141.1",
+        "local_project": false
+      },
+      {
+        "name": "filelock",
+        "locked": "3.32.7",
+        "installed": "3.32.7",
+        "local_project": false
+      },
+      {
+        "name": "h11",
+        "locked": "0.16.0",
+        "installed": "0.16.0",
+        "local_project": false
+      },
+      {
+        "name": "httpcore",
+        "locked": "1.0.9",
+        "installed": "1.0.9",
+        "local_project": false
+      },
+      {
+        "name": "httpcore2",
+        "locked": "2.13.1",
+        "installed": "2.13.1",
+        "local_project": false
+      },
+      {
+        "name": "httpx",
+        "locked": "0.28.1",
+        "installed": "0.28.1",
+        "local_project": false
+      },
+      {
+        "name": "httpx2",
+        "locked": "2.13.1",
+        "installed": "2.13.1",
+        "local_project": false
+      },
+      {
+        "name": "idna",
+        "locked": "3.20",
+        "installed": "3.20",
+        "local_project": false
+      },
+      {
+        "name": "iniconfig",
+        "locked": "2.3.0",
+        "installed": "2.3.0",
+        "local_project": false
+      },
+      {
+        "name": "jsonpatch",
+        "locked": "1.33",
+        "installed": "1.33",
+        "local_project": false
+      },
+      {
+        "name": "jsonpointer",
+        "locked": "3.1.1",
+        "installed": "3.1.1",
+        "local_project": false
+      },
+      {
+        "name": "langchain-core",
+        "locked": "1.6.5",
+        "installed": "1.6.5",
+        "local_project": false
+      },
+      {
+        "name": "langchain-protocol",
+        "locked": "0.0.19",
+        "installed": "0.0.19",
+        "local_project": false
+      },
+      {
+        "name": "langgraph",
+        "locked": "1.2.12",
+        "installed": "1.2.12",
+        "local_project": false
+      },
+      {
+        "name": "langgraph-checkpoint",
+        "locked": "4.2.0",
+        "installed": "4.2.0",
+        "local_project": false
+      },
+      {
+        "name": "langgraph-checkpoint-sqlite",
+        "locked": "3.1.1",
+        "installed": "3.1.1",
+        "local_project": false
+      },
+      {
+        "name": "langgraph-prebuilt",
+        "locked": "1.1.0",
+        "installed": "1.1.0",
+        "local_project": false
+      },
+      {
+        "name": "langgraph-sdk",
+        "locked": "0.4.5",
+        "installed": "0.4.5",
+        "local_project": false
+      },
+      {
+        "name": "langsmith",
+        "locked": "0.14.0",
+        "installed": "0.14.0",
+        "local_project": false
+      },
+      {
+        "name": "orjson",
+        "locked": "3.12.0",
+        "installed": "3.12.0",
+        "local_project": false
+      },
+      {
+        "name": "ormsgpack",
+        "locked": "1.12.2",
+        "installed": "1.12.2",
+        "local_project": false
+      },
+      {
+        "name": "packaging",
+        "locked": "26.3",
+        "installed": "26.3",
+        "local_project": false
+      },
+      {
+        "name": "pluggy",
+        "locked": "1.6.0",
+        "installed": "1.6.0",
+        "local_project": false
+      },
+      {
+        "name": "pydantic",
+        "locked": "2.13.5",
+        "installed": "2.13.5",
+        "local_project": false
+      },
+      {
+        "name": "pydantic-core",
+        "locked": "2.46.5",
+        "installed": "2.46.5",
+        "local_project": false
+      },
+      {
+        "name": "pygments",
+        "locked": "2.21.0",
+        "installed": "2.21.0",
+        "local_project": false
+      },
+      {
+        "name": "pytest",
+        "locked": "9.1.1",
+        "installed": "9.1.1",
+        "local_project": false
+      },
+      {
+        "name": "pyyaml",
+        "locked": "6.0.3",
+        "installed": "6.0.3",
+        "local_project": false
+      },
+      {
+        "name": "requests",
+        "locked": "2.34.2",
+        "installed": "2.34.2",
+        "local_project": false
+      },
+      {
+        "name": "requests-toolbelt",
+        "locked": "1.0.0",
+        "installed": "1.0.0",
+        "local_project": false
+      },
+      {
+        "name": "ruff",
+        "locked": "0.16.9",
+        "installed": "0.16.9",
+        "local_project": false
+      },
+      {
+        "name": "sniffio",
+        "locked": "1.3.1",
+        "installed": "1.3.1",
+        "local_project": false
+      },
+      {
+        "name": "sqlite-vec",
+        "locked": "0.1.9",
+        "installed": "0.1.9",
+        "local_project": false
+      },
+      {
+        "name": "starlette",
+        "locked": "1.7.0",
+        "installed": "1.7.0",
+        "local_project": false
+      },
+      {
+        "name": "tenacity",
+        "locked": "9.1.4",
+        "installed": "9.1.4",
+        "local_project": false
+      },
+      {
+        "name": "truststore",
+        "locked": "0.10.4",
+        "installed": "0.10.4",
+        "local_project": false
+      },
+      {
+        "name": "typing-extensions",
+        "locked": "4.16.0",
+        "installed": "4.16.0",
+        "local_project": false
+      },
+      {
+        "name": "typing-inspection",
+        "locked": "0.4.4",
+        "installed": "0.4.4",
+        "local_project": false
+      },
+      {
+        "name": "urllib3",
+        "locked": "2.8.0",
+        "installed": "2.8.0",
+        "local_project": false
+      },
+      {
+        "name": "uuid-utils",
+        "locked": "0.17.1",
+        "installed": "0.17.1",
+        "local_project": false
+      },
+      {
+        "name": "uvicorn",
+        "locked": "0.54.0",
+        "installed": "0.54.0",
+        "local_project": false
+      },
+      {
+        "name": "websockets",
+        "locked": "16.1.1",
+        "installed": "16.1.1",
+        "local_project": false
+      },
+      {
+        "name": "xxhash",
+        "locked": "4.0.1",
+        "installed": "4.0.1",
+        "local_project": false
+      },
+      {
+        "name": "zstandard",
+        "locked": "0.25.0",
+        "installed": "0.25.0",
+        "local_project": false
+      }
+    ],
+    "installed_version_mismatches": []
+  },
+  "tests": {
+    "kind": "synthetic_deterministic",
+    "pytest_exit_code": 0,
+    "collected": 110,
+    "passed": 110,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "cases": [
+      {
+        "name": "test_isolated_layout_reopens_without_touching_sibling",
+        "class": "tests.test_config",
+        "seconds": 0.003,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_override_only_uses_dedicated_environment",
+        "class": "tests.test_config",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_original_paths_rejected[N.E.K.O]",
+        "class": "tests.test_config",
+        "seconds": 0.0,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_original_paths_rejected[N.E.K.O/config]",
+        "class": "tests.test_config",
+        "seconds": 0.0,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_original_paths_rejected[neko-companion]",
+        "class": "tests.test_config",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_original_paths_rejected[n.e.k.o]",
+        "class": "tests.test_config",
+        "seconds": 0.0,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_bad_paths[relative]",
+        "class": "tests.test_config",
+        "seconds": 0.0,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_bad_paths[]",
+        "class": "tests.test_config",
+        "seconds": 0.0,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_bad_paths[/]",
+        "class": "tests.test_config",
+        "seconds": 0.0,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_bad_paths[\\x00bad]",
+        "class": "tests.test_config",
+        "seconds": 0.0,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_user_home_rejected",
+        "class": "tests.test_config",
+        "seconds": 0.0,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_existing_unowned_root_is_not_adopted",
+        "class": "tests.test_config",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_foreign_or_corrupt_marker",
+        "class": "tests.test_config",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_file_data_root",
+        "class": "tests.test_config",
+        "seconds": 0.0,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_symlink_root_or_child_cannot_redirect_writes",
+        "class": "tests.test_config",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_settings_do_not_use_generic_credentials",
+        "class": "tests.test_config",
+        "seconds": 0.0,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_invalid_port[abc]",
+        "class": "tests.test_config",
+        "seconds": 0.0,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_invalid_port[-1]",
+        "class": "tests.test_config",
+        "seconds": 0.0,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_invalid_port[65536]",
+        "class": "tests.test_config",
+        "seconds": 0.0,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_invalid_port[1.5]",
+        "class": "tests.test_config",
+        "seconds": 0.0,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_dedicated_port_and_explicit_override",
+        "class": "tests.test_config",
+        "seconds": 0.0,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_config_never_persists_key",
+        "class": "tests.test_config",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_invalid_config_has_clear_error[None]",
+        "class": "tests.test_config",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_invalid_config_has_clear_error[value1]",
+        "class": "tests.test_config",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_invalid_config_has_clear_error[bad]",
+        "class": "tests.test_config",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_invalid_config_has_clear_error[value3]",
+        "class": "tests.test_config",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_imports_have_no_runtime_side_effects",
+        "class": "tests.test_config",
+        "seconds": 0.487,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_windows_default_has_no_roaming_fallback",
+        "class": "tests.test_config",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_stop_rejects_corrupt_descriptor_without_exposing_token[descriptor0]",
+        "class": "tests.test_config",
+        "seconds": 0.003,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_stop_rejects_corrupt_descriptor_without_exposing_token[None]",
+        "class": "tests.test_config",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_stop_rejects_corrupt_descriptor_without_exposing_token[descriptor2]",
+        "class": "tests.test_config",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_direct_settings_rejects_noninteger_port[True]",
+        "class": "tests.test_config",
+        "seconds": 0.0,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_direct_settings_rejects_noninteger_port[False]",
+        "class": "tests.test_config",
+        "seconds": 0.0,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_direct_settings_rejects_noninteger_port[123.9]",
+        "class": "tests.test_config",
+        "seconds": 0.0,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_direct_settings_rejects_noninteger_port[1.0]",
+        "class": "tests.test_config",
+        "seconds": 0.0,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_configuration_rejects_malformed_types_and_foreign_namespace[change0]",
+        "class": "tests.test_config",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_configuration_rejects_malformed_types_and_foreign_namespace[change1]",
+        "class": "tests.test_config",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_configuration_rejects_malformed_types_and_foreign_namespace[change2]",
+        "class": "tests.test_config",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_configuration_rejects_malformed_types_and_foreign_namespace[change3]",
+        "class": "tests.test_config",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_configuration_rejects_malformed_types_and_foreign_namespace[change4]",
+        "class": "tests.test_config",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_config_rejects_invalid_or_credential_bearing_urls[ftp://example.invalid]",
+        "class": "tests.test_config",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_config_rejects_invalid_or_credential_bearing_urls[https://user:synthetic@example.invalid/v1]",
+        "class": "tests.test_config",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_config_rejects_invalid_or_credential_bearing_urls[https://example.invalid/v1?api_key=synthetic]",
+        "class": "tests.test_config",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_config_rejects_invalid_or_credential_bearing_urls[https://example.invalid/#fragment]",
+        "class": "tests.test_config",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_config_rejects_invalid_or_credential_bearing_urls[https://example.invalid:notaport]",
+        "class": "tests.test_config",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_config_rejects_invalid_or_credential_bearing_urls[https://]",
+        "class": "tests.test_config",
+        "seconds": 0.002,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_config_rejects_invalid_or_credential_bearing_urls[https://example.invalid:0]",
+        "class": "tests.test_config",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_valid_cloud_config_is_read_without_calling_endpoint",
+        "class": "tests.test_config",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_existing_hardlinks_cannot_modify_other_data[.ai-neko.json]",
+        "class": "tests.test_config",
+        "seconds": 0.067,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_existing_hardlinks_cannot_modify_other_data[runtime/instance.lock]",
+        "class": "tests.test_config",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_existing_hardlinks_cannot_modify_other_data[logs/service.jsonl]",
+        "class": "tests.test_config",
+        "seconds": 0.002,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_existing_hardlinks_cannot_modify_other_data[config/app.json]",
+        "class": "tests.test_config",
+        "seconds": 0.002,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_marker_rejects_boolean_schema_version",
+        "class": "tests.test_config",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_reparse_attribute_detection_is_explicit",
+        "class": "tests.test_config",
+        "seconds": 0.0,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_stop_never_forwards_token_along_redirect",
+        "class": "tests.test_config",
+        "seconds": 0.519,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_condition_and_custom_stream",
+        "class": "tests.test_graph",
+        "seconds": 0.025,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_interrupt_resume_and_checkpoint_guards",
+        "class": "tests.test_graph",
+        "seconds": 0.011,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_all_operations_reject_foreign_handle_and_checkpoint[other0-get]",
+        "class": "tests.test_graph",
+        "seconds": 0.01,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_all_operations_reject_foreign_handle_and_checkpoint[other0-history]",
+        "class": "tests.test_graph",
+        "seconds": 0.01,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_all_operations_reject_foreign_handle_and_checkpoint[other0-run]",
+        "class": "tests.test_graph",
+        "seconds": 0.009,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_all_operations_reject_foreign_handle_and_checkpoint[other0-resume]",
+        "class": "tests.test_graph",
+        "seconds": 0.01,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_all_operations_reject_foreign_handle_and_checkpoint[other0-delete]",
+        "class": "tests.test_graph",
+        "seconds": 0.009,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_all_operations_reject_foreign_handle_and_checkpoint[other1-get]",
+        "class": "tests.test_graph",
+        "seconds": 0.009,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_all_operations_reject_foreign_handle_and_checkpoint[other1-history]",
+        "class": "tests.test_graph",
+        "seconds": 0.009,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_all_operations_reject_foreign_handle_and_checkpoint[other1-run]",
+        "class": "tests.test_graph",
+        "seconds": 0.009,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_all_operations_reject_foreign_handle_and_checkpoint[other1-resume]",
+        "class": "tests.test_graph",
+        "seconds": 0.008,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_all_operations_reject_foreign_handle_and_checkpoint[other1-delete]",
+        "class": "tests.test_graph",
+        "seconds": 0.008,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_all_operations_reject_foreign_handle_and_checkpoint[other2-get]",
+        "class": "tests.test_graph",
+        "seconds": 0.008,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_all_operations_reject_foreign_handle_and_checkpoint[other2-history]",
+        "class": "tests.test_graph",
+        "seconds": 0.011,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_all_operations_reject_foreign_handle_and_checkpoint[other2-run]",
+        "class": "tests.test_graph",
+        "seconds": 0.007,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_all_operations_reject_foreign_handle_and_checkpoint[other2-resume]",
+        "class": "tests.test_graph",
+        "seconds": 0.008,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_all_operations_reject_foreign_handle_and_checkpoint[other2-delete]",
+        "class": "tests.test_graph",
+        "seconds": 0.007,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_delete_revokes_handle_and_removes_all_checkpoint_rows",
+        "class": "tests.test_graph",
+        "seconds": 0.009,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_fresh_process_recovers_paused_graph_and_scope_mapping",
+        "class": "tests.test_graph",
+        "seconds": 1.468,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_second_graph_process_rejected_and_lock_released",
+        "class": "tests.test_graph",
+        "seconds": 0.362,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_constructor_and_import_have_no_application_writes",
+        "class": "tests.test_graph",
+        "seconds": 0.362,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_graph_disables_environment_enabled_cloud_tracing",
+        "class": "tests.test_graph",
+        "seconds": 0.008,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_graph_rejects_redirected_database_and_lock_paths[graph.sqlite]",
+        "class": "tests.test_graph",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_graph_rejects_redirected_database_and_lock_paths[scopes.sqlite]",
+        "class": "tests.test_graph",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_graph_rejects_redirected_database_and_lock_paths[graph.sqlite-wal]",
+        "class": "tests.test_graph",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_graph_rejects_redirected_database_and_lock_paths[.graph.lock]",
+        "class": "tests.test_graph",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_graph_rejects_hardlinked_files_before_any_write[.graph.lock]",
+        "class": "tests.test_graph",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_graph_rejects_hardlinked_files_before_any_write[graph.sqlite]",
+        "class": "tests.test_graph",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_graph_rejects_hardlinked_files_before_any_write[graph.sqlite-wal]",
+        "class": "tests.test_graph",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_graph_rejects_hardlinked_files_before_any_write[graph.sqlite-shm]",
+        "class": "tests.test_graph",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_graph_rejects_hardlinked_files_before_any_write[graph.sqlite-journal]",
+        "class": "tests.test_graph",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_graph_rejects_hardlinked_files_before_any_write[scopes.sqlite]",
+        "class": "tests.test_graph",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_graph_rejects_hardlinked_files_before_any_write[scopes.sqlite-wal]",
+        "class": "tests.test_graph",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_graph_rejects_hardlinked_files_before_any_write[scopes.sqlite-shm]",
+        "class": "tests.test_graph",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_graph_rejects_hardlinked_files_before_any_write[scopes.sqlite-journal]",
+        "class": "tests.test_graph",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_graph_rejects_redirected_checkpoint_directory",
+        "class": "tests.test_graph",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_missing_or_closed_service_and_invalid_scope_are_rejected",
+        "class": "tests.test_graph",
+        "seconds": 0.002,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_health_descriptor_and_graceful_cli_stop",
+        "class": "tests.test_server_process",
+        "seconds": 0.636,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_http_requires_token[headers0]",
+        "class": "tests.test_server_process",
+        "seconds": 0.395,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_http_requires_token[headers1]",
+        "class": "tests.test_server_process",
+        "seconds": 0.444,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_websocket_auth_and_ping",
+        "class": "tests.test_server_process",
+        "seconds": 0.44,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_websocket_rejects_missing_or_wrong_origin[None]",
+        "class": "tests.test_server_process",
+        "seconds": 0.43,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_websocket_rejects_missing_or_wrong_origin[https://synthetic-untrusted.invalid]",
+        "class": "tests.test_server_process",
+        "seconds": 0.44,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_websocket_rejects_wrong_token",
+        "class": "tests.test_server_process",
+        "seconds": 0.442,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_websocket_requires_auth_before_ping",
+        "class": "tests.test_server_process",
+        "seconds": 0.444,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_websocket_rejects_token_in_query_string",
+        "class": "tests.test_server_process",
+        "seconds": 0.536,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_http_rejects_untrusted_host",
+        "class": "tests.test_server_process",
+        "seconds": 0.444,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_shutdown_closes_active_websocket",
+        "class": "tests.test_server_process",
+        "seconds": 0.41,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_websocket_auth_timeout",
+        "class": "tests.test_server_process",
+        "seconds": 5.436,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_invalid_roots_are_rejected",
+        "class": "tests.test_server_process",
+        "seconds": 0.37,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_occupied_explicit_port_is_rejected",
+        "class": "tests.test_server_process",
+        "seconds": 0.177,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_second_instance_cannot_replace_running_descriptor",
+        "class": "tests.test_server_process",
+        "seconds": 0.631,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_two_data_roots_coexist_and_cleanup_independently",
+        "class": "tests.test_server_process",
+        "seconds": 0.837,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_crash_restart_replaces_stale_descriptor_and_token",
+        "class": "tests.test_server_process",
+        "seconds": 0.624,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_session_token_is_absent_from_process_and_persistent_logs",
+        "class": "tests.test_server_process",
+        "seconds": 0.509,
+        "outcome": "passed"
+      }
+    ],
+    "real_model_tests": 0
+  },
+  "scope": {
+    "service_and_synthetic_graph": "PASS",
+    "windows_11_x64_execution": "NOT_VERIFIED",
+    "desktop_tray_audio_packaging": "NOT_TESTED",
+    "original_neko_coexistence": "NOT_TESTED"
+  },
+  "failure_detail_policy": "Raw JUnit, stdout, stderr and failure locals are excluded; rerun uv run pytest -q for local diagnosis."
+}

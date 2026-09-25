@@ -1,0 +1,28 @@
+---
+title: "你说一句话之后 · 待实现设计"
+---
+sequenceDiagram
+    participant U as 用户界面
+    participant R as Runtime
+    participant G as 对话图
+    participant M as 本地记忆
+    participant L as 模型适配器
+    participant A as 音频播放
+    U->>R: 输入 + 外部会话 ID
+    R->>R: 验证身份，登记 turn 与待结算记录
+    R->>G: run_turn（内部线程 ID）
+    G->>M: 按用户 / 角色检索
+    M-->>G: 记忆、来源、版本
+    G->>L: 有预算的上下文
+    L-->>G: 流式文字 / 工具请求
+    Note over G,L: 工具循环见 04 与 08
+    G-->>R: 用户可见文字事件
+    R-->>U: 当前 turn 的 text_delta
+    R->>A: 当前 turn 的分段 TTS
+    U-->>R: 界面确认
+    A-->>R: 实际播放位置
+    G->>M: 幂等结算原文与整理任务
+    G-->>R: generation_done
+    A-->>R: playback_done 与最终播放位置
+    R->>M: 按证据补充投递状态
+    Note over R,M: 取消不依赖图末节点；详见 06

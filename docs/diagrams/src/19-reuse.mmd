@@ -1,0 +1,13 @@
+---
+title: "教程和 N.E.K.O 代码怎样变成自己的模块 · 待实现设计"
+---
+flowchart TD
+    COURSE["REFERENCES · 24 课<br/>阅读教程、实验和复核"] --> TRACE["定位源文件与函数<br/>理解输入 / 输出 / 状态"]
+    TRACE --> LICENSE["核实 commit / 工作树快照<br/>许可证、素材、导入副作用"]
+    LICENSE --> SELECT{"属于首版所需模块？"}
+    SELECT -->|是| PORT["提取必要能力<br/>写 ai-neko 适配接口"]
+    SELECT -->|否| LATER["后续：游戏、音乐、声纹<br/>多渠道、市场、MCP、Steam"]
+    PORT --> TEST["确定性契约与失败用例"]
+    TEST --> REAL["本工程真模型 / Windows 验证"]
+    REAL --> DOC["更新来源、PLAN、REVIEW<br/>WORKLOG 与模块图"]
+    NOTE["统一约束<br/>一套对话图 + 一个长期记忆权威"] -.-> PORT

@@ -1,0 +1,35 @@
+stateDiagram-v2
+    direction LR
+    state "05 · Runtime｜设计，M1/M4 待实现" as Runtime {
+        state "等待输入" as Idle
+        state "持久登记回合" as Register
+        state "生成与投递" as Running
+        state "等待音频播完" as Draining
+        state "旧轮失效与停播" as Cancel
+        [*] --> Idle
+        Idle --> Register: 接受新输入
+        Register --> Running: 登记成功
+        Register --> Idle: 登记失败并报错
+        Running --> Draining: 生成结束，仍有音频
+        Running --> Idle: 生成结束，无音频
+        Draining --> Idle: playback_done
+        Running --> Cancel: 插话、关闭或异常
+        Draining --> Cancel: 插话或关闭
+        Cancel --> Idle: 停播，移交收尾
+        --
+        state "待结算记录" as Pending
+        state "独立幂等结算" as Finalizing
+        state "已合并投递证据" as Settled
+        state "待重试或重启恢复" as Retry
+        [*] --> Pending: 接受输入即持久登记
+        Pending --> Finalizing: 正常结束、取消或恢复
+        Finalizing --> Settled: 原文与投递状态合并
+        Finalizing --> Retry: 事务失败或超时
+        Retry --> Finalizing: 恢复任务重试
+        Settled --> Settled: 幂等合并迟到的有效回执
+    }
+    note right of Runtime
+        当前轮区负责调度；结算区按 turn_id 独立收尾。
+        生成结束不等于播放结束，也不等于记忆整理完成。
+        退出时停止接收新输入，清理本工程媒体与任务。
+    end note

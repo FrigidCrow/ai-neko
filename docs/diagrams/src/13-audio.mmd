@@ -1,0 +1,40 @@
+---
+title: 语音往返与用户插话（设计 · 待实现）
+---
+sequenceDiagram
+    participant A as 麦克风 / ASR
+    participant R as Runtime
+    participant G as LangGraph
+    participant T as TTS
+    participant P as 播放器 / 口型
+    participant U as 界面
+    A->>R: 识别文字与所属会话
+    R->>R: 分配 turn_id，持久登记回合
+    R->>G: run_turn：进入唯一对话图
+    loop 同一 turn_id 的流式片段
+        G-->>R: text_delta
+        R-->>U: 显示文字
+        R->>T: 文本分段与 turn_id
+        T-->>R: audio_chunk 与 turn_id
+        R-->>P: 校验当前轮次后排队播放
+    end
+    alt 正常结束
+        G-->>R: generation_done：模型生成结束
+        R-->>U: 标记文字生成结束
+        T-->>R: 音频流结束
+        R-->>P: 最后片段已到达
+        P-->>R: playback_done：最后声音已播放
+        R-->>U: 标记播放结束
+    else 用户插话（可发生在上述任意时刻）
+        A->>R: cancel 旧 turn_id
+        R->>R: 先使旧轮次失效
+        R->>P: 立即停声、清队列、停止旧口型
+        R->>G: 取消旧图与模型任务
+        R->>T: 取消旧合成
+        T-->>R: 迟到的旧音频
+        R->>R: 按 turn_id 丢弃
+        P-->>R: 最后实际播放位置
+        R->>R: 独立收尾：幂等结算已投递部分
+        R-->>U: turn_cancelled
+    end
+    Note over R,P: 生成结束与播放结束分开；收到取消到停声 p95 ≤ 300ms 是未测目标

@@ -1,0 +1,66 @@
+{
+  "checkedAt": "2026-09-25T08:29:39.226525+00:00",
+  "scope": "Rename, documentation, diagrams, reference integrity; no ai-neko product runtime or Windows validation",
+  "environment": {
+    "system": "Darwin",
+    "machine": "arm64",
+    "python": "3.9.6"
+  },
+  "gitRoot": "/Users/frigidcrow/Dev/ai-neko",
+  "branch": "codex/initial-plan",
+  "remotes": [
+    {
+      "name": "origin",
+      "fetchUrls": [
+        "git@github.com:FrigidCrow/ai-neko.git"
+      ],
+      "pushUrls": [
+        "git@github.com:FrigidCrow/ai-neko.git"
+      ]
+    }
+  ],
+  "oldDirectoryAbsent": true,
+  "oldNamesAllowedOnlyInHistory": [
+    "WORKLOG.md",
+    "docs/validation-initial.json"
+  ],
+  "markdownFiles": 14,
+  "localLinks": 273,
+  "referenceFiles": 206,
+  "courses": 24,
+  "referenceGroups": 10,
+  "sourceHead": "90ccf79c95e80f899b9bf3395fa8cd9a9bfe29be",
+  "sourceFingerprintCommands": [
+    "git status --porcelain=v1 -z",
+    "git diff"
+  ],
+  "sourceFingerprint": {
+    "status_sha256": "d8549aaa207cd5cd47eb99d690105412396ac32c0952269a1962d8cd16efe92d",
+    "tracked_diff_sha256": "5e6901c31aef6aea1c6be7134823bb559d126806b26266bae77da052883d560f"
+  },
+  "sourceTrackedDiffAndStatusUnchanged": true,
+  "diagramCount": 20,
+  "browserValidation": "PASS",
+  "productStages": {
+    "docs/PLAN.md": {
+      "M0": "Partial",
+      "M1": "Pending",
+      "M2": "Pending",
+      "M3": "Pending",
+      "M4": "Pending",
+      "M5": "Pending",
+      "M6": "Pending"
+    },
+    "REVIEW.md": {
+      "M0": "Partial",
+      "M1": "Pending",
+      "M2": "Pending",
+      "M3": "Pending",
+      "M4": "Pending",
+      "M5": "Pending",
+      "M6": "Pending"
+    }
+  },
+  "issues": [],
+  "result": "PASS"
+}

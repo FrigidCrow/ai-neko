@@ -1,0 +1,15 @@
+---
+title: "怎样证明它真的能在 Windows 使用 · 待实现设计"
+---
+flowchart TD
+    SRC["源码 commit + 产品锁文件<br/>资源与许可清单"] --> BUILD["Windows 11 x64 构建<br/>宿主、后端、资源"]
+    BUILD --> ZIP["便携 ZIP<br/>记录环境与 SHA256"]
+    ZIP --> CLEAN["干净机器解压双击<br/>无需用户安装开发工具"]
+    CLEAN --> FUNCTION["窗口 / 角色 / 文字 / 记忆<br/>语音 / 打断 / 工具"]
+    FUNCTION --> ISO["中文路径、第二实例、端口<br/>原版共存、退出清理"]
+    ISO --> UPGRADE["升级与实际备份恢复<br/>已删资料不意外复活"]
+    UPGRADE --> LONG["7 天受控使用<br/>至少 20 次退出重开"]
+    LONG --> GATE{"必要验收全部通过？"}
+    GATE -->|否| FIX["记录问题、修复并复测相关项"]
+    FIX --> BUILD
+    GATE -->|是| RELEASE["可交付版本<br/>证据对应实际观察窗口"]

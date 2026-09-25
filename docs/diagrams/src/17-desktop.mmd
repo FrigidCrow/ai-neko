@@ -1,0 +1,15 @@
+---
+title: "窗口、托盘与启动由谁负责 · 待实现设计"
+---
+flowchart TD
+    CHECK{"N.E.K.O.-PC<br/>访问、许可、接口已核实？"}
+    CHECK -->|可适用| REUSE["适配已有桌面宿主"]
+    CHECK -->|不可用时| MIN["补最小 Electron 宿主"]
+    REUSE --> START["ai-neko 启动入口<br/>独立 App ID / 单实例锁"]
+    MIN --> START
+    START --> BACK["启动本工程后端<br/>取得地址与连接令牌"]
+    BACK --> READY{"健康检查通过？"}
+    READY -->|否| ERR["显示诊断并清理本工程子进程"]
+    READY -->|是| UI["加载前端与角色<br/>窗口、托盘、拖拽、穿透"]
+    UI --> EXIT["退出：停止采集与旧音频<br/>收尾、关闭本工程子进程"]
+    EXIT --> TEST["Windows 实测<br/>DPI、双屏、中文路径、共存"]

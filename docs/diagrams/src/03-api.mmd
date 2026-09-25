@@ -1,0 +1,14 @@
+---
+title: "本机 API 与事件为什么要有身份 · 待实现设计"
+---
+flowchart TD
+    UI["前端请求"] --> API["本机 API / WebSocket<br/>仅 loopback"]
+    API --> AUTH{"令牌与来源有效？"}
+    AUTH -->|否| DENY["拒绝连接或请求"]
+    AUTH -->|是| OWNER["从可信配置解析用户和角色<br/>校验会话所有者"]
+    OWNER --> MAP["映射内部线程 ID<br/>所有状态入口共用检查"]
+    MAP --> RT["SessionRuntime<br/>运行或取消当前回合"]
+    RT --> EVT["公共事件信封<br/>版本、角色、会话、turn<br/>event_id、seq、payload"]
+    EVT --> FILTER{"归属正确且未重复？"}
+    FILTER -->|是| AD["前端事件适配器<br/>文字 / 音频 / 情绪 / 完成"]
+    FILTER -->|否| DROP["丢弃旧轮或重复事件"]

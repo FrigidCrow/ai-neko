@@ -1,0 +1,52 @@
+---
+title: 本地记忆概念关系（设计 · 非最终 DDL）
+---
+erDiagram
+    SCOPE ||--o{ SOURCE : "拥有"
+    SCOPE ||--o{ REVISION : "维护版本"
+    SCOPE ||--o{ CHECKPOINT : "校验归属"
+    SOURCE ||--o{ JOB : "等待提取"
+    SOURCE }|--o{ FACT : "提供依据"
+    REVISION ||--o{ FACT : "标记有效版本"
+    FACT ||--o{ INDEX : "可重建"
+
+    SCOPE["主体范围"] {
+        string scope_id PK "用户与角色的组合"
+        string user_id "可信本机身份"
+        string character_id "角色隔离"
+    }
+    SOURCE["原始证据"] {
+        string source_id PK "原始证据标识"
+        string turn_id "回合归属"
+        string delivery_state "显示与播放证据"
+        string deletion_state "删除状态"
+    }
+    FACT["事实或事件"] {
+        string fact_id PK "事实或事件标识"
+        string scope_id FK "禁止跨主体使用"
+        string validity "有效或已撤销"
+        string source_ids "可追溯来源"
+    }
+    JOB["持久整理任务"] {
+        string job_id PK "重试幂等标识"
+        string source_id FK "原文引用"
+        int expected_revision "提交前重新校验"
+        string status "待处理或终态"
+    }
+    REVISION["记忆修订"] {
+        string scope_id FK "所属用户与角色"
+        int memory_revision "递增版本"
+        string tombstone "防止旧任务回写"
+    }
+    INDEX["派生索引"] {
+        string fact_id FK "指向权威数据"
+        int memory_revision "索引版本"
+        string kind "关键词时间或向量"
+    }
+    CHECKPOINT["会话执行快照"] {
+        string checkpoint_id PK "执行快照标识"
+        string internal_thread_id "后端分配并验证所有者"
+        string graph_state "消息节点与执行位置"
+        int memory_revision "恢复前重验"
+        string authority "不是长期事实权威"
+    }

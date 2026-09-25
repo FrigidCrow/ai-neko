@@ -1,0 +1,984 @@
+{
+  "schemaVersion": 1,
+  "auditDate": "2026-09-25",
+  "generatedAt": "2026-09-25T07:10:01.114777+00:00",
+  "project": "ai-neko",
+  "auditMode": "read-only-static-plus-public-metadata",
+  "sourceRoot": "/Users/frigidcrow/Dev/neko-companion",
+  "sourceRepository": "https://github.com/Project-N-E-K-O/N.E.K.O",
+  "sourceCommit": "90ccf79c95e80f899b9bf3395fa8cd9a9bfe29be",
+  "imports": [],
+  "thirdPartyRuntimeFilesCopied": 0,
+  "thirdPartyAssetsCopied": 0,
+  "referenceModulesImported": false,
+  "referenceVenvUsed": false,
+  "referenceRuntimeConfigurationRead": false,
+  "realModelCalls": 0,
+  "desktopDecision": {
+    "status": "selected-not-implemented",
+    "choice": "ai-neko-minimal-electron-host",
+    "phase": "M3",
+    "externalRepository": "Project-N-E-K-O/N.E.K.O.-PC",
+    "accessCheck": {
+      "command": "gh repo view Project-N-E-K-O/N.E.K.O.-PC --json nameWithOwner,url,visibility,licenseInfo,defaultBranchRef",
+      "exitCode": 1,
+      "result": "GraphQL: Could not resolve to a Repository with the name 'Project-N-E-K-O/N.E.K.O.-PC'. (repository)"
+    },
+    "externalSourceCommit": null,
+    "externalLicense": null,
+    "futureReconsiderationAllowed": true
+  },
+  "files": [
+    {
+      "path": "LICENSE",
+      "area": "license",
+      "sourceCommit": "90ccf79c95e80f899b9bf3395fa8cd9a9bfe29be",
+      "sha256": "0d99b64baf1323c3a7f70a28075b14d573df6d773aa2d33d827053cc775062d8",
+      "sizeBytes": 11357,
+      "lineCount": 202,
+      "evidenceLineRanges": [
+        [
+          1,
+          4
+        ],
+        [
+          90,
+          124
+        ]
+      ],
+      "matchesCommitBytes": true,
+      "gitStatus": "clean",
+      "copied": false,
+      "executed": false
+    },
+    {
+      "path": "NOTICE",
+      "area": "license",
+      "sourceCommit": "90ccf79c95e80f899b9bf3395fa8cd9a9bfe29be",
+      "sha256": "96199da23327c5086c4f562e4c1a05685e18643ab32ce896f13934b15b4a8aca",
+      "sizeBytes": 771,
+      "lineCount": 21,
+      "evidenceLineRanges": [
+        [
+          1,
+          20
+        ]
+      ],
+      "matchesCommitBytes": true,
+      "gitStatus": "clean",
+      "copied": false,
+      "executed": false
+    },
+    {
+      "path": ".github/workflows/build-desktop.yml",
+      "area": "desktop",
+      "sourceCommit": "90ccf79c95e80f899b9bf3395fa8cd9a9bfe29be",
+      "sha256": "d2ea8738dba100d4745b5e736483f5523811be79e2789f1b3b5a7f1beb6cbfb4",
+      "sizeBytes": 76794,
+      "lineCount": 1423,
+      "evidenceLineRanges": [
+        [
+          933,
+          939
+        ]
+      ],
+      "matchesCommitBytes": true,
+      "gitStatus": "clean",
+      "copied": false,
+      "executed": false
+    },
+    {
+      "path": "scripts/build-desktop-release.ps1",
+      "area": "desktop",
+      "sourceCommit": "90ccf79c95e80f899b9bf3395fa8cd9a9bfe29be",
+      "sha256": "35a1da47becc98007635b59255e605f2096a00402116c506e0c12a56788078c6",
+      "sizeBytes": 14176,
+      "lineCount": 315,
+      "evidenceLineRanges": [
+        [
+          171,
+          179
+        ]
+      ],
+      "matchesCommitBytes": true,
+      "gitStatus": "clean",
+      "copied": false,
+      "executed": false
+    },
+    {
+      "path": "memory/recent.py",
+      "area": "memory",
+      "sourceCommit": "90ccf79c95e80f899b9bf3395fa8cd9a9bfe29be",
+      "sha256": "e086b0b4d3d1fe4561578724b23a90511d56e0be43c1de489130e7ec69563dd9",
+      "sizeBytes": 88677,
+      "lineCount": 1835,
+      "evidenceLineRanges": [
+        [
+          15,
+          48
+        ],
+        [
+          330,
+          337
+        ],
+        [
+          351,
+          362
+        ]
+      ],
+      "matchesCommitBytes": true,
+      "gitStatus": "clean",
+      "copied": false,
+      "executed": false
+    },
+    {
+      "path": "memory/facts.py",
+      "area": "memory",
+      "sourceCommit": "90ccf79c95e80f899b9bf3395fa8cd9a9bfe29be",
+      "sha256": "6154f00af5249ad0f59a290eb69b5d21d0d959cccb7924a0b2312d5b753f454e",
+      "sizeBytes": 293623,
+      "lineCount": 5865,
+      "evidenceLineRanges": [
+        [
+          36,
+          86
+        ],
+        [
+          339,
+          340
+        ]
+      ],
+      "matchesCommitBytes": true,
+      "gitStatus": "clean",
+      "copied": false,
+      "executed": false
+    },
+    {
+      "path": "memory/timeindex.py",
+      "area": "memory",
+      "sourceCommit": "90ccf79c95e80f899b9bf3395fa8cd9a9bfe29be",
+      "sha256": "cdceb4a0bee00b4c0c449dc623855b6fbe12a074fe6a33fb294bcce0673191a0",
+      "sizeBytes": 85392,
+      "lineCount": 1814,
+      "evidenceLineRanges": [
+        [
+          15,
+          33
+        ],
+        [
+          455,
+          510
+        ]
+      ],
+      "matchesCommitBytes": true,
+      "gitStatus": "clean",
+      "copied": false,
+      "executed": false
+    },
+    {
+      "path": "memory/hybrid_recall.py",
+      "area": "memory",
+      "sourceCommit": "90ccf79c95e80f899b9bf3395fa8cd9a9bfe29be",
+      "sha256": "540d4e80390968ee0205244643072df5dac6052405fc23add48d6d3a032a76d5",
+      "sizeBytes": 64800,
+      "lineCount": 1406,
+      "evidenceLineRanges": [
+        [
+          98,
+          112
+        ],
+        [
+          385,
+          385
+        ],
+        [
+          676,
+          676
+        ]
+      ],
+      "matchesCommitBytes": true,
+      "gitStatus": "clean",
+      "copied": false,
+      "executed": false
+    },
+    {
+      "path": "memory/outbox.py",
+      "area": "memory",
+      "sourceCommit": "90ccf79c95e80f899b9bf3395fa8cd9a9bfe29be",
+      "sha256": "03105b6d3391a10988e6482972951a206fa4935d06e55cc532ef733d6cf6c987",
+      "sizeBytes": 13596,
+      "lineCount": 320,
+      "evidenceLineRanges": [
+        [
+          52,
+          56
+        ],
+        [
+          79,
+          126
+        ]
+      ],
+      "matchesCommitBytes": true,
+      "gitStatus": "clean",
+      "copied": false,
+      "executed": false
+    },
+    {
+      "path": "memory/embeddings.py",
+      "area": "memory",
+      "sourceCommit": "90ccf79c95e80f899b9bf3395fa8cd9a9bfe29be",
+      "sha256": "1e25d844f8cceb6bd8527d4cdb387f487b232e6f28afe8f7c2f9faced20b8108",
+      "sizeBytes": 72549,
+      "lineCount": 1625,
+      "evidenceLineRanges": [
+        [
+          71,
+          84
+        ],
+        [
+          942,
+          980
+        ]
+      ],
+      "matchesCommitBytes": true,
+      "gitStatus": "clean",
+      "copied": false,
+      "executed": false
+    },
+    {
+      "path": "memory/_embeddings/lifecycle.py",
+      "area": "memory",
+      "sourceCommit": "90ccf79c95e80f899b9bf3395fa8cd9a9bfe29be",
+      "sha256": "fd471cde9ecda877e8a800705f6117373b8bb65a1b7dcf197166c3bace12218c",
+      "sizeBytes": 512,
+      "lineCount": 18,
+      "evidenceLineRanges": [
+        [
+          1,
+          18
+        ]
+      ],
+      "matchesCommitBytes": true,
+      "gitStatus": "clean",
+      "copied": false,
+      "executed": false
+    },
+    {
+      "path": "app/memory_server/runtime.py",
+      "area": "memory",
+      "sourceCommit": "90ccf79c95e80f899b9bf3395fa8cd9a9bfe29be",
+      "sha256": "5c419b584f1df6951aa64d2c1078b404ade3945ab36dd84d249076c46a58bb4b",
+      "sizeBytes": 61496,
+      "lineCount": 1341,
+      "evidenceLineRanges": [
+        [
+          41,
+          79
+        ]
+      ],
+      "matchesCommitBytes": true,
+      "gitStatus": "clean",
+      "copied": false,
+      "executed": false
+    },
+    {
+      "path": "app/memory_server/routes.py",
+      "area": "memory",
+      "sourceCommit": "90ccf79c95e80f899b9bf3395fa8cd9a9bfe29be",
+      "sha256": "8e4c122eadf339862bf2010a050f7b616fb5e2d5d2b7c5410c37b13a95c346fb",
+      "sizeBytes": 176536,
+      "lineCount": 3961,
+      "evidenceLineRanges": [
+        [
+          68,
+          72
+        ],
+        [
+          3730,
+          3733
+        ]
+      ],
+      "matchesCommitBytes": true,
+      "gitStatus": "clean",
+      "copied": false,
+      "executed": false
+    },
+    {
+      "path": "app/memory_server/post_turn.py",
+      "area": "memory",
+      "sourceCommit": "90ccf79c95e80f899b9bf3395fa8cd9a9bfe29be",
+      "sha256": "efba65754249685ff2e349789aa0131b2ab0949e17e9cd52d2426c61b141e8f0",
+      "sizeBytes": 24926,
+      "lineCount": 574,
+      "evidenceLineRanges": [
+        [
+          574,
+          574
+        ]
+      ],
+      "matchesCommitBytes": true,
+      "gitStatus": "clean",
+      "copied": false,
+      "executed": false
+    },
+    {
+      "path": "utils/logger_config.py",
+      "area": "memory",
+      "sourceCommit": "90ccf79c95e80f899b9bf3395fa8cd9a9bfe29be",
+      "sha256": "e3e4647ba2484b4cd864de4bb52d6d69fd38a610c1acff7219e48b17111720e3",
+      "sizeBytes": 36890,
+      "lineCount": 909,
+      "evidenceLineRanges": [
+        [
+          438,
+          450
+        ],
+        [
+          533,
+          560
+        ],
+        [
+          854,
+          874
+        ]
+      ],
+      "matchesCommitBytes": true,
+      "gitStatus": "clean",
+      "copied": false,
+      "executed": false
+    },
+    {
+      "path": "main_logic/asr_client/__init__.py",
+      "area": "audio",
+      "sourceCommit": "90ccf79c95e80f899b9bf3395fa8cd9a9bfe29be",
+      "sha256": "3dfb011a1a93238965a9fd705e746c6badb8ea19a817348b6a79b56aaa08ca32",
+      "sizeBytes": 18209,
+      "lineCount": 514,
+      "evidenceLineRanges": [
+        [
+          27,
+          58
+        ]
+      ],
+      "matchesCommitBytes": true,
+      "gitStatus": "clean",
+      "copied": false,
+      "executed": false
+    },
+    {
+      "path": "main_logic/asr_client/workers/openai.py",
+      "area": "audio",
+      "sourceCommit": "90ccf79c95e80f899b9bf3395fa8cd9a9bfe29be",
+      "sha256": "948978379e2fdd9f65899d4472e42ba070d427ae6b2c81d784ddaad75a92a277",
+      "sizeBytes": 26218,
+      "lineCount": 664,
+      "evidenceLineRanges": [
+        [
+          19,
+          34
+        ]
+      ],
+      "matchesCommitBytes": true,
+      "gitStatus": "clean",
+      "copied": false,
+      "executed": false
+    },
+    {
+      "path": "main_logic/tts_client/__init__.py",
+      "area": "audio",
+      "sourceCommit": "90ccf79c95e80f899b9bf3395fa8cd9a9bfe29be",
+      "sha256": "70804afb22a47f2c31e585e83e935b40ddceb5fabfba7dadc3ffa02e8d394a8c",
+      "sizeBytes": 29597,
+      "lineCount": 629,
+      "evidenceLineRanges": [
+        [
+          32,
+          143
+        ],
+        [
+          450,
+          626
+        ]
+      ],
+      "matchesCommitBytes": true,
+      "gitStatus": "clean",
+      "copied": false,
+      "executed": false
+    },
+    {
+      "path": "main_logic/tts_client/workers/openai.py",
+      "area": "audio",
+      "sourceCommit": "90ccf79c95e80f899b9bf3395fa8cd9a9bfe29be",
+      "sha256": "36d1ff23ea09ae5f1906ba198f25f73fb450e21c7213568e1571b9e67e23914e",
+      "sizeBytes": 10420,
+      "lineCount": 266,
+      "evidenceLineRanges": [
+        [
+          19,
+          44
+        ],
+        [
+          47,
+          60
+        ],
+        [
+          83,
+          97
+        ]
+      ],
+      "matchesCommitBytes": true,
+      "gitStatus": "clean",
+      "copied": false,
+      "executed": false
+    },
+    {
+      "path": "main_logic/core/tts_runtime.py",
+      "area": "audio",
+      "sourceCommit": "90ccf79c95e80f899b9bf3395fa8cd9a9bfe29be",
+      "sha256": "12bd102e8c23218f97e16faf1fafe3aa8272379971a8c18976208cc9c9eec755",
+      "sizeBytes": 115913,
+      "lineCount": 2236,
+      "evidenceLineRanges": [
+        [
+          39,
+          63
+        ],
+        [
+          794,
+          800
+        ],
+        [
+          1118,
+          1118
+        ],
+        [
+          1245,
+          1252
+        ]
+      ],
+      "matchesCommitBytes": true,
+      "gitStatus": "clean",
+      "copied": false,
+      "executed": false
+    },
+    {
+      "path": "static/audio-processor.js",
+      "area": "audio",
+      "sourceCommit": "90ccf79c95e80f899b9bf3395fa8cd9a9bfe29be",
+      "sha256": "1838f5eac0515e7ebbb4335cd243091cfb5b51ac95d90bfbff9cc8a511e099e3",
+      "sizeBytes": 6767,
+      "lineCount": 190,
+      "evidenceLineRanges": [
+        [
+          190,
+          190
+        ]
+      ],
+      "matchesCommitBytes": true,
+      "gitStatus": "clean",
+      "copied": false,
+      "executed": false
+    },
+    {
+      "path": "static/app/app-audio-playback.js",
+      "area": "audio",
+      "sourceCommit": "90ccf79c95e80f899b9bf3395fa8cd9a9bfe29be",
+      "sha256": "53729ddc0856cbf35751fb8e3ccd85c1f4a88e299d7f2c2e81038dd8c4cf1645",
+      "sizeBytes": 96265,
+      "lineCount": 2127,
+      "evidenceLineRanges": [
+        [
+          12,
+          19
+        ],
+        [
+          325,
+          355
+        ],
+        [
+          2106,
+          2127
+        ]
+      ],
+      "matchesCommitBytes": true,
+      "gitStatus": "clean",
+      "copied": false,
+      "executed": false
+    },
+    {
+      "path": "static/live2d/live2d-core.js",
+      "area": "render",
+      "sourceCommit": "90ccf79c95e80f899b9bf3395fa8cd9a9bfe29be",
+      "sha256": "c546ae4feece5904c4bb7fb0c2502ae1d2bb09f991c924b18b5b6709e8fc3c1e",
+      "sizeBytes": 242426,
+      "lineCount": 5628,
+      "evidenceLineRanges": [
+        [
+          16,
+          35
+        ],
+        [
+          5606,
+          5628
+        ]
+      ],
+      "matchesCommitBytes": true,
+      "gitStatus": "clean",
+      "copied": false,
+      "executed": false
+    },
+    {
+      "path": "frontend/react-neko-chat/src/mount.tsx",
+      "area": "render",
+      "sourceCommit": "90ccf79c95e80f899b9bf3395fa8cd9a9bfe29be",
+      "sha256": "57bc165c4e074fe97f750d9cdb55dac6a639891b3c4c17e0a20369fa696872ed",
+      "sizeBytes": 1043,
+      "lineCount": 40,
+      "evidenceLineRanges": [
+        [
+          1,
+          9
+        ],
+        [
+          22,
+          39
+        ]
+      ],
+      "matchesCommitBytes": true,
+      "gitStatus": "clean",
+      "copied": false,
+      "executed": false
+    },
+    {
+      "path": "frontend/react-neko-chat/src/styles.css",
+      "area": "render",
+      "sourceCommit": "90ccf79c95e80f899b9bf3395fa8cd9a9bfe29be",
+      "sha256": "799dca9bb9faf824264fb42c33a23165ea2fac9661b799c88c8722c21579342b",
+      "sizeBytes": 220617,
+      "lineCount": 7456,
+      "evidenceLineRanges": [
+        [
+          1,
+          8
+        ]
+      ],
+      "matchesCommitBytes": true,
+      "gitStatus": "clean",
+      "copied": false,
+      "executed": false
+    },
+    {
+      "path": "frontend/react-neko-chat/package.json",
+      "area": "frontend-tooling",
+      "sourceCommit": "90ccf79c95e80f899b9bf3395fa8cd9a9bfe29be",
+      "sha256": "2a1495aaf501f4e3505f77a9255bef732c8f3d6f3fe57a8e5aa05b25ecafb531",
+      "sizeBytes": 907,
+      "lineCount": 36,
+      "evidenceLineRanges": [],
+      "matchesCommitBytes": true,
+      "gitStatus": "clean",
+      "copied": false,
+      "executed": false
+    },
+    {
+      "path": "frontend/react-neko-chat/package-lock.json",
+      "area": "frontend-tooling",
+      "sourceCommit": "90ccf79c95e80f899b9bf3395fa8cd9a9bfe29be",
+      "sha256": "b8f8813a55640155643335c6b38bea62a3f00da873a371e85f6c44cb0979102c",
+      "sizeBytes": 175418,
+      "lineCount": 4848,
+      "evidenceLineRanges": [],
+      "matchesCommitBytes": true,
+      "gitStatus": "clean",
+      "copied": false,
+      "executed": false
+    },
+    {
+      "path": "frontend/react-neko-chat/public/LICENSE-Yozai-OFL-1.1.txt",
+      "area": "asset-license",
+      "sourceCommit": "90ccf79c95e80f899b9bf3395fa8cd9a9bfe29be",
+      "sha256": "c36f224daa1e11eda688e3721cbd69869bdf3af6ce097cbb92b0e0f98dec9df7",
+      "sizeBytes": 4496,
+      "lineCount": 94,
+      "evidenceLineRanges": [
+        [
+          1,
+          11
+        ]
+      ],
+      "matchesCommitBytes": true,
+      "gitStatus": "clean",
+      "copied": false,
+      "executed": false
+    },
+    {
+      "path": "static/libs/THIRD_PARTY_NOTICES.md",
+      "area": "asset-license",
+      "sourceCommit": "90ccf79c95e80f899b9bf3395fa8cd9a9bfe29be",
+      "sha256": "9c5f0a40ccefa25f5d81d55bac58f8d22365653c3122bab266792aab536b345e",
+      "sizeBytes": 4595,
+      "lineCount": 81,
+      "evidenceLineRanges": [],
+      "matchesCommitBytes": true,
+      "gitStatus": "clean",
+      "copied": false,
+      "executed": false
+    },
+    {
+      "path": "static/libs/licenses/THREE-MMD-LICENSE.txt",
+      "area": "asset-license",
+      "sourceCommit": "90ccf79c95e80f899b9bf3395fa8cd9a9bfe29be",
+      "sha256": "b97a07c6a9b8c1ee7c24d40b01e9f2cbce35d66a030a15cc8d3322774d990098",
+      "sizeBytes": 1107,
+      "lineCount": 23,
+      "evidenceLineRanges": [],
+      "matchesCommitBytes": true,
+      "gitStatus": "clean",
+      "copied": false,
+      "executed": false
+    },
+    {
+      "path": "static/libs/licenses/BABYLON-MMD-LICENSE.txt",
+      "area": "asset-license",
+      "sourceCommit": "90ccf79c95e80f899b9bf3395fa8cd9a9bfe29be",
+      "sha256": "a85a4046ee03cb97c4bf68e1853baad659c7980757cb7ba7aaa969a242d80e07",
+      "sizeBytes": 1063,
+      "lineCount": 21,
+      "evidenceLineRanges": [],
+      "matchesCommitBytes": true,
+      "gitStatus": "clean",
+      "copied": false,
+      "executed": false
+    },
+    {
+      "path": "main_logic/asr_client/endpointing/models/THIRD_PARTY_NOTICES.md",
+      "area": "asset-license",
+      "sourceCommit": "90ccf79c95e80f899b9bf3395fa8cd9a9bfe29be",
+      "sha256": "95e3c82c2a4b83f3285e682f1fc743f61a3d1a2dd611feab483bd792c8a7dcb0",
+      "sizeBytes": 2728,
+      "lineCount": 55,
+      "evidenceLineRanges": [],
+      "matchesCommitBytes": true,
+      "gitStatus": "clean",
+      "copied": false,
+      "executed": false
+    },
+    {
+      "path": "main_logic/asr_client/speaker_shadow/models/THIRD_PARTY_NOTICES.md",
+      "area": "asset-license",
+      "sourceCommit": "90ccf79c95e80f899b9bf3395fa8cd9a9bfe29be",
+      "sha256": "2be28d626e876d770f1055a9c4f90ccd8293829116dc06120d40b95b0ba7bd8b",
+      "sizeBytes": 1352,
+      "lineCount": 33,
+      "evidenceLineRanges": [],
+      "matchesCommitBytes": true,
+      "gitStatus": "clean",
+      "copied": false,
+      "executed": false
+    }
+  ],
+  "toolchain": {
+    "status": "metadata-only-not-installed",
+    "node": {
+      "selectedVersion": "24.21.0",
+      "metadataUrl": "https://nodejs.org/dist/index.json",
+      "release": {
+        "version": "v24.21.0",
+        "date": "2026-09-07",
+        "files": [
+          "aix-ppc64",
+          "headers",
+          "linux-arm64",
+          "linux-ppc64le",
+          "linux-s390x",
+          "linux-x64",
+          "linux-x64-musl",
+          "osx-arm64-tar",
+          "osx-x64-pkg",
+          "osx-x64-tar",
+          "src",
+          "win-arm64-7z",
+          "win-arm64-zip",
+          "win-x64-7z",
+          "win-x64-exe",
+          "win-x64-msi",
+          "win-x64-zip"
+        ],
+        "npm": "11.19.0",
+        "v8": "13.6.233.17",
+        "uv": "1.52.1",
+        "zlib": "1.3.2.1-motley",
+        "openssl": "3.5.8",
+        "modules": "137",
+        "lts": "Krypton",
+        "security": false
+      }
+    },
+    "npm": {
+      "selectedVersion": "11.19.0",
+      "source": "bundled npm reported by selected Node index entry"
+    },
+    "electronRuntime": {
+      "metadataUrl": "https://releases.electronjs.org/releases.json",
+      "release": {
+        "version": "44.4.5",
+        "date": "2026-09-23",
+        "fullDate": "2026-09-23T04:39:55.000Z",
+        "node": "24.21.0",
+        "v8": "15.2.124.28",
+        "uv": "1.52.1",
+        "zlib": "1.3.2.1-motley",
+        "openssl": "0.0.0",
+        "modules": "149",
+        "chrome": "152.0.7977.130",
+        "files": [
+          "darwin-x64",
+          "darwin-x64-symbols",
+          "linux-ia32",
+          "linux-ia32-symbols",
+          "linux-x64",
+          "linux-x64-symbols",
+          "win32-ia32",
+          "win32-ia32-symbols",
+          "win32-x64",
+          "win32-x64-symbols"
+        ]
+      }
+    },
+    "frontend": [
+      {
+        "name": "electron",
+        "selectedVersion": "44.4.5",
+        "status": "selected-not-installed-not-integration-tested",
+        "metadataUrl": "https://registry.npmjs.org/electron/44.4.5",
+        "metadataSha256": "228d00549a915c8f43edb246b7703a2c25306daa5c7105351f32ed7be06cdfd9",
+        "engines": {
+          "node": ">= 22.12.0"
+        },
+        "peerDependencies": null,
+        "peerDependenciesMeta": null,
+        "license": "MIT",
+        "distIntegrity": "sha512-SjgoaeYsSWZfJzubgQU7juvuXMTvn6/e1gAHdGFA/yuMbpF+I+skYqIJ6DdXBXHeWbkbpNpmwZCTpiivtlWZSw=="
+      },
+      {
+        "name": "vite",
+        "selectedVersion": "8.3.1",
+        "status": "selected-not-installed-not-integration-tested",
+        "metadataUrl": "https://registry.npmjs.org/vite/8.3.1",
+        "metadataSha256": "693145830b40049b358ec7171170063338445754870d3dd2074dd29415829598",
+        "engines": {
+          "node": "^20.19.0 || >=22.12.0"
+        },
+        "peerDependencies": {
+          "tsx": "^4.8.1",
+          "jiti": ">=1.21.0",
+          "less": "^4.0.0",
+          "sass": "^1.70.0",
+          "yaml": "^2.4.2",
+          "stylus": ">=0.54.8",
+          "terser": "^5.16.0",
+          "esbuild": "^0.27.0 || ^0.28.0",
+          "sugarss": "^5.0.0",
+          "@types/node": "^20.19.0 || >=22.12.0",
+          "sass-embedded": "^1.70.0",
+          "@vitejs/devtools": "^0.7.1"
+        },
+        "peerDependenciesMeta": {
+          "tsx": {
+            "optional": true
+          },
+          "jiti": {
+            "optional": true
+          },
+          "less": {
+            "optional": true
+          },
+          "sass": {
+            "optional": true
+          },
+          "yaml": {
+            "optional": true
+          },
+          "stylus": {
+            "optional": true
+          },
+          "terser": {
+            "optional": true
+          },
+          "esbuild": {
+            "optional": true
+          },
+          "sugarss": {
+            "optional": true
+          },
+          "@types/node": {
+            "optional": true
+          },
+          "sass-embedded": {
+            "optional": true
+          },
+          "@vitejs/devtools": {
+            "optional": true
+          }
+        },
+        "license": "MIT",
+        "distIntegrity": "sha512-/bvH9E9tmCXRGp2uXY3WbOldqpTwFkbha/8ANaEQ6VkxhH60KyqLwgZq6lG2y+4uT55x9+9eUHMpQ7uGnOCKjA=="
+      },
+      {
+        "name": "@vitejs/plugin-react",
+        "selectedVersion": "6.1.1",
+        "status": "selected-not-installed-not-integration-tested",
+        "metadataUrl": "https://registry.npmjs.org/@vitejs/plugin-react/6.1.1",
+        "metadataSha256": "214214a0775afce1d095d150d902892decc1ddf99759b15abaf6ea677cf6039d",
+        "engines": {
+          "node": "^20.19.0 || >=22.12.0"
+        },
+        "peerDependencies": {
+          "vite": "^8.0.0",
+          "oxc-transform-react": "^0.145.0",
+          "@rolldown/plugin-babel": "^0.1.7 || ^0.2.0",
+          "babel-plugin-react-compiler": "^1.0.0"
+        },
+        "peerDependenciesMeta": {
+          "oxc-transform-react": {
+            "optional": true
+          },
+          "@rolldown/plugin-babel": {
+            "optional": true
+          },
+          "babel-plugin-react-compiler": {
+            "optional": true
+          }
+        },
+        "license": "MIT",
+        "distIntegrity": "sha512-yxLaQV9gkhS8ezJqCM6+ndU7mDY6gqAg75NQ+0IjwEI8IYOmQCgkRwHKVSfWXW076DsqMo0Dk+0FK1U+M5RgFw=="
+      },
+      {
+        "name": "typescript",
+        "selectedVersion": "5.9.3",
+        "status": "selected-not-installed-not-integration-tested",
+        "metadataUrl": "https://registry.npmjs.org/typescript/5.9.3",
+        "metadataSha256": "80f0d5d237c08c433b4cee823d75c4f54469beee86cc2fad5e1800f86b6243d8",
+        "engines": {
+          "node": ">=14.17"
+        },
+        "peerDependencies": null,
+        "peerDependenciesMeta": null,
+        "license": "Apache-2.0",
+        "distIntegrity": "sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw=="
+      },
+      {
+        "name": "react",
+        "selectedVersion": "18.3.1",
+        "status": "selected-not-installed-not-integration-tested",
+        "metadataUrl": "https://registry.npmjs.org/react/18.3.1",
+        "metadataSha256": "c1e44da006bc2fb250075db381201154591301e12e1100d8e35bf48f8406002d",
+        "engines": {
+          "node": ">=0.10.0"
+        },
+        "peerDependencies": null,
+        "peerDependenciesMeta": null,
+        "license": "MIT",
+        "distIntegrity": "sha512-wS+hAgJShR0KhEvPJArfuPVN1+Hz1t0Y6n5jLrGQbkb4urgPE/0Rve+1kMB1v/oWgHgm4WIcV+i7F2pTVj+2iQ=="
+      },
+      {
+        "name": "react-dom",
+        "selectedVersion": "18.3.1",
+        "status": "selected-not-installed-not-integration-tested",
+        "metadataUrl": "https://registry.npmjs.org/react-dom/18.3.1",
+        "metadataSha256": "7f8ed893ed4e80cef847c62ae6187917754de3283ea5061bccaa77338cabdfb0",
+        "engines": null,
+        "peerDependencies": {
+          "react": "^18.3.1"
+        },
+        "peerDependenciesMeta": null,
+        "license": "MIT",
+        "distIntegrity": "sha512-5m4nQKp+rZRb09LNH59GM4BxTh9251/ylbKIbpe7TpGxfJ+9kv6BLkLBXIjjspbgbnIBNqlI23tRnTWT0snUIw=="
+      },
+      {
+        "name": "@types/react",
+        "selectedVersion": "18.3.12",
+        "status": "selected-not-installed-not-integration-tested",
+        "metadataUrl": "https://registry.npmjs.org/@types/react/18.3.12",
+        "metadataSha256": "c088e93140a51f77179cc89b18ba2435a190430ae4dc9b263be862730aa1b614",
+        "engines": null,
+        "peerDependencies": {},
+        "peerDependenciesMeta": null,
+        "license": "MIT",
+        "distIntegrity": "sha512-D2wOSq/d6Agt28q7rSI3jhU7G6aiuzljDGZ2hTZHIkrTLUI+AF3WMeKkEZ9nN2fkBAlcktT6vcZjDFiIhMYEQw=="
+      },
+      {
+        "name": "@types/react-dom",
+        "selectedVersion": "18.3.1",
+        "status": "selected-not-installed-not-integration-tested",
+        "metadataUrl": "https://registry.npmjs.org/@types/react-dom/18.3.1",
+        "metadataSha256": "511701ce447093aa63d72a5eb4aac867d61ef710f7f78e3f80edc99f06918f20",
+        "engines": null,
+        "peerDependencies": null,
+        "peerDependenciesMeta": null,
+        "license": "MIT",
+        "distIntegrity": "sha512-qW1Mfv8taImTthu4KoXgDfLuk4bydU6Q/TkADnDWWHwi4NX4BR+LWfTp2sVmTqRrsHvyDDTelgelxJ+SsejKKQ=="
+      }
+    ],
+    "referenceFrontendLockedVersions": {
+      "react": "18.3.1",
+      "react-dom": "18.3.1",
+      "vite": "5.4.21",
+      "@vitejs/plugin-react": "4.7.0",
+      "typescript": "5.9.3",
+      "jsdom": "27.4.0",
+      "vitest": "3.2.4"
+    },
+    "compatibilityConclusion": "Selected Node satisfies package engine ranges; plugin peer Vite range matches. No installation, compilation, native ABI, browser rendering or Windows runtime proof."
+  },
+  "credentials": {
+    "status": "selected-not-installed-not-accessed",
+    "phase": "M1",
+    "package": "keyring",
+    "selectedVersion": "25.7.0",
+    "backend": "keyring.backends.Windows.WinVaultKeyring",
+    "servicePattern": "ai-neko/model/<profile_id>",
+    "username": "api_key",
+    "plannedPersistence": "local machine",
+    "defaultBackendPersistence": "CRED_PERSIST_ENTERPRISE",
+    "backendSource": "https://github.com/jaraco/keyring/blob/v25.7.0/keyring/backends/Windows.py",
+    "m0KeySource": "explicit AI_NEKO_MODEL_API_KEY only",
+    "keyringOperationsExecuted": []
+  },
+  "remaining": [
+    "Windows runtime and packaging tests",
+    "actual extraction import-side-effect probes",
+    "renderer SDK and selected model/resource license verification",
+    "frontend lock generation and build",
+    "Windows Credential Manager integration",
+    "audio device capture playback and listening"
+  ],
+  "verificationCommands": [
+    {
+      "command": "git -C /Users/frigidcrow/Dev/neko-companion rev-parse HEAD",
+      "exitCode": 0
+    },
+    {
+      "command": "git -C /Users/frigidcrow/Dev/neko-companion remote -v",
+      "exitCode": 0
+    },
+    {
+      "command": "rg --files /Users/frigidcrow/Dev/neko-companion -g *LICENSE* -g *NOTICE* -g package.json -g !node_modules -g !.venv -g !vendor",
+      "exitCode": 0,
+      "note": "globs shell-quoted during execution"
+    },
+    {
+      "command": "Python stdlib ast.parse and text reads of files listed in this manifest",
+      "exitCode": 0,
+      "productionImports": false
+    },
+    {
+      "command": "Python stdlib urllib.request reads of official Node/Electron indexes and npm/PyPI public metadata",
+      "exitCode": 0
+    },
+    {
+      "command": "Python stdlib hashlib.sha256 of source bytes and git show <sourceCommit>:<path> comparison",
+      "exitCode": 0
+    }
+  ]
+}

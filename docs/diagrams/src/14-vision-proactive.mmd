@@ -1,0 +1,20 @@
+---
+title: 视觉与主动陪伴进入同一对话（设计 · 待实现）
+---
+flowchart TD
+    V["手动截图或选图<br/>首版不常驻采集"] --> W{"视觉开关开启<br/>图片仍然有效?"}
+    W -->|是| N["图片规范化、大小限制<br/>附来源与所属会话"]
+    P["定时或活动事件<br/>附触发原因"] --> Q{"主动开关开启?<br/>非静音、非忙碌且已过冷却?"}
+    Q -->|是| E["主动事件<br/>只提出输入，不直接生成"]
+    W -->|否| X["停止、丢弃或延后<br/>关闭后不采集或发送新图"]
+    Q -->|否| X
+    N --> R["SessionRuntime 统一调度<br/>分配轮次，用户输入优先"]
+    E --> R
+    U["用户输入 / 插话"] -->|抢占主动任务| R
+    R --> G["同一 LangGraph<br/>检索、模型与工具选择"]
+    G --> O["带 turn_id 的回复<br/>校验有效性后展示或播放"]
+    R -->|旧截图或旧轮次| X
+    classDef gate fill:#FFF0D4,stroke:#A06D1F,color:#543B13;
+    classDef decisionModule fill:#DDF4E7,stroke:#24734A,color:#143B29;
+    class W,Q gate;
+    class G decisionModule;

@@ -1,0 +1,26 @@
+sequenceDiagram
+    title 06 · 插话取消｜设计，M1/M4 待实现
+    participant U as 用户/界面
+    participant R as Runtime
+    participant P as 播放器/TTS
+    participant G as 图/模型任务
+    participant S as 持久收尾
+    Note over R,S: 接受旧轮时，已持久登记输入与待结算记录
+    U->>R: 插话或取消旧 turn_id
+    R->>R: 立即使旧轮失效
+    R->>P: 停播放器，清旧队列
+    R->>G: 请求取消旧生成任务
+    P-->>R: 回传已知播放位置（有超时）
+    R->>S: 独立 finalize_turn（内部会话 ID，turn_id）
+    Note over R,S: 与正常提交共用幂等键；收尾不随生成任务取消
+    G-->>R: 迟到的文字/完成事件
+    R->>R: 拒收旧轮事件
+    P-->>R: 迟到的音频片段
+    R->>R: 拒收旧轮片段
+    S->>S: 合并已接受输入与有证据的投递部分
+    alt 结算成功
+        S-->>R: 已持久保存，整理任务待消费
+    else 结算超时或进程退出
+        S->>S: 由持久待办在重启后恢复
+    end
+    Note over U,S: 停播延迟目标待实测；图 interrupt 不能代替这个流程

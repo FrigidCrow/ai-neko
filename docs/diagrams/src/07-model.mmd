@@ -1,0 +1,13 @@
+flowchart TD
+    subgraph DESIGN["07 · 模型适配｜设计，M1 待实现"]
+        G["LangGraph 节点<br/>决定何时调用"] --> A["ModelAdapter<br/>消息、工具描述、任务配置、turn_id"]
+        A --> B["转换供应商协议<br/>选择已配置模型端点"]
+        B --> C["云模型 SDK 请求"]
+        C --> D{"返回类型"}
+        D -->|正常流| E["统一文字、工具请求与 usage"]
+        D -->|认证/网络/超时| F["统一错误与有限重试状态"]
+        E --> H["保留 task / turn 归属<br/>返回图与事件桥"]
+        F --> H
+        H --> J["图决定工具分支或结束<br/>Runtime 过滤过期输出"]
+        K["N.E.K.O 自有客户端<br/>仅作可提取参考"] -.-> A
+    end

@@ -1,0 +1,56 @@
+{
+  "checkedAt": "2026-09-25T06:27:26.691675+00:00",
+  "scope": "Planning documents, reference paths/hashes, and repository isolation only. No product/runtime validation.",
+  "environment": {
+    "system": "Darwin",
+    "machine": "arm64",
+    "python": "3.9.6"
+  },
+  "gitRoot": "/Users/frigidcrow/Dev/langgraph-companion",
+  "branch": "codex/initial-plan",
+  "remotes": [],
+  "markdownFiles": 7,
+  "localLinks": 124,
+  "externalLinkOccurrences": 4,
+  "externalLinksCheck": "Syntax/inventory only; primary LangGraph pages were separately read during planning.",
+  "referenceFiles": 206,
+  "courses": 24,
+  "referenceGroups": 10,
+  "productStages": {
+    "docs/PLAN.md": {
+      "M0": "Pending",
+      "M1": "Pending",
+      "M2": "Pending",
+      "M3": "Pending",
+      "M4": "Pending",
+      "M5": "Pending",
+      "M6": "Pending"
+    },
+    "REVIEW.md": {
+      "M0": "Pending",
+      "M1": "Pending",
+      "M2": "Pending",
+      "M3": "Pending",
+      "M4": "Pending",
+      "M5": "Pending",
+      "M6": "Pending"
+    }
+  },
+  "sourceHead": "90ccf79c95e80f899b9bf3395fa8cd9a9bfe29be",
+  "sourceFingerprint": {
+    "status_sha256": "d8549aaa207cd5cd47eb99d690105412396ac32c0952269a1962d8cd16efe92d",
+    "tracked_diff_sha256": "5e6901c31aef6aea1c6be7134823bb559d126806b26266bae77da052883d560f"
+  },
+  "sourceTrackedDiffAndStatusUnchanged": true,
+  "whitespaceDiffChecked": [
+    "AGENTS.md",
+    "README.md",
+    "REVIEW.md",
+    "WORKLOG.md",
+    "docs/ARCHITECTURE.md",
+    "docs/PLAN.md",
+    "docs/REFERENCES.md"
+  ],
+  "issues": [],
+  "result": "PASS"
+}

@@ -1,0 +1,17 @@
+---
+title: "ai-neko 的整体分工 · 待实现设计"
+---
+flowchart TB
+    U["你：文字、语音、图像"] --> UI
+    subgraph APP["本机 ai-neko · 待实现"]
+      UI["桌面宿主 + 前端 + 角色"] <--> R["SessionRuntime<br/>回合、事件、取消"]
+      AUDIO["麦克风 / ASR / TTS / 播放"] <--> R
+      V["视觉与主动触发"] --> R
+      R <--> G["LangGraph<br/>唯一对话决策"]
+      G <--> M["Memory Service<br/>长期记忆权威"]
+      M <--> D[("本地记忆文件与数据库")]
+      G <--> C[("Checkpoint<br/>会话执行状态")]
+      G <--> T["ToolExecutor<br/>校验并执行工具"]
+      G <--> A["ModelAdapter<br/>统一模型协议"]
+    end
+    A <--> CLOUD["配置的云模型<br/>生成 / 整理，可接收上下文"]

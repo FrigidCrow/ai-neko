@@ -1,0 +1,20 @@
+---
+title: 长期记忆写入与检索（设计 · 待实现）
+---
+flowchart TD
+    A["图或 Runtime 收尾<br/>提交原文与投递证据"] --> B["Memory Service<br/>校验用户与角色范围"]
+    B --> C[("持久原文与整理任务<br/>记录提交状态，支持恢复")]
+    C --> D["后台 worker<br/>按 source_id / job_id 重试去重"]
+    D --> E{"受控提交内校验<br/>版本与删除标记"}
+    E -->|允许| F[("有效事实与来源<br/>Memory Service 唯一权威")]
+    E -->|已失效| L["终止旧任务<br/>不重新写回已删内容"]
+    F --> K["可重建索引<br/>关键词 / 时间 / 可选向量"]
+    G["同一对话图请求 retrieve<br/>新会话也可检索"] --> H["先过滤范围与有效性<br/>再限定时间"]
+    F --> H
+    K --> H
+    H --> I["候选排序、去重<br/>按上下文预算裁剪"]
+    I --> J["返回内容、source_id<br/>memory_revision 与时间"]
+    classDef authority fill:#DDF4E7,stroke:#24734A,color:#143B29;
+    classDef process fill:#E8F0FF,stroke:#4D6F9C,color:#19344E;
+    class F authority;
+    class B,D,H,I process;

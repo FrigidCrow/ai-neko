@@ -1,0 +1,14 @@
+flowchart TD
+    subgraph DESIGN["09 · checkpoint 与身份隔离｜设计，M0/M1/M2 待实现"]
+        A["受信任本机身份与角色配置<br/>外部 thread_id"] --> B["查持久会话映射<br/>分配或解析 internal_thread_id"]
+        B --> C{"校验所属用户与角色<br/>get/history/run/resume/delete"}
+        C -->|失败| X["拒绝访问<br/>不读取 checkpoint"]
+        C -->|通过| D["以 internal_thread_id<br/>访问本地 graph.sqlite"]
+        D --> E{"准备恢复运行？"}
+        E -->|否| F["仅执行已授权的<br/>查询或删除操作"]
+        E -->|是| G["向 Memory Service<br/>核对 memory_revision 与有效来源"]
+        G --> H{"旧上下文仍有效？"}
+        H -->|是| I["恢复当前会话执行状态"]
+        H -->|否| J["移除已删/过期副本<br/>重新检索并构造上下文"]
+        J --> I
+    end

@@ -1,0 +1,14 @@
+---
+title: "本地资料放在哪里 · 待实现设计"
+---
+flowchart TD
+    APP["ai-neko 程序目录<br/>不存可变用户资料"] --> P["统一路径与配置解析器"]
+    ENV["测试 / 显式覆盖<br/>AI_NEKO_DATA_DIR"] --> P
+    P --> DATA["Windows 数据根<br/>%LOCALAPPDATA% / ai-neko"]
+    DATA --> C["config / assets<br/>角色与本工程配置"]
+    DATA --> M["memory<br/>长期原文与有效事实"]
+    DATA --> CP["checkpoints<br/>有限会话执行状态"]
+    DATA --> B["logs / backups<br/>可诊断与可恢复"]
+    DATA --> R["runtime<br/>动态端口、令牌、进程归属"]
+    P --> KEY["独立系统凭据入口<br/>M0 确定适配器"]
+    P -. "禁止自动读取 / 迁移" .-> OLD["原版 N.E.K.O<br/>自己的身份、数据和端口"]
