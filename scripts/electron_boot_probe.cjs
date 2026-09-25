@@ -4,7 +4,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const os = require('node:os');
-const { spawn } = require('node:child_process');
+const { spawn, execFileSync } = require('node:child_process');
 const { _electron } = require('../desktop/node_modules/playwright');
 const executablePath = require('../desktop/node_modules/electron');
 const root = path.resolve(__dirname, '..');
@@ -47,9 +47,21 @@ async function probe(name, entry, automated, isolated, flags = []) {
       record.log = log.slice(-6000); record.status = log.includes('probe-loaded') ? 'WINDOW_CREATED' : 'FAILED';
     }
   } catch (error) { record.status = 'FAILED'; record.error = String(error).slice(-6000); }
-  finally { if (app) await app.close().catch(() => {}); }
   console.log(JSON.stringify(record));
   fs.writeFileSync(output, JSON.stringify(report, null, 2));
+  if (app) {
+    const child = app.process();
+    const timer = setTimeout(() => {
+      if (child.exitCode === null && child.signalCode === null) {
+        try {
+          if (process.platform === 'win32') execFileSync('taskkill', ['/PID', String(child.pid), '/T', '/F'], { stdio: 'ignore' });
+          else child.kill('SIGKILL');
+        } catch { /* The owned process may have just exited. */ }
+      }
+    }, 8000);
+    await app.close().catch(() => {});
+    clearTimeout(timer);
+  }
 }
 (async () => {
   await probe('plain-tiny', tiny, false, false);
