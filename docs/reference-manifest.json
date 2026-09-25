@@ -191,7 +191,7 @@
         "ref-6045de3f690e",
         "ref-c452ff626783"
       ],
-      "proposedBoundary": "先有限工具集合，再评估兼容插件宿主。",
+      "proposedBoundary": "先只读搜索与正文工具，再评估兼容插件宿主；当前不做键鼠/电脑控制。",
       "implementationStatus": "not-started",
       "acceptanceStatus": "not-run",
       "plannedPhaseIds": [
@@ -219,13 +219,14 @@
         "ref-1175ca350e05",
         "ref-47e3ff1d4749"
       ],
-      "proposedBoundary": "选择性扩展，不构成首版必须移植清单。",
+      "proposedBoundary": "公开资料搜索为 M1 首版必需；其他娱乐、提醒和渠道能力仍是选择性扩展。",
       "implementationStatus": "not-started",
       "acceptanceStatus": "not-run",
       "plannedPhaseIds": [
+        "M1",
         "M5"
       ],
-      "phaseScopeNote": "Selected feature slices only; complete courses and all listed modules are not mandatory for a phase."
+      "phaseScopeNote": "M1 requires public search and page reading; M5 reuses them for image questions. Other entertainment and channel modules are optional. Keyboard/mouse and computer control are excluded from current scope."
     },
     {
       "groupId": "R09",

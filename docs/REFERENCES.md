@@ -13,16 +13,16 @@
 
 以下“验证建议”是未来提取工作的验收输入，均未在新工程执行。原教程的合成实验可提供场景与断言思路，不作为新产品的通过证据。
 
-本工程 PLAN 的 M0–M6 全部仍为 Pending，参考映射与其对应如下：
+当前 M0 为 Partial，M1–M6 仍 Pending；参考映射不代表对应功能已实现。2026-09-25 已将查攻略/资料查询提前至 M1，键鼠/电脑控制当前不做：
 
 | 实施阶段 | 主要参考组 | 提取边界 |
 | --- | --- | --- |
 | M0 隔离、版本与接口 | R01、R09、R10 | 固定模型与存储接口，核实桌面来源，落实独立运行边界 |
-| M1 文字与工具图 | R01、R02、R07 | 重写唯一图编排，只提取需要的适配器与执行约束 |
+| M1 文字/查攻略/工具图 | R01、R02、R07、R08 | 唯一图编排，真实搜索与网页正文读取、带来源回答 |
 | M2 本地记忆 | R03、R09 | 写入、召回、纠正／遗忘和 checkpoint 旧副本联合验证 |
 | M3 桌面与角色 | R04、R10 | 正式聊天界面、一个可用许可的角色路径与桌面宿主 |
 | M4 语音与打断 | R02、R05 | ASR → 文本图 → TTS，媒体轮次与取消统一 |
-| M5 视觉、主动与工具 | R06、R07、R08 | 图像、活动门控及所选实际工具统一入图 |
+| M5 视觉、主动与查询联动 | R06、R07、R08 | 图像和活动门控统一入图，复用 M1 查询能力 |
 | M6 分发与长期运行 | R09、R10 | Windows 便携包、升级恢复与实际观察证据 |
 
 R08 中其余娱乐／渠道能力和完整插件管理等仍属于后续选择项，不能由这个对应表自动扩大首版承诺。
@@ -35,7 +35,7 @@ R08 中其余娱乐／渠道能力和完整插件管理等仍属于后续选择�
 
 **目标边界：重写图编排，选择性提取模型与工具适配。** 原版 `utils.llm_client.ChatOpenAI` 是项目自有的 SDK 封装，不是 `langchain_openai.ChatOpenAI`；同名类不意味着消息对象、工具协议或 Runnable 接口相同。新图应调用明确的模型端口，先选一条供应商路径，转换消息、流式片段和工具结果，不并排保留两套自动模型选择和工具循环。`_tools.py` 用于理解行为，不能作为一个带完整循环的黑盒再嵌进图循环。
 
-建议先建立 `prepare_context → generate → tools / finish` 的单一流程；记忆读取由 Memory Service 提供，工具失败与无命中分别返回。验证参数拒绝、调用 ID 对齐、循环上限、工具副作用重试，以及重放后不重复执行已经完成的外部动作。图能恢复不自动保证副作用恰好执行一次。
+建议先建立 `prepare_context → generate → tools / finish` 的单一流程；记忆读取由 Memory Service 提供，工具失败与无命中分别返回。首版验证参数拒绝、调用 ID 对齐、循环上限、只读查询结果与来源。外部副作用的重试与防重放只留作未来扩展参考，当前不实施对应执行框架；图能恢复不自动保证外部动作恰好执行一次。
 
 ## R02 会话、流式输出与取消
 
@@ -97,7 +97,7 @@ LangGraph checkpoint 只保存会话执行状态。事实、事件、来源和�
 
 **目标边界：先有限工具集合，再评估兼容插件宿主。** 图决定工具调用；工具执行器负责参数、超时、结果封装、授权与幂等记录。旧任务执行器和完整 Agent 会话仅作行为参考，不再启动第二个自主规划循环。可以逐个提取纯工具或 MCP 适配逻辑，但 N.E.K.O 插件还依赖 SDK、宿主、总线、配置和作业协议，不能仅复制插件文件就宣称兼容全部插件。
 
-验证未知工具、错误参数、超时与取消、工具结果关联、重试后的副作用、插件退出资源清理。插件市场、动态安装、浏览器／电脑操作和完整管理中心属于后续可选范围；`bus.memory` 只能提供短期消息，长期事实统一走 Memory Service。
+M1 验证未知工具、错误参数、超时/取消、结果关联、来源证据和只读网页网络边界。插件市场、动态安装和完整管理中心仍是后续可选项；浏览器点击、键鼠/电脑控制按用户当前需求排除。副作用重试和插件退出等教材内容仅留作参考，不因此引入首版执行框架。`bus.memory` 只能提供短期消息，长期事实统一走 Memory Service。
 
 ## R08 互动、娱乐、生活工具与跨渠道
 
@@ -105,7 +105,7 @@ LangGraph checkpoint 只保存会话执行状态。事实、事件、来源和�
 
 源码：[桌宠工具资料](/Users/frigidcrow/Dev/neko-companion/frontend/react-neko-chat/src/avatar-tools/catalog.ts)、[工具解释器](/Users/frigidcrow/Dev/neko-companion/frontend/react-neko-chat/src/avatar-tools/profileInterpreter.ts)、[音乐播放](/Users/frigidcrow/Dev/neko-companion/main_logic/music_playback.py)、[陪看引擎](/Users/frigidcrow/Dev/neko-companion/main_logic/watch_together/engine.py)、[提醒插件](/Users/frigidcrow/Dev/neko-companion/plugin/plugins/memo_reminder/__init__.py)、[搜索插件](/Users/frigidcrow/Dev/neko-companion/plugin/plugins/web_search/__init__.py)、[QQ 回复管线](/Users/frigidcrow/Dev/neko-companion/plugin/plugins/qq_auto_reply/reply_pipeline.py)、[QQ 记忆桥接](/Users/frigidcrow/Dev/neko-companion/plugin/plugins/qq_auto_reply/memory_bridge.py)。
 
-**目标边界：选择性扩展，不构成首版必须移植清单。** 可优先从确定输入输出的纯规则、工具参数与 UI 动作映射开始；音乐、陪看和渠道回复分别需要平台协议、媒体时钟、外部账号与投递结果适配。若以后接入 QQ 等渠道，应把输入转为同一个图的事件，不复制原版完整回复管线和模型循环。
+**目标边界：搜索能力进入 M1 首版必需，其余选择性扩展。** 评估提取搜索插件的请求/响应适配，解除 SDK/宿主/配置耦合，并补网页正文、版本条件和引用契约；不能把搜索摘要直接当完整攻略。是否迁入源码仍须按来源清单逐项验收。音乐、陪看、提醒和渠道回复目前不属于必需移植项，分别涉及平台协议、媒体时钟、外部账号与投递结果；以后接入 QQ 等渠道也须进入同一个图，不复制完整回复管线。
 
 验证生成成功与实际投递分离、未投递草稿不污染长期记忆、提醒任务恢复和重复触发、媒体结束与暂停行为。跨渠道主体隔离需由 Memory Service 和渠道身份适配共同定义，不能仅靠显示名称识别用户。
 

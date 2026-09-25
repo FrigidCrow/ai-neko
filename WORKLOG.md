@@ -122,3 +122,25 @@ python3 docs/diagrams/tools/validate-docs.py
 本轮上传准备命令包含 `git status --short --branch`、`git remote -v`、`git ls-files --others --exclude-standard`、`git check-ignore ...`、`python3 docs/diagrams/tools/validate-docs.py`；初次 `git log -3 --oneline` 因尚无 commit 返回 128，属于预期初始状态。随后将暂存、提交并推送；最终远端提交一致性在上传后记录。
 
 上传结果：文档检查 PASS，103 个文件暂存后 `git diff --cached --check` 通过；执行 `git commit -m "feat: establish isolated ai-neko M0 foundation"` 得到首个提交 `7d77223f7375445988c0767bf6eb5273d7336066`。`git push -u origin codex/initial-plan` 成功，建立 upstream；`git ls-remote origin refs/heads/codex/initial-plan` 与 `git rev-parse HEAD` 一致，首次上传后工作区干净。此段上传结果及 REVIEW/PLAN 状态作为后续文档提交同步到同一分支；不改变已验证产品源码。
+
+## 2026-09-25 — 查攻略优先，暂不做键鼠控制
+
+用户明确暂时不需要键鼠控制，很需要查攻略。先调整 PLAN：真实搜索与公开正文读取从后期扩展提前为 M1 必需能力，步骤回答附可核对来源并处理平台/版本差异；M5 仅补图片与查询联动。键鼠代操作、控制其他软件及个人浏览器账号操作排除在当前范围；桌宠手动拖拽、本应用按钮、语音和用户主动提供的图片保留。没有开始 M1 实现、选择付费查询供应商或调用真实搜索服务。
+
+同步 ARCHITECTURE 的 search_web/read_web_page 契约、README、AGENTS、REFERENCES 和 reference-manifest 的 R07/R08 规划字段，保留所有来源文件哈希。更新 00 路线、08 查询工具、14 视觉联动的 Mermaid 源与 captions，重建 Markdown/HTML 图册。图解不再把副作用执行框架当作首版工具重点。
+
+实际检查命令：
+
+```sh
+git status --short --branch
+git diff -- src tests scripts pyproject.toml uv.lock .python-version
+node docs/diagrams/tools/render.mjs
+node docs/diagrams/tools/build-atlas.mjs
+node docs/diagrams/tools/check-atlas.mjs
+python3 docs/diagrams/tools/validate-docs.py
+git diff --check
+```
+
+另用现有 `launchBrowser` / Puppeteer 对本地 08 SVG 截图至 `docs/diagrams/evidence/08-tools.png`，并实际查看。图渲染/检查在修正缺口输出与首个里程碑归属后重新执行；最终 20 图渲染、两视口离线加载/锚点/边界检查 PASS。
+
+独立只读工作者 `/root/search_scope_plan_review` 检查范围与验收一致性，指出 M2 被标首个体验以及 R01 仍要求外部副作用执行两个残留；修改并复核后 PASS。产品源码、测试、运行依赖没有差异，因此未重跑产品测试；110 passed 只引用先前 M0 记录，旧 smoke 中包括 AGENTS 的摘要保留历史实值。本次文档变更沿用用户此前授权的 origin 与 `codex/initial-plan` 分支同步；不发布产品，也不把规划通过记为搜索功能可用。
