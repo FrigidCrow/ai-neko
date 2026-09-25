@@ -250,3 +250,23 @@ Windows 对照 [36172266079](https://github.com/FrigidCrow/ai-neko/actions/runs/
 已增加 Windows HANDLE 监督：宿主传入本次 PID，后端在建数据/监听之前仅以 SYNCHRONIZE 权限捕获一次 HANDLE 并验活；监控固定内核对象，退出或 wait 失败走同一收尾，停止线程后才释放 HANDLE。正常 EOF 保留，stdin 改为 os.read 避免被阻塞的 daemon 持有缓冲锁。非法/自身 PID、无 pipe 模式与 Windows 缺 PID 均拒绝。独立回归 desktop/server 34 passed，宿主 15 passed；Root 为实际服务监控用例补健康检查就绪条件，重跑 desktop_backend 13 passed（3.11 秒），Ruff 通过；`desktop-handle-smoke.json` 本地实际 Electron 仍 9/9 PASS。Windows native 分支留待最终 CI，不把 Mac 的明确 fake HANDLE 当作原生 Windows 通过。
 
 [36173890266](https://github.com/FrigidCrow/ai-neko/actions/runs/36173890266) 的 Windows 302/0skip 和 Linux 301/1skip 均通过，包含 Windows 原生 HANDLE 真实服务回归；但冻结桌宠仍在强杀后的描述文件清理处失败。进一步核对 [libuv Windows 源码](https://github.com/libuv/libuv/blob/v1.x/src/win/process.c#L65-L91)：默认非 detached 子进程加入宿主关闭即强杀的 job，能够解释后端清理未及运行。Windows 服务启动改为 detached，但保留私有管道、子进程引用和原生父句柄监督，不 unref；正常退出仍等待所属进程结束。验收未放松，仍要求连接描述删除、后端真实退出及重开不重放，并补充无凭据的进程/生命周期事件诊断。15 宿主测试通过，`desktop-detached-smoke.json` 本地仍 9/9 PASS；最终是否修复由下一轮 Windows 包实测判断。
+
+最终源码 `023bee38f29d385bdfc690e2b5c4ea00d4ee5ecb` 的 [36174872767](https://github.com/FrigidCrow/ai-neko/actions/runs/36174872767) 全部必要 jobs SUCCESS：Windows 302 passed/0skip、Linux 301 passed/1专属skip、宿主15、冻结后端16/16、实际桌宠9/9。强杀后 host_gone=true、descriptor_present=false、stopped 事件存在，随后 backend_exit_confirmed=true，重开无额外模型调用；说明此前 job 强杀路径已修复。Root 查看 Windows 包内重开历史截图。
+
+实际下载该 run 的 7 项开发资产与截图，运行 `.venv/bin/python artifacts/verify-mvp1-release.py artifacts/mvp1/dev-023bee3 --mode ci --source 023bee38f29d385bdfc690e2b5c4ea00d4ee5ecb --version 0.3.0-dev.023bee38f29d`：PASS，核对摘要、GUI/后端 PE x64、同一 clean 源码与 build/test 输入、79 文件和 YUI61引用、许可与无运行资料。证据见 [开发包核对](docs/evidence/mvp1/dev-023bee3-verification.json)。随后按原授权对该 SHA 执行 `git tag v0.3.0-alpha.1 023bee38f29d385bdfc690e2b5c4ea00d4ee5ecb` 与 `git push origin v0.3.0-alpha.1`，触发 [36175618386](https://github.com/FrigidCrow/ai-neko/actions/runs/36175618386)；发布完成与最终下载核对另记下文。
+
+最终 tag workflow [36175618386](https://github.com/FrigidCrow/ai-neko/actions/runs/36175618386) 全部必要 jobs SUCCESS，同一源码再次通过 Windows302/0skip、Linux301/1专属skip、宿主15、冻结后端16和实际桌宠9项；`v0.3.0-alpha.1` 于 `2026-09-25T18:51:55Z` 自动发布。实际执行：
+
+```sh
+gh release download v0.3.0-alpha.1 --repo FrigidCrow/ai-neko --dir artifacts/releases/v0.3.0-alpha.1
+gh api repos/FrigidCrow/ai-neko/releases/tags/v0.3.0-alpha.1 > artifacts/releases/v0.3.0-alpha.1/release-api.json
+gh api repos/FrigidCrow/ai-neko/git/ref/tags/v0.3.0-alpha.1 > artifacts/releases/v0.3.0-alpha.1/tag-ref.json
+gh run download 36175618386 --name package-evidence --dir artifacts/mvp1/tag-evidence
+.venv/bin/python artifacts/verify-mvp1-release.py artifacts/releases/v0.3.0-alpha.1 --source 023bee38f29d385bdfc690e2b5c4ea00d4ee5ecb --version 0.3.0-alpha.1
+```
+
+最后一条在复制同run的5张PNG到下载目录后执行，PASS。核对7项GitHub资产digest/size、tag/source/build/report一致性、PE x64、GUI/后端分离入口、96桌面源文件、79导入文件、YUI61文件闭包、57依赖许可通知和无用户数据；截图摘要全部匹配并目视正确白裙猫娘。ZIP191,723,563字节，SHA256 `adadafa71d67f705b2fdf16131889974f17e77f98dc770374931957ef83d26b1`。验证/构建/包报告和Windows截图归档 `docs/evidence/mvp1/`，Mac未执行Windows程序。
+
+本轮最后只更新交付文档及证据；按原授权在文档验证与diff检查后以 `[skip ci]` 提交同步。已发布tag和源码保持不变，不因文档更新重复运行产品测试。桌面预览与CI/CD交付PASS，M0/M1总体Partial；真实服务与Windows11真机等未验收项保留。
+
+最终执行 `python3 docs/diagrams/tools/validate-docs.py > artifacts/mvp1/docs-final-validation.json`：PASS，330本地链接、20图、206参考文件与阶段一致性通过，参考仓库tracked diff/status未变。`git diff --check` 通过；独立文档工作者核对下载页、ZIP名称、启动入口及真实服务/真机边界。

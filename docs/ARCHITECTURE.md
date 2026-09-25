@@ -158,3 +158,5 @@ Electron 主进程只负责窗口/托盘、有限 IPC 和本应用后端的启�
 桌宠窗口的基本交互和动画先在 Windows 验证；透明像素与鼠标穿透分开处理。已使用 Electron 44.4.5、Pixi 7.4.3、Cubism Core 5.1.0 与 YUI Lolita 猫娘，来源与许可见 [MVP1-ASSETS](MVP1-ASSETS.md)。Core 首次加载前需接受随包条款；构建核对逐文件清单。关闭对话不是退出应用；明确退出清理所属进程，宿主异常退出须防止遗留后端。
 
 实现入口：`desktop/main.cjs` 管理独立 userData、托盘、白名单 IPC 与后端管道；`desktop/renderer/` 渲染角色和伴随面板；`desktop/consent/` 提供首次条款确认。后端通过私有 stdout 管道传递连接身份，renderer 不接触 token；stdin EOF 触发后端取消和退出。应用正常退出等待清理，仅对仍存活的本应用子进程执行有界兜底，不按名称清理其他进程。
+
+独立 userData/sessionData 通过有界同步路径初始化在 Electron ready 前设置。Windows 子进程使用 detached 避免宿主的 job 直接强杀它，同时保留管道与进程引用；后端在启动时捕获本次宿主的原生 HANDLE，结束通知与 EOF 共用收尾路径，停止监控后释放 HANDLE。PID 只用于最初捕获内核对象，不按磁盘描述中的旧 PID 查找或终止进程。实际强杀、描述清理、后端退出与重开无重放已列入 Windows 包 CI。

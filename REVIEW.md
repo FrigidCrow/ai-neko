@@ -154,9 +154,21 @@ Root 另补充 stop 的重定向测试：本机端口被其他服务接替时，
 | 验证层 | 实际结果与边界 |
 | --- | --- |
 | Mac Python 源码 | 291 passed / 1 Windows vault skipped；Ruff 格式与静态检查通过；真实模型/搜索调用 0 |
-| Electron 主进程 | 12 node:test 通过；打包相关 Python 44 项通过；79 个资源字节/大小摘要通过 |
+| Electron 主进程 | 最终15项 node:test 通过；打包相关 Python 44 项通过；79 个资源字节/大小摘要通过 |
 | 实际 Electron 窗口 | [本地报告](docs/evidence/mvp1/macos-desktop.json) 9/9 PASS：许可后实渲染与透明像素、有限权限、配置时角色可见、递增回复/停止、普通回复与缺搜索 Key 提示、折叠保留角色/偏好、第二实例、退出重开历史、实际杀宿主后后端退出且不自动重放 |
-| Windows 原生包 | CI 构建与解压后 GUI/后端探针已接入，远端执行与发布结果在下文续记 |
+| Windows 原生包 | [36174872767](https://github.com/FrigidCrow/ai-neko/actions/runs/36174872767) Windows 302/0skip、Linux 301/1skip，15宿主、16后端包检查与9实际桌宠检查通过；[下载开发包核对](docs/evidence/mvp1/dev-023bee3-verification.json) PASS，正式版本发布结果在下文续记 |
 | 完整 MVP1 用户验收 | Pending：Windows 11 无开发工具真机、多 DPI/多屏/透明点击与托盘、真实模型 10 轮和攻略 3 次、20 片段显示延迟 p95、10 次取消边界与旧版数据升级。M0/M1 总体仍 Partial；不据 Mac 或 Server CI 写完整 MVP1 通过 |
 
 修复的实际问题包括渲染 bundle 选择、角色可见区域适配、配置按钮早于后端 ready 时状态恢复，以及重启加载历史时错误接受新输入。最后一项现在以完整会话恢复为输入启用条件，E2E 同样等待可见 UI 就绪。宿主异常退出验证真正杀死本次创建的 GUI 进程，确认属于它的后端退出和历史中断不重放，未结束其他应用。
+
+Windows 原生实测还发现并修复两项 Mac 未暴露的问题：独立 profile 必须在 Electron ready 前设置；默认 libuv job 会在宿主强杀时跳过后端收尾。现在同步初始化独立路径，Windows 后端以 detached 创建但保留管道和引用，并持有本次宿主 HANDLE 监听结束；不轮询/终止任意 PID，也不依赖原工程。前几轮失败如实保留在 WORKLOG，最终包按原严格条件 9/9 通过，没有删除强退检查或将残留描述当成通过。
+
+### 桌宠预览发布与最终下载核对
+
+[v0.3.0-alpha.1](https://github.com/FrigidCrow/ai-neko/releases/tag/v0.3.0-alpha.1) 已于 `2026-09-25T18:51:55Z` 发布；[tag workflow 36175618386](https://github.com/FrigidCrow/ai-neko/actions/runs/36175618386) 测试、原生 Windows 构建、冻结后端16项、实际 Electron 桌宠9项与发布全部 SUCCESS。源 commit `023bee38f29d385bdfc690e2b5c4ea00d4ee5ecb`，Windows 302 passed/0 skipped，Linux 301 passed/1明确平台skip，15项宿主测试通过。
+
+7项 Release 资产实际下载并核对 GitHub digest/size、SHA256SUMS、tag、同一 clean 源码、包内外 build-info、GUI/后端 PE AMD64 与报告身份、96个桌面源码文件、79项导入资源和61文件 YUI引用闭包、57项后端依赖通知及无用户运行资料。5张 Windows 截图的摘要全部匹配，Root 目视确认正确猫娘和重开历史。ZIP 为191,723,563字节，SHA256 `adadafa71d67f705b2fdf16131889974f17e77f98dc770374931957ef83d26b1`。Mac 只核对下载产物，Windows 程序执行证据来自原生 Windows Server 2022 CI。
+
+直接证据：[发布核对](docs/evidence/mvp1/release-v0.3.0-alpha.1-verification.json)、[构建来源](docs/evidence/mvp1/release-v0.3.0-alpha.1-build.json)、[冻结后端](docs/evidence/mvp1/release-v0.3.0-alpha.1-package.json)、[实际桌宠报告](docs/evidence/mvp1/windows/desktop-smoke.json)、[猫娘与恢复聊天截图](docs/evidence/mvp1/windows/desktop-restored.png)。Windows/Linux完整源码报告保留为Release资产；入库JSON只正规化行尾，原始下载摘要在核对报告中。
+
+桌面预览与 CI/CD 交付 PASS。真实模型/搜索调用0；Windows 11 真机与上表完整 MVP1 用户验收仍 Pending，M0/M1 保持 Partial。下载后无需 Python/Node，首次接受随包运行条款后出现猫娘；云聊天需配置本项目模型，攻略需另配置 Tavily Key。

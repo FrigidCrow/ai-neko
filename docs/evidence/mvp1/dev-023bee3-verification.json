@@ -1,0 +1,143 @@
+{
+  "schema_version": 1,
+  "mode": "ci",
+  "source_commit": "023bee38f29d385bdfc690e2b5c4ea00d4ee5ecb",
+  "release_version": "0.3.0-dev.023bee38f29d",
+  "assets": [
+    {
+      "name": "Linux-smoke.json",
+      "size": 590435,
+      "sha256": "dd969a96c38826fac953cc6acf7bdac016ff163dc76ee3efe454353efe95d0c9"
+    },
+    {
+      "name": "SHA256SUMS.txt",
+      "size": 195,
+      "sha256": "e1854024afa49609146c1039a90b2863399bb4431f27a24a7fa728dda34333d8"
+    },
+    {
+      "name": "Windows-smoke.json",
+      "size": 609764,
+      "sha256": "3f1c6af281a3821cc4b443802361f901c46cf79b4f0396a3f903c9776d0c15b2"
+    },
+    {
+      "name": "ai-neko-0.3.0-dev.023bee38f29d-windows-x64.zip",
+      "size": 191735074,
+      "sha256": "7f014e285b2f7041bc843404e582512ca8bbf37d4d25ed35a7f889fd72371c31"
+    },
+    {
+      "name": "build-info.json",
+      "size": 21886,
+      "sha256": "e55686bd932bf53e1b386fb4b4e5925e4db049d44d79d446ccb7ee32e4bd120a"
+    },
+    {
+      "name": "desktop-smoke.json",
+      "size": 25033,
+      "sha256": "cc82a6dc6c29a44472bce01ffec6b09c24ad832b8db77b19fb9ce207498de0f5"
+    },
+    {
+      "name": "package-smoke.json",
+      "size": 3002,
+      "sha256": "fd4eeb8993d07f7722aa0586a2116e1855c5ee01e1fbc16d6231dd006805def9"
+    }
+  ],
+  "github_asset_metadata": "NOT_APPLICABLE: Actions download, not published release",
+  "screenshots": [
+    {
+      "file": "desktop-catgirl.png",
+      "sha256": "7f84bef7b962bdcb537d8310e28f841f03630fefa958443a55eb07f2868a4e07",
+      "downloaded_and_verified": true
+    },
+    {
+      "file": "desktop-settings.png",
+      "sha256": "54b2fb9f84552027eeb408e0d27cfe43eabc220a01f7278efdb466340be8a879",
+      "downloaded_and_verified": true
+    },
+    {
+      "file": "desktop-streaming.png",
+      "sha256": "408a884c7bb6b93a9f3ba76eb9959580205e35e7e196204d3fdee012c83d89d7",
+      "downloaded_and_verified": true
+    },
+    {
+      "file": "desktop-guide.png",
+      "sha256": "597c8394902cc9fd0f564d5cab73eefc69921a66e0dc97a0492262b02a18d953",
+      "downloaded_and_verified": true
+    },
+    {
+      "file": "desktop-restored.png",
+      "sha256": "116cd0823206a8bae879caf388e89b02b670027f664d05126c914fa2b0128862",
+      "downloaded_and_verified": true
+    }
+  ],
+  "executables": {
+    "desktop_gui": {
+      "machine": "AMD64",
+      "format": "PE32+",
+      "subsystem": 2,
+      "sha256": "bd14928e0728366fd3f41499cb398ff3f4304dab259a3e605077899a6f8c748e"
+    },
+    "backend_console": {
+      "machine": "AMD64",
+      "format": "PE32+",
+      "subsystem": 3,
+      "sha256": "7181b2af98889fb5cfba5b81371a51a762af252dae184b30316b6875ffc99e12"
+    }
+  },
+  "electron": {
+    "version": "44.4.5",
+    "license_sha256": "5154e165bd6c2cc0cfbcd8916498c7abab0497923bafcd5cb07673fe8480087d",
+    "chromium_notices_sha256": "7b328b8c7463ac9bfc7dc648c751533517c8441a0b5b21047d6c0b2620e60d70"
+  },
+  "imported_assets": {
+    "verified_files": 79,
+    "model": "YUI Lolita",
+    "model_files": 61,
+    "manifest_sha256": "8cba639d6aeaa6513e5f625650183ac402805478bd7da6080ba0665a6bd07c54",
+    "consent_sha256": "b5180523d26730e52d65e5862adc720b63f27160898061203e17512263d6ca65"
+  },
+  "desktop_source_files_verified": 96,
+  "backend_dependency_notices_verified": 57,
+  "status": "PASS",
+  "source_tests": [
+    {
+      "file": "Windows-smoke.json",
+      "status": "PASS",
+      "ci_gate": "PASS",
+      "passed": 302,
+      "skipped": 0,
+      "real_model_tests": 0
+    },
+    {
+      "file": "Linux-smoke.json",
+      "status": "PARTIAL",
+      "ci_gate": "PASS",
+      "passed": 301,
+      "skipped": 1,
+      "real_model_tests": 0
+    }
+  ],
+  "package_cases_passed": 16,
+  "desktop_cases_passed": 9,
+  "checksummed_assets": [
+    "ai-neko-0.3.0-dev.023bee38f29d-windows-x64.zip",
+    "build-info.json"
+  ],
+  "boundaries": {
+    "windows_11_physical": "Pending",
+    "real_model_10_rounds": "Pending: no project credentials",
+    "real_search_read_answer_3_queries": "Pending: no project credentials",
+    "executed_windows_binary_during_this_verification": false
+  },
+  "verified": [
+    "downloaded asset sizes and SHA256",
+    "SHA256SUMS",
+    "same clean source commit across all reports",
+    "native Windows x64 package and actual Electron synthetic gates",
+    "GUI/backend PE identity",
+    "desktop source bytes against build inputs",
+    "79 imported asset/license bytes and 61-file YUI reference closure",
+    "Electron version and notices",
+    "backend dependency notices",
+    "no packaged user runtime data"
+  ],
+  "verified_at_utc": "2026-09-25T18:46:43.797642+00:00"
+}

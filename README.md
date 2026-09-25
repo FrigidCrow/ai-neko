@@ -2,11 +2,11 @@
 
 独立的个人 AI 伴侣项目：主体是 Windows 11 x64 桌面上的可见猫娘桌宠，文字聊天、流式回复和查攻略围绕她展开。LangGraph 负责对话编排，会话保存在本机，允许调用自己配置的云模型。
 
-**当前源码为 `0.3.0` MVP1 桌宠工程预览。** 已接入参考 N.E.K.O. 的白裙 **YUI Lolita 猫娘**和本项目 Electron 宿主：透明桌面角色、待机动画、拖动、大小与置顶设置、伴随文字面板、流式回复、停止生成、历史恢复、Tavily 搜索及公开正文来源、托盘找回和退出。未配置模型时也能显示猫娘，收起聊天后她仍留在桌面。
+**MVP1 桌宠工程预览 `v0.3.0-alpha.1` 已发布。** 已接入参考 N.E.K.O. 的白裙 **YUI Lolita 猫娘**和本项目 Electron 宿主：透明桌面角色、待机动画、拖动、大小与置顶设置、伴随文字面板、流式回复、停止生成、历史恢复、Tavily 搜索及公开正文来源、托盘找回和退出。未配置模型时也能显示猫娘，收起聊天后她仍留在桌面。
 
-本轮已完成 macOS 上 Python **291 passed / 1 skipped**、桌面宿主 **12 项测试**及 **79 个资源/许可文件**核验，并实际显示 YUI。**本轮 Windows CI、Windows ZIP 发布尚待执行；Windows 11 真机、真实模型连续 10 轮及真实搜索 3 次仍未验收。** M0/M1 总体保持 Partial，最新证据以 [REVIEW](REVIEW.md) 为准。M2 长期事实/人格记忆、语音尚未实现；不做键鼠代操作或控制其他软件。
+[发布 CI](https://github.com/FrigidCrow/ai-neko/actions/runs/36175618386) 已通过：Windows Python **302 passed / 0 skipped**、Linux **301 passed / 1 skipped**、桌面宿主 **15 项**、冻结后端 **16/16**、实际打包 Electron 桌面 **9/9**，并核验 **79 个资源/许可文件**。Linux 跳过项为 Windows 凭据专属测试，不计通过。桌面检查包含实际角色窗口、强制结束 GUI 后清理及重启无重放。**真实模型对话和真实搜索验收目前均为 0；Windows 11 真机、连续 10 轮真实对话、3 次真实搜索及 p95 性能仍待验收。** M0/M1 总体保持 Partial，最新证据以 [REVIEW](REVIEW.md) 为准。M2 长期事实/人格记忆、语音尚未实现；不做键鼠代操作或控制其他软件。
 
-[GitHub Releases](https://github.com/FrigidCrow/ai-neko/releases) 提供按版本下载。**获取 `0.3.0` 对应桌宠 ZIP 后，完整解压并双击根目录 `ai-neko.exe`**；包内包含 Electron、Python、猫娘和运行依赖，使用者无需安装 Python、Node 或 uv。首次启动阅读并接受 Live2D SDK 条款后加载角色，在猫娘旁的设置中配置自己的模型和搜索凭据。桌面宿主自动启动、退出自己的后端。
+前往 [v0.3.0-alpha.1 下载页](https://github.com/FrigidCrow/ai-neko/releases/tag/v0.3.0-alpha.1)，下载 **`ai-neko-0.3.0-alpha.1-windows-x64.zip`，完整解压并双击根目录 `ai-neko.exe`**。包内包含 Electron、Python、猫娘和运行依赖，使用者无需安装 Python、Node 或 uv。首次启动阅读并接受 Live2D SDK 条款后加载角色，在猫娘旁的设置中配置自己的模型和搜索凭据。桌面宿主自动启动、退出自己的后端。
 
 已发布的 [v0.2.0-alpha.1](https://github.com/FrigidCrow/ai-neko/releases/tag/v0.2.0-alpha.1) 是历史网页工程预览，仍会打开浏览器，不能用它体验桌宠；`v0.1.0-alpha.1` 仅为基础诊断包。
 
@@ -25,7 +25,7 @@
 
 ## MVP1 与后续路线
 
-当前闭环为：启动见猫娘 → 点击输入 → 身旁流式回复 → 停止/继续聊天/查攻略 → 重开续接会话。实现范围见 [MVP1 规格](docs/MVP1-DESKTOP-PET.md)，当前继续验证 Windows 产物和真实服务；后续再加入长期记忆、角色表现扩展、语音与打断、视觉及主动陪伴。
+当前闭环为：启动见猫娘 → 点击输入 → 身旁流式回复 → 停止/继续聊天/查攻略 → 重开续接会话。实现范围见 [MVP1 规格](docs/MVP1-DESKTOP-PET.md)，接下来继续 Windows 11 真机和真实服务验收；后续再加入长期记忆、角色表现扩展、语音与打断、视觉及主动陪伴。
 
 本地会话记录与 LangGraph checkpoint 已有，二者都不能代替 M2 的长期事实/人格记忆。跨会话用户偏好的召回、修改和删除仍属后续工作。
 

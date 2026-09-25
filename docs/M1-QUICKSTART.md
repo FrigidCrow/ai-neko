@@ -1,12 +1,12 @@
 # MVP1 桌宠工程预览试用
 
-本页对应当前 `0.3.0` 源码和 [MVP1 桌宠目标](MVP1-DESKTOP-PET.md)：白裙 YUI Lolita 猫娘在桌面显示，输入、流式回复和攻略来源出现在她身旁。Electron 宿主管理窗口、托盘和自己的本地后端。**本轮 Windows CI 与桌宠 ZIP 发布尚待执行**；下面的 Windows 操作适用于取得对应 `0.3.0` 产物之后。历史 `v0.2.0-alpha.1` 仍是网页预览，不包含桌宠。
+本页对应已发布的 [v0.3.0-alpha.1](https://github.com/FrigidCrow/ai-neko/releases/tag/v0.3.0-alpha.1) 和 [MVP1 桌宠目标](MVP1-DESKTOP-PET.md)：白裙 YUI Lolita 猫娘在桌面显示，输入、流式回复和攻略来源出现在她身旁。Electron 宿主管理窗口、托盘和自己的本地后端。**Windows 构建、打包桌面检查和发布 CI 已通过**；下面是此版本的 Windows 试用步骤。历史 `v0.2.0-alpha.1` 仍是网页预览，不包含桌宠。
 
 当前已有文字、会话和搜索实现；语音、M2 长期事实/人格记忆、多角色导入与键鼠控制未实现。实现和验收状态分开记录，以 [REVIEW](../REVIEW.md) 为准。
 
 ## 启动与配置
 
-1. 从 [GitHub Releases](https://github.com/FrigidCrow/ai-neko/releases) 选择对应桌宠预览版本的 `ai-neko-版本-windows-x64.zip`，不要选择 Source code。完整解压到独立文件夹，保留所有文件和 `resources` 目录。
+1. 从 [v0.3.0-alpha.1 下载页](https://github.com/FrigidCrow/ai-neko/releases/tag/v0.3.0-alpha.1) 下载 `ai-neko-0.3.0-alpha.1-windows-x64.zip`，不要选择 Source code。完整解压到独立文件夹，保留所有文件和 `resources` 目录。
 2. 双击 ZIP 根目录的 `ai-neko.exe`，或使用 `Start ai-neko.cmd`。使用者无需安装 Python、Node 或 uv；不要从压缩包内直接运行，也不要单独搬走 exe。
 3. 首次启动阅读 Live2D SDK 条款，选择接受后加载猫娘；拒绝则退出。角色来源与组件署名可在设置中查看，完整记录随包提供。
 4. 点击猫娘或她下方的名字打开文字面板，在设置中填写模型配置。未填 Key 时猫娘仍可显示，配置完成后开始聊天。
@@ -63,9 +63,9 @@ node scripts/desktop_smoke.cjs --output artifacts/mvp1/desktop-smoke.json
 
 ## 验收进度
 
-截至本轮记录，macOS 上 Python **291 passed / 1 skipped**，桌面宿主 **12 项测试通过**，**79 个资源/许可文件**哈希核验通过，YUI 已实际渲染。一个跳过为 Windows 专属凭据用例，不计通过。**本轮 Windows CI、对应 ZIP 及 GitHub Release 尚待执行**，不能沿用旧网页包的 Windows 结果宣称桌宠通过。
+本轮 [发布 CI 运行 36175618386](https://github.com/FrigidCrow/ai-neko/actions/runs/36175618386) 对源码 `023bee38f29d385bdfc690e2b5c4ea00d4ee5ecb` 的 Windows 构建、测试和发布已通过：Windows Python **302 passed / 0 skipped**，Linux **301 passed / 1 skipped**，桌面宿主 **15 项通过**，冻结后端 **16/16**，实际打包 Electron 桌面 **9/9**，**79 个资源/许可文件**哈希核验通过。Linux 跳过项是 Windows 专属凭据用例，不计通过。桌面检查已包含 YUI 实际窗口、强制结束 GUI 后清理及重启无重放。
 
-仍需单独完成：同一会话真实模型连续 10 轮；至少 3 次真实公开搜索→读取正文→带来源答案，并逐项核对平台、版本、步骤和来源。Windows 11 x64 真机另测启动、中文路径、透明角色、拖动/缩放、托盘、多屏找回、配置凭据重开、原版共存与退出清理。Windows Server CI 和 macOS 实验不能代替这些验收；未执行项保留 Pending。
+真实模型对话和真实搜索验收目前均为 **0**。仍需单独完成：同一会话真实模型连续 10 轮；至少 3 次真实公开搜索→读取正文→带来源答案，并逐项核对平台、版本、步骤和来源；p95 性能验收。Windows 11 x64 真机另测启动、中文路径、透明角色、拖动/缩放、托盘、多屏找回、配置凭据重开、原版共存与退出清理。Windows Server CI 和 macOS 实验不能代替这些验收；未执行项保留 Pending。
 
 
 显式提供本项目凭据后，可以运行 `uv run --locked python scripts/m1_live.py --model 你的模型名 --model-base-url 你的接口地址 --output artifacts/m1/新的真实验收记录.json`。该入口会产生实际服务调用和费用，仅从两项专属环境变量取 Key；使用临时会话，不读取真实聊天/旧配置。即使调用完成，报告仍标 `manual_review_required`，必须人工核对输出和来源。桌宠中的真实交互还需实际操作核验。
