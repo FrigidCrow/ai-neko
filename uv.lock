@@ -4,11 +4,12 @@ requires-python = "==3.11.*"
 
 [[package]]
 name = "ai-neko"
-version = "0.1.0"
+version = "0.2.0"
 source = { editable = "." }
 dependencies = [
     { name = "fastapi" },
     { name = "filelock" },
+    { name = "httpx" },
     { name = "langgraph" },
     { name = "langgraph-checkpoint-sqlite" },
     { name = "uvicorn" },
@@ -20,7 +21,6 @@ build = [
     { name = "pyinstaller" },
 ]
 dev = [
-    { name = "httpx" },
     { name = "pytest" },
     { name = "ruff" },
 ]
@@ -29,6 +29,7 @@ dev = [
 requires-dist = [
     { name = "fastapi", specifier = "==0.141.1" },
     { name = "filelock", specifier = "==3.32.7" },
+    { name = "httpx", specifier = "==0.28.1" },
     { name = "langgraph", specifier = "==1.2.12" },
     { name = "langgraph-checkpoint-sqlite", specifier = "==3.1.1" },
     { name = "uvicorn", specifier = "==0.54.0" },
@@ -38,7 +39,6 @@ requires-dist = [
 [package.metadata.requires-dev]
 build = [{ name = "pyinstaller", specifier = "==6.22.3" }]
 dev = [
-    { name = "httpx", specifier = "==0.28.1" },
     { name = "pytest", specifier = "==9.1.1" },
     { name = "ruff", specifier = "==0.16.9" },
 ]

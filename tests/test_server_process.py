@@ -31,6 +31,7 @@ def cli(*args: str) -> subprocess.CompletedProcess[str]:
     env = os.environ.copy()
     env.pop("AI_NEKO_DATA_DIR", None)
     env.pop("AI_NEKO_MODEL_API_KEY", None)
+    env.pop("AI_NEKO_SEARCH_API_KEY", None)
     return subprocess.run(
         [sys.executable, "-m", "ai_neko", *args],
         cwd=PROJECT_ROOT,
@@ -64,6 +65,7 @@ class ServerProcess:
         env = os.environ.copy()
         env.pop("AI_NEKO_DATA_DIR", None)
         env.pop("AI_NEKO_MODEL_API_KEY", None)
+        env.pop("AI_NEKO_SEARCH_API_KEY", None)
         env["PYTHONUTF8"] = "1"
         self.process = subprocess.Popen(
             [sys.executable, "-m", "ai_neko", "serve", "--data-dir", str(root), "--port", "0"],

@@ -1,0 +1,48 @@
+{
+  "status": "PASS",
+  "checked_at": "2026-09-25T10:57:04.382823+00:00",
+  "platform": "macOS arm64",
+  "browser": "Chrome 153 via Playwright",
+  "scope": "Real local app with synthetic OpenAI-compatible model fixture; no real model, Tavily or Windows acceptance",
+  "source_hashes": {
+    "index.html": "2eee2c3df8729cbc3781cb193247578f57f1ee1a20cb9128bc3139c4fa9e7461",
+    "style.css": "aeb04131e0323e8e77c96188833d9786cdcc06a10d380465b9831771598fb1bd",
+    "app.js": "524fa115ca0bc3a5e8785c226acfa9198ef5148a14fdc9d3881c77a0671cb196"
+  },
+  "checks": [
+    "single_use_bootstrap_real_start_and_fragment_removed",
+    "desktop_no_horizontal_overflow",
+    "mobile_no_overflow_and_navigation",
+    "real_server_synthetic_stream_and_render_ack",
+    "real_server_cancel_keeps_delivered_prefix",
+    "reload_preserves_history_and_cancelled_prefix",
+    "completed_unseen_turn_drains_and_acknowledges_after_reopen",
+    "dropped_post_response_retry_reuses_request_id_no_duplicate_turn",
+    "provider_auth_error_survives_done_and_history_reload",
+    "provider_key_absent_from_browser_storage_and_cleared_input",
+    "renderer_fixture_untrusted_text_safe_links_year_unknown_date_mobile_sources",
+    "explicit_exit_stops_owned_server",
+    "no_external_browser_requests",
+    "no_browser_console_or_page_errors"
+  ],
+  "page_errors": [],
+  "expected_injected_network_errors": [
+    "Failed to load resource: net::ERR_FAILED"
+  ],
+  "external_browser_requests": [],
+  "screenshots": [
+    "ui-desktop-1440.png",
+    "ui-mobile-390.png",
+    "ui-settings-1440.png",
+    "ui-chat-1440.png"
+  ],
+  "additional_local_renderer_screenshot": "artifacts/m1-ui/source-renderer-fixture-390.png",
+  "reproduction_script": "artifacts/m1-ui/check_ui.py",
+  "limits": [
+    "macOS Chrome validation only; not Windows 11 physical acceptance",
+    "No real model or real Tavily query was performed",
+    "Source safety case uses an explicit browser response fixture and is renderer-only evidence",
+    "One net::ERR_FAILED was deliberately injected after a real POST reached the server; all other console/page errors absent",
+    "No claim of complete WCAG or assistive-technology acceptance"
+  ]
+}

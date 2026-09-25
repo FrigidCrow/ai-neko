@@ -9,7 +9,7 @@ node_modules/
 .env
 .env.*
 !.env.example
-runtime/
+/runtime/
 data/
 logs/
 backups/

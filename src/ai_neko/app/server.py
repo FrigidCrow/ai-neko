@@ -1,4 +1,4 @@
-"""Explicit single-instance loopback probe, without chat/model initialization."""
+"""Single-instance loopback service and isolated local chat interface."""
 
 from __future__ import annotations
 
@@ -8,6 +8,7 @@ import os
 import secrets
 import socket
 import uuid
+import webbrowser
 from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -67,7 +68,15 @@ def write_private_json(path: Path, value: dict) -> None:
         temporary.unlink(missing_ok=True)
 
 
-def create_app(connection: Connection, on_shutdown, lifespan=None) -> FastAPI:
+def create_app(
+    connection: Connection,
+    on_shutdown,
+    lifespan=None,
+    *,
+    runtime=None,
+    providers=None,
+    bootstrap_code=None,
+) -> FastAPI:
     app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None, lifespan=lifespan)
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=["127.0.0.1"])
 
@@ -76,11 +85,13 @@ def create_app(connection: Connection, on_shutdown, lifespan=None) -> FastAPI:
         expected = f"Bearer {connection.token}"
         if not secrets.compare_digest(given.encode(), expected.encode()):
             raise HTTPException(status_code=401, detail="invalid session token")
+        if request.headers.get("origin") not in {None, connection.url}:
+            raise HTTPException(status_code=403, detail="untrusted origin")
 
     @app.get("/health")
     async def health(request: Request):
         authorize(request)
-        return {"app_id": APP_ID, "status": "ok", "version": __version__, "stage": "M0"}
+        return {"app_id": APP_ID, "status": "ok", "version": __version__, "stage": "M1"}
 
     @app.post("/shutdown", status_code=202)
     async def shutdown(request: Request):
@@ -117,10 +128,14 @@ def create_app(connection: Connection, on_shutdown, lifespan=None) -> FastAPI:
         except WebSocketDisconnect:
             pass
 
+    if runtime is not None:
+        from ai_neko.app.api import install_api
+
+        install_api(app, connection, authorize, runtime, providers, bootstrap_code)
     return app
 
 
-def serve(paths: DataPaths, settings: Settings) -> None:
+def serve(paths: DataPaths, settings: Settings, *, open_browser: bool = False) -> None:
     lock_path = safe_child(paths.runtime, "instance.lock")
     lock = FileLock(lock_path, timeout=0)
     try:
@@ -144,6 +159,12 @@ def serve(paths: DataPaths, settings: Settings) -> None:
                 "requested loopback port cannot be bound; no fallback port was used"
             ) from exc
         connection = Connection(sock.getsockname()[1], secrets.token_urlsafe(32), uuid.uuid4().hex)
+        from ai_neko.config.providers import ProviderStore
+        from ai_neko.runtime import SessionRuntime
+
+        providers = ProviderStore(paths)
+        runtime = SessionRuntime(paths, providers)
+        bootstrap_code = secrets.token_urlsafe(32) if open_browser else None
 
         def event(name: str):
             record = {
@@ -160,15 +181,29 @@ def serve(paths: DataPaths, settings: Settings) -> None:
         async def lifespan(_app):
             write_private_json(connection_file, connection.descriptor())
             event("started")
+            if bootstrap_code is not None:
+                # Fragments never reach the HTTP server or access logs. The UI
+                # consumes the one-use code, clears the URL, and obtains a token.
+                asyncio.get_running_loop().call_later(
+                    0.5, webbrowser.open, f"{connection.url}/#bootstrap={bootstrap_code}"
+                )
             try:
                 yield
             finally:
+                await runtime.close()
                 event("stopped")
 
         def request_shutdown():
             server.should_exit = True
 
-        app = create_app(connection, request_shutdown, lifespan)
+        app = create_app(
+            connection,
+            request_shutdown,
+            lifespan,
+            runtime=runtime,
+            providers=providers,
+            bootstrap_code=bootstrap_code,
+        )
         config = uvicorn.Config(
             app,
             host="127.0.0.1",

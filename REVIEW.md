@@ -24,7 +24,7 @@
 | 阶段 | 状态 | 当前缺少的证据 |
 | --- | --- | --- |
 | M0 基础与复用验证 | Partial | Mac 与 Windows/Linux CI、冻结包证据见下；Windows 11 真机、前端组合实际安装/构建未验证 |
-| M1 文字/查攻略/工具循环 | Pending | 本工程实现、真实模型/联网搜索/正文/来源、流式与取消测试 |
+| M1 文字/查攻略/工具循环 | In progress | 本工程实现、真实模型/联网搜索/正文/来源、流式与取消测试 |
 | M2 本地长期记忆 | Pending | 落盘、新会话召回、纠正/遗忘、进程与电脑重启 |
 | M3 桌面与角色 | Pending | 桌面接口、窗口/托盘/角色与原版共存 |
 | M4 语音与打断 | Pending | Windows 真机采集/播放、打断与迟到片段 |
@@ -103,3 +103,22 @@ Root 另补充 stop 的重定向测试：本机端口被其他服务接替时，
 预发布 [v0.1.0-alpha.1](https://github.com/FrigidCrow/ai-neko/releases/tag/v0.1.0-alpha.1) 已由[tag workflow 36123430471](https://github.com/FrigidCrow/ai-neko/actions/runs/36123430471)自动发布；该次 Windows/Linux 各 162 项源码测试与 13 项冻结包检查再次通过。6 个发布资产已实际下载，逐个核对 GitHub digest；ZIP/清单/构建信息和测试记录中的 exe SHA256 一致。ZIP 为 21,419,567 字节，SHA256 `d3aad33aa6e692eda305cb3eac552a7c7f24c889704f8eb60c248722d9cf351d`。
 
 直接证据：[下载核对报告](docs/evidence/m0/release-v0.1.0-alpha.1-verification.json)、[构建来源](docs/evidence/m0/release-v0.1.0-alpha.1-build.json)、[包检查](docs/evidence/m0/release-v0.1.0-alpha.1-package.json)。源码测试原始 JSON 同时作为 Release 资产保留。Mac 上只读取下载产物、核对摘要和 PE AMD64 格式，没有执行 Windows exe；Windows 执行结论来自上述远端 runner。当前可双击基础自检，无需开发工具；聊天/查询仍属于 M1，不能把基础包称为完整伴侣。
+
+
+## M0 收尾与 M1 文字/攻略实现（2026-09-25）
+
+用户已授权本轮 M0 收尾、M1 和 CI/CD。M0 可自动化工程项继续通过，Windows 11 真机仍 Pending；M1 源码已实现，发布与最终分项证据在本节续记。M2–M6 未启动。
+
+| 项目 | 当前证据与边界 |
+| --- | --- |
+| 模型/图/持久会话/API | OpenAI 兼容 SSE、唯一 LangGraph、3 轮/9 次只读工具上限、流式文字、查询来源、输入/发送/确认/幂等结算、取消与真进程崩溃恢复；38 项图/runtime 确定性测试通过 |
+| 网络/凭据 | DNS 固定 IP/TLS SNI、公开地址与重定向校验、无浏览器 Cookie/环境代理、限制大小/时间；Windows Credential Manager 单独实测，Mac/Linux 使用进程内凭据 |
+| Mac 源码预检 | [全套报告](docs/evidence/m1/macos-final-smoke.json)：286 passed、0 failed/error、1 Windows-only skipped，源码运行期间未变，CI gate PASS；报告总状态保留 PARTIAL，未执行的 Windows vault 不计通过 |
+| 真实公开正文 | [一次 HTTPS 正文读取](docs/evidence/m1/public-page-read.json)：Python 官方页实际读取成功；没有真实搜索或模型调用，不是三次端到端攻略验收 |
+| 真实模型与攻略质量 | [明确缺凭据](docs/evidence/m1/live-provider-acceptance.json)：专属模型/搜索 Key 未提供，外部调用 0。10 轮真实对话及 3 次真实搜索→正文→答案逐项人工核对 Pending |
+| Windows 11 | 用户真机、中文账户/ACL/junction、原版真实共存与实际交互 Pending；不能以 GitHub Windows Server 替代 |
+
+独立审查由 Provider 与 Runtime 工作者互查及 Root 集成复核完成；已闭环未发送草稿回放、迟到 checkpoint、旧来源编号误用、明确错误提示、配置凭据失败回滚。打包审查核对新增模块/静态资源路径/许可证闭包及 0.2.0 版本一致；私网冻结探针严格断言 blocked_address，源码子进程同时清除模型和搜索 Key。所有真实服务质量与 Windows 11 缺口保持明确。
+
+
+网页最终验证：[14 项浏览器检查](docs/evidence/m1/ui-browser-check.json) PASS，使用 Mac Chrome 与真实本地服务/合成模型；实际检查一次性 bootstrap、流式/ACK/取消/恢复、未领取完成回合、响应丢失后的幂等重试、鉴权错误在 done/reload 后保留、退出、移动端和不外传 Key。来源卡片/XSS 为明确 renderer fixture，不冒充真实检索结果。[桌面](docs/evidence/m1/ui-desktop-1440.png)、[窄屏](docs/evidence/m1/ui-mobile-390.png)、[设置](docs/evidence/m1/ui-settings-1440.png)、[聊天](docs/evidence/m1/ui-chat-1440.png)截图已查看。所有临时服务已退出；未做 Windows 浏览器验收。

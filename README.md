@@ -2,15 +2,13 @@
 
 独立的个人 AI 伴侣项目：以 LangGraph 编排对话，参考 N.E.K.O 的源码和已整理的教程，优先复用其界面、角色、语音与记忆能力。目标是 Windows 11 x64 桌面 App，长期记忆保存在本机，允许使用云模型。
 
-**M0 的源码基础及 Mac、Linux、Windows CI 合成验证已落地；阶段总状态为 Partial。** 已建立本工程 Python 依赖锁、数据隔离、鉴权本机服务和可跨进程恢复的合成 LangGraph，最新验证结果见 REVIEW。Windows 11 真机与前端组合运行兼容仍待验证；还没有真实聊天、长期记忆或桌面界面，没有复制 N.E.K.O 运行代码与素材。
+**M1 文字与攻略预览正在实施。** 已提供本地网页、OpenAI 兼容模型适配、会话持久化、取消、Tavily 搜索与公开正文读取。当前测试/发布状态见 [REVIEW](REVIEW.md)，合成测试不等于真实服务质量验收。
 
-开发入口：[M0 运行说明](docs/M0-QUICKSTART.md)。在本目录执行 `uv sync --locked`，再执行 `uv run --locked pytest -q`，无需模型 Key；测试使用临时合成资料。[Windows 取证入口](docs/WINDOWS-M0.md) 已提供，真机结果仍待执行。
+用户优先需要查攻略；不做键鼠代操作或控制游戏/其他软件。M1 不含长期事实记忆、桌宠、托盘和语音。M0 的 Windows 11 真机验收仍单列，Windows Server CI 不代替真机结论。
 
-当前产品优先级：**M1 提供可从 GitHub 下载、在 Windows 解压启动的文字聊天和联网查攻略试用版**，能搜索、读取网页正文、按平台/版本整理步骤并附来源。暂不做键鼠代操作或控制游戏/其他软件。此处是已确认需求，联网查询尚未实现。
+[GitHub Releases](https://github.com/FrigidCrow/ai-neko/releases) 提供按版本下载。M1 包完整解压后双击 `Start ai-neko.cmd`，在本地页面配置自己的模型及 Tavily 搜索服务；无需安装 Python/Node/uv。历史 `v0.1.0-alpha.1` 仅为基础诊断包，不能聊天。
 
-**可下载版本：[v0.1.0-alpha.1 基础验证版](https://github.com/FrigidCrow/ai-neko/releases/tag/v0.1.0-alpha.1)**。下载 Windows x64 ZIP 并完整解压，双击 `Check foundation.cmd`，无需安装 Python/Node/uv。当前包只做 M0 基础诊断，还不能聊天或查攻略。Windows Server CI 的 162 项源码测试与 13 项包内 exe 检查通过；Windows 11 真机验收仍待执行。
-
-GitHub CI/CD 与版本下载说明：[Windows 下载与发布](docs/CI-RELEASES.md)。提交后自动测试/构建；版本 tag 经同套验收后发布 prerelease。M1 功能仍待实现，证据见 REVIEW。
+使用说明：[M1 试用与验收](docs/M1-QUICKSTART.md)、[Windows 下载与 CI/CD](docs/CI-RELEASES.md)。
 
 ## 从这里进入
 

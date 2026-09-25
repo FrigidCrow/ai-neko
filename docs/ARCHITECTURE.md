@@ -138,3 +138,12 @@ tests/                 单元、集成、合成与 Windows 用例
 - [Interrupts](https://docs.langchain.com/oss/python/langgraph/interrupts)：等待外部输入及恢复；恢复可能重新执行节点前面的代码，副作用需幂等。
 
 旧 durable-execution 文档地址当前跳转到 Persistence，本计划使用实际可读的规范地址。
+
+
+## 9. M1 已实现接口映射与验收范围
+
+本轮源码将上述文字路径落为 `app/api.py`（本地鉴权 HTTP 与一次性浏览器引导）、`web/`（原生网页）、`config/providers.py` / `config/credentials.py`（独立配置与系统凭据）、`providers.py`（OpenAI 兼容流式适配）、`tools/network.py` / `tools/web.py`（公开网络资料）、`chat/graph.py`（唯一资料规划/工具/回答图）、`runtime/service.py`（会话与持久结算）。M0 的 `graph/service.py` 仍为独立合成诊断，不参与真实聊天决策。
+
+M1 API 固定当前本机用户与默认角色；公开 session/turn handle 与内部随机 checkpoint ID 分开。每轮有独立执行命名空间，后续上下文从会话日志重建，避免取消任务的迟到 checkpoint 覆盖新轮。确认、发送和生成序号分列；取消/错误/崩溃丢弃未发送草稿，已确认部分可成为后续上下文。历史来源编号标为需重新检索，不复用成当前来源。
+
+网页以增量事件轮询显示最终回答并提交显示确认，中间规划不进入用户正文；工具注册仅含 search_web 和 read_web_page。记忆/事实、媒体/播放、桌面/角色模块仍按 M2–M5 待实施。实现与验收状态见 REVIEW；API/fixture 可运行不代替真实模型或 Windows 11 真机验收。

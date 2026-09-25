@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-09-25T10:26:56.050493+00:00",
+  "checkedAt": "2026-09-25T10:58:38.862372+00:00",
   "scope": "Rename, documentation, diagrams, reference integrity; no ai-neko product runtime or Windows validation",
   "environment": {
     "system": "Darwin",
@@ -24,8 +24,8 @@
     "WORKLOG.md",
     "docs/validation-initial.json"
   ],
-  "markdownFiles": 15,
-  "localLinks": 284,
+  "markdownFiles": 16,
+  "localLinks": 293,
   "referenceFiles": 206,
   "courses": 24,
   "referenceGroups": 10,
@@ -44,7 +44,7 @@
   "productStages": {
     "docs/PLAN.md": {
       "M0": "Partial",
-      "M1": "Pending",
+      "M1": "In progress",
       "M2": "Pending",
       "M3": "Pending",
       "M4": "Pending",
@@ -53,7 +53,7 @@
     },
     "REVIEW.md": {
       "M0": "Partial",
-      "M1": "Pending",
+      "M1": "In progress",
       "M2": "Pending",
       "M3": "Pending",
       "M4": "Pending",

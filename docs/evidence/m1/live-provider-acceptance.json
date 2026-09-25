@@ -1,0 +1,20 @@
+{
+  "stage": "M1-real-providers",
+  "status": "Blocked",
+  "timestamp": "2026-09-25T10:52:52.432810+00:00",
+  "platform": "macOS-26.6.2-arm64-arm-64bit",
+  "config": {
+    "model_base_url": "https://api.openai.com/v1",
+    "search_base_url": "https://api.tavily.com",
+    "model": "not-configured"
+  },
+  "real_model_calls": 0,
+  "real_search_calls": 0,
+  "real_page_calls": 0,
+  "conversation": [],
+  "guides": [],
+  "missing_environment_variables": [
+    "AI_NEKO_MODEL_API_KEY",
+    "AI_NEKO_SEARCH_API_KEY"
+  ]
+}

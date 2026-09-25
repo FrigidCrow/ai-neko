@@ -181,3 +181,27 @@ def test_timeout_keeps_main_status_failed_despite_completed_progress(
     assert evidence["tests"]["timeout_seconds"] == 600
     assert evidence["tests"]["passed"] == 0
     assert evidence["tests"]["progress"]["completed_counts"]["passed"] == 10
+
+
+def test_only_exact_non_windows_vault_skip_is_ci_eligible():
+    import importlib.util
+    from pathlib import Path
+
+    spec = importlib.util.spec_from_file_location(
+        "m0_skip_gate", Path(__file__).resolve().parents[1] / "scripts/m0_smoke.py"
+    )
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    case = {
+        "name": "test_windows_vault_real_roundtrip_and_delete",
+        "class": "tests.test_provider_config",
+        "outcome": "skipped",
+    }
+    results = {"skipped": 1, "cases": [case]}
+    assert module.expected_platform_skips(results, "Darwin")
+    assert module.expected_platform_skips(results, "Linux")
+    assert not module.expected_platform_skips(results, "Windows")
+    assert not module.expected_platform_skips({"skipped": 2, "cases": [case, case]}, "Linux")
+    assert not module.expected_platform_skips(
+        {"skipped": 1, "cases": [{**case, "name": "other_test"}]}, "Linux"
+    )

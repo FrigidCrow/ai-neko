@@ -41,6 +41,9 @@ CASES = (
     "authenticated_health_and_descriptor",
     "http_rejects_missing_and_wrong_token",
     "websocket_origin_auth_and_ping",
+    "packaged_web_assets_and_api_auth",
+    "packaged_chat_stream_ack_and_cancel",
+    "packaged_session_restart_recovery",
     "second_instance_preserves_descriptor",
     "occupied_explicit_port_is_rejected",
     "graceful_stop_removes_descriptor",
@@ -171,12 +174,26 @@ class Probe:
         require(isinstance(value, dict))
         return value
 
-    def request(self, method: str, path: str, *, token: str | None = None) -> tuple[int, bytes]:
+    def request(
+        self,
+        method: str,
+        path: str,
+        *,
+        token: str | None = None,
+        data: dict | None = None,
+    ) -> tuple[int, bytes]:
         headers = {} if token is None else {"Authorization": f"Bearer {token}"}
+        headers["Origin"] = self.connection["http_url"]
+        if data is not None:
+            headers["Content-Type"] = "application/json"
         request = Request(
             self.connection["http_url"] + path,
             method=method,
-            data=b"" if method == "POST" else None,
+            data=json.dumps(data).encode()
+            if data is not None
+            else b""
+            if method == "POST"
+            else None,
             headers=headers,
         )
         opener = build_opener(ProxyHandler({}), _NoRedirect())
@@ -234,6 +251,123 @@ class Probe:
         require(result["app_id"] == "ai-neko" and result["status"] == "passed")
         require(result["real_model_calls"] == 0 and result["external_network_calls"] == 0)
         require(result["user_data_accessed"] is False)
+
+    def api(self, method: str, path: str, data: dict | None = None):
+        status, value = self.request(method, path, token=self.connection["token"], data=data)
+        require(200 <= status < 300)
+        return json.loads(value)
+
+    def check_web(self):
+        require(self.root is not None and (self.root / "Start ai-neko.cmd").is_file())
+        for path, marker in (
+            ("/", b"ai-neko"),
+            ("/static/app.js", b"/api/"),
+            ("/static/style.css", b"{"),
+        ):
+            status, value = self.request("GET", path)
+            require(
+                status == 200 and marker in value and self.connection["token"].encode() not in value
+            )
+        for path in ("/api/config", "/api/sessions"):
+            require(self.request("GET", path)[0] == 401)
+        config = self.api("GET", "/api/config")
+        require("model_api_key" not in config and "search_api_key" not in config)
+
+    def check_chat(self):
+        from synthetic_model import SyntheticModel
+
+        with SyntheticModel() as model:
+            self.api(
+                "PUT", "/api/config", {"model_base_url": model.url, "model": "synthetic-model"}
+            )
+            session = self.api("POST", "/api/sessions")
+            session_id = session.get("session_id", session.get("id"))
+            require(isinstance(session_id, str))
+            base = f"/api/sessions/{session_id}"
+            turn = self.api(
+                "POST", base + "/turns", {"text": "slow synthetic chat", "guide": False}
+            )
+            path = base + "/turns/" + turn["turn_id"]
+            deadline = time.monotonic() + 15
+            last_seq = 0
+            visible = ""
+            while time.monotonic() < deadline:
+                batch = self.api("GET", path + f"/events?after={last_seq}")
+                for event in batch["events"]:
+                    last_seq = max(last_seq, event["seq"])
+                    if event["type"] == "text":
+                        visible += event["text"]
+                if visible:
+                    require(batch["status"] in {"running", "accepted", "active"})
+                    self.api("POST", path + "/ack", {"sequence": last_seq})
+                    break
+                time.sleep(0.03)
+            require(bool(visible))
+            self.api("POST", path + "/cancel")
+            final = self.api("GET", path + f"/events?after={last_seq}")
+            require(final["status"] == "cancelled")
+            settled = self.api("GET", base)
+            require(settled["turns"][0]["status"] == "cancelled")
+            require(settled["turns"][0]["confirmed_text"] == visible)
+            self.recovery_session_id = session_id
+            self.recovery_text = visible
+            # Complete another turn through the packaged LangGraph and HTTP model adapter.
+            second = self.api(
+                "POST", base + "/turns", {"text": "synthetic completion", "guide": False}
+            )
+            path = base + "/turns/" + second["turn_id"]
+            deadline = time.monotonic() + 15
+            while time.monotonic() < deadline:
+                batch = self.api("GET", path + "/events?after=0")
+                if batch["status"] not in {"accepted", "running", "active"}:
+                    require(batch["status"] == "completed")
+                    texts = "".join(e["text"] for e in batch["events"] if e["type"] == "text")
+                    require("合成回复" in texts)
+                    self.api("POST", path + "/ack", {"sequence": batch["last_seq"]})
+                    break
+                time.sleep(0.04)
+            else:
+                raise TimeoutError("Synthetic packaged chat timed out")
+            require(len(model.requests) == 2)
+            # Exercise the frozen guide graph and both real tool implementations
+            # without external credentials/network: missing search key and a
+            # blocked private page must stay explicit failures, never evidence.
+            guide = self.api("POST", base + "/turns", {"text": "synthetic guide", "guide": True})
+            path = base + "/turns/" + guide["turn_id"]
+            deadline = time.monotonic() + 15
+            while time.monotonic() < deadline:
+                batch = self.api("GET", path + "/events?after=0")
+                if batch["status"] not in {"accepted", "running", "active"}:
+                    require(batch["status"] == "completed")
+                    require(
+                        any(
+                            e["type"] == "tool" and e.get("error") == "search_key_missing"
+                            for e in batch["events"]
+                        )
+                    )
+                    require(
+                        any(
+                            e["type"] == "source"
+                            and e["source"]["status"] == "unreadable"
+                            and e["source"]["error"] == "blocked_address"
+                            and e["source"]["url"] == "http://127.0.0.1/private"
+                            for e in batch["events"]
+                        )
+                    )
+                    self.api("POST", path + "/ack", {"sequence": batch["last_seq"]})
+                    break
+                time.sleep(0.04)
+            else:
+                raise TimeoutError("Synthetic packaged guide timed out")
+            require(len(model.requests) == 5)
+
+    def check_chat_recovery(self, data):
+        self.stop_server(data)
+        self.start_server(data)
+        session = self.api("GET", f"/api/sessions/{self.recovery_session_id}")
+        require(len(session["turns"]) == 3)
+        require(session["turns"][0]["confirmed_text"] == self.recovery_text)
+        require(session["turns"][1]["status"] == "completed")
 
     def check_websocket(self) -> None:
         options = {"open_timeout": 4, "close_timeout": 2, "proxy": None}
@@ -399,6 +533,9 @@ class Probe:
         self.case("authenticated_health_and_descriptor", lambda: self.start_server(data))
         self.case("http_rejects_missing_and_wrong_token", self.check_http_auth)
         self.case("websocket_origin_auth_and_ping", self.check_websocket)
+        self.case("packaged_web_assets_and_api_auth", self.check_web)
+        self.case("packaged_chat_stream_ack_and_cancel", self.check_chat)
+        self.case("packaged_session_restart_recovery", lambda: self.check_chat_recovery(data))
         self.case("second_instance_preserves_descriptor", lambda: self.check_second_instance(data))
         self.case(
             "occupied_explicit_port_is_rejected",

@@ -8,6 +8,7 @@ repo = Path(SPECPATH).parent
 # its own modules, not optional provider SDKs or other frameworks.
 hidden = collect_submodules("langchain_core") + [
     "langgraph.checkpoint.sqlite",
+    "langgraph.checkpoint.sqlite.aio",
     "langsmith.run_helpers",
     "uvicorn.loops.asyncio",
     "uvicorn.protocols.http.h11_impl",
@@ -15,14 +16,14 @@ hidden = collect_submodules("langchain_core") + [
     "uvicorn.lifespan.on",
 ]
 metadata = []
-for name in ("langgraph", "langgraph-checkpoint-sqlite", "fastapi", "uvicorn", "websockets", "filelock"):
+for name in ("langgraph", "langgraph-checkpoint-sqlite", "fastapi", "uvicorn", "websockets", "filelock", "httpx"):
     metadata += copy_metadata(name, recursive=True)
 
 a = Analysis(
     [str(repo / "packaging" / "entry.py")],
     pathex=[str(repo / "src")],
     binaries=[],
-    datas=metadata,
+    datas=metadata + [(str(repo / "src" / "ai_neko" / "web"), "ai_neko/web")],
     hiddenimports=hidden,
     hookspath=[],
     hooksconfig={},

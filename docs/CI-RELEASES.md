@@ -1,8 +1,8 @@
 # Windows 下载与 GitHub CI/CD
 
-当前版本线为 **M0 基础验证版**。它提供独立数据目录、本机鉴权服务和合成图恢复诊断；没有聊天页面、真实模型、联网攻略、长期记忆、桌宠或语音。M1 的目标是解压启动本地文字页面，配置自己的模型/查询服务后聊天、查攻略并查看来源。Windows 11 真机验收单列，不能由 Windows Server CI 代替。
+M1 的 `0.2.0` 预览线提供本地文字页面、会话历史/取消、模型配置、Tavily 搜索、公开正文读取与来源卡片。每次发布必须通过 Windows/Linux 合成测试及解压 exe 探针；这些结果与真实服务质量、Windows 11 真机分开。
 
-已发布：[v0.1.0-alpha.1](https://github.com/FrigidCrow/ai-neko/releases/tag/v0.1.0-alpha.1)，对应源码 `c745193e4a24f44489d99564aac0e08b4a3fd0dc`。[Windows ZIP](https://github.com/FrigidCrow/ai-neko/releases/download/v0.1.0-alpha.1/ai-neko-0.1.0-alpha.1-windows-x64.zip) 约 20.4 MiB；实际下载、资产摘要与测试证据核对通过，见 [验证记录](evidence/m0/release-v0.1.0-alpha.1-verification.json)。
+[版本列表](https://github.com/FrigidCrow/ai-neko/releases)保留旧版。`v0.1.0-alpha.1` 是历史 M0 诊断包，没有聊天页面；对应 [历史核对](evidence/m0/release-v0.1.0-alpha.1-verification.json)。M1 的实际发布结果记 REVIEW，不把计划发布写成已完成。
 
 ## 下载和运行
 
@@ -10,7 +10,7 @@
 - 开发构建：[GitHub Actions](https://github.com/FrigidCrow/ai-neko/actions/workflows/windows-preview.yml)。成功运行下的 `ai-neko-windows-x64` artifact 保留 14 天；通常需要登录 GitHub。解开 artifact 后，里面的 ZIP 才是应用包。
 - 将应用 ZIP 完整解压到独立文件夹；保留 `ai-neko.exe` 和 `_internal` 的相对位置。无需自行安装 Python、Node 或 uv。
 - 双击 `Check foundation.cmd` 运行合成基础自检。`status: passed` 表示包内图恢复和隔离检查通过；临时测试资料随后清除。
-- `Start service.cmd` / `Stop service.cmd` 用于本机服务诊断，尚无聊天页面。默认数据根 `%LOCALAPPDATA%\ai-neko`，可用专属环境变量 `AI_NEKO_DATA_DIR` 设置绝对路径。不会读取或迁移原 N.E.K.O 资料。
+- 双击 `Start ai-neko.cmd` 启动服务并打开聊天页面。`Start service.cmd` 保留无浏览器诊断入口，`Stop service.cmd` 退出服务。默认数据根 `%LOCALAPPDATA%\ai-neko`，可用专属环境变量 `AI_NEKO_DATA_DIR` 设置绝对路径。不会读取或迁移原 N.E.K.O 资料。
 
 当前包未做代码签名。每版附 `build-info.json`、`SHA256SUMS.txt`、`package-smoke.json` 和源码测试报告。可在 PowerShell 执行 `Get-FileHash .\ai-neko-版本-windows-x64.zip -Algorithm SHA256` 与清单比较；出现下载、启动或测试失败时，记录版本和错误，不记为通过。
 
@@ -23,7 +23,7 @@
 3. 解压到含中文和空格的临时路径，使用包内 exe 实测路径、HTTP/WS 鉴权、端口冲突、第二实例、退出清理、跨新进程图暂停/恢复和身份隔离。应用子进程清除 Python 源码路径和配置/Key 环境，PATH 仅保留系统目录；不借用开发环境启动应用。
 4. 普通构建提供带 commit 的开发版 artifact；版本 tag 经同一套检查后自动创建 GitHub prerelease。只有发布 job 具有 `contents: write`，测试/PR 不接收模型或搜索 Key。
 
-tag 格式为 `v<pyproject 版本>` 加可选预发布后缀，如 `v0.1.0-alpha.1`。基础版本必须与 `pyproject.toml` 一致；构建清单分别记录 `app_version` 和 `release_version`。同一版本不可覆盖，已有 Release 会导致发布步骤失败；修复使用新版本 tag。稳定发布和签名尚未接入。
+tag 格式为 `v<pyproject 版本>` 加可选预发布后缀，如 `v0.2.0-alpha.1`。基础版本必须与 `pyproject.toml` 一致；构建清单分别记录 `app_version` 和 `release_version`。同一版本不可覆盖，已有 Release 会导致发布步骤失败；修复使用新版本 tag。稳定发布和签名尚未接入。
 
 维护者发布示例（在已检查的目标 commit 上执行；这两条不是下载用户的安装步骤）：
 

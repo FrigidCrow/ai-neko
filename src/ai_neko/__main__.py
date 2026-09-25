@@ -59,11 +59,14 @@ def main(argv: list[str] | None = None) -> int:
         from ai_neko.graph.__main__ import main as graph_main
 
         return graph_main(argv[1:])
-    parser = argparse.ArgumentParser(description="ai-neko M0 local foundation")
+    parser = argparse.ArgumentParser(description="ai-neko local chat and guide preview")
     commands = parser.add_subparsers(dest="command", required=True)
     serve_parser = commands.add_parser("serve", help="start the authenticated loopback probe")
     serve_parser.add_argument("--data-dir")
     serve_parser.add_argument("--port", type=int, default=None)
+    start_parser = commands.add_parser("start", help="start ai-neko and open the local chat page")
+    start_parser.add_argument("--data-dir")
+    start_parser.add_argument("--port", type=int, default=None)
     stop_parser = commands.add_parser("stop", help="request graceful shutdown of this data root")
     stop_parser.add_argument("--data-dir")
     paths_parser = commands.add_parser("paths", help="show chosen paths without creating them")
@@ -75,7 +78,8 @@ def main(argv: list[str] | None = None) -> int:
     if not argv:
         parser.print_help()
         print(
-            "\nM0 foundation only: chat, web search, voice and desktop avatar are not implemented."
+            "\nUse 'start' to open chat and configure your model/search services. "
+            "Voice and desktop avatar are not included in this preview."
         )
         return 0
     args = parser.parse_args(argv)
@@ -95,7 +99,9 @@ def main(argv: list[str] | None = None) -> int:
             stop(args.data_dir)
         else:
             settings = Settings.load(args.port)
-            serve(initialize_data_root(args.data_dir), settings)
+            serve(
+                initialize_data_root(args.data_dir), settings, open_browser=args.command == "start"
+            )
     except InstanceInUseError as exc:
         print(f"ai-neko: {exc}", file=sys.stderr)
         return 3

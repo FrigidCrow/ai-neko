@@ -174,3 +174,27 @@ Root 另修包探针的合成环境：清除真实 USERPROFILE 后，为子进�
 tag 运行 `36123430471` 再次通过全部测试、原生构建和解压 exe 验收，发布 job 用运行期 GitHub token 自动创建 prerelease。实际执行 `gh release view v0.1.0-alpha.1 --repo FrigidCrow/ai-neko --json tagName,isPrerelease,url,assets,publishedAt`、`gh release download v0.1.0-alpha.1 --repo FrigidCrow/ai-neko --dir artifacts/releases/v0.1.0-alpha.1`。6 项资产逐个核对 GitHub digest/size、SHA256SUMS、ZIP 内外构建信息、测试报告的 exe/ZIP SHA、PE AMD64 头与 162/13 项通过；未在 Mac 运行 Windows exe。Release 已于 2026-09-25T10:23:25Z 发布，ZIP 21,419,567 字节，SHA256 `d3aad33aa6e692eda305cb3eac552a7c7f24c889704f8eb60c248722d9cf351d`；tag API 指向同一代码 SHA。
 
 结果写入 `docs/evidence/m0/release-v0.1.0-alpha.1-verification.json`；构建和包检查另存同目录，Windows JSON 入库仅转换行尾。README/PLAN/REVIEW/WINDOWS-M0/CI-RELEASES 同步实际状态。最终交付文档提交使用 `[skip ci]`，仅文档和已验证证据变化；已发布源码、tag 和二进制保持不变，不为这些文字修改再跑同一套产品测试。M0 总体 Partial（Windows 11 真机等仍待），M1 Pending；已交付 CI/CD 和 M0 基础诊断下载版。
+
+
+## 2026-09-25 — 用户授权 M0 收尾、M1 与 CI/CD
+
+先读 AGENTS、PLAN、ARCHITECTURE 和上次 release 证据，登记 PLAN 第 12 节后实施。使用 engineering-ai-engineer / engineering-devops-automator，网页子任务使用 engineering-frontend-developer。并行 ownership 为 Provider/只读工具/凭据、LangGraph+SessionRuntime、网页；Root 集成 API/启动/打包/CI/证据。没有读取原版凭据或迁入其运行源码/素材；全局记忆未写入。
+
+实际执行（本节为已运行命令，不代表最终 Windows 结论）：
+
+- `uv lock`、`uv sync --locked`：版本升 0.2.0，httpx 0.28.1 显式列为运行依赖，仍共 61 个锁包。
+- `uv run --locked pytest -q tests/test_m1_api.py tests/test_server_process.py`：网页 app.js 尚未落盘时有 1 个静态资产 500，其他 23 项通过；网页完成后重跑 M1 API 通过。没有把开发中失败记为通过。
+- Provider 分组最终 82 passed / 1 Windows-only skipped；runtime/chat 38 passed。两组均为合成测试，Windows Credential Manager 的真实往返只在 Windows 执行。
+- `uv run --locked python scripts/m0_smoke.py --output artifacts/m1/macos-smoke.json`：初次全套 285 passed / 1 skipped，0 failure/error；报告正确为 PARTIAL，但原入口把任何 skip 当成 CI 失败。补充仅允许非 Windows 的明确 vault case 进入 CI 的检查，仍保留 PARTIAL 和真实 skip 计数；其他跳过或 Windows 跳过仍阻止发布，新增精确门控回归。
+- 包探针的新增聊天/攻略/取消链先对独立源码子进程执行，3 轮正常：流式 ACK、取消、完整回复、搜索 Key 缺失及私网正文拒绝；外部调用 0。该项仅验证探针逻辑，不称已执行冻结 exe。
+- 一次真实公开网页读取 `https://docs.python.org/3/library/asyncio.html` 通过，检验 DNS 固定 IP + TLS SNI；实际模型/搜索调用 0，记录 `artifacts/m1/public-page-read.json`。
+- `uv run --locked python scripts/m1_live.py --model not-configured --output artifacts/m1/live-provider-acceptance.json`：退出 2，明确缺少两个本项目 Key，实际外部调用 0；不把缺凭据替换成 fake 通过。
+- `uv run --locked ruff check src tests scripts packaging`、`ruff format`、`git diff --check`：根据实际发现修复；最终结果在交付证据补记。
+
+独立审查修复：取消后未发送草稿冻结、逐轮 checkpoint namespace 防迟到覆盖、旧来源编号改为需重新检索、API错误具体提示保留、历史完成但未读事件恢复。根 .gitignore 的 `runtime/` 改为 `/runtime/`，防止新 `src/ai_neko/runtime` 被意外忽略。文档/发布将 M0 与 M1 总体状态及真机/真实服务缺口分别保留。
+
+
+最终 Mac 后端/源码预检执行 `uv run --locked python scripts/m0_smoke.py --output artifacts/m1/macos-final-smoke.json`：286 passed / 0 failure/error / 1 Windows vault skip，34.215 秒，source_unchanged=true、ci_gate=PASS，status 保留 PARTIAL。随后网页交互修正由浏览器补验，最终发布源码另以 Windows/Linux CI 的 clean commit 为准。`python3 docs/diagrams/tools/validate-docs.py` 通过 206 来源指纹、链接、图解和阶段一致性；原参考仓库 tracked diff/status 未变。公开页与缺凭据报告复制至 docs/evidence/m1，保留原始事实与时间。
+
+
+网页最终使用 `artifacts/m1-ui/check_ui.py`（本机 Playwright + Chrome 153）检查 14 项，通过真实本地服务及明确 renderer fixture；源码 `app.js` SHA256 `524fa115ca0bc3a5e8785c226acfa9198ef5148a14fdc9d3881c77a0671cb196`。Root 另目视桌面截图。增强脚本曾因测试 harness lambda 捕获可变 argv、旧 DOM 等待条件而失败，修复 harness 后重跑通过，不归为产品通过证据的一部分。报告与四截图复制 docs/evidence/m1。执行 `node --check src/ai_neko/web/app.js` 和最终 Ruff/diff 检查后冻结发布源码。

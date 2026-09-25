@@ -1,0 +1,20 @@
+{
+  "timestamp": "2026-09-25T10:44:26.345905+00:00",
+  "platform": "macOS-26.6.2-arm64-arm-64bit",
+  "status": "ok",
+  "error": null,
+  "kind": "public_page_read_only",
+  "real_model_calls": 0,
+  "real_search_calls": 0,
+  "sources": [
+    {
+      "id": "eb33d36da592",
+      "url": "https://docs.python.org/3/library/asyncio.html",
+      "title": "asyncio — Asynchronous I/O — Python 3.14.7 documentation",
+      "status": "read",
+      "retrieved_at": "2026-09-25T10:44:26.345876+00:00",
+      "error": null,
+      "text_chars": 3662
+    }
+  ]
+}

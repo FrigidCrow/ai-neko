@@ -1,4 +1,4 @@
-"""Build an auditable M0 portable ZIP on Windows x64, never cross-compile."""
+"""Build an auditable M1 portable ZIP on Windows x64, never cross-compile."""
 
 from __future__ import annotations
 
@@ -237,7 +237,7 @@ def build_info(release_version: str, base: str, dependencies: dict[str, Distribu
     return {
         "schema_version": 1,
         "app_id": "ai-neko",
-        "stage": "M0",
+        "stage": "M1",
         "version": release_version,
         "release_version": release_version,
         "base_version": base,
@@ -281,7 +281,7 @@ def make_zip(folder: Path, archive: Path) -> None:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--version", required=True, help="0.1.0-alpha.1 or 0.1.0-dev.COMMIT")
+    parser.add_argument("--version", required=True, help="0.2.0-alpha.1 or 0.2.0-dev.COMMIT")
     parser.add_argument("--output", type=Path, default=Path("artifacts/package"))
     args = parser.parse_args(argv)
     try:
@@ -320,6 +320,7 @@ def main(argv: list[str] | None = None) -> int:
                 "README-WINDOWS.txt",
                 "Check foundation.cmd",
                 "Start service.cmd",
+                "Start ai-neko.cmd",
                 "Stop service.cmd",
             ):
                 source = ROOT / "packaging" / filename
@@ -342,7 +343,7 @@ def main(argv: list[str] | None = None) -> int:
             json.dumps(
                 {
                     "status": "built",
-                    "stage": "M0",
+                    "stage": "M1",
                     "archive": str(archive),
                     "sha256": sha256(archive),
                     "windows_11_acceptance": "pending",

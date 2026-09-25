@@ -1,4 +1,4 @@
-"""Run synthetic M0 tests and emit portable evidence without logs or credentials."""
+"""Run synthetic M0 and M1 tests and emit portable evidence without logs or credentials."""
 
 from __future__ import annotations
 
@@ -23,6 +23,22 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 TEST_TIMEOUT_SECONDS = 600
+
+
+def expected_platform_skips(results: dict, system: str) -> bool:
+    """Only the explicit Windows-vault probe may be inapplicable off Windows.
+
+    Keep the report PARTIAL and its skip count: CI eligibility does not turn an
+    unexecuted Windows API call into a successful Linux/Mac test.
+    """
+    skipped = [case for case in results.get("cases", []) if case["outcome"] == "skipped"]
+    return (
+        system != "Windows"
+        and results.get("skipped") == 1
+        and len(skipped) == 1
+        and skipped[0].get("class") == "tests.test_provider_config"
+        and skipped[0].get("name") == "test_windows_vault_real_roundtrip_and_delete"
+    )
 
 
 def safe_test_name(value: str) -> str:
@@ -176,7 +192,7 @@ def source_identity() -> dict:
         for name in ("pyproject.toml", "uv.lock", ".python-version", ".gitattributes", "AGENTS.md")
     ]
     for directory, patterns in {
-        "src": ["*.py"],
+        "src": ["*.py", "*.html", "*.css", "*.js"],
         "tests": ["*.py"],
         "scripts": ["*.py", "*.ps1"],
         "packaging": ["*"],
@@ -348,7 +364,13 @@ def run_pytest(
         f"--junitxml={junit_path}",
     ]
     env = os.environ.copy()
-    for name in ("PYTEST_ADDOPTS", "PYTEST_PLUGINS", "AI_NEKO_DATA_DIR", "AI_NEKO_MODEL_API_KEY"):
+    for name in (
+        "PYTEST_ADDOPTS",
+        "PYTEST_PLUGINS",
+        "AI_NEKO_DATA_DIR",
+        "AI_NEKO_MODEL_API_KEY",
+        "AI_NEKO_SEARCH_API_KEY",
+    ):
         env.pop(name, None)
     env["PYTEST_DISABLE_PLUGIN_AUTOLOAD"] = "1"
     env["PYTHONUTF8"] = "1"
@@ -417,6 +439,8 @@ def main() -> int:
     status = (
         "PASS" if valid_run and results["skipped"] == 0 else "PARTIAL" if valid_run else "FAILED"
     )
+    platform_skip = expected_platform_skips(results, platform.system())
+    ci_gate = "PASS" if valid_run and (results["skipped"] == 0 or platform_skip) else "FAILED"
     is_windows_11_x64 = (
         platform.system() == "Windows"
         and platform.release() == "11"
@@ -430,6 +454,7 @@ def main() -> int:
         "started_at_utc": started,
         "duration_seconds": round(time.monotonic() - start, 3),
         "status": status,
+        "ci_gate": ci_gate,
         "environment": {
             "system": platform.system(),
             "release": platform.release(),
@@ -452,9 +477,11 @@ def main() -> int:
             **results,
             "progress": progress,
             "real_model_tests": 0,
+            "expected_platform_skips": 1 if platform_skip else 0,
         },
         "scope": {
             "service_and_synthetic_graph": status,
+            "m1_deterministic_chat_and_guides": status,
             "windows_11_x64_execution": status if is_windows_11_x64 else "NOT_VERIFIED",
             "desktop_tray_audio_packaging": "NOT_TESTED",
             "original_neko_coexistence": "NOT_TESTED",
@@ -467,7 +494,7 @@ def main() -> int:
         f"M0 {evidence['status']}: {results['passed']} passed, {results['failed']} failed, {results['errors']} errors, {results['skipped']} skipped; real model tests: 0"
     )
     print(f"Evidence: {output}")
-    return 0 if status == "PASS" else 1
+    return 0 if ci_gate == "PASS" else 1
 
 
 if __name__ == "__main__":
