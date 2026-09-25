@@ -28,7 +28,10 @@ def sha256(path: Path) -> str:
 
 def source_identity() -> dict:
     # Explicit inclusion avoids credentials, user data, virtualenvs and generated reports.
-    files = [ROOT / name for name in ("pyproject.toml", "uv.lock", ".python-version", "AGENTS.md")]
+    files = [
+        ROOT / name
+        for name in ("pyproject.toml", "uv.lock", ".python-version", ".gitattributes", "AGENTS.md")
+    ]
     for directory, patterns in {
         "src": ["*.py"],
         "tests": ["*.py"],

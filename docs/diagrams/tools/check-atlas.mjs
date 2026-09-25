@@ -59,7 +59,7 @@ try {
     if (g.width<=0 || g.height<=0 || g.textLabels===0) failures.push(`Invalid SVG geometry ${d.id}`);
     if (g.clippedText.length) failures.push(`Text outside SVG ${d.id}: ${g.clippedText.join(',')}`);
     svgGeometry.push({id:d.id,...g});
-    if (['01-architecture','05-runtime','06-cancellation','11-memory-data','12-memory-forget'].includes(d.id)) {
+    if (['00-roadmap','01-architecture','05-runtime','06-cancellation','11-memory-data','12-memory-forget','18-delivery'].includes(d.id)) {
       await page.$eval('svg', svg => {svg.style.maxWidth='1400px';svg.style.width='100%';svg.style.height='auto';});
       await (await page.$('svg')).screenshot({path:path.join(evidence,`${d.id}.png`)});
     }

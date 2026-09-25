@@ -1,0 +1,2 @@
+# Preserve upstream license bytes so provenance SHA256 agrees on every checkout.
+packaging/licenses/* -text

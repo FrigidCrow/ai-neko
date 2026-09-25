@@ -182,7 +182,9 @@ def copy_licenses(destination: Path, dependencies: dict[str, Distribution]) -> d
 
 
 def input_hashes() -> dict[str, str]:
-    files = [ROOT / "pyproject.toml", ROOT / "uv.lock", ROOT / ".python-version"]
+    files = [
+        ROOT / name for name in ("pyproject.toml", "uv.lock", ".python-version", ".gitattributes")
+    ]
     for name in ("src", "scripts", "packaging", ".github/workflows"):
         files += [
             path

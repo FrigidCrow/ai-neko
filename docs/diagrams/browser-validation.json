@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-09-25T08:45:03.636Z",
+  "checkedAt": "2026-09-25T09:55:18.364Z",
   "platform": "darwin",
   "arch": "arm64",
   "node": "v25.9.0",
@@ -26,9 +26,9 @@
   "svgGeometry": [
     {
       "id": "00-roadmap",
-      "width": 612,
-      "height": 1605.5,
-      "textLabels": 3,
+      "width": 1099.5390625,
+      "height": 1172,
+      "textLabels": 4,
       "clippedText": []
     },
     {
@@ -152,9 +152,9 @@
     },
     {
       "id": "18-delivery",
-      "width": 440,
-      "height": 1839,
-      "textLabels": 3,
+      "width": 894.5494995117188,
+      "height": 2205.5,
+      "textLabels": 8,
       "clippedText": []
     },
     {

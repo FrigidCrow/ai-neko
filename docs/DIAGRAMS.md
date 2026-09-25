@@ -1,6 +1,6 @@
 # ai-neko 计划与模块图册
 
-**图册为规划设计，已同步查攻略优先的需求；当前实施进度见 PLAN 和 REVIEW。** M0 已进入实现；图册与文档完成不代表 Windows App 已经可用。
+**图册为阶段计划与模块设计，实际进度见 PLAN 和 REVIEW。** M0 提前建立基础诊断包下载链路；M1 目标是可下载的文字聊天与查攻略试用版；M6 完成升级恢复与长期使用验收。Windows Server CI 不能替代 Windows 11 真机。
 
 [打开离线图册](diagrams/index.html) · [技能调研](DIAGRAM-SKILLS.md) · [实施计划](PLAN.md) · [架构接口](ARCHITECTURE.md)
 
@@ -25,7 +25,7 @@
 | frontend：界面、角色、口型 | [15](#diagram-15-ui-avatar) | 事件适配与状态呈现 |
 | config：路径、凭据、存储隔离 | [16](#diagram-16-isolation) | ai-neko 独立应用资料 |
 | desktop：窗口、托盘、进程 | [17](#diagram-17-desktop) | 条件复用与本工程生命周期 |
-| tests / build：Windows 交付 | [18](#diagram-18-delivery) | 干净机、升级恢复与观察证据 |
+| tests / build：Windows 交付 | [18](#diagram-18-delivery) | M0 下载链路、M1 试用、M6 最终验收 |
 | 来源迁入与后续扩展 | [19](#diagram-19-reuse) | 教程到模块，首版与后续边界 |
 
 <a id="diagram-00-roadmap"></a>
@@ -35,16 +35,16 @@
 
 先做哪些，什么时候才算做完？
 
-M1 先提供文字对话和带来源的攻略查询，M2 加入长期记忆，再接桌面和语音。键鼠代操作当前不做。
+M0 提前建立 GitHub CI 并提供基础诊断 ZIP；M1 的目标是可在 Windows 下载启动的网页文字聊天和带来源攻略查询。M2 再加入长期记忆，随后接桌面和语音。
 
 ![从哪里开始做](diagrams/svg/00-roadmap.svg)
 
 [查看 SVG 大图](diagrams/svg/00-roadmap.svg) · [编辑 Mermaid 源文件](diagrams/src/00-roadmap.mmd)
 
 - 输入：用户需求与已有教材
-- 处理：按 M0 → M6 推进；搜索/正文读取提前至 M1，M5 复用查询能力处理用户提供的图片。
-- 输出：最终目标是独立的 Windows 桌面伴侣。
-- 边界：图中顺序是实施依赖，没有虚构具体日期或工期。
+- 处理：按 M0 → M6 推进：M0 诊断包，M1 可下载文字试用版，M6 完整产品的升级恢复与长期使用验收。M5 复用 M1 查询能力处理用户提供的图片。
+- 输出：逐阶段可下载的 Windows 版本，最终成为独立桌面伴侣；键鼠代操作当前不做。
+- 边界：M0 包不含聊天或攻略。Windows Server CI 与 Windows 11 x64 真机分别记录；M1 能力仍须实现和验收，图中不虚构完成状态或工期。
 
 复用与学习：规划参考全部 24 课，按阶段选择移植；教程中的电脑控制不属于当前范围。 对应课程 L01、L09、L23、L24，见 [教程与源码映射](REFERENCES.md)。
 
@@ -389,22 +389,22 @@ ai-neko 如何与原版互不干扰？
 复用与学习：原壳适用则复用；否则只补最小 Electron 宿主。 对应课程 L13、L14、L24，见 [教程与源码映射](REFERENCES.md)。
 
 <a id="diagram-18-delivery"></a>
-## 18 · 怎样证明它真的能在 Windows 使用
+## 18 · 从 GitHub 下载到 Windows 真机验收
 
-**流程图 · M6 · 设计未实现**
+**流程图 · M0 / M1 / M6 · 设计未实现**
 
-写完代码和拿到可用 App 之间还差什么？
+什么时候能下载，CI 通过后还需要验证什么？
 
-构建产物必须在干净 Windows 机器上实际运行，再验证升级、恢复和日常使用。
+M0 就建立基础诊断包的下载链路，M1 交付网页文字聊天和查攻略试用版；Windows 11 真机结果单列，M6 再完成完整产品的升级、恢复和长期使用验收。
 
-![怎样证明它真的能在 Windows 使用](diagrams/svg/18-delivery.svg)
+![从 GitHub 下载到 Windows 真机验收](diagrams/svg/18-delivery.svg)
 
 [查看 SVG 大图](diagrams/svg/18-delivery.svg) · [编辑 Mermaid 源文件](diagrams/src/18-delivery.mmd)
 
 - 输入：版本化源码、产品依赖锁、许可与资源清单
-- 处理：Windows 构建 → 干净机 → 功能与隔离 → 升级恢复 → 受控观察。
-- 输出：带来源、摘要和验证记录的便携 ZIP。
-- 边界：任一必要验收失败都回到修复；Mac 文档渲染不属于 Windows 产品验收。
+- 处理：push/PR/手动/tag → Windows + Linux 测试 → Windows Server runner 构建 → 解压 EXE 实测 → Actions artifact 或版本 tag prerelease → Windows 11 真机与 M6 最终验收。
+- 输出：从 GitHub 获取对应版本的便携 ZIP，附 SHA256、源 commit、依赖锁、构建环境与脱敏验证记录。
+- 边界：包验证失败阻止发布。Windows Server CI 通过不等于 Windows 11 真机通过；M0 诊断包不含聊天/攻略，Mac 图册渲染也不属于产品验收。
 
 复用与学习：参考原版构建入口，按新应用身份重新验证；不沿用原版通过结论。 对应课程 L23、L24，见 [教程与源码映射](REFERENCES.md)。
 

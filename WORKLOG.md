@@ -154,3 +154,5 @@ git diff --check
 首轮全目录 Ruff 命中了旧文档校验脚本的既有格式；CI 将检查范围明确为产品 `src tests scripts packaging`。首轮完整 smoke 为 144 passed / 1 failed，失败是许可证清单新加 CPython 后原测试预期尚未更新；不作为通过证据。后续修复、最终测试与远端结果在下方追加。
 
 修复后执行 `uv run --locked ruff check src tests scripts packaging`、`uv run --locked ruff format --check src tests scripts packaging`、`uv run --locked python scripts/m0_smoke.py --output artifacts/m0/macos-ci-preflight.json`，最终 **147 passed / 0 failed / 0 errors / 0 skipped**，真实模型 0；20 个 Python 文件格式通过，源码测试期间未变化。证据复制至 `docs/evidence/m0/macos-ci-preflight.json`，保留执行时 commit/dirty 实值。许可证测试 17 项包含 Python stdlib 许可证优先和 exact-version fallback；本机 uv Python 的许可证实际位于 stdlib，并非完全缺失。Windows 真实运行留待下方 CI 记录。
+
+独立构建审查补充 Windows Git 行尾问题：fallback 许可证按原始字节校验 SHA256，因此增加 `.gitattributes` 的 `packaging/licenses/* -text`，防止自动 CRLF 转换破坏上游字节；该属性文件纳入源码/构建摘要。针对性 37 项打包/探针测试通过。图册同步 M0 CI/诊断 ZIP、M1 可下载网页试用、M6 长期升级验收；20 图重新 render/build/check，1440/390 离线加载通过，新增 00/18 图截图并目视检查。

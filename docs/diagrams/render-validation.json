@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-09-25T08:45:01.612Z",
+  "checkedAt": "2026-09-25T09:55:15.984Z",
   "platform": "darwin",
   "arch": "arm64",
   "node": "v25.9.0",
@@ -8,9 +8,9 @@
   "diagrams": [
     {
       "id": "00-roadmap",
-      "sourceSha256": "7399478879a5b32beebb6ea0e16cad5c3d3615806e37ec5e653ff8a32d9e014e",
-      "svgSha256": "de80aed4878ad7e98575a87f14aa9c95510b577395224696748b43fcf0219db3",
-      "bytes": 23031,
+      "sourceSha256": "7dd689f9ee467a8d8991801d903faff8f6794ce23b6e4c4bcc2695c265c504f9",
+      "svgSha256": "b76f9934c6e5798aa2b996cf54bacd5a1036efd9c5719af743ae1aa32b0e735a",
+      "bytes": 26280,
       "status": "PASS"
     },
     {
@@ -44,7 +44,7 @@
     {
       "id": "05-runtime",
       "sourceSha256": "838e50006f1795e70b8ed064ca570a4bf51a391721c4ffbdeb4f957404159cd1",
-      "svgSha256": "257635899d4c135b9ef1dc55a321c44705027db4ca60bca0685c2c0554243423",
+      "svgSha256": "6e6d22c52b0de85b6286e337a47a901357a6bd44c7f9653ce5bb24a491d18801",
       "bytes": 35161,
       "status": "PASS"
     },
@@ -86,8 +86,8 @@
     {
       "id": "11-memory-data",
       "sourceSha256": "c126946f26a2e934e9fd015c701f21b248a0231037d992f3b18e08f9b4b2eba7",
-      "svgSha256": "9e9553e5b8a076ee8183120030188cbc8565e22f89a33b11effb210d77cc5372",
-      "bytes": 124993,
+      "svgSha256": "9eb3e7744bfd26e048ef28453d1dd3eded12113f8ad6b3827bae5f5dd697bcef",
+      "bytes": 124989,
       "status": "PASS"
     },
     {
@@ -134,9 +134,9 @@
     },
     {
       "id": "18-delivery",
-      "sourceSha256": "e31297e4ec387457a32504626100b29c137b5f86824ca27c2648a9b588964e97",
-      "svgSha256": "08717ebf3bf8704176e8b3c11c32752c8a23ccf44208d975dc1149cf81591e7f",
-      "bytes": 25396,
+      "sourceSha256": "acdad8de1cdcb1c26cb69cc0673bda3c23be9b2d0c3a9d6982ae9106dce46e8b",
+      "svgSha256": "5140f4a24136115536498ed0cd2cf833b12d4c0b8b91217536220d33618809a2",
+      "bytes": 36917,
       "status": "PASS"
     },
     {
