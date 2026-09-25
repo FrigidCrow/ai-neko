@@ -1,0 +1,32 @@
+name: Desktop runtime diagnostics
+on:
+  workflow_dispatch:
+  push:
+    paths: ['scripts/electron_boot_probe.cjs', '.github/workflows/desktop-diagnostics.yml']
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: windows-2022
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: '24.21.0'
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7
+        with:
+          version: '0.11.8'
+          enable-cache: false
+      - run: npm --prefix desktop ci --no-fund --no-audit
+      - run: node desktop/vendor/fetch-core.cjs
+      - run: uv sync --locked
+      - run: node scripts/electron_boot_probe.cjs
+      - if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: electron-boot-diagnostics
+          path: artifacts/electron-boot.json
+          retention-days: 7
