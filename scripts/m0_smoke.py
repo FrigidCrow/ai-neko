@@ -5,8 +5,10 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 import os
 import platform
+import re
 import signal
 import struct
 import subprocess
@@ -20,6 +22,147 @@ from importlib import metadata
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+TEST_TIMEOUT_SECONDS = 600
+
+
+def safe_test_name(value: str) -> str:
+    """Retain a source function name, never parameter IDs or arbitrary node text."""
+    name = value.split("[", 1)[0].rsplit("::", 1)[-1]
+    return name if re.fullmatch(r"test_[A-Za-z0-9_]+", name) else "redacted_test"
+
+
+class ProgressRecorder:
+    """Explicit pytest plugin; only allowlisted fields reach the append-only file."""
+
+    def __init__(self, path: Path) -> None:
+        self.path = path
+        self.index = 0
+        self.name = ""
+        self.outcome = "incomplete"
+        self.started = 0.0
+        self.path.write_text("", encoding="utf-8")
+
+    def write(self, phase: str, outcome: str, seconds: float = 0) -> None:
+        record = {
+            "test_index": self.index,
+            "name": self.name,
+            "phase": phase,
+            "outcome": outcome,
+            "seconds": round(max(0.0, seconds), 6),
+        }
+        # Close after each record so termination cannot strand Python-buffered progress.
+        with self.path.open("a", encoding="utf-8") as stream:
+            stream.write(json.dumps(record, separators=(",", ":")) + "\n")
+
+    def pytest_sessionstart(self, session) -> None:
+        self.write("session", "started")
+
+    def pytest_collection_finish(self, session) -> None:
+        self.write("collection", "complete")
+
+    def pytest_runtest_logstart(self, nodeid, location) -> None:
+        self.index += 1
+        self.name = safe_test_name(nodeid)
+        self.outcome = "incomplete"
+        self.started = time.monotonic()
+        self.write("start", "started")
+
+    def pytest_runtest_setup(self, item) -> None:
+        self.write("setup", "started")
+
+    def pytest_runtest_call(self, item) -> None:
+        self.write("call", "started")
+
+    def pytest_runtest_teardown(self, item, nextitem) -> None:
+        self.write("teardown", "started")
+
+    def pytest_runtest_logreport(self, report) -> None:
+        if report.when not in {"setup", "call", "teardown"}:
+            return
+        if report.failed:
+            self.outcome = "failed" if report.when == "call" else "errors"
+        elif report.skipped and self.outcome not in {"failed", "errors"}:
+            self.outcome = "skipped"
+        elif report.when == "call" and report.passed and self.outcome == "incomplete":
+            self.outcome = "passed"
+        # Never serialize longrepr, sections, user_properties, location, or report.nodeid.
+        self.write(report.when, report.outcome, report.duration)
+
+    def pytest_runtest_logfinish(self, nodeid, location) -> None:
+        self.write("finish", self.outcome, time.monotonic() - self.started)
+
+    def pytest_sessionfinish(self, session, exitstatus) -> None:
+        self.name = ""
+        self.write("session", "complete")
+
+
+def progress_summary(path: Path) -> dict:
+    events = []
+    malformed = 0
+    try:
+        lines = path.read_text(encoding="utf-8").splitlines()
+    except OSError:
+        lines = []
+    for line in lines:
+        try:
+            raw = json.loads(line)
+            phase, outcome, seconds = raw["phase"], raw["outcome"], raw["seconds"]
+            if (
+                phase
+                not in {"session", "collection", "start", "setup", "call", "teardown", "finish"}
+                or outcome
+                not in {
+                    "started",
+                    "complete",
+                    "passed",
+                    "failed",
+                    "errors",
+                    "skipped",
+                    "incomplete",
+                }
+                or type(raw["test_index"]) is not int
+                or raw["test_index"] < 0
+                or type(seconds) not in {int, float}
+                or not math.isfinite(seconds)
+                or seconds < 0
+            ):
+                raise ValueError
+            events.append(
+                {
+                    "test_index": raw["test_index"],
+                    "name": safe_test_name(str(raw["name"])) if raw["name"] else "",
+                    "phase": phase,
+                    "outcome": outcome,
+                    "seconds": seconds,
+                }
+            )
+        except (ValueError, KeyError, TypeError):
+            malformed += 1
+    started = [item for item in events if item["phase"] == "start"]
+    completed = [item for item in events if item["phase"] == "finish"]
+    last_started = started[-1] if started else None
+    finished_indices = {item["test_index"] for item in completed}
+    active = (
+        last_started
+        if last_started and last_started["test_index"] not in finished_indices
+        else None
+    )
+    return {
+        "diagnostic_only": True,
+        "session_finished": any(
+            item["phase"] == "session" and item["outcome"] == "complete" for item in events
+        ),
+        "last_started": last_started,
+        "active_test": active,
+        "last_event": events[-1] if events else None,
+        "completed": len(completed),
+        "completed_counts": {
+            outcome: sum(item["outcome"] == outcome for item in completed)
+            for outcome in ("passed", "failed", "errors", "skipped", "incomplete")
+        },
+        "events": events,
+        "incomplete_or_invalid_records": malformed,
+    }
 
 
 def sha256(path: Path) -> str:
@@ -108,9 +251,13 @@ def dependency_versions() -> dict:
 
 
 def junit_summary(path: Path) -> dict:
+    empty = {"collected": 0, "passed": 0, "failed": 0, "errors": 0, "skipped": 0, "cases": []}
     if not path.exists():
-        return {"collected": 0, "passed": 0, "failed": 0, "errors": 0, "skipped": 0, "cases": []}
-    document = ET.parse(path)
+        return {**empty, "junit_status": "NOT_WRITTEN"}
+    try:
+        document = ET.parse(path)
+    except (ET.ParseError, OSError):
+        return {**empty, "junit_status": "INCOMPLETE"}
     cases = []
     counts = {"collected": 0, "passed": 0, "failed": 0, "errors": 0, "skipped": 0}
     for node in document.iter("testcase"):
@@ -128,13 +275,13 @@ def junit_summary(path: Path) -> dict:
         # Deliberately omit failure bodies, stdout and stderr, which may contain locals.
         cases.append(
             {
-                "name": node.get("name"),
+                "name": safe_test_name(node.get("name", "")),
                 "class": node.get("classname"),
                 "seconds": float(node.get("time", "0")),
                 "outcome": outcome,
             }
         )
-    return {**counts, "cases": cases}
+    return {**counts, "cases": cases, "junit_status": "COMPLETE"}
 
 
 def validate_output(output: Path, parser: argparse.ArgumentParser) -> None:
@@ -179,15 +326,73 @@ def terminate_test_tree(process: subprocess.Popen) -> None:
     process.wait(timeout=5)
 
 
+def run_pytest(
+    junit_path: Path,
+    progress_path: Path,
+    targets: tuple[str, ...] = ("tests",),
+    timeout: float = TEST_TIMEOUT_SECONDS,
+) -> tuple[int, dict, dict]:
+    command = [
+        sys.executable,
+        str(Path(__file__).resolve()),
+        "--pytest-progress",
+        str(progress_path),
+        "--",
+        *targets,
+        "-q",
+        "--tb=short",
+        "-o",
+        "junit_family=xunit2",
+        "-o",
+        "junit_logging=no",
+        f"--junitxml={junit_path}",
+    ]
+    env = os.environ.copy()
+    for name in ("PYTEST_ADDOPTS", "PYTEST_PLUGINS", "AI_NEKO_DATA_DIR", "AI_NEKO_MODEL_API_KEY"):
+        env.pop(name, None)
+    env["PYTEST_DISABLE_PLUGIN_AUTOLOAD"] = "1"
+    env["PYTHONUTF8"] = "1"
+    # A private process group lets timeout/interrupt cleanup target only this run.
+    process = subprocess.Popen(
+        command,
+        cwd=ROOT,
+        env=env,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        start_new_session=os.name != "nt",
+        creationflags=subprocess.CREATE_NEW_PROCESS_GROUP if os.name == "nt" else 0,
+    )
+    try:
+        returncode = process.wait(timeout=timeout)
+    except subprocess.TimeoutExpired:
+        terminate_test_tree(process)
+        returncode = 124
+    except KeyboardInterrupt:
+        terminate_test_tree(process)
+        returncode = 130
+    return returncode, junit_summary(junit_path), progress_summary(progress_path)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--output",
         type=Path,
-        required=True,
+        required=False,
         help="Evidence JSON file; never a data-root descriptor",
     )
+    parser.add_argument("--pytest-progress", type=Path, help=argparse.SUPPRESS)
+    parser.add_argument("pytest_args", nargs=argparse.REMAINDER, help=argparse.SUPPRESS)
     args = parser.parse_args()
+    if args.pytest_progress is not None:
+        import pytest
+
+        pytest_args = args.pytest_args
+        if pytest_args and pytest_args[0] == "--":
+            pytest_args = pytest_args[1:]
+        return pytest.main(pytest_args, plugins=[ProgressRecorder(args.pytest_progress)])
+    if args.output is None or args.pytest_args:
+        parser.error("--output is required; pytest arguments are internal to the smoke runner")
     output = args.output.expanduser().resolve()
     validate_output(output, parser)
     before = source_identity()
@@ -195,48 +400,8 @@ def main() -> int:
     start = time.monotonic()
     with tempfile.TemporaryDirectory(prefix="ai-neko-m0-evidence-") as directory:
         junit_path = Path(directory) / "results.xml"
-        command = [
-            sys.executable,
-            "-m",
-            "pytest",
-            "tests",
-            "-q",
-            "--tb=short",
-            "-o",
-            "junit_family=xunit2",
-            "-o",
-            "junit_logging=no",
-            f"--junitxml={junit_path}",
-        ]
-        env = os.environ.copy()
-        for name in (
-            "PYTEST_ADDOPTS",
-            "PYTEST_PLUGINS",
-            "AI_NEKO_DATA_DIR",
-            "AI_NEKO_MODEL_API_KEY",
-        ):
-            env.pop(name, None)
-        env["PYTEST_DISABLE_PLUGIN_AUTOLOAD"] = "1"
-        env["PYTHONUTF8"] = "1"
-        # A private process group lets timeout/interrupt cleanup target only this run.
-        process = subprocess.Popen(
-            command,
-            cwd=ROOT,
-            env=env,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-            start_new_session=os.name != "nt",
-            creationflags=subprocess.CREATE_NEW_PROCESS_GROUP if os.name == "nt" else 0,
-        )
-        try:
-            returncode = process.wait(timeout=180)
-        except subprocess.TimeoutExpired:
-            terminate_test_tree(process)
-            returncode = 124
-        except KeyboardInterrupt:
-            terminate_test_tree(process)
-            returncode = 130
-        results = junit_summary(junit_path)
+        progress_path = Path(directory) / "progress.jsonl"
+        returncode, results, progress = run_pytest(junit_path, progress_path)
     after = source_identity()
     dependencies = dependency_versions()
     unchanged = before["tree_sha256"] == after["tree_sha256"]
@@ -282,7 +447,10 @@ def main() -> int:
         "tests": {
             "kind": "synthetic_deterministic",
             "pytest_exit_code": returncode,
+            "timeout_seconds": TEST_TIMEOUT_SECONDS,
+            "timed_out": returncode == 124,
             **results,
+            "progress": progress,
             "real_model_tests": 0,
         },
         "scope": {
@@ -291,7 +459,7 @@ def main() -> int:
             "desktop_tray_audio_packaging": "NOT_TESTED",
             "original_neko_coexistence": "NOT_TESTED",
         },
-        "failure_detail_policy": "Raw JUnit, stdout, stderr and failure locals are excluded; rerun uv run pytest -q for local diagnosis.",
+        "failure_detail_policy": "Raw JUnit, stdout, stderr, failure locals and parameter IDs are excluded. Incremental progress is diagnostic only, not completed-suite evidence; rerun uv run pytest -q for local diagnosis.",
     }
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(evidence, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")

@@ -367,6 +367,15 @@ class Probe:
         require(isinstance(commit, str) and bool(re.fullmatch(r"[0-9a-f]{40}", commit)))
         self.evidence["source_commit"] = commit
 
+    def prepare_profile(self, temporary: Path) -> None:
+        # Path.home() is also used to reject unsafe explicit data roots. Supply
+        # a disposable Windows profile instead of inheriting the runner's home.
+        profile = temporary / "合成 用户"
+        local = profile / "AppData" / "Local"
+        local.mkdir(parents=True)
+        self.env["USERPROFILE"] = str(profile)
+        self.env["LOCALAPPDATA"] = str(local)
+
     def run(self, temporary: Path) -> None:
         self.case("archive_layout_and_safe_extraction", lambda: self.prepare_archive(temporary))
         self.case(
@@ -377,6 +386,7 @@ class Probe:
                 and struct.calcsize("P") == 8
             ),
         )
+        self.prepare_profile(temporary)
         data = temporary / "合成 数据 ai-neko"
         self.case(
             "paths_in_chinese_directory",

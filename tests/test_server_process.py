@@ -6,6 +6,7 @@ All data are synthetic. No reference-repository path or model credentials are re
 from __future__ import annotations
 
 import hmac
+import itertools
 import json
 import os
 import socket
@@ -14,6 +15,7 @@ import sys
 import time
 from collections.abc import Iterator
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any
 
 import httpx
@@ -47,6 +49,17 @@ class ServerProcess:
         self.log_path = log_path
         self.descriptor = root / "runtime" / "connection.json"
         self.connection: dict[str, Any] = {}
+        # Windows venv launchers create a second interpreter process. Correlate
+        # startup with a newly issued identity, not the launcher's Popen PID.
+        self.previous_connection: dict[str, Any] = {}
+        try:
+            previous = json.loads(self.descriptor.read_text(encoding="utf-8"))
+            if isinstance(previous, dict):
+                self.previous_connection = {
+                    key: previous.get(key) for key in ("instance_id", "token")
+                }
+        except (OSError, ValueError):
+            pass
         self._log = log_path.open("w", encoding="utf-8")
         env = os.environ.copy()
         env.pop("AI_NEKO_DATA_DIR", None)
@@ -75,8 +88,14 @@ class ServerProcess:
                 pytest.fail(f"Server exited before readiness (exit {self.process.returncode})")
             try:
                 connection = json.loads(self.descriptor.read_text(encoding="utf-8"))
-                # A stale descriptor must not be mistaken for this process's startup.
-                if connection.get("pid") != self.process.pid:
+                # A crashed instance's descriptor can remain until the new
+                # server publishes its identity. Both values must be fresh.
+                if not isinstance(connection, dict) or any(
+                    not isinstance(connection.get(key), str)
+                    or not connection[key]
+                    or connection[key] == self.previous_connection.get(key)
+                    for key in ("instance_id", "token")
+                ):
                     time.sleep(0.05)
                     continue
                 self.connection = connection
@@ -95,7 +114,9 @@ class ServerProcess:
                 self.process.wait(timeout=5)
             except (httpx.HTTPError, subprocess.TimeoutExpired):
                 pass
-        if self.process.poll() is None:
+        if self.process.poll() is None and os.name == "nt":
+            self.kill_owned_process_tree()
+        elif self.process.poll() is None:
             self.process.terminate()
             try:
                 self.process.wait(timeout=3)
@@ -104,9 +125,24 @@ class ServerProcess:
                 self.process.wait(timeout=3)
         self._log.close()
 
-    def crash(self) -> None:
-        self.process.kill()
+    def kill_owned_process_tree(self) -> None:
+        if self.process.poll() is not None:
+            return
+        if os.name == "nt":
+            # Killing only the venv launcher can leave its interpreter alive.
+            # Never use a descriptor PID or a process-name-wide kill command.
+            subprocess.run(
+                ["taskkill", "/PID", str(self.process.pid), "/T", "/F"],
+                capture_output=True,
+                timeout=10,
+                check=False,
+            )
+        else:
+            self.process.kill()
         self.process.wait(timeout=5)
+
+    def crash(self) -> None:
+        self.kill_owned_process_tree()
         self._log.close()
 
 
@@ -126,6 +162,38 @@ def server_factory(tmp_path: Path) -> Iterator[Any]:
     yield start
     for instance in reversed(servers):
         instance.close()
+
+
+@pytest.mark.parametrize("unchanged", [("instance_id",), ("token",), ("instance_id", "token")])
+def test_readiness_rejects_stale_identity_and_accepts_a_launcher_child(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, unchanged: tuple[str, ...]
+) -> None:
+    # Model the actual Windows launcher/interpreter distinction on every host.
+    # A stale identity must never cause a health request to the previous server.
+    server = object.__new__(ServerProcess)
+    server.descriptor = tmp_path / "connection.json"
+    server.connection = {}
+    server.previous_connection = {"instance_id": "old-instance", "token": "old-token"}
+    server.process = SimpleNamespace(pid=100, poll=lambda: None)
+    fresh = {"pid": 200, "instance_id": "new-instance", "token": "new-token"}
+    stale = {**fresh, **{key: server.previous_connection[key] for key in unchanged}}
+    server.descriptor.write_text(json.dumps(stale), encoding="utf-8")
+    observed = []
+
+    def request(*_args, **_kwargs):
+        observed.append(server.connection == fresh)
+        return SimpleNamespace(status_code=200)
+
+    def publish_fresh(_seconds):
+        server.descriptor.write_text(json.dumps(fresh), encoding="utf-8")
+
+    server.request = request
+    ticks = itertools.count()
+    monkeypatch.setattr(time, "sleep", publish_fresh)
+    monkeypatch.setattr(time, "monotonic", lambda: next(ticks))
+    server.wait_ready()
+    assert observed == [True]
+    assert server.connection["pid"] != server.process.pid
 
 
 def test_health_descriptor_and_graceful_cli_stop(server_factory: Any) -> None:

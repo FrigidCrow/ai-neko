@@ -1,0 +1,128 @@
+{
+  "schema_version": 1,
+  "runtime": "CPython",
+  "python_version": "3.11.15",
+  "target": "x86_64-pc-windows-msvc",
+  "uv_version": "0.11.8",
+  "pbs_release": "20260414",
+  "source_commit": "7af98d60e411de479ab16f5537efc7184dffc25a",
+  "source_archive": {
+    "url": "https://github.com/astral-sh/python-build-standalone/releases/download/20260414/cpython-3.11.15%2B20260414-x86_64-pc-windows-msvc-pgo-full.tar.zst",
+    "sha256": "815edcfd2601f4caf2d856a11943b3403eb4b810814fb41a5832c19a2b77eb8d"
+  },
+  "installed_archive": {
+    "url": "https://github.com/astral-sh/python-build-standalone/releases/download/20260414/cpython-3.11.15%2B20260414-x86_64-pc-windows-msvc-install_only_stripped.tar.gz",
+    "sha256": "71ffdf290e0483f0881e02518ecb9cedb449807856ae7dc76aa630e5acd00919"
+  },
+  "installed_file_sha256": {
+    "python311.dll": "79434e33ee4a548f5d5201478407531220f99b84132c9c760abb0ae60741450a",
+    "LICENSE.txt": "886a0ead2d89030ee62dbff52b04e47ab91998341295bb9c56fb952b4e081c7a",
+    "DLLs/libcrypto-3-x64.dll": "96ce6573bb53df631f822045c5a92180faee3f9084e86c494b626a02f0959d03",
+    "DLLs/libssl-3-x64.dll": "fd2f3f223840cb1550937ad87c9df864423eb9899f873d677a5c6e1a4e9fcc99",
+    "DLLs/libffi-8.dll": "0eddec357e283bbc14f3f28731feac5fe802a38443a1b1566766fe94f362b47d"
+  },
+  "files": [
+    {
+      "component": "bzip2",
+      "license": "bzip2-1.0.6",
+      "modules": [
+        "_bz2"
+      ],
+      "source_path": "python/licenses/LICENSE.bzip2.txt",
+      "file": "pbs-20260414-LICENSE.bzip2.txt",
+      "sha256": "bd5628cc76fb0ebf9c657d1dd4d1a240a1a7b216c31663e7bbf1131c0b70a910",
+      "changes": "none; exact notice from source archive"
+    },
+    {
+      "component": "expat",
+      "license": "MIT",
+      "modules": [
+        "pyexpat"
+      ],
+      "source_path": "python/licenses/LICENSE.expat.txt",
+      "file": "pbs-20260414-LICENSE.expat.txt",
+      "sha256": "8a9cfe4b5924f4b25881aa0c9f5e4561c5f31065d0c4a13cdcdbcf917edf39aa",
+      "changes": "none; exact notice from source archive"
+    },
+    {
+      "component": "libffi",
+      "license": "MIT",
+      "modules": [
+        "_ctypes"
+      ],
+      "source_path": "python/licenses/LICENSE.libffi.txt",
+      "file": "pbs-20260414-LICENSE.libffi.txt",
+      "sha256": "9afb8970cd29fc1031fa647278e4bef613399e2e3468a1e3a397f4d158c6101c",
+      "changes": "none; exact notice from source archive"
+    },
+    {
+      "component": "liblzma",
+      "license": "0BSD",
+      "modules": [
+        "_lzma"
+      ],
+      "source_path": "python/licenses/LICENSE.liblzma.txt",
+      "file": "pbs-20260414-LICENSE.liblzma.txt",
+      "sha256": "d87d218dd908b3243ec4cbc72af400e5b7437513ea9d9229291d0812b8464fec",
+      "changes": "none; exact notice from source archive"
+    },
+    {
+      "component": "libuuid",
+      "license": "BSD-3-Clause",
+      "modules": [
+        "_uuid; notice retained as listed by PBS metadata"
+      ],
+      "source_path": "python/licenses/LICENSE.libuuid.txt",
+      "file": "pbs-20260414-LICENSE.libuuid.txt",
+      "sha256": "cbccaa3efe07a9a602751375085be572d4410a250b996716fbe8c5255c7ec6f2",
+      "changes": "none; exact notice from source archive"
+    },
+    {
+      "component": "mpdecimal",
+      "license": "BSD-2-Clause",
+      "modules": [
+        "_decimal"
+      ],
+      "source_path": "python/licenses/LICENSE.mpdecimal.txt",
+      "file": "pbs-20260414-LICENSE.mpdecimal.txt",
+      "sha256": "f094277cd46e1f6e4d87916cc4b51e22f613d45eb81f48231c3cb7caf8fc8a6a",
+      "changes": "none; exact notice from source archive"
+    },
+    {
+      "component": "openssl-3",
+      "license": "Apache-2.0",
+      "modules": [
+        "_ssl",
+        "_hashlib"
+      ],
+      "source_path": "python/licenses/LICENSE.openssl-3.txt",
+      "file": "pbs-20260414-LICENSE.openssl-3.txt",
+      "sha256": "ed72ce2b51ee58f117e5a021e2e04af158857f40269fbc03491f0b2a99dbcc96",
+      "changes": "none; exact notice from source archive"
+    },
+    {
+      "component": "sqlite",
+      "license": "public-domain",
+      "modules": [
+        "_sqlite3"
+      ],
+      "source_path": "python/licenses/LICENSE.sqlite.txt",
+      "file": "pbs-20260414-LICENSE.sqlite.txt",
+      "sha256": "d8eb9aba7ef6b5ed06cb3ec19a7242316af2e5933c638eb67fb781c13884e01d",
+      "changes": "none; exact notice from source archive"
+    },
+    {
+      "component": "zlib",
+      "license": "Zlib",
+      "modules": [
+        "zlib"
+      ],
+      "source_path": "python/licenses/LICENSE.zlib.txt",
+      "file": "pbs-20260414-LICENSE.zlib.txt",
+      "sha256": "365e36720db366054863235aea5d6f440142ab968834bfaf81fa9d187c99b9b8",
+      "changes": "none; exact notice from source archive"
+    }
+  ],
+  "scope": "Additional notices for Windows runtime libraries. The original Windows LICENSE.txt contains CPython, Microsoft runtime, bzip2 and Tcl/Tk terms and must also be retained. Unused Tcl/Tk code is excluded from the app bundle.",
+  "upgrade": "For any Python or uv/PBS runtime change, verify the new exact Windows archive, refresh its hashes and re-extract its applicable license texts."
+}

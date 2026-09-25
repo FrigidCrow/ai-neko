@@ -89,6 +89,48 @@ def test_python_license_prefers_interpreter_stdlib_notice(tmp_path, monkeypatch)
     assert origin["kind"] == "installed-interpreter"
 
 
+def test_windows_runtime_notice_corpus_matches_recorded_hashes():
+    folder = ROOT / "packaging/licenses"
+    provenance = json.loads((folder / "windows-runtime.json").read_text(encoding="utf-8"))
+    assert provenance["python_version"] == "3.11.15"
+    assert provenance["target"] == "x86_64-pc-windows-msvc"
+    components = {record["component"] for record in provenance["files"]}
+    assert {"openssl-3", "libffi", "expat", "mpdecimal", "zlib"} <= components
+    for record in provenance["files"]:
+        assert builder.sha256(folder / record["file"]) == record["sha256"]
+
+
+def test_windows_runtime_notice_copy_rejects_changed_distribution(tmp_path, monkeypatch):
+    folder = ROOT / "packaging/licenses"
+    provenance = json.loads((folder / "windows-runtime.json").read_text(encoding="utf-8"))
+    python_root = tmp_path / "python"
+    python_root.mkdir()
+    hashes = provenance["installed_file_sha256"]
+    for relative in hashes:
+        path = python_root / relative
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(b"synthetic runtime fixture")
+    original_sha256 = builder.sha256
+    monkeypatch.setattr(builder.platform, "python_version", lambda: "3.11.15")
+    monkeypatch.setattr(
+        builder,
+        "sha256",
+        lambda path: (
+            hashes[path.relative_to(python_root).as_posix()]
+            if path.is_relative_to(python_root)
+            else original_sha256(path)
+        ),
+    )
+    output = tmp_path / "notices"
+    copied = builder.copy_windows_runtime_notices(output, python_root)
+    assert len(list(output.glob("*.txt"))) == len(copied["files"])
+    assert json.loads((output / "provenance.json").read_text()) == provenance
+    monkeypatch.setattr(builder, "sha256", original_sha256)
+    with pytest.raises(RuntimeError, match="distribution changed"):
+        builder.copy_windows_runtime_notices(tmp_path / "must-not-exist", python_root)
+    assert not (tmp_path / "must-not-exist").exists()
+
+
 def test_archive_has_one_root_and_no_outside_files(tmp_path):
     root = tmp_path / "ai-neko-0.1.0-windows-x64"
     (root / "_internal").mkdir(parents=True)
@@ -121,7 +163,7 @@ def test_new_entry_dispatches_self_check_and_graph(tmp_path):
     env = {**os.environ, "AI_NEKO_DATA_DIR": str(tmp_path / "unused-default")}
     executable = [sys.executable, "-m", "ai_neko"]
     checked = subprocess.run(
-        [*executable, "self-check"], env=env, capture_output=True, text=True, check=True
+        [*executable, "self-check"], env=env, capture_output=True, text=True, check=True, timeout=30
     )
     assert json.loads(checked.stdout)["status"] == "passed"
     graph = subprocess.run(
@@ -144,6 +186,7 @@ def test_new_entry_dispatches_self_check_and_graph(tmp_path):
         capture_output=True,
         text=True,
         check=True,
+        timeout=30,
     )
     assert json.loads(graph.stdout)["values"]["response"] == "synthetic: entry dispatch"
     assert not (tmp_path / "unused-default").exists()

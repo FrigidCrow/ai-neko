@@ -156,3 +156,11 @@ git diff --check
 修复后执行 `uv run --locked ruff check src tests scripts packaging`、`uv run --locked ruff format --check src tests scripts packaging`、`uv run --locked python scripts/m0_smoke.py --output artifacts/m0/macos-ci-preflight.json`，最终 **147 passed / 0 failed / 0 errors / 0 skipped**，真实模型 0；20 个 Python 文件格式通过，源码测试期间未变化。证据复制至 `docs/evidence/m0/macos-ci-preflight.json`，保留执行时 commit/dirty 实值。许可证测试 17 项包含 Python stdlib 许可证优先和 exact-version fallback；本机 uv Python 的许可证实际位于 stdlib，并非完全缺失。Windows 真实运行留待下方 CI 记录。
 
 独立构建审查补充 Windows Git 行尾问题：fallback 许可证按原始字节校验 SHA256，因此增加 `.gitattributes` 的 `packaging/licenses/* -text`，防止自动 CRLF 转换破坏上游字节；该属性文件纳入源码/构建摘要。针对性 37 项打包/探针测试通过。图册同步 M0 CI/诊断 ZIP、M1 可下载网页试用、M6 长期升级验收；20 图重新 render/build/check，1440/390 离线加载通过，新增 00/18 图截图并目视检查。
+
+远端首跑 `36121055844` 在行尾修复提交推送后被并发策略取消，不记为通过。随后 `ecb911d649221d47e05131d0b9e6fd7d4b941102` 的运行 `36121211813`：Linux 通过，Windows Server 2022 的源码 pytest 达到原 180 秒总限额，退出 124，JUnit 尚未生成，0 项不能解释为通过；构建和发布均被阻止。原始脱敏报告保存 `docs/evidence/m0/windows-ci-timeout.json`。继续增加去参数测试名、阶段、结果和耗时的实时进度，超时保留最后用例；总预算增至 600 秒，不修改 PASS 规则。
+
+许可证进一步按 uv 0.11.8 实际选中的 PBS 20260414 Windows 发行包核查：install_only 主 LICENSE 不含部分原生库通知。补充同版 full archive 的 9 份原文，记录 archive/source/file SHA；构建校验 python311.dll、主 LICENSE 与 OpenSSL/libffi 摘要，避免套错版本许可。实际 Windows archive 字节匹配和复制验证通过，没有在 Mac 执行 Windows 代码。两次 CLI 测试 subprocess 调用补 30 秒上限；19 项打包测试再次通过。
+
+独立审查核实 uv/CPython 官方 launcher 源码，确认 Windows venv 会启动真实 Python 子进程，Popen PID 不等于应用 os.getpid。源服务测试原先强制比较两者，会把健康服务当成旧实例等待超时。现改为启动前快照、要求新 instance_id 与 token，再做鉴权健康检查；保留旧描述符保护。Windows 崩溃/兜底仅用 taskkill /T /F 清理本次启动 PID 的子树，保留有界等待。21 项定向服务测试通过，包含 3 项身份/PID 回归；是否解决远端超时仍以新 CI 为准。
+
+Root 另修包探针的合成环境：清除真实 USERPROFILE 后，为子进程提供临时合成 USERPROFILE/LOCALAPPDATA，满足 Windows Path.home 安全校验，仍不继承个人配置。21 项探针测试通过。进度记录专项 7 项通过，含真实子进程超时、半截 JSON/XML、阶段识别和参数/异常正文脱敏；超时不能把部分进度变为整套通过。

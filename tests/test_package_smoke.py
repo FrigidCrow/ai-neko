@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import ntpath
 import stat
 import zipfile
 from pathlib import Path
@@ -113,6 +114,20 @@ def test_failure_records_only_case_result() -> None:
         probe.case("check", failure)
     assert evidence == {"tests": {"cases": [{"name": "check", "outcome": "FAILED"}]}}
     assert probe.current_stage == "check"
+
+
+def test_packaged_process_has_a_disposable_windows_home(tmp_path, monkeypatch) -> None:
+    monkeypatch.setenv("USERPROFILE", "private-runner-profile")
+    monkeypatch.setenv("LOCALAPPDATA", "private-runner-appdata")
+    probe = smoke.Probe(Path("synthetic.zip"), {})
+    assert "USERPROFILE" not in probe.env
+    probe.prepare_profile(tmp_path)
+    assert Path(probe.env["USERPROFILE"]).is_relative_to(tmp_path)
+    assert Path(probe.env["LOCALAPPDATA"]).is_dir()
+    assert "private-runner" not in json.dumps(probe.env)
+    # Exercise Windows home expansion even on a non-Windows harness host.
+    monkeypatch.setenv("USERPROFILE", probe.env["USERPROFILE"])
+    assert ntpath.expanduser("~") == probe.env["USERPROFILE"]
 
 
 def test_unsupported_host_writes_failure_evidence_without_executing(

@@ -1,0 +1,565 @@
+{
+  "schema_version": 1,
+  "app_id": "ai-neko",
+  "stage": "M0",
+  "started_at_utc": "2026-09-25T09:56:55.186026+00:00",
+  "duration_seconds": 180.157,
+  "status": "FAILED",
+  "environment": {
+    "system": "Windows",
+    "release": "10",
+    "version": "10.0.20348",
+    "machine": "AMD64",
+    "python": "3.11.15",
+    "python_implementation": "CPython",
+    "python_pointer_bits": 64,
+    "pinned_python": "3.11.15",
+    "python_matches_pin": true
+  },
+  "source": {
+    "git_commit": "ecb911d649221d47e05131d0b9e6fd7d4b941102",
+    "git_dirty": false,
+    "tree_sha256": "da3dd9b3146dacfd5d9486083ef73c134ad3344a0a0bd3384d02eea14e27f778",
+    "manifest": [
+      {
+        "path": ".gitattributes",
+        "sha256": "bd5675efbdf8a5b6210b195a8a7be5a7a0ca1e73b7a940df917eef1c25090850"
+      },
+      {
+        "path": ".github/workflows/windows-preview.yml",
+        "sha256": "0606004a0d8cebf9ab7a40e4c95c6ee2221617814e13006ca10e8bfe549cac66"
+      },
+      {
+        "path": ".python-version",
+        "sha256": "5e0238265112f5d9d2401581d9614b03c86c723cb46506977080df071d0e77eb"
+      },
+      {
+        "path": "AGENTS.md",
+        "sha256": "3b69df1a1b81976fc71e8924dc7f16095a311d807c53e3b7423f42c90a7ac818"
+      },
+      {
+        "path": "packaging/ai-neko.spec",
+        "sha256": "84b9ab04fe995bbd419d1fa905049acf622135e143e36c633e034b437c06652b"
+      },
+      {
+        "path": "packaging/Check foundation.cmd",
+        "sha256": "b7b53a982571a8d75258cbf59fd67fe97629445c9f891bb50dcea33efc90283f"
+      },
+      {
+        "path": "packaging/entry.py",
+        "sha256": "00f50dce68ac51afb7eba01349e5ba54ca889a00d36273622e30fbc8e442989a"
+      },
+      {
+        "path": "packaging/licenses/cpython-3.11.15-LICENSE",
+        "sha256": "3b2f81fe21d181c499c59a256c8e1968455d6689d269aa85373bfb6af41da3bf"
+      },
+      {
+        "path": "packaging/licenses/langsmith-0.14.0-LICENSE",
+        "sha256": "34e0b9842c7a31d34e53bc7eb224e81e07a34996106e029bbc72dea2d449f496"
+      },
+      {
+        "path": "packaging/licenses/provenance.json",
+        "sha256": "2322633111314a180d0bdc1926d3236062c70afb1da611442418e94426736746"
+      },
+      {
+        "path": "packaging/licenses/sqlite-vec-0.1.9-LICENSE-APACHE",
+        "sha256": "a38070a94d4afd9cd710e3ce67bd1de78097cfe1784c1f0109ac95d3c196bfdc"
+      },
+      {
+        "path": "packaging/licenses/sqlite-vec-0.1.9-LICENSE-MIT",
+        "sha256": "6ce72bbe12d975bd5286e5ab0a064c069693300c47bccbc57bec18485f1621ea"
+      },
+      {
+        "path": "packaging/README-WINDOWS.txt",
+        "sha256": "d01b840afa9277fbb8d8ef34d1848a9b4de0e9c6bba54fb8812dd266470e7026"
+      },
+      {
+        "path": "packaging/Start service.cmd",
+        "sha256": "fa976df76ec41ce59c31a5222e899a7c0dc190e73ccfb8712d71c9079c48b24e"
+      },
+      {
+        "path": "packaging/Stop service.cmd",
+        "sha256": "78b10da7e7b9f4e4b958eff593e07f020dc536b97b977a3dd5d8381b98ba63f9"
+      },
+      {
+        "path": "pyproject.toml",
+        "sha256": "64e459efc132e56db9df4575f974a0c4e7c37078d44f8dab50b8eaff38c95196"
+      },
+      {
+        "path": "scripts/build_windows.py",
+        "sha256": "f33dcf271962edf83f1ee304550e15c802a4e3baf2fee3b7288bac83b338b004"
+      },
+      {
+        "path": "scripts/m0_smoke.py",
+        "sha256": "e552e721c2443448636764170f5b709446524af7f9673eac28bb1288f51d7417"
+      },
+      {
+        "path": "scripts/package_smoke.py",
+        "sha256": "e102d0adcea7515f2ee9154f73bd65de909251b7f86200c024aabbef3dcf6bb7"
+      },
+      {
+        "path": "scripts/windows-m0.ps1",
+        "sha256": "c3288af4c3addc218e235300343e8002fffe065be48784b8fbf698e0ef14130e"
+      },
+      {
+        "path": "src/ai_neko/__init__.py",
+        "sha256": "73d49861b5f0295efdcdfab2863dbc87cb8123af476a8d2198dfcda4880bcf7b"
+      },
+      {
+        "path": "src/ai_neko/__main__.py",
+        "sha256": "b3b0f4a29090701bd0b26a0914079751038ce3c137d754e627389dd6f78c036a"
+      },
+      {
+        "path": "src/ai_neko/app/__init__.py",
+        "sha256": "ed96a5fcf0200b83f130fea3e9ee9cdbaaf410ae1bb60922fcd7648642bca9c0"
+      },
+      {
+        "path": "src/ai_neko/app/server.py",
+        "sha256": "cb5b5984eefd6863b28fcd801d403806c664b458aba441538f811ea9d5edced9"
+      },
+      {
+        "path": "src/ai_neko/config/__init__.py",
+        "sha256": "f61c3ab8d52fb88c37db97456751f3d7269284536145c5e9dce403d6f86ffe7f"
+      },
+      {
+        "path": "src/ai_neko/config/paths.py",
+        "sha256": "dd99a4568df0b2eda4441f8209c134771daa6a1179fb0ffe19039c114de596a2"
+      },
+      {
+        "path": "src/ai_neko/config/settings.py",
+        "sha256": "29d3d8e5b6ca245f726c7941aa8fa6b8aab293819a544db454ef93a0f2581adf"
+      },
+      {
+        "path": "src/ai_neko/diagnostics.py",
+        "sha256": "bd6671d03214fd083a2029cdb37210b305167d55850194999ca992dcefe8b7c1"
+      },
+      {
+        "path": "src/ai_neko/graph/__init__.py",
+        "sha256": "1614768a2002f04dd40673d2f542ca9a00c3961bd3966c945299a4c4fa2114ba"
+      },
+      {
+        "path": "src/ai_neko/graph/__main__.py",
+        "sha256": "1191e9eeb90f959a38393e3e4fe6fa4dad0bb042b2a8e2f301d81ae88c7ac566"
+      },
+      {
+        "path": "src/ai_neko/graph/service.py",
+        "sha256": "bdcc56ee6f2dfe05f96286cd5711f7987ea02c650e315e211b7a5b83fdfe8101"
+      },
+      {
+        "path": "tests/test_config.py",
+        "sha256": "469595f9f697ad3a3ed83fcb86d636ff39284be228f34091dd0d5ee61b337138"
+      },
+      {
+        "path": "tests/test_graph.py",
+        "sha256": "a93647f071e4621368a6de44a368c2202342d52dc8b5ec0e0d42b25b758b5e59"
+      },
+      {
+        "path": "tests/test_package_smoke.py",
+        "sha256": "397437982dd9d5152bf3bf8d061281abc24eac9e400aee1d97d65aa1784545d0"
+      },
+      {
+        "path": "tests/test_packaging.py",
+        "sha256": "7ec10247ace324a3ebd25beaeb18d10645362716081867e852b0b862da31cdb9"
+      },
+      {
+        "path": "tests/test_server_process.py",
+        "sha256": "31725b604a7ef0d5809a4888be0b588be6f32a06b593407d21c0ecad7744fa09"
+      },
+      {
+        "path": "uv.lock",
+        "sha256": "90a0a1a05c6eeb20048ea0e7c1aa5fb5afd5d71f2116924ab3e8502045972eb7"
+      }
+    ]
+  },
+  "source_unchanged_during_run": true,
+  "dependencies": {
+    "lock_sha256": "90a0a1a05c6eeb20048ea0e7c1aa5fb5afd5d71f2116924ab3e8502045972eb7",
+    "packages": [
+      {
+        "name": "ai-neko",
+        "locked": "0.1.0",
+        "installed": "0.1.0",
+        "local_project": true
+      },
+      {
+        "name": "aiosqlite",
+        "locked": "0.22.1",
+        "installed": "0.22.1",
+        "local_project": false
+      },
+      {
+        "name": "altgraph",
+        "locked": "0.17.5",
+        "installed": null,
+        "local_project": false
+      },
+      {
+        "name": "annotated-doc",
+        "locked": "0.0.5",
+        "installed": "0.0.5",
+        "local_project": false
+      },
+      {
+        "name": "annotated-types",
+        "locked": "0.8.0",
+        "installed": "0.8.0",
+        "local_project": false
+      },
+      {
+        "name": "anyio",
+        "locked": "4.15.1",
+        "installed": "4.15.1",
+        "local_project": false
+      },
+      {
+        "name": "certifi",
+        "locked": "2026.7.22",
+        "installed": "2026.7.22",
+        "local_project": false
+      },
+      {
+        "name": "charset-normalizer",
+        "locked": "3.5.1",
+        "installed": "3.5.1",
+        "local_project": false
+      },
+      {
+        "name": "click",
+        "locked": "8.5.0",
+        "installed": "8.5.0",
+        "local_project": false
+      },
+      {
+        "name": "colorama",
+        "locked": "0.4.6",
+        "installed": "0.4.6",
+        "local_project": false
+      },
+      {
+        "name": "distro",
+        "locked": "1.9.0",
+        "installed": "1.9.0",
+        "local_project": false
+      },
+      {
+        "name": "fastapi",
+        "locked": "0.141.1",
+        "installed": "0.141.1",
+        "local_project": false
+      },
+      {
+        "name": "filelock",
+        "locked": "3.32.7",
+        "installed": "3.32.7",
+        "local_project": false
+      },
+      {
+        "name": "h11",
+        "locked": "0.16.0",
+        "installed": "0.16.0",
+        "local_project": false
+      },
+      {
+        "name": "httpcore",
+        "locked": "1.0.9",
+        "installed": "1.0.9",
+        "local_project": false
+      },
+      {
+        "name": "httpcore2",
+        "locked": "2.13.1",
+        "installed": "2.13.1",
+        "local_project": false
+      },
+      {
+        "name": "httpx",
+        "locked": "0.28.1",
+        "installed": "0.28.1",
+        "local_project": false
+      },
+      {
+        "name": "httpx2",
+        "locked": "2.13.1",
+        "installed": "2.13.1",
+        "local_project": false
+      },
+      {
+        "name": "idna",
+        "locked": "3.20",
+        "installed": "3.20",
+        "local_project": false
+      },
+      {
+        "name": "iniconfig",
+        "locked": "2.3.0",
+        "installed": "2.3.0",
+        "local_project": false
+      },
+      {
+        "name": "jsonpatch",
+        "locked": "1.33",
+        "installed": "1.33",
+        "local_project": false
+      },
+      {
+        "name": "jsonpointer",
+        "locked": "3.1.1",
+        "installed": "3.1.1",
+        "local_project": false
+      },
+      {
+        "name": "langchain-core",
+        "locked": "1.6.5",
+        "installed": "1.6.5",
+        "local_project": false
+      },
+      {
+        "name": "langchain-protocol",
+        "locked": "0.0.19",
+        "installed": "0.0.19",
+        "local_project": false
+      },
+      {
+        "name": "langgraph",
+        "locked": "1.2.12",
+        "installed": "1.2.12",
+        "local_project": false
+      },
+      {
+        "name": "langgraph-checkpoint",
+        "locked": "4.2.0",
+        "installed": "4.2.0",
+        "local_project": false
+      },
+      {
+        "name": "langgraph-checkpoint-sqlite",
+        "locked": "3.1.1",
+        "installed": "3.1.1",
+        "local_project": false
+      },
+      {
+        "name": "langgraph-prebuilt",
+        "locked": "1.1.0",
+        "installed": "1.1.0",
+        "local_project": false
+      },
+      {
+        "name": "langgraph-sdk",
+        "locked": "0.4.5",
+        "installed": "0.4.5",
+        "local_project": false
+      },
+      {
+        "name": "langsmith",
+        "locked": "0.14.0",
+        "installed": "0.14.0",
+        "local_project": false
+      },
+      {
+        "name": "macholib",
+        "locked": "1.16.4",
+        "installed": null,
+        "local_project": false
+      },
+      {
+        "name": "orjson",
+        "locked": "3.12.0",
+        "installed": "3.12.0",
+        "local_project": false
+      },
+      {
+        "name": "ormsgpack",
+        "locked": "1.12.2",
+        "installed": "1.12.2",
+        "local_project": false
+      },
+      {
+        "name": "packaging",
+        "locked": "26.3",
+        "installed": "26.3",
+        "local_project": false
+      },
+      {
+        "name": "pefile",
+        "locked": "2024.8.26",
+        "installed": null,
+        "local_project": false
+      },
+      {
+        "name": "pluggy",
+        "locked": "1.6.0",
+        "installed": "1.6.0",
+        "local_project": false
+      },
+      {
+        "name": "pydantic",
+        "locked": "2.13.5",
+        "installed": "2.13.5",
+        "local_project": false
+      },
+      {
+        "name": "pydantic-core",
+        "locked": "2.46.5",
+        "installed": "2.46.5",
+        "local_project": false
+      },
+      {
+        "name": "pygments",
+        "locked": "2.21.0",
+        "installed": "2.21.0",
+        "local_project": false
+      },
+      {
+        "name": "pyinstaller",
+        "locked": "6.22.3",
+        "installed": null,
+        "local_project": false
+      },
+      {
+        "name": "pyinstaller-hooks-contrib",
+        "locked": "2026.7",
+        "installed": null,
+        "local_project": false
+      },
+      {
+        "name": "pytest",
+        "locked": "9.1.1",
+        "installed": "9.1.1",
+        "local_project": false
+      },
+      {
+        "name": "pywin32-ctypes",
+        "locked": "0.2.3",
+        "installed": null,
+        "local_project": false
+      },
+      {
+        "name": "pyyaml",
+        "locked": "6.0.3",
+        "installed": "6.0.3",
+        "local_project": false
+      },
+      {
+        "name": "requests",
+        "locked": "2.34.2",
+        "installed": "2.34.2",
+        "local_project": false
+      },
+      {
+        "name": "requests-toolbelt",
+        "locked": "1.0.0",
+        "installed": "1.0.0",
+        "local_project": false
+      },
+      {
+        "name": "ruff",
+        "locked": "0.16.9",
+        "installed": "0.16.9",
+        "local_project": false
+      },
+      {
+        "name": "setuptools",
+        "locked": "84.0.0",
+        "installed": null,
+        "local_project": false
+      },
+      {
+        "name": "sniffio",
+        "locked": "1.3.1",
+        "installed": "1.3.1",
+        "local_project": false
+      },
+      {
+        "name": "sqlite-vec",
+        "locked": "0.1.9",
+        "installed": "0.1.9",
+        "local_project": false
+      },
+      {
+        "name": "starlette",
+        "locked": "1.7.0",
+        "installed": "1.7.0",
+        "local_project": false
+      },
+      {
+        "name": "tenacity",
+        "locked": "9.1.4",
+        "installed": "9.1.4",
+        "local_project": false
+      },
+      {
+        "name": "truststore",
+        "locked": "0.10.4",
+        "installed": "0.10.4",
+        "local_project": false
+      },
+      {
+        "name": "typing-extensions",
+        "locked": "4.16.0",
+        "installed": "4.16.0",
+        "local_project": false
+      },
+      {
+        "name": "typing-inspection",
+        "locked": "0.4.4",
+        "installed": "0.4.4",
+        "local_project": false
+      },
+      {
+        "name": "urllib3",
+        "locked": "2.8.0",
+        "installed": "2.8.0",
+        "local_project": false
+      },
+      {
+        "name": "uuid-utils",
+        "locked": "0.17.1",
+        "installed": "0.17.1",
+        "local_project": false
+      },
+      {
+        "name": "uvicorn",
+        "locked": "0.54.0",
+        "installed": "0.54.0",
+        "local_project": false
+      },
+      {
+        "name": "websockets",
+        "locked": "16.1.1",
+        "installed": "16.1.1",
+        "local_project": false
+      },
+      {
+        "name": "xxhash",
+        "locked": "4.0.1",
+        "installed": "4.0.1",
+        "local_project": false
+      },
+      {
+        "name": "zstandard",
+        "locked": "0.25.0",
+        "installed": "0.25.0",
+        "local_project": false
+      }
+    ],
+    "installed_version_mismatches": []
+  },
+  "tests": {
+    "kind": "synthetic_deterministic",
+    "pytest_exit_code": 124,
+    "collected": 0,
+    "passed": 0,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "cases": [],
+    "real_model_tests": 0
+  },
+  "scope": {
+    "service_and_synthetic_graph": "FAILED",
+    "windows_11_x64_execution": "NOT_VERIFIED",
+    "desktop_tray_audio_packaging": "NOT_TESTED",
+    "original_neko_coexistence": "NOT_TESTED"
+  },
+  "failure_detail_policy": "Raw JUnit, stdout, stderr and failure locals are excluded; rerun uv run pytest -q for local diagnosis."
+}

@@ -108,6 +108,30 @@ def python_license_source(fallback_root: Path, records: list[dict]) -> tuple[Pat
     raise RuntimeError(f"missing license text for CPython {runtime_version}")
 
 
+def copy_windows_runtime_notices(destination: Path, python_root: Path) -> dict:
+    """Retain native-library notices from the exact uv/PBS Windows distribution."""
+    sources = ROOT / "packaging" / "licenses"
+    provenance = json.loads((sources / "windows-runtime.json").read_text(encoding="utf-8"))
+    if provenance["python_version"] != platform.python_version():
+        raise RuntimeError("Windows runtime notices do not match the Python version")
+    # Same Python patch version can be rebuilt against different native libraries.
+    # Validate the actual binary distribution, not only its version string.
+    for relative, expected in provenance["installed_file_sha256"].items():
+        source = python_root / relative
+        if not source.is_file() or sha256(source) != expected:
+            raise RuntimeError(f"Windows runtime distribution changed: {relative}; refresh notices")
+    destination.mkdir()
+    for record in provenance["files"]:
+        source = sources / record["file"]
+        if sha256(source) != record["sha256"]:
+            raise RuntimeError(f"Windows runtime notice hash mismatch: {record['file']}")
+        shutil.copyfile(source, destination / record["file"])
+    (destination / "provenance.json").write_text(
+        json.dumps(provenance, indent=2) + "\n", encoding="utf-8"
+    )
+    return provenance
+
+
 def copy_licenses(destination: Path, dependencies: dict[str, Distribution]) -> dict:
     """Copy only license/notice files, including version-bound missing-wheel fallbacks."""
     destination.mkdir()
@@ -175,6 +199,10 @@ def copy_licenses(destination: Path, dependencies: dict[str, Distribution]) -> d
             "origin": python_origin,
         },
     }
+    if sys.platform == "win32":
+        manifest["windows_runtime"] = copy_windows_runtime_notices(
+            destination / "windows-runtime", Path(sys.base_prefix)
+        )
     (destination / "manifest.json").write_text(
         json.dumps(manifest, indent=2) + "\n", encoding="utf-8"
     )
