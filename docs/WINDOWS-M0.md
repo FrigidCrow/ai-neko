@@ -1,6 +1,6 @@
 # M0 Windows 11 x64 取证
 
-此入口验证源码环境中的本机服务与合成 LangGraph 基础。已增加独立的 [CI 包构建/下载/解压 exe 验证流程](CI-RELEASES.md)；本文的源码 smoke 不替代它。Mac 或 Windows Server 结果均不代表 Windows 11 真机通过；窗口、托盘、角色、音频与真实模型不在本次 smoke 范围。
+此历史入口现同时验证 M0 基础与 M1 文字/工具/取消/凭据的合成测试。已增加独立的 [CI 包构建/下载/解压 exe 验证流程](CI-RELEASES.md)；本文的源码 smoke 不替代它。Mac 或 Windows Server 结果均不代表 Windows 11 真机通过；窗口、托盘、角色、音频与真实模型不在本次 smoke 范围。
 
 ## 执行条件
 
@@ -28,9 +28,9 @@ uv run --locked python scripts/m0_smoke.py --output artifacts/m0/windows-smoke.j
 
 生成的 JSON 记录操作系统、CPU 架构、Python 版本、锁文件 SHA256、锁定与实际安装的依赖版本、Git commit（存在时）、源码清单摘要及每个测试的 JUnit 结果。源码含未提交文件时显示 `git_dirty: true`；不存在首个 commit 时保留 `git_commit: null`，使用源码清单摘要确定本次代码，不能声称有发布构建来源。
 
-`status: PASS` 要求 pytest 成功、至少一项通过、无跳过、Python 与项目固定版本相同、已安装依赖与 lock 一致且测试期间源码未变化。有平台条件跳过且其余检查通过时记为 `PARTIAL`，报告列出被跳过的测试；失败记为 `FAILED`。两者均返回非零退出码，不能记为完整通过。`scope.windows_11_x64_execution` 只有在 Windows 11 x64 的 64 位 Python 上实际执行并全部通过时才是 `PASS`。`real_model_tests` 固定为 0，表示仅使用合成测试。机器上未安装的平台条件依赖记录为 `installed: null`，不冒称已验证。此报告是开发运行证据，不是 exe/ZIP 构建产物。
+`status: PASS` 要求 pytest 成功、至少一项通过、无跳过、Python 与项目固定版本相同、已安装依赖与 lock 一致且测试期间源码未变化。有平台条件跳过且其余检查通过时记为 `PARTIAL`，报告列出被跳过的测试；失败记为 `FAILED`。除非非 Windows 平台仅跳过 `test_windows_vault_real_roundtrip_and_delete`：此时报告仍为 PARTIAL，但单列 `ci_gate: PASS` 并允许构建；Windows 平台跳过、其他跳过或任何失败均返回非零。不能把平台豁免计作实际通过。`scope.windows_11_x64_execution` 只有在 Windows 11 x64 的 64 位 Python 上实际执行并全部通过时才是 `PASS`。`real_model_tests` 固定为 0，表示仅使用合成测试。机器上未安装的平台条件依赖记录为 `installed: null`，不冒称已验证。此报告是开发运行证据，不是 exe/ZIP 构建产物。
 
-测试覆盖：非法数据根、中文空格路径、端口占用、同根第二实例、两根同时运行、HTTP 令牌、WebSocket Origin 与首帧鉴权、鉴权超时、退出清理、强制结束后重开与令牌更新，以及本阶段图/checkpoint 的独立测试。
+测试覆盖：非法数据根、中文空格路径、端口占用、同根第二实例、两根同时运行、HTTP 令牌、WebSocket Origin 与首帧鉴权、鉴权超时、退出清理、强制结束后重开与令牌更新，以及图/checkpoint、M1 模型协议、工具边界、会话/取消/幂等/崩溃恢复、HTTP API 的独立测试。Windows 还实际执行 Credential Manager 合成 Key 的写入、读取和删除。
 
 失败时报告保留测试名和状态，不保存异常局部变量、原始日志或 JUnit 文本，避免意外保存令牌。使用 `uv run --locked pytest -q` 在本机查看具体错误和跳过原因；不要公开包含 `runtime/connection.json` 的目录。记录错误与未完成项目后，修复并重跑，不能把失败或跳过记为完成。输出必须是 `.json`，已存在的文件只有确认为本工具生成的 M0 证据才可覆盖；源码和普通文档目录禁止作为输出位置。
 
@@ -40,6 +40,6 @@ uv run --locked python scripts/m0_smoke.py --output artifacts/m0/windows-smoke.j
 
 - 实际 Windows 11 x64 的此份 JSON 与执行日期；未运行时状态保持 Pending。
 - 若原版 N.E.K.O 同时运行，手动记录它在 smoke 前后的进程与功能状态；自动测试的两个 ai-neko 数据根共存不等于原版共存实测。
-- Windows Credential Manager 的实际存取与删除验证、窗口/托盘/音频/桌宠、打包及升级分别归对应后续验收。本次不声称这些通过。
+- Windows Credential Manager 在 CI Windows Server 已实际通过合成 Key 存取/删除；用户 Windows 11 上配置后重开仍需实际验收。窗口/托盘/音频/桌宠、升级分别归后续阶段，不由本入口代替。
 
 报告路径只指向本工程证据目录；发布或上传证据需遵循用户另行授权。

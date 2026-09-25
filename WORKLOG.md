@@ -198,3 +198,11 @@ tag 运行 `36123430471` 再次通过全部测试、原生构建和解压 exe �
 
 
 网页最终使用 `artifacts/m1-ui/check_ui.py`（本机 Playwright + Chrome 153）检查 14 项，通过真实本地服务及明确 renderer fixture；源码 `app.js` SHA256 `524fa115ca0bc3a5e8785c226acfa9198ef5148a14fdc9d3881c77a0671cb196`。Root 另目视桌面截图。增强脚本曾因测试 harness lambda 捕获可变 argv、旧 DOM 等待条件而失败，修复 harness 后重跑通过，不归为产品通过证据的一部分。报告与四截图复制 docs/evidence/m1。执行 `node --check src/ai_neko/web/app.js` 和最终 Ruff/diff 检查后冻结发布源码。
+
+
+源码提交 `987d8b0a99d29332bd1972147803dd8af9057e96` 已推送 `origin/codex/initial-plan`，运行 [36126906103](https://github.com/FrigidCrow/ai-neko/actions/runs/36126906103) 全部必要 jobs SUCCESS。实际下载 source/package evidence：Windows 287 passed / 0 skipped（80.922 秒），包含 Credential Manager 原生往返；Linux 286 passed / 1 专属 skip（53.254 秒），无 failure/error，clean source commit 一致；16 项冻结包检查全部 PASS。基于该已验证 SHA 执行 `git tag v0.2.0-alpha.1 987d8b0a99d29332bd1972147803dd8af9057e96` 和 `git push origin v0.2.0-alpha.1`，触发 [tag workflow 36127322450](https://github.com/FrigidCrow/ai-neko/actions/runs/36127322450)。发布完成与实际下载核对在下文补记。
+
+
+[tag workflow 36127322450](https://github.com/FrigidCrow/ai-neko/actions/runs/36127322450) 已于本轮成功完成测试/构建/解压验证/发布，仍为同一源码 SHA。实际执行 `gh release download v0.2.0-alpha.1 --repo FrigidCrow/ai-neko --dir artifacts/releases/v0.2.0-alpha.1`、`gh api repos/FrigidCrow/ai-neko/releases/tags/v0.2.0-alpha.1`、tag ref 查询，以及 `python3 artifacts/verify-m1-release.py`：6 项资产全部 hash/size 一致，源/ZIP/exe/网页身份对应，Windows 287 / Linux 286+1skip / 包 16 项与报告一致。ZIP 21,541,629 字节，SHA256 `549aec1047932520d5f68f728aea81c2fb7a05750d852f4abd980acdca14d0d5`，发布 UTC 2026-09-25T11:07:04Z。验证报告/构建清单/包报告复制 docs/evidence/m1。
+
+最后仅更新 README/PLAN/REVIEW/CI-RELEASES/WINDOWS-M0 和证据，执行文档/链接/指纹与 diff 检查并以 `[skip ci]` 提交同步；不更改已验证发布源码、tag 或产物，不重复跑未变化的产品测试。M0/M1 Partial 的待验收边界保留，不写全局记忆。

@@ -2,7 +2,7 @@
 
 M1 的 `0.2.0` 预览线提供本地文字页面、会话历史/取消、模型配置、Tavily 搜索、公开正文读取与来源卡片。每次发布必须通过 Windows/Linux 合成测试及解压 exe 探针；这些结果与真实服务质量、Windows 11 真机分开。
 
-[版本列表](https://github.com/FrigidCrow/ai-neko/releases)保留旧版。`v0.1.0-alpha.1` 是历史 M0 诊断包，没有聊天页面；对应 [历史核对](evidence/m0/release-v0.1.0-alpha.1-verification.json)。M1 的实际发布结果记 REVIEW，不把计划发布写成已完成。
+[版本列表](https://github.com/FrigidCrow/ai-neko/releases)保留旧版。`v0.1.0-alpha.1` 是历史 M0 诊断包，没有聊天页面；对应 [历史核对](evidence/m0/release-v0.1.0-alpha.1-verification.json)。M1 已发布 [v0.2.0-alpha.1](https://github.com/FrigidCrow/ai-neko/releases/tag/v0.2.0-alpha.1)；[直接下载 Windows ZIP](https://github.com/FrigidCrow/ai-neko/releases/download/v0.2.0-alpha.1/ai-neko-0.2.0-alpha.1-windows-x64.zip)，约 20.5 MiB。[实际下载核对](evidence/m1/release-v0.2.0-alpha.1-verification.json)已通过。
 
 ## 下载和运行
 
@@ -18,9 +18,9 @@ M1 的 `0.2.0` 预览线提供本地文字页面、会话历史/取消、模型�
 
 [workflow](../.github/workflows/windows-preview.yml) 使用固定 action commit、uv 版本与 `.python-version`：
 
-1. push、PR、手动运行：Ubuntu 24.04 和 Windows Server 2022 x64 同步 `uv.lock`，检查格式并运行合成测试。失败或跳过阻止后续构建，始终尝试保存脱敏 JSON 证据。
+1. push、PR、手动运行：Ubuntu 24.04 和 Windows Server 2022 x64 同步 `uv.lock`，检查格式并运行合成测试。失败或非预期跳过阻止后续构建；仅 Linux 的 Windows vault 专属用例可跳过，报告仍为 PARTIAL 并单列 ci_gate PASS，不计通过。始终尝试保存脱敏 JSON 证据。
 2. 两平台测试通过后，在 Windows 原生 PyInstaller onedir 构建。ZIP 含 Python、所需运行依赖与许可证、程序入口和来源清单。
-3. 解压到含中文和空格的临时路径，使用包内 exe 实测路径、HTTP/WS 鉴权、端口冲突、第二实例、退出清理、跨新进程图暂停/恢复和身份隔离。应用子进程清除 Python 源码路径和配置/Key 环境，PATH 仅保留系统目录；不借用开发环境启动应用。
+3. 解压到含中文和空格的临时路径，使用包内 exe 实测路径、HTTP/WS 鉴权、端口冲突、第二实例、退出清理、跨新进程图暂停/恢复和身份隔离，以及 M1 网页资源、合成协议流式/ACK/取消、完整回复、会话重开、缺搜索 Key/私网拒绝的攻略失败路径。应用子进程清除 Python 源码路径和配置/Key 环境，PATH 仅保留系统目录；不借用开发环境启动应用。
 4. 普通构建提供带 commit 的开发版 artifact；版本 tag 经同一套检查后自动创建 GitHub prerelease。只有发布 job 具有 `contents: write`，测试/PR 不接收模型或搜索 Key。
 
 tag 格式为 `v<pyproject 版本>` 加可选预发布后缀，如 `v0.2.0-alpha.1`。基础版本必须与 `pyproject.toml` 一致；构建清单分别记录 `app_version` 和 `release_version`。同一版本不可覆盖，已有 Release 会导致发布步骤失败；修复使用新版本 tag。稳定发布和签名尚未接入。
@@ -28,8 +28,8 @@ tag 格式为 `v<pyproject 版本>` 加可选预发布后缀，如 `v0.2.0-alpha
 维护者发布示例（在已检查的目标 commit 上执行；这两条不是下载用户的安装步骤）：
 
 ```sh
-git tag v0.1.0-alpha.1 <已经核对的完整commit>
-git push origin v0.1.0-alpha.1
+git tag v0.2.0-alpha.1 <已经核对的完整commit>
+git push origin v0.2.0-alpha.1
 ```
 
 发布失败先看 Actions job 和脱敏 evidence；不要把 token、connection.json、个人配置/数据库或原始凭据日志传到 GitHub。保留历史 Release 供选版下载，替换程序目录时保留独立数据根；自动升级与迁移/恢复仍属于 M6 验收。

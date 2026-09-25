@@ -23,8 +23,8 @@
 
 | 阶段 | 状态 | 当前缺少的证据 |
 | --- | --- | --- |
-| M0 基础与复用验证 | Partial | Mac 与 Windows/Linux CI、冻结包证据见下；Windows 11 真机、前端组合实际安装/构建未验证 |
-| M1 文字/查攻略/工具循环 | In progress | 本工程实现、真实模型/联网搜索/正文/来源、流式与取消测试 |
+| M0 基础与复用验证 | Partial | 源码、原生网页组合、Windows/Linux CI 与冻结包已验证；Windows 11 真机/ACL/junction/原版共存仍待验收，桌面工具链留 M3 |
+| M1 文字/查攻略/工具循环 | Partial | 实现、合成测试、浏览器与下载包已交付；真实模型 10 轮/3 次完整联网攻略质量和 Windows 11 真机待验收 |
 | M2 本地长期记忆 | Pending | 落盘、新会话召回、纠正/遗忘、进程与电脑重启 |
 | M3 桌面与角色 | Pending | 桌面接口、窗口/托盘/角色与原版共存 |
 | M4 语音与打断 | Pending | Windows 真机采集/播放、打断与迟到片段 |
@@ -122,3 +122,12 @@ Root 另补充 stop 的重定向测试：本机端口被其他服务接替时，
 
 
 网页最终验证：[14 项浏览器检查](docs/evidence/m1/ui-browser-check.json) PASS，使用 Mac Chrome 与真实本地服务/合成模型；实际检查一次性 bootstrap、流式/ACK/取消/恢复、未领取完成回合、响应丢失后的幂等重试、鉴权错误在 done/reload 后保留、退出、移动端和不外传 Key。来源卡片/XSS 为明确 renderer fixture，不冒充真实检索结果。[桌面](docs/evidence/m1/ui-desktop-1440.png)、[窄屏](docs/evidence/m1/ui-mobile-390.png)、[设置](docs/evidence/m1/ui-settings-1440.png)、[聊天](docs/evidence/m1/ui-chat-1440.png)截图已查看。所有临时服务已退出；未做 Windows 浏览器验收。
+
+
+最终 [tag workflow 36127322450](https://github.com/FrigidCrow/ai-neko/actions/runs/36127322450) 全部必要 jobs SUCCESS，发布 [v0.2.0-alpha.1](https://github.com/FrigidCrow/ai-neko/releases/tag/v0.2.0-alpha.1)。源 commit `987d8b0a99d29332bd1972147803dd8af9057e96`，Windows 287 passed/0 skipped，Linux 286 passed/1 专属 skip；Windows Credential Manager 实际读写删除通过。解压后的 exe 16/16 检查 PASS，新增网页/API、流式 ACK/取消、完整回复、会话正常重开和两项攻略工具失败路径；包测试仍不声称真实搜索成功、真实云模型质量或包内崩溃恢复已验收。
+
+六个发布资产已实际下载、逐项验证 GitHub digest/size、SHA256SUMS、源 commit/clean 状态、ZIP 内外 build-info、exe SHA 与 PE AMD64、M1 启动器和网页文件字节对应。ZIP 为 21,541,629 字节，SHA256 `549aec1047932520d5f68f728aea81c2fb7a05750d852f4abd980acdca14d0d5`。发布于 2026-09-25T11:07:04Z。
+
+直接证据：[发布核对](docs/evidence/m1/release-v0.2.0-alpha.1-verification.json)、[构建来源](docs/evidence/m1/release-v0.2.0-alpha.1-build.json)、[冻结包检查](docs/evidence/m1/release-v0.2.0-alpha.1-package.json)。Windows/Linux 原始完整源码报告作为 Release 资产保留；入库的 Windows JSON 仅将 CRLF 正规化为 LF，下载原始文件的 hash 保留在核对报告。Mac 未执行 Windows exe。
+
+结论：本轮代码、UI、CI/CD 与 M1 可下载预览交付通过；M0/M1 总阶段保留 **Partial**，缺口是 Windows 11 真机，以及用户配置实际模型/搜索服务后的 10 轮/3 次逐项验收。没有 Key 时不能代做真实服务验收；M2–M6 不在本轮实现范围。

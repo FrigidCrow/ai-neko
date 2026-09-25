@@ -2,7 +2,7 @@
 
 独立的个人 AI 伴侣项目：以 LangGraph 编排对话，参考 N.E.K.O 的源码和已整理的教程，优先复用其界面、角色、语音与记忆能力。目标是 Windows 11 x64 桌面 App，长期记忆保存在本机，允许使用云模型。
 
-**M1 文字与攻略预览正在实施。** 已提供本地网页、OpenAI 兼容模型适配、会话持久化、取消、Tavily 搜索与公开正文读取。当前测试/发布状态见 [REVIEW](REVIEW.md)，合成测试不等于真实服务质量验收。
+**[M1 文字与攻略预览 v0.2.0-alpha.1 已发布](https://github.com/FrigidCrow/ai-neko/releases/tag/v0.2.0-alpha.1)。** 已提供本地网页、OpenAI 兼容模型适配、会话持久化、取消、Tavily 搜索与公开正文读取。Windows CI 287 项、Linux 286 项（另 1 项 Windows 专属跳过）和冻结包 16 项检查通过。M0/M1 总体仍为 Partial：Windows 11 真机、真实模型 10 轮与 3 次联网攻略质量验收待完成，见 [REVIEW](REVIEW.md)。
 
 用户优先需要查攻略；不做键鼠代操作或控制游戏/其他软件。M1 不含长期事实记忆、桌宠、托盘和语音。M0 的 Windows 11 真机验收仍单列，Windows Server CI 不代替真机结论。
 

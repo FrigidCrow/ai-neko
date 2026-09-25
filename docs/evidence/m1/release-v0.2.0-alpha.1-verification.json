@@ -1,0 +1,74 @@
+{
+  "status": "PASS",
+  "release_url": "https://github.com/FrigidCrow/ai-neko/releases/tag/v0.2.0-alpha.1",
+  "published_at": "2026-09-25T11:07:04Z",
+  "prerelease": true,
+  "source_commit": "987d8b0a99d29332bd1972147803dd8af9057e96",
+  "assets": [
+    {
+      "name": "ai-neko-0.2.0-alpha.1-windows-x64.zip",
+      "size": 21541629,
+      "sha256": "549aec1047932520d5f68f728aea81c2fb7a05750d852f4abd980acdca14d0d5"
+    },
+    {
+      "name": "build-info.json",
+      "size": 8816,
+      "sha256": "a7eb070ecb51a22f28b54ad2358d84caa7e8dc795a41962f69743890c2a20d66"
+    },
+    {
+      "name": "Linux-smoke.json",
+      "size": 542687,
+      "sha256": "bc5d6ddc12dbc0b45a8eeb044f5a39fa322e1bc7cda7db1ff52084dac8d8c97e"
+    },
+    {
+      "name": "package-smoke.json",
+      "size": 2902,
+      "sha256": "1e2963a3699b955187b00d70485d7d785130a7646dae36c5be69ea6be4cd55ea"
+    },
+    {
+      "name": "SHA256SUMS.txt",
+      "size": 186,
+      "sha256": "d987ea861e75d22495a4d0dfd2ac578088d1217a4aa5965c13b28a9227a2ff76"
+    },
+    {
+      "name": "Windows-smoke.json",
+      "size": 560856,
+      "sha256": "62385492af71c1a0152ab6a5684a967deb5d230a3af85dde408657249be5c300"
+    }
+  ],
+  "source_tests": [
+    {
+      "file": "Windows-smoke.json",
+      "status": "PASS",
+      "ci_gate": "PASS",
+      "passed": 287,
+      "skipped": 0,
+      "real_model_tests": 0
+    },
+    {
+      "file": "Linux-smoke.json",
+      "status": "PARTIAL",
+      "ci_gate": "PASS",
+      "passed": 286,
+      "skipped": 1,
+      "real_model_tests": 0
+    }
+  ],
+  "package_cases_passed": 16,
+  "verified": [
+    "GitHub asset digest and sizes",
+    "SHA256SUMS",
+    "same source commit and clean build",
+    "archive and executable report identity",
+    "PE AMD64 header",
+    "M1 launchers and static UI asset identity",
+    "no packaged runtime data",
+    "all frozen cases and source CI gates"
+  ],
+  "boundaries": {
+    "windows_11_physical": "Pending",
+    "real_model_10_rounds": "Pending: no credentials",
+    "real_search_read_answer_3_queries": "Pending: no credentials",
+    "Mac_executed_Windows_binary": false
+  }
+}

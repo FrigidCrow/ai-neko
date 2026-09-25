@@ -1,0 +1,101 @@
+{
+  "schema_version": 1,
+  "app_id": "ai-neko",
+  "stage": "windows-portable-package",
+  "status": "PASS",
+  "started_at_utc": "2026-09-25T11:06:30.039379+00:00",
+  "archive_sha256": "549aec1047932520d5f68f728aea81c2fb7a05750d852f4abd980acdca14d0d5",
+  "executable_sha256": "015d181b8e51f703faba77ba02842443f9a4a1533b70130d140e7fee2668f332",
+  "source_commit": "987d8b0a99d29332bd1972147803dd8af9057e96",
+  "environment": {
+    "system": "Windows",
+    "release": "10",
+    "version": "10.0.20348",
+    "machine": "AMD64",
+    "harness_python": "3.11.15",
+    "harness_pointer_bits": 64,
+    "windows_product_type": 3,
+    "windows_build": 20348,
+    "application_runtime": "extracted_executable_only",
+    "application_path": "windows_system_directories_only"
+  },
+  "tests": {
+    "kind": "synthetic_deterministic_packaged_executable",
+    "real_model_tests": 0,
+    "cases": [
+      {
+        "name": "archive_layout_and_safe_extraction",
+        "outcome": "PASS"
+      },
+      {
+        "name": "windows_x64_execution_environment",
+        "outcome": "PASS"
+      },
+      {
+        "name": "paths_in_chinese_directory",
+        "outcome": "PASS"
+      },
+      {
+        "name": "executable_self_check",
+        "outcome": "PASS"
+      },
+      {
+        "name": "authenticated_health_and_descriptor",
+        "outcome": "PASS"
+      },
+      {
+        "name": "http_rejects_missing_and_wrong_token",
+        "outcome": "PASS"
+      },
+      {
+        "name": "websocket_origin_auth_and_ping",
+        "outcome": "PASS"
+      },
+      {
+        "name": "packaged_web_assets_and_api_auth",
+        "outcome": "PASS"
+      },
+      {
+        "name": "packaged_chat_stream_ack_and_cancel",
+        "outcome": "PASS"
+      },
+      {
+        "name": "packaged_session_restart_recovery",
+        "outcome": "PASS"
+      },
+      {
+        "name": "second_instance_preserves_descriptor",
+        "outcome": "PASS"
+      },
+      {
+        "name": "occupied_explicit_port_is_rejected",
+        "outcome": "PASS"
+      },
+      {
+        "name": "graceful_stop_removes_descriptor",
+        "outcome": "PASS"
+      },
+      {
+        "name": "graph_pause_fresh_process_get_resume_get",
+        "outcome": "PASS"
+      },
+      {
+        "name": "graph_user_and_character_scope_separation",
+        "outcome": "PASS"
+      },
+      {
+        "name": "archive_unchanged_after_validation",
+        "outcome": "PASS"
+      }
+    ]
+  },
+  "scope": {
+    "packaged_service_and_synthetic_graph": "PASS",
+    "windows_server_x64_execution": "PASS",
+    "windows_11_x64_execution": "NOT_VERIFIED",
+    "desktop_tray_audio": "NOT_TESTED",
+    "real_model_search_and_chat": "NOT_TESTED"
+  },
+  "duration_seconds": 17.922,
+  "failure_detail_policy": "No raw stdout, stderr, logs, tokens, or tracebacks included."
+}
