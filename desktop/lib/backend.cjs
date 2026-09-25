@@ -84,6 +84,10 @@ class OwnedBackend {
     this.child = spawn(this.command.command,
       [...this.command.prefix, 'serve', '--desktop-parent', '--desktop-parent-pid',
         String(process.pid), '--data-dir', this.dataRoot], {
+        // libuv's default Windows job kills children immediately with the host,
+        // bypassing Python's cleanup. Keep pipes and our process reference, but
+        // let the captured parent HANDLE request an orderly shutdown instead.
+        detached: process.platform === 'win32',
         windowsHide: true, stdio: ['pipe', 'pipe', 'pipe'],
         env: { ...process.env, PYTHONUNBUFFERED: '1' },
       });

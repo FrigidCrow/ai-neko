@@ -228,7 +228,18 @@ async function quit() {
       // Deliberately kill only our host, leaving its backend alive to observe pipe EOF.
       execFileSync('taskkill', ['/PID', String(actualHostPID), '/F'], { stdio: 'ignore' });
     } else process.kill(actualHostPID, 'SIGKILL');
-    await until(() => !fs.existsSync(connectionPath), 15000);
+    try {
+      await until(() => !fs.existsSync(connectionPath), 15000);
+    } finally {
+      const gone = (pid) => {
+        try { process.kill(pid, 0); return false; } catch (error) { return error.code === 'ESRCH'; }
+      };
+      report.host_crash = { host_gone: gone(actualHostPID), backend_gone: gone(owned.pid),
+        descriptor_present: fs.existsSync(connectionPath),
+        service_events: fs.readFileSync(path.join(dataRoot, 'logs', 'service.jsonl'), 'utf8')
+          .trim().split('\n').map((line) => JSON.parse(line).event) };
+      save();
+    }
     await until(() => {
       try { process.kill(owned.pid, 0); return false; } catch (error) { return error.code === 'ESRCH'; }
     }, 15000);
