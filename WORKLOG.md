@@ -120,3 +120,5 @@ python3 docs/diagrams/tools/validate-docs.py
 独立只读审计 `/root/upload_audit` 检查 Git 实际纳入清单：103 个文件，约 3.01 MiB，最大文件约 410 KiB；无凭据、环境文件、数据库、虚拟环境、node_modules 或运行目录。凭据模式仅命中明确的 `example.invalid` 合成测试输入。9 张 PNG 均为已有图解证据。Root 重算 smoke source.manifest，生产代码、测试、依赖锁与 110 passed 记录保持一致，无需重复运行未改动的产品测试。
 
 本轮上传准备命令包含 `git status --short --branch`、`git remote -v`、`git ls-files --others --exclude-standard`、`git check-ignore ...`、`python3 docs/diagrams/tools/validate-docs.py`；初次 `git log -3 --oneline` 因尚无 commit 返回 128，属于预期初始状态。随后将暂存、提交并推送；最终远端提交一致性在上传后记录。
+
+上传结果：文档检查 PASS，103 个文件暂存后 `git diff --cached --check` 通过；执行 `git commit -m "feat: establish isolated ai-neko M0 foundation"` 得到首个提交 `7d77223f7375445988c0767bf6eb5273d7336066`。`git push -u origin codex/initial-plan` 成功，建立 upstream；`git ls-remote origin refs/heads/codex/initial-plan` 与 `git rev-parse HEAD` 一致，首次上传后工作区干净。此段上传结果及 REVIEW/PLAN 状态作为后续文档提交同步到同一分支；不改变已验证产品源码。

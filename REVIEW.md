@@ -79,3 +79,7 @@ Codex 项目列表本次尚无本目录；工具中未发现登记本地目录�
 Root 另补充 stop 的重定向测试：本机端口被其他服务接替时，shutdown 不跟随其 302 重定向，避免把 token 转发到新目标。源文件摘要在最终 smoke 前后保持一致；无首个 Git commit，因此报告 `git_commit: null` 并提供文件清单摘要，没有虚构发布来源 commit。当前未构建或发布 Windows 产物。
 
 不在本轮结论中：原版 N.E.K.O 与 ai-neko 真正同时运行、真实 Windows junction/ACL、原媒体模块提取后 import 探针、前端组件集成。取消与崩溃中回合结算留 M1，完整事实删除留 M2；显式图暂停恢复不能证明这些行为。后端 Scope 需要可信调用方构造，目前只有本机合成 CLI，没有接受任意 user ID 的网络图接口。
+
+## GitHub 首次上传 — PASS
+
+2026-09-25，按用户明确授权上传至 [FrigidCrow/ai-neko](https://github.com/FrigidCrow/ai-neko)，保留 `codex/initial-plan` 分支。源码基线提交 `7d77223f7375445988c0767bf6eb5273d7336066` 已推送，GitHub 分支 SHA 与本地核对一致。103 文件经过独立纳入清单检查；无真实凭据、运行数据或虚拟环境。源码与 110 passed 的合成测试清单摘要一致，上传只调整 Git 交付相关文档与验证器。M0 仍 Partial，Windows 项仍 Pending；这不是产品发布。
