@@ -6,6 +6,7 @@ import os
 import subprocess
 import sys
 import zipfile
+from importlib.metadata import PackagePath
 from pathlib import Path
 
 import pytest
@@ -53,6 +54,45 @@ def test_license_fallbacks_match_recorded_hashes():
     for record in records:
         assert builder.sha256(folder / record["file"]) == record["sha256"]
         assert record["source_commit"] in record["source_url"]
+
+
+@pytest.mark.parametrize("separator", ["/", "\\"])
+def test_license_collection_handles_windows_wheel_record_paths(tmp_path, monkeypatch, separator):
+    wheel_root = tmp_path / "wheel"
+    license_root = wheel_root / "ormsgpack-1.12.2.dist-info" / "licenses"
+    license_root.mkdir(parents=True)
+    names = ["LICENSE-APACHE", "LICENSE-MIT"]
+    for name in names:
+        (license_root / name).write_text(f"synthetic {name} notice")
+
+    class SyntheticDistribution:
+        version = "1.12.2"
+        metadata = {"License-Expression": "MIT OR Apache-2.0"}
+        files = [
+            PackagePath(separator.join(("ormsgpack-1.12.2.dist-info", "licenses", name)))
+            for name in names
+        ]
+
+        def locate_file(self, source):
+            # Reproduce Windows filesystem interpretation while this test runs on Mac/Linux too.
+            return wheel_root / str(source).replace("\\", "/")
+
+    dist = SyntheticDistribution()
+    monkeypatch.setattr(builder, "distribution", lambda _name: dist)
+    monkeypatch.setattr(builder.sys, "platform", "darwin")
+    monkeypatch.setattr(
+        builder,
+        "python_license_source",
+        lambda *_args: (license_root / names[0], {"kind": "synthetic"}),
+    )
+    manifest = builder.copy_licenses(tmp_path / "notices", {"ormsgpack": dist})
+    entry = next(entry for entry in manifest["dependencies"] if entry["name"] == "ormsgpack")
+    assert len(entry["files"]) == 2
+    for item, name in zip(entry["files"], names):
+        saved = tmp_path / "notices" / item["path"]
+        assert saved.read_text() == f"synthetic {name} notice"
+        assert "\\" not in item["path"]
+        assert item["sha256"] == builder.sha256(saved)
 
 
 def test_python_license_fallback_checks_runtime_version_and_hash(tmp_path, monkeypatch):

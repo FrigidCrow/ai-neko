@@ -29,7 +29,10 @@ a = Analysis(
     runtime_hooks=[],
     # These installed build/test tools must never enter the runtime bundle via
     # optional LangSmith test integrations or PyInstaller's import analysis.
-    excludes=["pytest", "_pytest", "ruff", "PyInstaller", "tkinter", "langsmith.testing"],
+    excludes=[
+        "pytest", "_pytest", "ruff", "PyInstaller", "tkinter", "langsmith.testing",
+        "pygments", "setuptools", "pkg_resources", "_distutils_hack",
+    ],
     noarchive=False,
     optimize=0,
 )

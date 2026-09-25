@@ -164,3 +164,7 @@ git diff --check
 独立审查核实 uv/CPython 官方 launcher 源码，确认 Windows venv 会启动真实 Python 子进程，Popen PID 不等于应用 os.getpid。源服务测试原先强制比较两者，会把健康服务当成旧实例等待超时。现改为启动前快照、要求新 instance_id 与 token，再做鉴权健康检查；保留旧描述符保护。Windows 崩溃/兜底仅用 taskkill /T /F 清理本次启动 PID 的子树，保留有界等待。21 项定向服务测试通过，包含 3 项身份/PID 回归；是否解决远端超时仍以新 CI 为准。
 
 Root 另修包探针的合成环境：清除真实 USERPROFILE 后，为子进程提供临时合成 USERPROFILE/LOCALAPPDATA，满足 Windows Path.home 安全校验，仍不继承个人配置。21 项探针测试通过。进度记录专项 7 项通过，含真实子进程超时、半截 JSON/XML、阶段识别和参数/异常正文脱敏；超时不能把部分进度变为整套通过。
+
+整合后 Mac 完整 smoke 为 **160 passed / 0 failed / 0 errors / 0 skipped**，保存 `docs/evidence/m0/macos-ci-recovery.json`。Windows 原发行通知保留自身 CRLF 字节，`.gitattributes` 同时保留原文空白；入库的 Windows JSON 只将 CRLF 转为 LF，证据字段不变。推送 `d10d6c5e767b5655c10e772a51c14fe0a93dc085` 后，远端运行 `36122354111`：Windows Server 2022 **160 passed，46.328 秒**；Linux **160 passed，35.789 秒**；两者均无失败/错误/跳过，源工作区干净。Windows PyInstaller 原生 EXE 构建成功，但随包许可证检查发现该平台 `ormsgpack==1.12.2` wheel 许可文本未被识别，构建 job 失败，未输出可下载包或发布。正在补齐对应版本来源后重跑。
+
+构建失败进一步查明是 ormsgpack 的 Windows wheel RECORD 使用反斜杠，许可证实际存在；改为规范化分隔符后提取 basename，无需新增 fallback。50 个锁定 Windows/通用 wheel 的来源 hash 与许可文件已只读核查，同类缺项仅已有记录的 langsmith/sqlite-vec。补正/反斜杠端到端复制回归，21 项打包测试通过。构建日志还显示可选导入把开发依赖带入分析，故 build job 改为 `--no-dev --group build`，spec 排除 Pygments/setuptools 等不在运行依赖闭包内的构建/测试工具；实际冻结运行继续由包验收裁定，不只凭静态分析通过。

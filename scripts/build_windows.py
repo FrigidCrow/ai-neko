@@ -145,13 +145,16 @@ def copy_licenses(destination: Path, dependencies: dict[str, Distribution]) -> d
         target.mkdir()
         files = []
         for source in dist.files or []:
-            if not source.name.upper().startswith(("LICENSE", "COPYING", "NOTICE")):
+            # Some Windows wheels write backslashes in RECORD. PackagePath is
+            # PurePosixPath even on Windows, so its .name is then the whole path.
+            source_name = str(source).replace("\\", "/").rsplit("/", 1)[-1]
+            if not source_name.upper().startswith(("LICENSE", "COPYING", "NOTICE")):
                 continue
             path = Path(dist.locate_file(source))
             if not path.is_file():
                 continue
             # A numeric prefix avoids collisions between multiple nested notices.
-            output = target / f"{len(files):02d}-{source.name}"
+            output = target / f"{len(files):02d}-{source_name}"
             shutil.copyfile(path, output)
             files.append(
                 {

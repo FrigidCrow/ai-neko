@@ -2,7 +2,7 @@
 
 独立的个人 AI 伴侣项目：以 LangGraph 编排对话，参考 N.E.K.O 的源码和已整理的教程，优先复用其界面、角色、语音与记忆能力。目标是 Windows 11 x64 桌面 App，长期记忆保存在本机，允许使用云模型。
 
-**M0 的源码基础已落地，Mac 的 110 项合成验收通过；阶段总状态为 Partial。** 已建立本工程 Python 依赖锁、数据隔离、鉴权本机服务和可跨进程恢复的合成 LangGraph。Windows 真机与前端组合运行兼容仍待验证；还没有真实聊天、长期记忆、桌面界面或 Windows 产物，没有复制 N.E.K.O 运行代码与素材。
+**M0 的源码基础及 Mac、Linux、Windows CI 合成验证已落地；阶段总状态为 Partial。** 已建立本工程 Python 依赖锁、数据隔离、鉴权本机服务和可跨进程恢复的合成 LangGraph，最新验证结果见 REVIEW。Windows 11 真机与前端组合运行兼容仍待验证；还没有真实聊天、长期记忆或桌面界面，没有复制 N.E.K.O 运行代码与素材。
 
 开发入口：[M0 运行说明](docs/M0-QUICKSTART.md)。在本目录执行 `uv sync --locked`，再执行 `uv run --locked pytest -q`，无需模型 Key；测试使用临时合成资料。[Windows 取证入口](docs/WINDOWS-M0.md) 已提供，真机结果仍待执行。
 

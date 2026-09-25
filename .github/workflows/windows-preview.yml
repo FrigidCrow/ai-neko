@@ -83,15 +83,15 @@ jobs:
           with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as stream:
               stream.write(f"value={value}\n")
       - name: Install locked build dependencies
-        run: uv sync --locked --group build
+        run: uv sync --locked --no-dev --group build
       - name: Build self-contained Windows package
         env:
           PREVIEW_VERSION: ${{ steps.version.outputs.value }}
-        run: uv run --locked --group build python scripts/build_windows.py --version "$env:PREVIEW_VERSION" --output artifacts/package
+        run: uv run --locked --no-dev --group build python scripts/build_windows.py --version "$env:PREVIEW_VERSION" --output artifacts/package
       - name: Exercise extracted executable
         env:
           PREVIEW_VERSION: ${{ steps.version.outputs.value }}
-        run: uv run --locked --group build python scripts/package_smoke.py --archive "artifacts/package/ai-neko-$env:PREVIEW_VERSION-windows-x64.zip" --output artifacts/package/package-smoke.json
+        run: uv run --locked --no-dev --group build python scripts/package_smoke.py --archive "artifacts/package/ai-neko-$env:PREVIEW_VERSION-windows-x64.zip" --output artifacts/package/package-smoke.json
       - name: Preserve package evidence
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
