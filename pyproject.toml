@@ -1,7 +1,7 @@
 [project]
 name = "ai-neko"
-version = "0.2.0"
-description = "Independent local-first text companion and guide search preview"
+version = "0.3.0"
+description = "Independent desktop catgirl companion with local chat and guide search"
 requires-python = ">=3.11,<3.12"
 dependencies = [
   "fastapi==0.141.1",

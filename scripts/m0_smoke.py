@@ -194,7 +194,8 @@ def source_identity() -> dict:
     for directory, patterns in {
         "src": ["*.py", "*.html", "*.css", "*.js"],
         "tests": ["*.py"],
-        "scripts": ["*.py", "*.ps1"],
+        "scripts": ["*.py", "*.ps1", "*.cjs"],
+        "desktop": ["*"],
         "packaging": ["*"],
         ".github/workflows": ["*.yml", "*.yaml"],
     }.items():
@@ -203,7 +204,8 @@ def source_identity() -> dict:
     manifest = [
         {"path": path.relative_to(ROOT).as_posix(), "sha256": sha256(path)}
         for path in sorted(set(files))
-        if path.is_file() and "__pycache__" not in path.parts
+        if path.is_file()
+        and not {"__pycache__", "node_modules", "test-results"}.intersection(path.parts)
     ]
     encoded = json.dumps(manifest, sort_keys=True, separators=(",", ":")).encode("utf-8")
     commit = None

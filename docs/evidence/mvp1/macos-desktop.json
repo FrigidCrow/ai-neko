@@ -1,0 +1,92 @@
+{
+  "schema_version": 1,
+  "stage": "MVP1-actual-electron",
+  "status": "PASS",
+  "environment": {
+    "platform": "darwin",
+    "arch": "arm64",
+    "node": "v25.9.0"
+  },
+  "source_commit": "bc25aba6ce5c9645aefb9ed45829cc4b31be3b63",
+  "source_dirty": true,
+  "harness_sha256": "23537ade53660b8527daf08e39e954cb9ce6a324fb6d907822bd4d8c5e9cdbe2",
+  "real_model_calls": 0,
+  "real_search_calls": 0,
+  "windows_11": "pending",
+  "cases": [
+    {
+      "name": "consent_real_catgirl_and_owned_backend",
+      "status": "PASS",
+      "elapsed_ms": 2649
+    },
+    {
+      "name": "renderer_sandbox_and_ipc_boundaries",
+      "status": "PASS",
+      "elapsed_ms": 5
+    },
+    {
+      "name": "settings_keep_catgirl_visible_and_configure_synthetic_model",
+      "status": "PASS",
+      "elapsed_ms": 155
+    },
+    {
+      "name": "incremental_reply_cancel_and_old_delta_rejection",
+      "status": "PASS",
+      "elapsed_ms": 1200
+    },
+    {
+      "name": "normal_reply_after_cancel_and_guide_error_feedback",
+      "status": "PASS",
+      "elapsed_ms": 528
+    },
+    {
+      "name": "fold_keeps_pet_and_preferences_persist",
+      "status": "PASS",
+      "elapsed_ms": 33
+    },
+    {
+      "name": "second_launch_reuses_single_instance",
+      "status": "PASS",
+      "elapsed_ms": 404
+    },
+    {
+      "name": "quit_cleans_backend_and_restart_recovers_history",
+      "status": "PASS",
+      "elapsed_ms": 1997
+    },
+    {
+      "name": "actual_host_crash_reaps_owned_backend_and_does_not_replay",
+      "status": "PASS",
+      "elapsed_ms": 2954
+    }
+  ],
+  "screenshots": [
+    {
+      "file": "desktop-catgirl.png",
+      "sha256": "f5a0725ada7795b079ec382320bc91f33106ede5ec8ddf8c1416370947023bee"
+    },
+    {
+      "file": "desktop-settings.png",
+      "sha256": "2b42ee14c41b359b1a0d5c19681bc474567e916652765d481a5b8c755d5722e4"
+    },
+    {
+      "file": "desktop-streaming.png",
+      "sha256": "42e52aefb08f7c545523fae1cf92437624e34db5437472345f569d628df6c68d"
+    },
+    {
+      "file": "desktop-guide.png",
+      "sha256": "f2a26b96ce75cef37a3b26347cfb98a0c05e32f4765fa09023fdc44f0e273e46"
+    },
+    {
+      "file": "desktop-restored.png",
+      "sha256": "f4d1761a6b73f5f417374b6c7996f7de87c797035365c100bc8c6840ff26721e"
+    }
+  ],
+  "executable_sha256": "e06891704834df56f24489e1f971428161ae17312143624af13736255cc0ab34",
+  "character_pixels": {
+    "visible": 233400,
+    "total": 844800
+  },
+  "synthetic_model_requests": 3,
+  "finished_utc": "2026-09-25T17:59:48.756Z"
+}

@@ -33,6 +33,15 @@ jobs:
         with:
           version: '0.11.8'
           enable-cache: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '24.21.0'
+      - name: Install locked desktop dependencies
+        run: npm --prefix desktop ci --no-fund --no-audit
+      - name: Fetch pinned Cubism Core for the complete application
+        run: node desktop/vendor/fetch-core.cjs
+      - name: Desktop host unit tests
+        run: npm --prefix desktop test
       - name: Install locked Python from uv managed distributions
         run: uv python install
       - name: Install locked dependencies
@@ -56,7 +65,7 @@ jobs:
     name: Build and exercise Windows ZIP
     needs: test
     runs-on: windows-2022
-    timeout-minutes: 25
+    timeout-minutes: 35
     outputs:
       version: ${{ steps.version.outputs.value }}
     steps:
@@ -67,6 +76,15 @@ jobs:
         with:
           version: '0.11.8'
           enable-cache: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '24.21.0'
+      - name: Install locked desktop dependencies
+        run: npm --prefix desktop ci --no-fund --no-audit
+      - name: Fetch pinned Cubism Core for the complete application
+        run: node desktop/vendor/fetch-core.cjs
+      - name: Desktop host unit tests
+        run: npm --prefix desktop test
       - name: Install locked Python from uv managed distributions
         run: uv python install
       - name: Choose immutable build version
@@ -84,6 +102,8 @@ jobs:
               stream.write(f"value={value}\n")
       - name: Install locked build dependencies
         run: uv sync --locked --no-dev --group build
+      - name: Ensure the locked Electron distribution is installed
+        run: node -p "require('./desktop/node_modules/electron')"
       - name: Build self-contained Windows package
         env:
           PREVIEW_VERSION: ${{ steps.version.outputs.value }}
@@ -92,12 +112,18 @@ jobs:
         env:
           PREVIEW_VERSION: ${{ steps.version.outputs.value }}
         run: uv run --locked --no-dev --group build python scripts/package_smoke.py --archive "artifacts/package/ai-neko-$env:PREVIEW_VERSION-windows-x64.zip" --output artifacts/package/package-smoke.json
+      - name: Exercise actual desktop catgirl and streaming chat
+        env:
+          PREVIEW_VERSION: ${{ steps.version.outputs.value }}
+        run: node scripts/desktop_smoke.cjs --archive "artifacts/package/ai-neko-$env:PREVIEW_VERSION-windows-x64.zip" --output artifacts/package/desktop-smoke.json
       - name: Preserve package evidence
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: package-evidence
-          path: artifacts/package/*.json
+          path: |
+            artifacts/package/*.json
+            artifacts/package/*.png
           if-no-files-found: warn
           retention-days: 14
       - name: Upload verified Windows package
@@ -112,7 +138,7 @@ jobs:
           retention-days: 14
 
   release:
-    name: Publish tagged text and guide preview
+    name: Publish tagged desktop catgirl preview
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
     needs: package
     runs-on: ubuntu-24.04
@@ -138,15 +164,15 @@ jobs:
           PREVIEW_VERSION: ${{ needs.package.outputs.version }}
         run: |
           cat > release-notes.md <<'NOTES'
-          ## M1 文字与攻略预览版 / Text and guide preview
+          ## MVP1 猫娘桌宠工程预览 / Desktop catgirl preview
 
-          下载 `ai-neko-…-windows-x64.zip` 后解压到独立目录，阅读包内 README，双击 `Start ai-neko.cmd`。已自带 Python 和运行依赖，无需安装 Python、Node 或 uv。
+          下载 `ai-neko-…-windows-x64.zip` 后解压到独立目录，阅读包内 README，双击 `ai-neko.exe`。包内包含 Electron、Python、猫娘与运行依赖，无需安装 Python、Node 或 uv。首次使用请阅读 Live2D 条款并选择是否接受。
 
-          本版提供本地文字页面、OpenAI 兼容模型配置、流式聊天、会话保存/恢复、取消，以及 Tavily 公开搜索和正文读取/来源卡片。请在页面配置自己的模型和搜索凭据，调用按相应服务商计费。**不含长期事实记忆、桌宠、托盘、语音或键鼠控制。**
+          本版提供可见猫娘桌宠、伴随文字面板、OpenAI 兼容模型配置、流式聊天、会话保存/恢复、取消，以及 Tavily 公开搜索和正文读取/来源。可拖拽、缩放、设置置顶并从托盘找回/退出。猫娘使用参考 N.E.K.O 中的 默认 YUI Lolita 猫娘，来源与许可记录随包提供。请配置自己的模型和搜索凭据，调用按相应服务商计费。**不含长期事实记忆、语音、多角色导入或键鼠控制。**
 
           本版本在 GitHub Windows Server 2022 x64 runner 构建，并用解压后的 exe 实际验证启动、鉴权、退出和图恢复。Windows 11 x64 用户真机验收仍待完成；尚未签名。
 
-          `build-info.json` 记录源码 commit、锁文件、依赖和构建环境，`SHA256SUMS.txt` 可核对 ZIP；`package-smoke.json` 与各平台 smoke 报告为合成验证证据。CI 使用本地合成模型和资料，真实云模型/搜索验收未包含在这些合成报告中；未提供真实凭据时真实测试数为 0。Windows 11 真机和真实攻略质量仍需单独验收。旧版本保留，可按版本下载，不自动迁移数据。
+          `build-info.json` 记录源码 commit、锁文件、依赖和构建环境，`SHA256SUMS.txt` 可核对 ZIP；`package-smoke.json`、`desktop-smoke.json` 与各平台 smoke 报告为合成验证证据。CI 使用本地合成模型和资料，真实云模型/搜索验收未包含在这些合成报告中；未提供真实凭据时真实测试数为 0。Windows 11 真机和真实攻略质量仍需单独验收。旧版本保留，可按版本下载，不自动迁移数据。
           NOTES
           printf '\nSource: `%s`\nWorkflow: %s/%s/actions/runs/%s\n' "$GITHUB_SHA" "$GITHUB_SERVER_URL" "$GITHUB_REPOSITORY" "$GITHUB_RUN_ID" >> release-notes.md
       - name: Create new prerelease (never overwrite an existing version)
@@ -160,4 +186,4 @@ jobs:
             echo 'This version already has a release. Create a new version instead.' >&2
             exit 1
           fi
-          gh release create "$RELEASE_TAG" release/* --verify-tag --prerelease --title "ai-neko $RELEASE_TAG — M1 文字与攻略预览版" --notes-file release-notes.md
+          gh release create "$RELEASE_TAG" release/* --verify-tag --prerelease --title "ai-neko $RELEASE_TAG — MVP1 猫娘桌宠工程预览" --notes-file release-notes.md

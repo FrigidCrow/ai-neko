@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-09-25T09:55:18.364Z",
+  "checkedAt": "2026-09-25T14:23:04.453Z",
   "platform": "darwin",
   "arch": "arm64",
   "node": "v25.9.0",
@@ -26,23 +26,23 @@
   "svgGeometry": [
     {
       "id": "00-roadmap",
-      "width": 1099.5390625,
-      "height": 1172,
-      "textLabels": 4,
+      "width": 1592.28125,
+      "height": 1197.5,
+      "textLabels": 6,
       "clippedText": []
     },
     {
       "id": "01-architecture",
       "width": 928,
-      "height": 1132.3536376953125,
+      "height": 1432.3536376953125,
       "textLabels": 2,
       "clippedText": []
     },
     {
       "id": "02-turn",
-      "width": 1059,
-      "height": 1153,
-      "textLabels": 33,
+      "width": 1074.5,
+      "height": 1659,
+      "textLabels": 50,
       "clippedText": []
     },
     {
@@ -131,8 +131,8 @@
     },
     {
       "id": "15-ui-avatar",
-      "width": 969.5338745117188,
-      "height": 1294.5,
+      "width": 1077.93896484375,
+      "height": 1550.5,
       "textLabels": 6,
       "clippedText": []
     },
@@ -145,16 +145,16 @@
     },
     {
       "id": "17-desktop",
-      "width": 440,
-      "height": 1589.5,
-      "textLabels": 5,
+      "width": 556,
+      "height": 1686.5,
+      "textLabels": 3,
       "clippedText": []
     },
     {
       "id": "18-delivery",
-      "width": 894.5494995117188,
-      "height": 2205.5,
-      "textLabels": 8,
+      "width": 837.53515625,
+      "height": 2402,
+      "textLabels": 9,
       "clippedText": []
     },
     {

@@ -1,0 +1,9 @@
+:root { color-scheme: light; font-family: system-ui, "Microsoft YaHei", sans-serif; color: #293c35; background: #f7f6f0; }
+body { margin: 0; } main { padding: 30px; display: flex; flex-direction: column; height: calc(100vh - 60px); }
+h1 { font-size: 25px; margin: 0 0 8px; } p { font-size: 14px; line-height: 1.7; margin: 8px 0 14px; }
+.eyebrow { font-size: 12px; letter-spacing: .12em; color: #687c70; }
+pre { flex: 1; min-height: 100px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; padding: 20px; margin: 0; background: white; border: 1px solid #d6dfd6; border-radius: 12px; font: 12px/1.7 system-ui, sans-serif; color: #3c4944; }
+footer { display: flex; justify-content: flex-end; gap: 12px; padding-top: 10px; }
+button { font: inherit; padding: 10px 22px; border-radius: 9px; border: 1px solid #c6d3c9; background: white; cursor: pointer; }
+#accept { background: #3b6b57; color: white; border-color: #3b6b57; } button:disabled { opacity: .5; cursor: wait; }
+#error { color: #a43a38; min-height: 20px; margin: 10px 0 0; } :focus-visible { outline: 3px solid #bd803b; outline-offset: 3px; }

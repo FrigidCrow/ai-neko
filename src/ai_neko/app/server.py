@@ -7,11 +7,13 @@ import json
 import os
 import secrets
 import socket
+import threading
 import uuid
 import webbrowser
 from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import TextIO
 
 import uvicorn
 from fastapi import FastAPI, HTTPException, Request, WebSocket, WebSocketDisconnect
@@ -135,7 +137,13 @@ def create_app(
     return app
 
 
-def serve(paths: DataPaths, settings: Settings, *, open_browser: bool = False) -> None:
+def serve(
+    paths: DataPaths,
+    settings: Settings,
+    *,
+    open_browser: bool = False,
+    parent_input: TextIO | None = None,
+) -> None:
     lock_path = safe_child(paths.runtime, "instance.lock")
     lock = FileLock(lock_path, timeout=0)
     try:
@@ -181,6 +189,25 @@ def serve(paths: DataPaths, settings: Settings, *, open_browser: bool = False) -
         async def lifespan(_app):
             write_private_json(connection_file, connection.descriptor())
             event("started")
+            if parent_input is not None:
+                # A private inherited pipe is an ownership capability, avoiding
+                # stale PID checks or attaching to another service's descriptor.
+                # This credential message is never written to persistent logs.
+                print(json.dumps({"event": "connection", **connection.descriptor()}), flush=True)
+                loop = asyncio.get_running_loop()
+
+                def watch_parent():
+                    try:
+                        while parent_input.read(4096):
+                            pass
+                    except (OSError, ValueError):
+                        pass
+                    try:
+                        loop.call_soon_threadsafe(request_shutdown)
+                    except RuntimeError:
+                        pass  # The service has already completed shutdown.
+
+                threading.Thread(target=watch_parent, name="desktop-parent", daemon=True).start()
             if bootstrap_code is not None:
                 # Fragments never reach the HTTP server or access logs. The UI
                 # consumes the one-use code, clears the URL, and obtains a token.

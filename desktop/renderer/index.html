@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="referrer" content="no-referrer">
+  <title>ai-neko · 小猫在这里</title>
+  <link rel="stylesheet" href="./style.css">
+  <script src="../vendor/live2dcubismcore.min.js" defer></script>
+  <script src="../vendor/pixi.min.js" defer></script>
+  <script src="../vendor/pixi-unsafe-eval.min.js" defer></script>
+  <script src="../vendor/cubism4.min.js" defer></script>
+  <script src="./pet.js" defer></script>
+  <script src="./app.js" defer></script>
+</head>
+<body data-pet-state="idle" data-chat-ready="false" data-session-loading="true">
+  <main id="companion" aria-label="ai-neko 桌面猫娘">
+    <section id="chat-panel" class="companion-panel" data-interactive aria-label="和小猫聊天">
+      <header class="panel-header">
+        <div class="identity"><span class="identity-star" aria-hidden="true">✦</span><div><strong>小猫</strong><span id="connection-label">正在准备见面</span></div></div>
+        <div class="header-actions">
+          <button id="new-session" class="icon-button" type="button" title="新对话" aria-label="新对话">＋</button>
+          <button id="open-history" class="icon-button" type="button" title="最近对话" aria-label="最近对话">◷</button>
+          <button id="open-settings" class="icon-button" type="button" title="设置" aria-label="设置">⚙</button>
+          <button id="close-chat" class="icon-button" type="button" title="收起对话，保留桌宠" aria-label="收起对话">−</button>
+        </div>
+      </header>
+      <div id="conversation-title" class="conversation-title">一个新的小话题</div>
+      <div id="notice" class="notice" role="status" hidden><span id="notice-text"></span><button id="notice-action" class="text-button" type="button" hidden></button></div>
+      <div id="conversation-scroll" class="conversation-scroll">
+        <section id="welcome" class="welcome">
+          <span class="eyebrow">今天也陪着你</span>
+          <h1>喵，在这里。</h1>
+          <p>想聊什么，就告诉我吧。<br>遇到卡关的地方，也可以一起查攻略。</p>
+          <button id="welcome-settings" class="soft-button" type="button">连接对话模型 <span aria-hidden="true">↗</span></button>
+          <div class="starter-list"><button class="starter" type="button" data-guide="false" data-prompt="今天想和你聊聊天。">聊聊今天</button><button class="starter" type="button" data-guide="true" data-prompt="帮我找一份游戏的新手攻略。">一起查攻略</button></div>
+          <p class="quiet-note">聊天保存在这台电脑上</p>
+        </section>
+        <section id="messages" class="messages" aria-label="聊天记录" aria-busy="false" hidden></section>
+      </div>
+      <div class="composer-wrap">
+        <div id="turn-status" class="turn-status" role="status" aria-live="polite"></div>
+        <form id="message-form" class="composer">
+          <div class="composer-toolbar"><div class="mode-picker" role="group" aria-label="对话模式"><button id="mode-chat" class="mode-button is-active" type="button" aria-pressed="true">聊聊天</button><button id="mode-guide" class="mode-button" type="button" aria-pressed="false">⌕ 查攻略</button></div><span id="mode-hint">不联网搜索</span></div>
+          <label class="sr-only" for="message-input">想对小猫说的话</label>
+          <textarea id="message-input" disabled rows="2" maxlength="8000" placeholder="想对我说些什么？" autocomplete="off"></textarea>
+          <div class="composer-bottom"><span class="input-hint">Enter 发送 · Shift + Enter 换行</span><button id="cancel-turn" class="soft-button cancel-button" type="button" hidden>■ 停止回复</button><button id="send-message" class="send-button" type="submit" aria-label="发送消息" disabled>↑</button></div>
+        </form>
+      </div>
+    </section>
+
+    <section id="history-panel" class="companion-panel secondary-panel" data-interactive aria-labelledby="history-title" hidden>
+      <header class="panel-header"><div><span class="eyebrow">留在这里的小话题</span><h2 id="history-title">最近对话</h2></div><button id="close-history" class="icon-button" type="button" aria-label="返回聊天">×</button></header>
+      <nav id="session-list" class="session-list" aria-label="最近对话"></nav><p class="panel-footnote">只有会话记录；长期记忆将在后续加入。</p>
+    </section>
+
+    <section id="settings-panel" class="companion-panel secondary-panel" data-interactive aria-labelledby="settings-title" hidden>
+      <header class="panel-header"><div><span class="eyebrow">让陪伴准备就绪</span><h2 id="settings-title">小猫的设置</h2></div><button id="close-settings" class="icon-button" type="button" aria-label="返回聊天">×</button></header>
+      <div class="settings-scroll">
+        <section class="appearance-settings" aria-label="桌宠外观"><h3>在桌面上</h3><label class="range-label" for="pet-scale">角色大小 <output id="scale-value">100%</output></label><input id="pet-scale" type="range" min="0.7" max="1.35" step="0.05" value="1"><label class="check-label"><input id="always-on-top" type="checkbox" checked>让小猫保持在最前面</label><p class="field-help">拖动角色移动位置；右键打开菜单。放大时自动适应可见区域。</p></section>
+        <form id="settings-form" autocomplete="off">
+          <fieldset><legend>对话模型 <small>OpenAI 兼容接口</small></legend><label for="model-base-url">API 地址</label><input id="model-base-url" type="url" placeholder="https://api.example.com/v1" spellcheck="false" required><label for="model-name">模型名称</label><input id="model-name" type="text" placeholder="供应商支持的模型名称" spellcheck="false" required><div class="label-row"><label for="model-api-key">API Key</label><span id="model-key-state" class="key-state">尚未设置</span></div><input id="model-api-key" type="password" autocomplete="new-password" spellcheck="false" placeholder="填写模型 API Key"><label id="clear-model-label" class="check-label" hidden><input id="clear-model-key" type="checkbox">清除已保存的模型 Key</label></fieldset>
+          <fieldset><legend>联网搜索 <small>Tavily</small></legend><label for="search-base-url">API 地址</label><input id="search-base-url" type="url" placeholder="https://api.tavily.com" spellcheck="false"><div class="label-row"><label for="search-api-key">API Key</label><span id="search-key-state" class="key-state">尚未设置</span></div><input id="search-api-key" type="password" autocomplete="new-password" spellcheck="false" placeholder="查攻略时需要"><label id="clear-search-label" class="check-label" hidden><input id="clear-search-key" type="checkbox">清除已保存的搜索 Key</label><p class="field-help">未配置搜索时，仍可以聊聊天。</p></fieldset>
+          <p id="credential-note" class="field-help">Key 不会写入界面存储。</p><p class="field-help">请求及费用由你配置的模型和搜索供应商处理。</p><p id="settings-message" class="settings-message" role="status" aria-live="polite"></p><button id="save-settings" class="primary-button" type="submit">保存连接设置</button>
+        </form>
+        <details class="asset-notice"><summary>角色与组件署名</summary><p>角色资源：YUI Lolita，来源 Project N.E.K.O.。Copyright 2025–2026 Project N.E.K.O. Team / Copyright (c) 2025 Hongzhi Wen。随包保留上游 Apache-2.0 LICENSE、NOTICE 与贡献许可声明。Live2D Cubism SDK 另依其独立条款。</p><p>ai-neko 是独立项目，不代表原版或官方背书。</p></details><div class="settings-footer"><span>ai-neko · 桌宠工程预览<br>角色：YUI Lolita</span><button id="exit-app" class="text-button" type="button">退出应用</button></div>
+      </div>
+    </section>
+
+    <div id="pet-stage" class="pet-stage" data-loaded="false" aria-label="小猫 Live2D 桌宠">
+      <canvas id="pet-canvas" aria-label="猫娘小猫：单击聊天，拖动移动，右键菜单" tabindex="0" role="button"></canvas>
+      <div id="pet-loading" class="pet-loading" role="status">小猫正在过来…</div>
+    </div>
+    <div id="pet-dock" class="pet-dock" data-interactive>
+      <button id="show-chat" class="pet-name" type="button" aria-label="和小猫聊天"><span class="pet-indicator" aria-hidden="true"></span><span>小猫</span><span id="pet-caption">在这里陪你</span></button><button id="pet-menu" class="dock-menu" type="button" aria-label="桌宠菜单">···</button>
+    </div>
+  </main>
+</body>
+</html>

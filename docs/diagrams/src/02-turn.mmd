@@ -2,7 +2,7 @@
 title: "你说一句话之后 · 待实现设计"
 ---
 sequenceDiagram
-    participant U as 用户界面
+    participant U as 可见猫娘与伴随面板
     participant R as Runtime
     participant G as 对话图
     participant M as 本地记忆
@@ -11,18 +11,28 @@ sequenceDiagram
     U->>R: 输入 + 外部会话 ID
     R->>R: 验证身份，登记 turn 与待结算记录
     R->>G: run_turn（内部线程 ID）
-    G->>M: 按用户 / 角色检索
-    M-->>G: 记忆、来源、版本
+    opt M2 加入长期记忆
+      G->>M: 按用户 / 角色检索
+      M-->>G: 记忆、来源、版本
+    end
     G->>L: 有预算的上下文
     L-->>G: 流式文字 / 工具请求
     Note over G,L: 工具循环见 04 与 08
     G-->>R: 用户可见文字事件
-    R-->>U: 当前 turn 的 text_delta
-    R->>A: 当前 turn 的分段 TTS
-    U-->>R: 界面确认
-    A-->>R: 实际播放位置
-    G->>M: 幂等结算原文与整理任务
+    loop 模型生成期间
+      R-->>U: 当前 turn 的真实 text_delta
+      U->>U: 猫娘保持可见，立即追加回复
+      U-->>R: 界面确认
+    end
+    opt M4 加入声音
+      R->>A: 当前 turn 的分段 TTS
+      A-->>R: 实际播放位置
+    end
+    R->>R: MVP1 保存本地会话与投递证据
     G-->>R: generation_done
-    A-->>R: playback_done 与最终播放位置
-    R->>M: 按证据补充投递状态
+    opt M2 / M4 后续能力
+      G->>M: 幂等结算原文与整理任务
+      A-->>R: playback_done 与最终播放位置
+      R->>M: 按证据补充投递状态
+    end
     Note over R,M: 取消不依赖图末节点；详见 06

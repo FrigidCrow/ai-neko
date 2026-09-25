@@ -64,6 +64,7 @@ def main(argv: list[str] | None = None) -> int:
     serve_parser = commands.add_parser("serve", help="start the authenticated loopback probe")
     serve_parser.add_argument("--data-dir")
     serve_parser.add_argument("--port", type=int, default=None)
+    serve_parser.add_argument("--desktop-parent", action="store_true", help=argparse.SUPPRESS)
     start_parser = commands.add_parser("start", help="start ai-neko and open the local chat page")
     start_parser.add_argument("--data-dir")
     start_parser.add_argument("--port", type=int, default=None)
@@ -71,6 +72,7 @@ def main(argv: list[str] | None = None) -> int:
     stop_parser.add_argument("--data-dir")
     paths_parser = commands.add_parser("paths", help="show chosen paths without creating them")
     paths_parser.add_argument("--data-dir")
+    paths_parser.add_argument("--initialize", action="store_true", help=argparse.SUPPRESS)
     commands.add_parser("graph", help="run synthetic graph/checkpoint diagnostics (graph --help)")
     commands.add_parser(
         "self-check", help="check the M0 foundation using disposable synthetic data"
@@ -92,15 +94,28 @@ def main(argv: list[str] | None = None) -> int:
 
     try:
         if args.command == "paths":
-            print(
-                json.dumps({"app_id": APP_ID, "data_root": str(resolve_data_root(args.data_dir))})
-            )
+            root = resolve_data_root(args.data_dir)
+            result = {"app_id": APP_ID, "data_root": str(root)}
+            if args.initialize:
+                paths = initialize_data_root(root)
+                desktop = safe_child(paths.root, "desktop")
+                desktop.mkdir(mode=0o700, exist_ok=True)
+                result["desktop_root"] = str(desktop)
+            print(json.dumps(result))
         elif args.command == "stop":
             stop(args.data_dir)
         else:
+            desktop_parent = bool(getattr(args, "desktop_parent", False))
+            if desktop_parent and (
+                sys.stdin is None or sys.stdout is None or sys.stdin.isatty() or sys.stdout.isatty()
+            ):
+                raise ValueError("desktop parent requires private stdin and stdout pipes")
             settings = Settings.load(args.port)
             serve(
-                initialize_data_root(args.data_dir), settings, open_browser=args.command == "start"
+                initialize_data_root(args.data_dir),
+                settings,
+                open_browser=args.command == "start",
+                parent_input=sys.stdin if desktop_parent else None,
             )
     except InstanceInUseError as exc:
         print(f"ai-neko: {exc}", file=sys.stderr)

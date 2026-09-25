@@ -193,7 +193,7 @@ def copy_licenses(destination: Path, dependencies: dict[str, Distribution]) -> d
     shutil.copyfile(python_license, destination / "PYTHON-LICENSE.txt")
     manifest = {
         "schema_version": 1,
-        "scope": "runtime dependency closure and PyInstaller bootloader; no N.E.K.O code/assets",
+        "scope": "Python runtime dependency closure and PyInstaller bootloader; desktop notices are separate",
         "dependencies": entries,
         "python": {
             "version": platform.python_version(),
@@ -216,11 +216,12 @@ def input_hashes() -> dict[str, str]:
     files = [
         ROOT / name for name in ("pyproject.toml", "uv.lock", ".python-version", ".gitattributes")
     ]
-    for name in ("src", "scripts", "packaging", ".github/workflows"):
+    for name in ("src", "scripts", "packaging", "desktop", ".github/workflows"):
         files += [
             path
             for path in (ROOT / name).rglob("*")
-            if path.is_file() and "__pycache__" not in path.parts
+            if path.is_file()
+            and not {"__pycache__", "node_modules", "test-results"}.intersection(path.parts)
         ]
     return {
         path.relative_to(ROOT).as_posix(): sha256(path)
@@ -237,7 +238,7 @@ def build_info(release_version: str, base: str, dependencies: dict[str, Distribu
     return {
         "schema_version": 1,
         "app_id": "ai-neko",
-        "stage": "M1",
+        "stage": "MVP1-desktop",
         "version": release_version,
         "release_version": release_version,
         "base_version": base,
@@ -270,6 +271,71 @@ def build_info(release_version: str, base: str, dependencies: dict[str, Distribu
     }
 
 
+def verify_desktop_assets() -> None:
+    """Reject changed, redirected or missing imported bytes before distribution."""
+    manifest = json.loads((ROOT / "docs" / "mvp1-assets-manifest.json").read_text(encoding="utf-8"))
+    if not manifest.get("files"):
+        raise RuntimeError("Desktop asset provenance is empty")
+    for record in manifest["files"]:
+        relative = Path(record["path"])
+        if relative.is_absolute() or ".." in relative.parts:
+            raise RuntimeError("Desktop asset path escapes the source tree")
+        file = ROOT / relative
+        if (
+            file.is_symlink()
+            or not file.is_file()
+            or not file.resolve().is_relative_to(ROOT.resolve())
+            or file.stat().st_size != record["bytes"]
+            or sha256(file) != record["sha256"]
+        ):
+            raise RuntimeError(f"Desktop asset integrity mismatch: {relative.as_posix()}")
+
+
+def assemble_desktop(package: Path, backend: Path) -> dict:
+    """Copy Electron's exact installed distribution, never depend on user Node/Python."""
+    desktop = ROOT / "desktop"
+    verify_desktop_assets()
+    metadata = json.loads((desktop / "package.json").read_text(encoding="utf-8"))
+    dist = desktop / "node_modules" / "electron" / "dist"
+    expected = metadata["devDependencies"]["electron"]
+    lock = json.loads((desktop / "package-lock.json").read_text(encoding="utf-8"))
+    if lock["packages"]["node_modules/electron"]["version"] != expected:
+        raise RuntimeError("Electron package and dependency lock differ")
+    if (dist / "version").read_text(encoding="utf-8").strip() != expected:
+        raise RuntimeError("Electron distribution differs from locked desktop version")
+    if not (dist / "electron.exe").is_file():
+        raise RuntimeError("Windows Electron x64 distribution is required")
+    for notice in ("LICENSE", "LICENSES.chromium.html"):
+        if not (dist / notice).is_file():
+            raise RuntimeError(f"Missing Electron distribution notice: {notice}")
+    core = desktop / "vendor" / "live2dcubismcore.min.js"
+    if not core.is_file():
+        raise RuntimeError("Run the pinned Core asset fetch before building")
+    shutil.copytree(dist, package)
+    (package / "electron.exe").rename(package / "ai-neko.exe")
+    default_app = package / "resources" / "default_app.asar"
+    default_app.unlink(missing_ok=True)
+    app = package / "resources" / "app"
+    app.mkdir()
+    for name in ("main.cjs", "preload.cjs", "package.json"):
+        shutil.copyfile(desktop / name, app / name)
+    for name in ("lib", "renderer", "consent", "vendor", "assets"):
+        shutil.copytree(desktop / name, app / name)
+    shutil.move(str(backend), package / "resources" / "backend")
+    for name in ("MVP1-ASSETS.md", "mvp1-assets-manifest.json"):
+        shutil.copyfile(ROOT / "docs" / name, package / name)
+    return {
+        "electron": expected,
+        "package_lock_sha256": sha256(desktop / "package-lock.json"),
+        "asset_manifest_sha256": sha256(ROOT / "docs" / "mvp1-assets-manifest.json"),
+        "entry": "ai-neko.exe",
+        "executable_sha256": sha256(package / "ai-neko.exe"),
+        "backend_entry": "resources/backend/ai-neko.exe",
+        "backend_sha256": sha256(package / "resources" / "backend" / "ai-neko.exe"),
+        "core_sha256": sha256(core),
+    }
+
+
 def make_zip(folder: Path, archive: Path) -> None:
     with zipfile.ZipFile(archive, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=6) as output:
         for path in sorted(folder.rglob("*")):
@@ -281,7 +347,7 @@ def make_zip(folder: Path, archive: Path) -> None:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--version", required=True, help="0.2.0-alpha.1 or 0.2.0-dev.COMMIT")
+    parser.add_argument("--version", required=True, help="0.3.0-alpha.1 or 0.3.0-dev.COMMIT")
     parser.add_argument("--output", type=Path, default=Path("artifacts/package"))
     args = parser.parse_args(argv)
     try:
@@ -313,9 +379,10 @@ def main(argv: list[str] | None = None) -> int:
                 check=True,
             )
             package = work / name
-            shutil.move(str(work / "dist" / "ai-neko"), package)
-            if not (package / "ai-neko.exe").is_file():
+            backend = work / "dist" / "ai-neko"
+            if not (backend / "ai-neko.exe").is_file():
                 raise RuntimeError("PyInstaller did not produce ai-neko.exe")
+            info["desktop"] = assemble_desktop(package, backend)
             for filename in (
                 "README-WINDOWS.txt",
                 "Check foundation.cmd",
@@ -343,7 +410,7 @@ def main(argv: list[str] | None = None) -> int:
             json.dumps(
                 {
                     "status": "built",
-                    "stage": "M1",
+                    "stage": "MVP1-desktop",
                     "archive": str(archive),
                     "sha256": sha256(archive),
                     "windows_11_acceptance": "pending",

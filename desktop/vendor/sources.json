@@ -1,0 +1,84 @@
+{
+  "schema_version": 1,
+  "reviewed_at": "2026-09-26",
+  "reference_repository": "https://github.com/Project-N-E-K-O/N.E.K.O",
+  "reference_checkout_commit": "90ccf79c95e80f899b9bf3395fa8cd9a9bfe29be",
+  "core": {
+    "url": "https://raw.githubusercontent.com/Project-N-E-K-O/N.E.K.O/0816fd9e7ce70fe3890cfd5af1b53b49782a5053/static/libs/live2dcubismcore.min.js",
+    "reference_file_commit": "0816fd9e7ce70fe3890cfd5af1b53b49782a5053",
+    "source_path": "static/libs/live2dcubismcore.min.js",
+    "sha256": "25ae938cb4fe282ce189b357bcc97e603d1e1f7ec78bf04150d401c23cdc792f",
+    "bytes": 207155,
+    "license": "Live2D Proprietary Software License Agreement",
+    "modifications": "none",
+    "official_download_verification": "Official cubism.live2d.com Core URL returned HTTP 403. This pinned copy was verified against the user-authorized local N.E.K.O. reference, not against an official download.",
+    "git_tracking": false,
+    "runtime_reported_version": "5.1.0",
+    "version_check": "Version.csmGetVersion() returned 83951616 in an isolated Node vm with browser globals; not a renderer test."
+  },
+  "consent": {
+    "path": "vendor/licenses/Live2D-END-USER.txt",
+    "sha256": "b5180523d26730e52d65e5862adc720b63f27160898061203e17512263d6ca65",
+    "version": "2026-09-26-yui",
+    "required_before": "loading Cubism Core and the character"
+  },
+  "loading_order": [
+    "vendor/live2dcubismcore.min.js",
+    "vendor/pixi.min.js",
+    "vendor/pixi-unsafe-eval.min.js",
+    "vendor/cubism4.min.js"
+  ],
+  "fixed_model": "assets/yui-lolita/yui-lolita.model3.json",
+  "packages": [
+    {
+      "name": "pixi.js",
+      "version": "7.4.3",
+      "git_head": "07f7fc11546cdd4d54398f034dc5da628f8d47dd",
+      "source": "https://registry.npmjs.org/pixi.js/7.4.3",
+      "license": "MIT",
+      "dist_file": "package/dist/pixi.min.js",
+      "reference_file_match": true
+    },
+    {
+      "name": "@pixi/unsafe-eval",
+      "version": "7.4.3",
+      "source": "https://registry.npmjs.org/@pixi/unsafe-eval/7.4.3",
+      "license": "MIT",
+      "dist_file": "package/dist/unsafe-eval.min.js",
+      "purpose": "CSP adapter avoids dynamic new Function calls; this does not enable unsafe-eval"
+    },
+    {
+      "name": "pixi-live2d-display-lipsyncpatch",
+      "version": "0.5.0-ls-6",
+      "git_head": "c169f7b80a46691ea3e8084e430d119ffdef8afa",
+      "source": "https://registry.npmjs.org/pixi-live2d-display-lipsyncpatch/0.5.0-ls-6",
+      "license": "MIT with embedded Cubism framework under Live2D Open Software License",
+      "dist_file": "package/dist/cubism4.min.js",
+      "reference_index_min_match": true,
+      "selection": "Same package/version as the reference index.min.js; Cubism4-only bundle excludes the unused Cubism2 SDK dependency",
+      "embedded_framework_repository": "https://github.com/RaSan147/CubismWebFramework",
+      "embedded_framework_commit": "5e779915650c5564803bc8a14b5688c391c4920c"
+    }
+  ],
+  "official_terms": [
+    "https://www.live2d.com/eula/live2d-proprietary-software-license-agreement_en.html",
+    "https://www.live2d.com/eula/live2d-open-software-license-agreement_en.html",
+    "https://www.live2d.com/en/sdk/license/",
+    "https://www.live2d.com/en/sdk/license/expandable/"
+  ],
+  "model": {
+    "name": "YUI Lolita",
+    "source_path": "assets/yui-lolita.tar.gz",
+    "source_checkout_commit": "90ccf79c95e80f899b9bf3395fa8cd9a9bfe29be",
+    "archive_last_commit": "d359d7afeec2b0e97bfaddb23085f0f54d95104d",
+    "archive_sha256": "9b24ec87b20e81751808f9f444844cfa678610f7e2d3ef9535da8b5379570e58",
+    "archive_bytes": 11633909,
+    "introduction_pr": "https://github.com/Project-N-E-K-O/N.E.K.O/pull/2768",
+    "introduction_commit": "37fa070ac1da7e4df595f7a4e69da4479c6f79df",
+    "maintainer_author_and_merger": "wehos",
+    "license_basis": "Upstream Apache-2.0 LICENSE, NOTICE and CONTRIBUTING license declaration applied to the maintainer-contributed first-party bundled YUI model; no model-specific exception found. This is an engineering inference from repository declarations, not an independent title certification.",
+    "live2d_official_sample": false,
+    "modifications": "None to extracted file bytes. Only the 61 files required by model3.json were extracted. Unused VTube Studio and pinned-item settings are omitted.",
+    "extracted_file_count": 61
+  }
+}

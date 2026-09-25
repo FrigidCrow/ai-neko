@@ -1,15 +1,15 @@
 ---
-title: "窗口、托盘与启动由谁负责 · 待实现设计"
+title: "MVP1 猫娘桌宠的窗口、托盘与启动 · 待实现设计"
 ---
 flowchart TD
-    CHECK{"N.E.K.O.-PC<br/>访问、许可、接口已核实？"}
-    CHECK -->|可适用| REUSE["适配已有桌面宿主"]
-    CHECK -->|不可用时| MIN["补最小 Electron 宿主"]
-    REUSE --> START["ai-neko 启动入口<br/>独立 App ID / 单实例锁"]
-    MIN --> START
+    LIMIT["N.E.K.O.-PC 访问与许可未核实<br/>不承诺已有完整桌面壳"] --> MIN["MVP1 补必要 Electron 宿主"]
+    MIN --> START["ai-neko 桌面启动入口<br/>独立 App ID / 单实例锁"]
     START --> BACK["启动本工程后端<br/>取得地址与连接令牌"]
     BACK --> READY{"健康检查通过？"}
     READY -->|否| ERR["显示诊断并清理本工程子进程"]
-    READY -->|是| UI["加载前端与角色<br/>窗口、托盘、拖拽、穿透"]
-    UI --> EXIT["退出：停止采集与旧音频<br/>收尾、关闭本工程子进程"]
-    EXIT --> TEST["Windows 实测<br/>DPI、双屏、中文路径、共存"]
+    READY -->|是| UI["透明无边框猫娘立即可见<br/>素材失败不算闭环通过"]
+    UI --> CHAT["点猫娘打开输入与流式回复<br/>聊天与设置时猫娘仍在"]
+    UI --> POS["拖拽 / 保存位置 / 恢复屏幕内<br/>基本托盘：找回桌宠、退出"]
+    CHAT --> EXIT["退出：停止生成、保存会话<br/>收尾并关闭本工程子进程"]
+    POS --> EXIT
+    EXIT --> TEST["Windows 11 真机另验<br/>猫娘可见、DPI、双屏、中文路径、共存"]

@@ -1,6 +1,6 @@
 # ai-neko 验收记录
 
-2026-09-25 工程初始化与计划评审已完成，M0 已实施并进入分项验收；总体 Partial，M1–M6 仍 Pending。不存在已验收的 Windows App、真实模型调用、长期记忆召回或语音结果。历史 P0/P1 记录描述各轮完成时的状态，当前结果见末尾 M0。
+2026-09-26 当前状态：M0/M1 Partial，M2–M6 Pending。YUI 猫娘资源、Electron 宿主、伴随文字流式交互与 Windows 包流水线已实现；本轮自动验证/发布结果见文末，真实服务和 Windows 11 真机验收仍待。历史记录保留当时实际状态，当前目标见 [MVP1 规格](docs/MVP1-DESKTOP-PET.md)。
 
 ## P0 — 独立工程与可实施计划
 
@@ -23,10 +23,10 @@
 
 | 阶段 | 状态 | 当前缺少的证据 |
 | --- | --- | --- |
-| M0 基础与复用验证 | Partial | 源码、原生网页组合、Windows/Linux CI 与冻结包已验证；Windows 11 真机/ACL/junction/原版共存仍待验收，桌面工具链留 M3 |
-| M1 文字/查攻略/工具循环 | Partial | 实现、合成测试、浏览器与下载包已交付；真实模型 10 轮/3 次完整联网攻略质量和 Windows 11 真机待验收 |
+| M0 基础与复用验证 | Partial | 基础源码/CI/冻结包已验证；Windows 11 真机/ACL/junction/原版共存仍待；桌宠工具链在 M1 补验 |
+| M1 / MVP1 猫娘桌宠闭环 | Partial | YUI 猫娘、宿主、伴随交互与打包已实现；真实服务、Windows 11 真机及完整 V01–V09 仍待验收 |
 | M2 本地长期记忆 | Pending | 落盘、新会话召回、纠正/遗忘、进程与电脑重启 |
-| M3 桌面与角色 | Pending | 桌面接口、窗口/托盘/角色与原版共存 |
+| M3 角色表现扩展 | Pending | 新动作/多角色/扩展渲染与隔离；基础桌宠已前移 M1 |
 | M4 语音与打断 | Pending | Windows 真机采集/播放、打断与迟到片段 |
 | M5 视觉/主动/查询联动 | Pending | 图像归属、活动门控和截图查询结果 |
 | M6 分发与长期运行 | Pending | 完整 Windows 成品、干净机、升级恢复、7 天观察；M0 诊断包不替代这些验收 |
@@ -131,3 +131,32 @@ Root 另补充 stop 的重定向测试：本机端口被其他服务接替时，
 直接证据：[发布核对](docs/evidence/m1/release-v0.2.0-alpha.1-verification.json)、[构建来源](docs/evidence/m1/release-v0.2.0-alpha.1-build.json)、[冻结包检查](docs/evidence/m1/release-v0.2.0-alpha.1-package.json)。Windows/Linux 原始完整源码报告作为 Release 资产保留；入库的 Windows JSON 仅将 CRLF 正规化为 LF，下载原始文件的 hash 保留在核对报告。Mac 未执行 Windows exe。
 
 结论：本轮代码、UI、CI/CD 与 M1 可下载预览交付通过；M0/M1 总阶段保留 **Partial**，缺口是 Windows 11 真机，以及用户配置实际模型/搜索服务后的 10 轮/3 次逐项验收。没有 Key 时不能代做真实服务验收；M2–M6 不在本轮实现范围。
+
+
+## MVP1 以可见猫娘桌宠为主体（2026-09-25，规划调整）
+
+用户要求先规划以桌面可见猫娘为准的 MVP1。已新增 [MVP1 规格](docs/MVP1-DESKTOP-PET.md)，同步 PLAN/README/ARCHITECTURE 与历史试用说明边界；图册对应路线同步。M1 必须包含基础桌宠、伴随输入/真实流式回复、停止与本地会话、查攻略来源、基本托盘和桌宠 Windows 下载包。M2 记忆不阻塞桌宠，M3 改为角色表现扩展。
+
+当前素材、桌面宿主和渲染未实现；默认 Live2D 仅为建议，具体猫娘/SDK/Core 分发条件尚未确认。已有 v0.2.0-alpha.1 保留网页工程预览定位，不覆盖其 tag 或二进制。本轮无产品代码、依赖或构建流水线修改，无真实模型/搜索调用、无新的 Windows 执行或发布。
+
+独立只读评审 `/root/mvp1_pet_plan_review` 核对现有后端能力与缺口，明确普通聊天窗口不能替代猫娘桌宠、角色在聊天中可见、素材许可不能套用仓库根许可。相应要求纳入规格；文档与图册验证结果另记下方。M0/M1 总状态保持 Partial，M2–M6 Pending。
+
+本轮规划校验 PASS：20 图重新渲染，离线 1440/390 两视口无坏锚点、外部网络请求和横向溢出，SVG 无画布外文字；`validate-docs.py` 校验 206 参考文件、306 本地链接、阶段状态及渲染指纹通过，参考工程状态/差异未变。仅表示文档与图解一致，不增加任何桌宠运行通过记录。
+
+最终独立复核发现 ARCHITECTURE 查询接口仍标待实现、M0 审计旧 M3 安排未注明替代；已修正当前实现描述并在历史审计入口补新阶段映射。Root 查看路线图截图，桌宠 MVP1 前移及历史预览边界可读。
+
+## 2026-09-26 — MVP1 猫娘桌宠实现
+
+已接入用户确认的白裙 YUI Lolita 猫娘、Electron 44.4.5 宿主与伴随聊天/历史/设置；默认入口为桌面猫娘。模型与查询沿用唯一 LangGraph 决策中心。主进程保有后端 token，renderer sandbox 与 contextIsolation，有限 IPC；专属数据根、单实例和 stdin EOF 后端生命周期均落地。
+
+资源来自只读参考 commit `90ccf79c95e80f899b9bf3395fa8cd9a9bfe29be`；61 个 YUI 文件及渲染/许可文件合计 79 项逐文件校验。YUI 许可依据、推断边界和 SDK 独立条款见 [资源说明](docs/MVP1-ASSETS.md)；用户首次接受随包条款后才加载 Core。参考仓库 206 文件、tracked diff/status 未变。早期 Mao 渲染探针外观不符合猫娘目标，已移除且不进入发布。
+
+| 验证层 | 实际结果与边界 |
+| --- | --- |
+| Mac Python 源码 | 291 passed / 1 Windows vault skipped；Ruff 格式与静态检查通过；真实模型/搜索调用 0 |
+| Electron 主进程 | 12 node:test 通过；打包相关 Python 44 项通过；79 个资源字节/大小摘要通过 |
+| 实际 Electron 窗口 | [本地报告](docs/evidence/mvp1/macos-desktop.json) 9/9 PASS：许可后实渲染与透明像素、有限权限、配置时角色可见、递增回复/停止、普通回复与缺搜索 Key 提示、折叠保留角色/偏好、第二实例、退出重开历史、实际杀宿主后后端退出且不自动重放 |
+| Windows 原生包 | CI 构建与解压后 GUI/后端探针已接入，远端执行与发布结果在下文续记 |
+| 完整 MVP1 用户验收 | Pending：Windows 11 无开发工具真机、多 DPI/多屏/透明点击与托盘、真实模型 10 轮和攻略 3 次、20 片段显示延迟 p95、10 次取消边界与旧版数据升级。M0/M1 总体仍 Partial；不据 Mac 或 Server CI 写完整 MVP1 通过 |
+
+修复的实际问题包括渲染 bundle 选择、角色可见区域适配、配置按钮早于后端 ready 时状态恢复，以及重启加载历史时错误接受新输入。最后一项现在以完整会话恢复为输入启用条件，E2E 同样等待可见 UI 就绪。宿主异常退出验证真正杀死本次创建的 GUI 进程，确认属于它的后端退出和历史中断不重放，未结束其他应用。

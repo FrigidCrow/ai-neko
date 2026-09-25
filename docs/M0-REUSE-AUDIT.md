@@ -1,5 +1,7 @@
 # M0 来源、复用边界与后续工具链核查
 
+**阶段映射更新（2026-09-25）**：本审计保留当时的来源、访问、许可与候选版本核查结果，正文中的 M3 宿主/单角色实施安排属于旧路线。用户现要求以可见猫娘为主体的 MVP1，基础桌面宿主、单猫娘、基本托盘及桌宠包已前移 M1；当前实施以 [MVP1 规格](MVP1-DESKTOP-PET.md) 为准。仅选定的版本不等于已安装，源码许可不替代 SDK/Core 和角色资源的分发核查。
+
 核查日期：2026-09-25。状态：**静态来源核查完成；实际提取、前端集成、音频设备和 Windows 桌面验证未执行**。本文件对应 PLAN 的 M0，不把原工程功能或依赖元数据视为 ai-neko 的运行证据。
 
 本轮只读参考 `/Users/frigidcrow/Dev/neko-companion` 的选定源码、构建声明和许可证。其 HEAD 为 `90ccf79c95e80f899b9bf3395fa8cd9a9bfe29be`，上游为 `https://github.com/Project-N-E-K-O/N.E.K.O`。逐文件当前字节 SHA256、与 HEAD 比较、引用行及命令结果见 [m0-reuse-manifest.json](m0-reuse-manifest.json)。所有命令从 ai-neko 根目录执行；没有导入参考工程的 Python 模块、加载其 JavaScript、读取其配置/数据/凭据、使用其虚拟环境或启动其服务。

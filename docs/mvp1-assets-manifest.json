@@ -1,0 +1,690 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-09-26",
+  "source_repository": "https://github.com/Project-N-E-K-O/N.E.K.O",
+  "source_commit": "90ccf79c95e80f899b9bf3395fa8cd9a9bfe29be",
+  "model": {
+    "name": "YUI Lolita",
+    "source_path": "assets/yui-lolita.tar.gz",
+    "source_checkout_commit": "90ccf79c95e80f899b9bf3395fa8cd9a9bfe29be",
+    "archive_last_commit": "d359d7afeec2b0e97bfaddb23085f0f54d95104d",
+    "archive_sha256": "9b24ec87b20e81751808f9f444844cfa678610f7e2d3ef9535da8b5379570e58",
+    "archive_bytes": 11633909,
+    "introduction_pr": "https://github.com/Project-N-E-K-O/N.E.K.O/pull/2768",
+    "introduction_commit": "37fa070ac1da7e4df595f7a4e69da4479c6f79df",
+    "maintainer_author_and_merger": "wehos",
+    "license_basis": "Upstream Apache-2.0 LICENSE, NOTICE and CONTRIBUTING license declaration applied to the maintainer-contributed first-party bundled YUI model; no model-specific exception found. This is an engineering inference from repository declarations, not an independent title certification.",
+    "live2d_official_sample": false,
+    "modifications": "None to extracted file bytes. Only the 61 files required by model3.json were extracted. Unused VTube Studio and pinned-item settings are omitted.",
+    "extracted_file_count": 61
+  },
+  "files": [
+    {
+      "path": "desktop/assets/yui-lolita/angry1.motion3.json",
+      "bytes": 158320,
+      "sha256": "e6acc382678b2f82da62411d5ef1681cca3fb240ac8f418467ea91879ea8fa7c",
+      "component": "yui-lolita",
+      "source_archive": "assets/yui-lolita.tar.gz",
+      "source_member": "yui-lolita/angry1.motion3.json",
+      "source_sha256": "e6acc382678b2f82da62411d5ef1681cca3fb240ac8f418467ea91879ea8fa7c"
+    },
+    {
+      "path": "desktop/assets/yui-lolita/angry2.motion3.json",
+      "bytes": 170048,
+      "sha256": "35e57b783f42b5d4c72f0ae001b481f4bc18470cf9c13d35b521d3645d4eb1c7",
+      "component": "yui-lolita",
+      "source_archive": "assets/yui-lolita.tar.gz",
+      "source_member": "yui-lolita/angry2.motion3.json",
+      "source_sha256": "35e57b783f42b5d4c72f0ae001b481f4bc18470cf9c13d35b521d3645d4eb1c7"
+    },
+    {
+      "path": "desktop/assets/yui-lolita/angry3.motion3.json",
+      "bytes": 159067,
+      "sha256": "b744300028fd0f2f66c43821896e0600ec3b765ab44911ebc847e6962eabb364",
+      "component": "yui-lolita",
+      "source_archive": "assets/yui-lolita.tar.gz",
+      "source_member": "yui-lolita/angry3.motion3.json",
+      "source_sha256": "b744300028fd0f2f66c43821896e0600ec3b765ab44911ebc847e6962eabb364"
+    },
+    {
+      "path": "desktop/assets/yui-lolita/angry4.motion3.json",
+      "bytes": 187520,
+      "sha256": "579623a1394ab2f2aa033e89811ef6413313b96c1be967c42d6996afba99c849",
+      "component": "yui-lolita",
+      "source_archive": "assets/yui-lolita.tar.gz",
+      "source_member": "yui-lolita/angry4.motion3.json",
+      "source_sha256": "579623a1394ab2f2aa033e89811ef6413313b96c1be967c42d6996afba99c849"
+    },
+    {
+      "path": "desktop/assets/yui-lolita/angry5.motion3.json",
+      "bytes": 180337,
+      "sha256": "124af5ce749fe1cceaceb3e2279b17cdb2fc7ffcaee5af08edbe381c15b178e9",
+      "component": "yui-lolita",
+      "source_archive": "assets/yui-lolita.tar.gz",
+      "source_member": "yui-lolita/angry5.motion3.json",
+      "source_sha256": "124af5ce749fe1cceaceb3e2279b17cdb2fc7ffcaee5af08edbe381c15b178e9"
+    },
+    {
+      "path": "desktop/assets/yui-lolita/angry6.motion3.json",
+      "bytes": 131587,
+      "sha256": "61cc903094a756ead0c0549925bc616405d26676fd371e74b00a9a7eaa7cf7c9",
+      "component": "yui-lolita",
+      "source_archive": "assets/yui-lolita.tar.gz",
+      "source_member": "yui-lolita/angry6.motion3.json",
+      "source_sha256": "61cc903094a756ead0c0549925bc616405d26676fd371e74b00a9a7eaa7cf7c9"
+    },
+    {
+      "path": "desktop/assets/yui-lolita/angry7.motion3.json",
+      "bytes": 101023,
+      "sha256": "e9df7e2574f01cdf45527a344b99c7face12e995a47c57fb816f1861b225f107",
+      "component": "yui-lolita",
+      "source_archive": "assets/yui-lolita.tar.gz",
+      "source_member": "yui-lolita/angry7.motion3.json",
+      "source_sha256": "e9df7e2574f01cdf45527a344b99c7face12e995a47c57fb816f1861b225f107"
+    },
+    {
+      "path": "desktop/assets/yui-lolita/angry8.motion3.json",
+      "bytes": 80339,
+      "sha256": "a2ae4778a0413fbb958a4e239e2343b8ecd393554a9d8e5551f894eb7e60e09b",
+      "component": "yui-lolita",
+      "source_archive": "assets/yui-lolita.tar.gz",
+      "source_member": "yui-lolita/angry8.motion3.json",
+      "source_sha256": "a2ae4778a0413fbb958a4e239e2343b8ecd393554a9d8e5551f894eb7e60e09b"
+    },
+    {
+      "path": "desktop/assets/yui-lolita/expressions/bx.exp3.json",
+      "bytes": 209,
+      "sha256": "5669114806b1ea0554a705377995c872eab1d1500ca3383d91b52d08b53ca3e8",
+      "component": "yui-lolita",
+      "source_archive": "assets/yui-lolita.tar.gz",
+      "source_member": "yui-lolita/expressions/bx.exp3.json",
+      "source_sha256": "5669114806b1ea0554a705377995c872eab1d1500ca3383d91b52d08b53ca3e8"
+    },
+    {
+      "path": "desktop/assets/yui-lolita/expressions/by.exp3.json",
+      "bytes": 123,
+      "sha256": "7153a10361abb022151e6e69e7506ca669f914d587632193d757379d6bac7038",
+      "component": "yui-lolita",
+      "source_archive": "assets/yui-lolita.tar.gz",
+      "source_member": "yui-lolita/expressions/by.exp3.json",
+      "source_sha256": "7153a10361abb022151e6e69e7506ca669f914d587632193d757379d6bac7038"
+    },
+    {
+      "path": "desktop/assets/yui-lolita/expressions/bzy.exp3.json",
+      "bytes": 123,
+      "sha256": "68b470a6993dbc52cf26bc8e772bfee20d1c1f7a9c5755df7c90ff03781cabe4",
+      "component": "yui-lolita",
+      "source_archive": "assets/yui-lolita.tar.gz",
+      "source_member": "yui-lolita/expressions/bzy.exp3.json",
+      "source_sha256": "68b470a6993dbc52cf26bc8e772bfee20d1c1f7a9c5755df7c90ff03781cabe4"
+    },
+    {
+      "path": "desktop/assets/yui-lolita/expressions/k1.exp3.json",
+      "bytes": 123,
+      "sha256": "d77da933af1b8a59b1d0f86ecf11c20272cacd46af5ef24db98a867ae2b66bf5",
+      "component": "yui-lolita",
+      "source_archive": "assets/yui-lolita.tar.gz",
+      "source_member": "yui-lolita/expressions/k1.exp3.json",
+      "source_sha256": "d77da933af1b8a59b1d0f86ecf11c20272cacd46af5ef24db98a867ae2b66bf5"
+    },
+    {
+      "path": "desktop/assets/yui-lolita/expressions/k2.exp3.json",
+      "bytes": 123,
+      "sha256": "0ed4d705502ba99d035e11b90fa2c00ba1d39ccad40fa8948c1aafb33d90ec53",
+      "component": "yui-lolita",
+      "source_archive": "assets/yui-lolita.tar.gz",
+      "source_member": "yui-lolita/expressions/k2.exp3.json",
+      "source_sha256": "0ed4d705502ba99d035e11b90fa2c00ba1d39ccad40fa8948c1aafb33d90ec53"
+    },
+    {
+      "path": "desktop/assets/yui-lolita/expressions/k3.exp3.json",
+      "bytes": 123,
+      "sha256": "5103a6e37d895c4e297a07146e718c6131b4958335773d916af02fbf001156f0",
+      "component": "yui-lolita",
+      "source_archive": "assets/yui-lolita.tar.gz",
+      "source_member": "yui-lolita/expressions/k3.exp3.json",
+      "source_sha256": "5103a6e37d895c4e297a07146e718c6131b4958335773d916af02fbf001156f0"
+    },
+    {
+      "path": "desktop/assets/yui-lolita/expressions/s1.exp3.json",
+      "bytes": 123,
+      "sha256": "15d0cd7c6bdbe38c8d69673919ef14e90a5eeaf5c053a7beae954d72c7beba1b",
+      "component": "yui-lolita",
+      "source_archive": "assets/yui-lolita.tar.gz",
+      "source_member": "yui-lolita/expressions/s1.exp3.json",
+      "source_sha256": "15d0cd7c6bdbe38c8d69673919ef14e90a5eeaf5c053a7beae954d72c7beba1b"
+    },
+    {
+      "path": "desktop/assets/yui-lolita/expressions/s2.exp3.json",
+      "bytes": 123,
+      "sha256": "7556cebf12e0c2532e16f3f13e7391fbc64f9bcc7e98d9b4d318d8323aa5c505",
+      "component": "yui-lolita",
+      "source_archive": "assets/yui-lolita.tar.gz",
+      "source_member": "yui-lolita/expressions/s2.exp3.json",
+      "source_sha256": "7556cebf12e0c2532e16f3f13e7391fbc64f9bcc7e98d9b4d318d8323aa5c505"
+    },
+    {
+      "path": "desktop/assets/yui-lolita/expressions/swk.exp3.json",
+      "bytes": 123,
+      "sha256": "aa3f13e64e98e7701420b90701a97ab6991bf301fb51de0f475fd1679ec8952a",
+      "component": "yui-lolita",
+      "source_archive": "assets/yui-lolita.tar.gz",
+      "source_member": "yui-lolita/expressions/swk.exp3.json",
+      "source_sha256": "aa3f13e64e98e7701420b90701a97ab6991bf301fb51de0f475fd1679ec8952a"
+    },
+    {
+      "path": "desktop/assets/yui-lolita/expressions/wuyu.exp3.json",
+      "bytes": 123,
+      "sha256": "79d8fb857b557846bbd9da4b9e67906e4f0e5476a1e1b501c922457426854113",
+      "component": "yui-lolita",
+      "source_archive": "assets/yui-lolita.tar.gz",
+      "source_member": "yui-lolita/expressions/wuyu.exp3.json",
+      "source_sha256": "79d8fb857b557846bbd9da4b9e67906e4f0e5476a1e1b501c922457426854113"
+    },
+    {
+      "path": "desktop/assets/yui-lolita/expressions/xxy.exp3.json",
+      "bytes": 123,
+      "sha256": "35554bd0fa607571dd0ed8cd146e13872977d8cb58001214bd0c6d6d4154bccd",
+      "component": "yui-lolita",
+      "source_archive": "assets/yui-lolita.tar.gz",
+      "source_member": "yui-lolita/expressions/xxy.exp3.json",
+      "source_sha256": "35554bd0fa607571dd0ed8cd146e13872977d8cb58001214bd0c6d6d4154bccd"
+    },
+    {
+      "path": "desktop/assets/yui-lolita/expressions/yyy.exp3.json",
+      "bytes": 123,
+      "sha256": "e3a560a4854507d905fd65029500588cc611899660747426252fce6043136b25",
+      "component": "yui-lolita",
+      "source_archive": "assets/yui-lolita.tar.gz",
+      "source_member": "yui-lolita/expressions/yyy.exp3.json",
+      "source_sha256": "e3a560a4854507d905fd65029500588cc611899660747426252fce6043136b25"
+    },
+    {
+      "path": "desktop/assets/yui-lolita/happy1.motion3.json",
+      "bytes": 120568,
+      "sha256": "079463f3b648a099a6c403c177262782912f2105f88a3aafe4958128925fb6e5",
+      "component": "yui-lolita",
+      "source_archive": "assets/yui-lolita.tar.gz",
+      "source_member": "yui-lolita/happy1.motion3.json",
+      "source_sha256": "079463f3b648a099a6c403c177262782912f2105f88a3aafe4958128925fb6e5"
+    },
+    {
+      "path": "desktop/assets/yui-lolita/happy10.motion3.json",
+      "bytes": 155671,
+      "sha256": "4c078747ec1dc2723fd17ce49c99781b4545bd40e82aa86d115bb473c848410a",
+      "component": "yui-lolita",
+      "source_archive": "assets/yui-lolita.tar.gz",
+      "source_member": "yui-lolita/happy10.motion3.json",
+      "source_sha256": "4c078747ec1dc2723fd17ce49c99781b4545bd40e82aa86d115bb473c848410a"
+    },
+    {
+      "path": "desktop/assets/yui-lolita/happy11.motion3.json",
+      "bytes": 203459,
+      "sha256": "e8908381a00ad9b4f7db92d50db5d57e809cc56ea1ee3308bb5e3b07f53f1d7c",
+      "component": "yui-lolita",
+      "source_archive": "assets/yui-lolita.tar.gz",
+      "source_member": "yui-lolita/happy11.motion3.json",
+      "source_sha256": "e8908381a00ad9b4f7db92d50db5d57e809cc56ea1ee3308bb5e3b07f53f1d7c"
+    },
+    {
+      "path": "desktop/assets/yui-lolita/happy12.motion3.json",
+      "bytes": 144979,
+      "sha256": "b014b723b3bfa4955577058758bde6cfcce8c1474306c85076ec6f0f99b68437",
+      "component": "yui-lolita",
+      "source_archive": "assets/yui-lolita.tar.gz",
+      "source_member": "yui-lolita/happy12.motion3.json",
+      "source_sha256": "b014b723b3bfa4955577058758bde6cfcce8c1474306c85076ec6f0f99b68437"
+    },
+    {
+      "path": "desktop/assets/yui-lolita/happy2.motion3.json",
+      "bytes": 110734,
+      "sha256": "1e730f05c389ba625328903e3f4ff3cfaa83249c783f2f8ca03e16c7afd6eb86",
+      "component": "yui-lolita",
+      "source_archive": "assets/yui-lolita.tar.gz",
+      "source_member": "yui-lolita/happy2.motion3.json",
+      "source_sha256": "1e730f05c389ba625328903e3f4ff3cfaa83249c783f2f8ca03e16c7afd6eb86"
+    },
+    {
+      "path": "desktop/assets/yui-lolita/happy3.motion3.json",
+      "bytes": 184052,
+      "sha256": "9f9d250b36a5bad8687c296dfa362d80426363d40b2c6878d0dd5ca35554e6f8",
+      "component": "yui-lolita",
+      "source_archive": "assets/yui-lolita.tar.gz",
+      "source_member": "yui-lolita/happy3.motion3.json",
+      "source_sha256": "9f9d250b36a5bad8687c296dfa362d80426363d40b2c6878d0dd5ca35554e6f8"
+    },
+    {
+      "path": "desktop/assets/yui-lolita/happy4.motion3.json",
+      "bytes": 173429,
+      "sha256": "5271e0583c4d85aebc6af5cac15d327f5de883fda8190340210940b83866f178",
+      "component": "yui-lolita",
+      "source_archive": "assets/yui-lolita.tar.gz",
+      "source_member": "yui-lolita/happy4.motion3.json",
+      "source_sha256": "5271e0583c4d85aebc6af5cac15d327f5de883fda8190340210940b83866f178"
+    },
+    {
+      "path": "desktop/assets/yui-lolita/happy5.motion3.json",
+      "bytes": 124000,
+      "sha256": "d3656ed826525c933f2d32f1d19e3158c74737fa932cffafd8b4f1cbcd750862",
+      "component": "yui-lolita",
+      "source_archive": "assets/yui-lolita.tar.gz",
+      "source_member": "yui-lolita/happy5.motion3.json",
+      "source_sha256": "d3656ed826525c933f2d32f1d19e3158c74737fa932cffafd8b4f1cbcd750862"
+    },
+    {
+      "path": "desktop/assets/yui-lolita/happy6.motion3.json",
+      "bytes": 155581,
+      "sha256": "40b44e5cb21b1b60e3cf0e16ca58aaa3114b0fcdceef1f95a819e16c827f0d79",
+      "component": "yui-lolita",
+      "source_archive": "assets/yui-lolita.tar.gz",
+      "source_member": "yui-lolita/happy6.motion3.json",
+      "source_sha256": "40b44e5cb21b1b60e3cf0e16ca58aaa3114b0fcdceef1f95a819e16c827f0d79"
+    },
+    {
+      "path": "desktop/assets/yui-lolita/happy7.motion3.json",
+      "bytes": 118752,
+      "sha256": "976545c1287ca42e0d5cd90ffd5e152c6f8c4775f53a1657e04896bbe6524689",
+      "component": "yui-lolita",
+      "source_archive": "assets/yui-lolita.tar.gz",
+      "source_member": "yui-lolita/happy7.motion3.json",
+      "source_sha256": "976545c1287ca42e0d5cd90ffd5e152c6f8c4775f53a1657e04896bbe6524689"
+    },
+    {
+      "path": "desktop/assets/yui-lolita/happy8.motion3.json",
+      "bytes": 191285,
+      "sha256": "09e2d25f3054e06410b93103588331c725f48acbafc89af3d4161b002ab5b45d",
+      "component": "yui-lolita",
+      "source_archive": "assets/yui-lolita.tar.gz",
+      "source_member": "yui-lolita/happy8.motion3.json",
+      "source_sha256": "09e2d25f3054e06410b93103588331c725f48acbafc89af3d4161b002ab5b45d"
+    },
+    {
+      "path": "desktop/assets/yui-lolita/happy9.motion3.json",
+      "bytes": 163179,
+      "sha256": "fae537deef7ca308604575526d2df76f0dbf7787cfebd5a62ec529557a28ba32",
+      "component": "yui-lolita",
+      "source_archive": "assets/yui-lolita.tar.gz",
+      "source_member": "yui-lolita/happy9.motion3.json",
+      "source_sha256": "fae537deef7ca308604575526d2df76f0dbf7787cfebd5a62ec529557a28ba32"
+    },
+    {
+      "path": "desktop/assets/yui-lolita/idle1.motion3.json",
+      "bytes": 78454,
+      "sha256": "ef0d8cd1b73ae7294a689dac9341ddacc7528760db86e7b05a9e7c8e742b8bcf",
+      "component": "yui-lolita",
+      "source_archive": "assets/yui-lolita.tar.gz",
+      "source_member": "yui-lolita/idle1.motion3.json",
+      "source_sha256": "ef0d8cd1b73ae7294a689dac9341ddacc7528760db86e7b05a9e7c8e742b8bcf"
+    },
+    {
+      "path": "desktop/assets/yui-lolita/idle2.motion3.json",
+      "bytes": 94204,
+      "sha256": "28d3f68edfbb8c099b846258dd0eee08ff5cf030471ddfd6ab1f33c3d3b331aa",
+      "component": "yui-lolita",
+      "source_archive": "assets/yui-lolita.tar.gz",
+      "source_member": "yui-lolita/idle2.motion3.json",
+      "source_sha256": "28d3f68edfbb8c099b846258dd0eee08ff5cf030471ddfd6ab1f33c3d3b331aa"
+    },
+    {
+      "path": "desktop/assets/yui-lolita/idle3.motion3.json",
+      "bytes": 91389,
+      "sha256": "89d71a8626c670884ed2990a1ad6f6238e29e0efa46a0cf1f2e3d23490cd1379",
+      "component": "yui-lolita",
+      "source_archive": "assets/yui-lolita.tar.gz",
+      "source_member": "yui-lolita/idle3.motion3.json",
+      "source_sha256": "89d71a8626c670884ed2990a1ad6f6238e29e0efa46a0cf1f2e3d23490cd1379"
+    },
+    {
+      "path": "desktop/assets/yui-lolita/idle4.motion3.json",
+      "bytes": 86169,
+      "sha256": "641f5f2ea17a233b3d016ad8907f715259687ec18d05652510e8b06b665a30ce",
+      "component": "yui-lolita",
+      "source_archive": "assets/yui-lolita.tar.gz",
+      "source_member": "yui-lolita/idle4.motion3.json",
+      "source_sha256": "641f5f2ea17a233b3d016ad8907f715259687ec18d05652510e8b06b665a30ce"
+    },
+    {
+      "path": "desktop/assets/yui-lolita/neutral1.motion3.json",
+      "bytes": 94808,
+      "sha256": "340681339819853a41ce843c27da10a5ef500f4d66de97d6950e00456df8d125",
+      "component": "yui-lolita",
+      "source_archive": "assets/yui-lolita.tar.gz",
+      "source_member": "yui-lolita/neutral1.motion3.json",
+      "source_sha256": "340681339819853a41ce843c27da10a5ef500f4d66de97d6950e00456df8d125"
+    },
+    {
+      "path": "desktop/assets/yui-lolita/neutral10.motion3.json",
+      "bytes": 142665,
+      "sha256": "42a4b4761e04353d7210367962203169fdc2d9d47875ebb38e8687ab0ca93eda",
+      "component": "yui-lolita",
+      "source_archive": "assets/yui-lolita.tar.gz",
+      "source_member": "yui-lolita/neutral10.motion3.json",
+      "source_sha256": "42a4b4761e04353d7210367962203169fdc2d9d47875ebb38e8687ab0ca93eda"
+    },
+    {
+      "path": "desktop/assets/yui-lolita/neutral2.motion3.json",
+      "bytes": 98086,
+      "sha256": "e6ccb643f6496b6bae049ee3b314c2c3da9af848465ce594082fe1968ca396b8",
+      "component": "yui-lolita",
+      "source_archive": "assets/yui-lolita.tar.gz",
+      "source_member": "yui-lolita/neutral2.motion3.json",
+      "source_sha256": "e6ccb643f6496b6bae049ee3b314c2c3da9af848465ce594082fe1968ca396b8"
+    },
+    {
+      "path": "desktop/assets/yui-lolita/neutral3.motion3.json",
+      "bytes": 96247,
+      "sha256": "02f3621bdd342cb8e4cc68ae8c47fc07357fec9ce9341332e963b5f9684b7df9",
+      "component": "yui-lolita",
+      "source_archive": "assets/yui-lolita.tar.gz",
+      "source_member": "yui-lolita/neutral3.motion3.json",
+      "source_sha256": "02f3621bdd342cb8e4cc68ae8c47fc07357fec9ce9341332e963b5f9684b7df9"
+    },
+    {
+      "path": "desktop/assets/yui-lolita/neutral4.motion3.json",
+      "bytes": 91314,
+      "sha256": "ccccc793ac41304aa3bacc44600fd157ade491edd71d6c882888bd95a039bfdf",
+      "component": "yui-lolita",
+      "source_archive": "assets/yui-lolita.tar.gz",
+      "source_member": "yui-lolita/neutral4.motion3.json",
+      "source_sha256": "ccccc793ac41304aa3bacc44600fd157ade491edd71d6c882888bd95a039bfdf"
+    },
+    {
+      "path": "desktop/assets/yui-lolita/neutral5.motion3.json",
+      "bytes": 131331,
+      "sha256": "9c7ebe6d71d982663f443eb17e9b78b15bd58c0dfedd57ba5bc0838ec0fc55d2",
+      "component": "yui-lolita",
+      "source_archive": "assets/yui-lolita.tar.gz",
+      "source_member": "yui-lolita/neutral5.motion3.json",
+      "source_sha256": "9c7ebe6d71d982663f443eb17e9b78b15bd58c0dfedd57ba5bc0838ec0fc55d2"
+    },
+    {
+      "path": "desktop/assets/yui-lolita/neutral6.motion3.json",
+      "bytes": 81211,
+      "sha256": "40cbc3035dfe540d7e6059cb54b3ffbff71cdaeaefbc695022c0368a77f72e40",
+      "component": "yui-lolita",
+      "source_archive": "assets/yui-lolita.tar.gz",
+      "source_member": "yui-lolita/neutral6.motion3.json",
+      "source_sha256": "40cbc3035dfe540d7e6059cb54b3ffbff71cdaeaefbc695022c0368a77f72e40"
+    },
+    {
+      "path": "desktop/assets/yui-lolita/neutral8.motion3.json",
+      "bytes": 89541,
+      "sha256": "b3556735ed87e5b90c4699742114c2ce37bc628e84be51a421e244e9658e7e96",
+      "component": "yui-lolita",
+      "source_archive": "assets/yui-lolita.tar.gz",
+      "source_member": "yui-lolita/neutral8.motion3.json",
+      "source_sha256": "b3556735ed87e5b90c4699742114c2ce37bc628e84be51a421e244e9658e7e96"
+    },
+    {
+      "path": "desktop/assets/yui-lolita/neutral9.motion3.json",
+      "bytes": 106745,
+      "sha256": "12ebecf73133e54aed2735f656050754f2d0105da006b98ab8feda1b3fa1c1c6",
+      "component": "yui-lolita",
+      "source_archive": "assets/yui-lolita.tar.gz",
+      "source_member": "yui-lolita/neutral9.motion3.json",
+      "source_sha256": "12ebecf73133e54aed2735f656050754f2d0105da006b98ab8feda1b3fa1c1c6"
+    },
+    {
+      "path": "desktop/assets/yui-lolita/sad1.motion3.json",
+      "bytes": 57789,
+      "sha256": "787377b347862fe4debed7c2d0261df8ad63e7794861be728f161ed3f283898f",
+      "component": "yui-lolita",
+      "source_archive": "assets/yui-lolita.tar.gz",
+      "source_member": "yui-lolita/sad1.motion3.json",
+      "source_sha256": "787377b347862fe4debed7c2d0261df8ad63e7794861be728f161ed3f283898f"
+    },
+    {
+      "path": "desktop/assets/yui-lolita/sad2.motion3.json",
+      "bytes": 61114,
+      "sha256": "ab64e189acd3cd7aec1444135b75d732499413b3bca07be5fcf9c6af6d2a580b",
+      "component": "yui-lolita",
+      "source_archive": "assets/yui-lolita.tar.gz",
+      "source_member": "yui-lolita/sad2.motion3.json",
+      "source_sha256": "ab64e189acd3cd7aec1444135b75d732499413b3bca07be5fcf9c6af6d2a580b"
+    },
+    {
+      "path": "desktop/assets/yui-lolita/sad3.motion3.json",
+      "bytes": 50586,
+      "sha256": "5024a5de122fdc26843b06ac7e0741934e59a0690f3f62ff552a243a93bd87b6",
+      "component": "yui-lolita",
+      "source_archive": "assets/yui-lolita.tar.gz",
+      "source_member": "yui-lolita/sad3.motion3.json",
+      "source_sha256": "5024a5de122fdc26843b06ac7e0741934e59a0690f3f62ff552a243a93bd87b6"
+    },
+    {
+      "path": "desktop/assets/yui-lolita/sad4.motion3.json",
+      "bytes": 59855,
+      "sha256": "10a36337cdffba835809864deb80affdf5c4f6e2779d1ea6195bf9e079fff150",
+      "component": "yui-lolita",
+      "source_archive": "assets/yui-lolita.tar.gz",
+      "source_member": "yui-lolita/sad4.motion3.json",
+      "source_sha256": "10a36337cdffba835809864deb80affdf5c4f6e2779d1ea6195bf9e079fff150"
+    },
+    {
+      "path": "desktop/assets/yui-lolita/sad5.motion3.json",
+      "bytes": 71215,
+      "sha256": "2015f858c65ed5153aafc9b698e636e3448c73e943fb500e225d6094e0f0d9b4",
+      "component": "yui-lolita",
+      "source_archive": "assets/yui-lolita.tar.gz",
+      "source_member": "yui-lolita/sad5.motion3.json",
+      "source_sha256": "2015f858c65ed5153aafc9b698e636e3448c73e943fb500e225d6094e0f0d9b4"
+    },
+    {
+      "path": "desktop/assets/yui-lolita/surprised1.motion3.json",
+      "bytes": 143390,
+      "sha256": "6701f3e05d1cedacb81db0f16b5261af94d7f00a5a09d6009fb9d26aca43d8ee",
+      "component": "yui-lolita",
+      "source_archive": "assets/yui-lolita.tar.gz",
+      "source_member": "yui-lolita/surprised1.motion3.json",
+      "source_sha256": "6701f3e05d1cedacb81db0f16b5261af94d7f00a5a09d6009fb9d26aca43d8ee"
+    },
+    {
+      "path": "desktop/assets/yui-lolita/surprised2.motion3.json",
+      "bytes": 175044,
+      "sha256": "637d59c79b84dacbf7b807a31a021f3d4ad43685c71d5713cb732698477f267c",
+      "component": "yui-lolita",
+      "source_archive": "assets/yui-lolita.tar.gz",
+      "source_member": "yui-lolita/surprised2.motion3.json",
+      "source_sha256": "637d59c79b84dacbf7b807a31a021f3d4ad43685c71d5713cb732698477f267c"
+    },
+    {
+      "path": "desktop/assets/yui-lolita/surprised3.motion3.json",
+      "bytes": 145149,
+      "sha256": "7eccadf1636d32dd97fd87b971e7c35d68ecb942a85bd57eed0e6ab7b14bc172",
+      "component": "yui-lolita",
+      "source_archive": "assets/yui-lolita.tar.gz",
+      "source_member": "yui-lolita/surprised3.motion3.json",
+      "source_sha256": "7eccadf1636d32dd97fd87b971e7c35d68ecb942a85bd57eed0e6ab7b14bc172"
+    },
+    {
+      "path": "desktop/assets/yui-lolita/surprised4.motion3.json",
+      "bytes": 178839,
+      "sha256": "a242e894779b00491b55f0035fc796aca947524dd7f7993d73438b6584664f96",
+      "component": "yui-lolita",
+      "source_archive": "assets/yui-lolita.tar.gz",
+      "source_member": "yui-lolita/surprised4.motion3.json",
+      "source_sha256": "a242e894779b00491b55f0035fc796aca947524dd7f7993d73438b6584664f96"
+    },
+    {
+      "path": "desktop/assets/yui-lolita/surprised5.motion3.json",
+      "bytes": 176575,
+      "sha256": "c98fed588402fc6b6628d068bff9d3300e49dac9647435170404d7dced8234a7",
+      "component": "yui-lolita",
+      "source_archive": "assets/yui-lolita.tar.gz",
+      "source_member": "yui-lolita/surprised5.motion3.json",
+      "source_sha256": "c98fed588402fc6b6628d068bff9d3300e49dac9647435170404d7dced8234a7"
+    },
+    {
+      "path": "desktop/assets/yui-lolita/surprised6.motion3.json",
+      "bytes": 101922,
+      "sha256": "defc89e6dbe9cc84bf23ed7c6cdacedf7585128bae7ad1f88acfcf5795210e26",
+      "component": "yui-lolita",
+      "source_archive": "assets/yui-lolita.tar.gz",
+      "source_member": "yui-lolita/surprised6.motion3.json",
+      "source_sha256": "defc89e6dbe9cc84bf23ed7c6cdacedf7585128bae7ad1f88acfcf5795210e26"
+    },
+    {
+      "path": "desktop/assets/yui-lolita/yui-lolita.4096/texture_00.png",
+      "bytes": 9039874,
+      "sha256": "bbae6d80d0ef3d342b13935f356df4c6b4eddb7cb94e99a6e2625c718dc1d9fe",
+      "component": "yui-lolita",
+      "source_archive": "assets/yui-lolita.tar.gz",
+      "source_member": "yui-lolita/yui-lolita.4096/texture_00.png",
+      "source_sha256": "bbae6d80d0ef3d342b13935f356df4c6b4eddb7cb94e99a6e2625c718dc1d9fe"
+    },
+    {
+      "path": "desktop/assets/yui-lolita/yui-lolita.cdi3.json",
+      "bytes": 17117,
+      "sha256": "bd5cb5cf0b90a0f2686cc9bb492d549ffdc6721db08a636e16b7d9e0a57cfe42",
+      "component": "yui-lolita",
+      "source_archive": "assets/yui-lolita.tar.gz",
+      "source_member": "yui-lolita/yui-lolita.cdi3.json",
+      "source_sha256": "bd5cb5cf0b90a0f2686cc9bb492d549ffdc6721db08a636e16b7d9e0a57cfe42"
+    },
+    {
+      "path": "desktop/assets/yui-lolita/yui-lolita.moc3",
+      "bytes": 3480512,
+      "sha256": "6e6a469eb63a14d2bb58573c26236fb3a2504af5abbf453ba5df751c481dc172",
+      "component": "yui-lolita",
+      "source_archive": "assets/yui-lolita.tar.gz",
+      "source_member": "yui-lolita/yui-lolita.moc3",
+      "source_sha256": "6e6a469eb63a14d2bb58573c26236fb3a2504af5abbf453ba5df751c481dc172"
+    },
+    {
+      "path": "desktop/assets/yui-lolita/yui-lolita.model3.json",
+      "bytes": 7538,
+      "sha256": "72bf83d33b373a74bf41c7241704ff54d330d2c0dfbb7642c3bd2910d0ca0885",
+      "component": "yui-lolita",
+      "source_archive": "assets/yui-lolita.tar.gz",
+      "source_member": "yui-lolita/yui-lolita.model3.json",
+      "source_sha256": "72bf83d33b373a74bf41c7241704ff54d330d2c0dfbb7642c3bd2910d0ca0885"
+    },
+    {
+      "path": "desktop/assets/yui-lolita/yui-lolita.physics3.json",
+      "bytes": 38224,
+      "sha256": "fed631bb19378d653b1decc704490e9f5792980bc2b8e8edb24c917da1d05483",
+      "component": "yui-lolita",
+      "source_archive": "assets/yui-lolita.tar.gz",
+      "source_member": "yui-lolita/yui-lolita.physics3.json",
+      "source_sha256": "fed631bb19378d653b1decc704490e9f5792980bc2b8e8edb24c917da1d05483"
+    },
+    {
+      "path": "desktop/vendor/pixi.min.js",
+      "bytes": 456150,
+      "sha256": "712a3e1943b062a907d86c5bb56b67c7b32a3f03b3654768b00b7016d30a24c6",
+      "component": "pixi"
+    },
+    {
+      "path": "desktop/vendor/pixi-unsafe-eval.min.js",
+      "bytes": 3326,
+      "sha256": "c9630394ae1b5b41aa723f2f3e703eedf6005b26a82a04ff36214df3acf52d39",
+      "component": "pixi-csp-adapter"
+    },
+    {
+      "path": "desktop/vendor/cubism4.min.js",
+      "bytes": 149910,
+      "sha256": "f49fd0917edfcd7f007df0100065ddead78f1747b562e7bc53fb398775542a98",
+      "component": "pixi-live2d-display"
+    },
+    {
+      "path": "desktop/vendor/live2dcubismcore.min.js",
+      "bytes": 207155,
+      "sha256": "25ae938cb4fe282ce189b357bcc97e603d1e1f7ec78bf04150d401c23cdc792f",
+      "component": "cubism-core"
+    },
+    {
+      "path": "desktop/vendor/licenses/CubismWebFramework-LICENSE.md",
+      "bytes": 2234,
+      "sha256": "7ed849bff1e6499aa7cd882e47d246ddbbe06817c1e84cb974df949488302614",
+      "component": "license-notice"
+    },
+    {
+      "path": "desktop/vendor/licenses/Live2D-END-USER.txt",
+      "bytes": 157097,
+      "sha256": "b5180523d26730e52d65e5862adc720b63f27160898061203e17512263d6ca65",
+      "component": "license-notice"
+    },
+    {
+      "path": "desktop/vendor/licenses/Live2D-Open-Software-License.html.txt",
+      "bytes": 73603,
+      "sha256": "a8274bf5f461335738791e9f392eb3f3684eaa22cbb4dfe1f3f887c3586a8d82",
+      "component": "license-notice"
+    },
+    {
+      "path": "desktop/vendor/licenses/Live2D-Open-Software-License.txt",
+      "bytes": 71393,
+      "sha256": "e9544141be9dff925b0c22f4beb7ab39cf66b1d146a4e8291756b284c01886a1",
+      "component": "license-notice"
+    },
+    {
+      "path": "desktop/vendor/licenses/Live2D-Proprietary-Software-License.html.txt",
+      "bytes": 85820,
+      "sha256": "e7b4ffc6c636de2cfdd6d2eed6a4e43fa7034e7f15a0c3a15f1603dbb3b4c2b6",
+      "component": "license-notice"
+    },
+    {
+      "path": "desktop/vendor/licenses/Live2D-Proprietary-Software-License.txt",
+      "bytes": 83238,
+      "sha256": "ac3f6f381e71e590cb5cbb15bb2508940b6382db0d90007949a03f45db9eaadb",
+      "component": "license-notice"
+    },
+    {
+      "path": "desktop/vendor/licenses/NEKO-APACHE-LICENSE.txt",
+      "bytes": 11357,
+      "sha256": "0d99b64baf1323c3a7f70a28075b14d573df6d773aa2d33d827053cc775062d8",
+      "component": "license-notice"
+    },
+    {
+      "path": "desktop/vendor/licenses/NEKO-CONTRIBUTING-LICENSE.txt",
+      "bytes": 349,
+      "sha256": "cab09558903177fc9867119790e0d7e754530c9fa625cadf0c1b93d2f4601fbd",
+      "component": "license-notice"
+    },
+    {
+      "path": "desktop/vendor/licenses/NEKO-NOTICE.txt",
+      "bytes": 771,
+      "sha256": "96199da23327c5086c4f562e4c1a05685e18643ab32ce896f13934b15b4a8aca",
+      "component": "license-notice"
+    },
+    {
+      "path": "desktop/vendor/licenses/PIXI-LICENSE.txt",
+      "bytes": 1092,
+      "sha256": "5ce7447bc57f7349ffc48338782fbcabe613696e00712b20d66bc58e780f9473",
+      "component": "license-notice"
+    },
+    {
+      "path": "desktop/vendor/licenses/PIXI-LIVE2D-DISPLAY-LICENSE.txt",
+      "bytes": 1061,
+      "sha256": "8ccace668a041e78ed525d091b0b5daf8b623ff447f912616de535415e4f302f",
+      "component": "license-notice"
+    },
+    {
+      "path": "desktop/vendor/licenses/PIXI-UNSAFE-EVAL-LICENSE.txt",
+      "bytes": 1092,
+      "sha256": "5ce7447bc57f7349ffc48338782fbcabe613696e00712b20d66bc58e780f9473",
+      "component": "license-notice"
+    },
+    {
+      "path": "desktop/vendor/THIRD_PARTY_NOTICES.md",
+      "bytes": 2534,
+      "sha256": "b4ce2b667766a428d3ded5c071afb939466305cf3872c1a8f1837a87b4116013",
+      "component": "license-notice"
+    },
+    {
+      "path": "desktop/vendor/sources.json",
+      "bytes": 4334,
+      "sha256": "4657900efc8cae2996aceaca1bc9e43f753116f7a9fb39615c9d7e94528d0b5b",
+      "component": "source-metadata"
+    }
+  ],
+  "reference_model_files_unchanged": true,
+  "release_status": "fixed-model-personal-project-with-separated-sdk-license",
+  "release_conditions": [
+    "Preserve upstream N.E.K.O. LICENSE, NOTICE and contribution license declaration; retain source/archive/per-file hashes.",
+    "YUI reuse relies on maintainer-contributed first-party bundled asset plus upstream repository declarations; no YUI-specific exception was identified.",
+    "Ship Core unmodified only as part of the functional application, with separate SDK notices and end-user acceptance.",
+    "Current SDK publication assessment assumes an individual personal project qualifying under the official General User/Small-Scale exemption.",
+    "No model importing/replacement or avatar platform is implemented."
+  ],
+  "platform_validation": "Resource hashes verified. YUI was visually confirmed by the separate Electron renderer check; Windows acceptance remains separately reported."
+}

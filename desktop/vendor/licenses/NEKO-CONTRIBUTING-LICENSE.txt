@@ -1,0 +1,7 @@
+Source: Project N.E.K.O. CONTRIBUTING.md, lines 83-85
+Reference checkout commit: 90ccf79c95e80f899b9bf3395fa8cd9a9bfe29be
+https://github.com/Project-N-E-K-O/N.E.K.O/blob/37fa070ac1da7e4df595f7a4e69da4479c6f79df/CONTRIBUTING.md
+
+## License
+
+By contributing, you agree that your contributions will be licensed under the [Apache License 2.0](LICENSE).

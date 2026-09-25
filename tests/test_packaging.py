@@ -186,6 +186,44 @@ def test_archive_has_one_root_and_no_outside_files(tmp_path):
         ]
 
 
+def test_desktop_asset_gate_rejects_changed_bytes_and_path_escape(tmp_path, monkeypatch):
+    (tmp_path / "docs").mkdir()
+    asset = tmp_path / "desktop" / "assets" / "model.json"
+    asset.parent.mkdir(parents=True)
+    asset.write_bytes(b"synthetic asset")
+    record = {
+        "path": "desktop/assets/model.json",
+        "bytes": asset.stat().st_size,
+        "sha256": builder.sha256(asset),
+    }
+    manifest = tmp_path / "docs" / "mvp1-assets-manifest.json"
+    manifest.write_text(json.dumps({"files": [record]}))
+    monkeypatch.setattr(builder, "ROOT", tmp_path)
+    builder.verify_desktop_assets()
+    asset.write_bytes(b"changed asset")
+    with pytest.raises(RuntimeError, match="integrity mismatch"):
+        builder.verify_desktop_assets()
+    manifest.write_text(json.dumps({"files": [{**record, "path": "../foreign"}]}))
+    with pytest.raises(RuntimeError, match="escapes"):
+        builder.verify_desktop_assets()
+
+
+def test_desktop_asset_manifest_excludes_accidental_files_and_records_model():
+    manifest = json.loads((ROOT / "docs/mvp1-assets-manifest.json").read_text())
+    paths = [record["path"] for record in manifest["files"]]
+    assert len(paths) == len(set(paths))
+    assert any(path.endswith("yui-lolita.model3.json") for path in paths)
+    assert not any("mao_pro" in path for path in paths)
+    assert not any("node_modules" in path or ".env" in path for path in paths)
+    # Core is fetched separately by the pinned helper; all tracked files must match.
+    for record in manifest["files"]:
+        file = ROOT / record["path"]
+        if not file.exists() and record["component"] == "cubism-core":
+            continue
+        assert file.stat().st_size == record["bytes"]
+        assert builder.sha256(file) == record["sha256"]
+
+
 def test_diagnostic_ignores_user_data_and_credentials(tmp_path, monkeypatch):
     foreign = tmp_path / "foreign-data"
     monkeypatch.setenv("AI_NEKO_DATA_DIR", str(foreign))

@@ -1,6 +1,6 @@
 @echo off
 setlocal
-"%~dp0ai-neko.exe" self-check
+"%~dp0resources\backend\ai-neko.exe" self-check
 set "AI_NEKO_CHECK_EXIT=%ERRORLEVEL%"
 echo.
 echo M0 foundation check exit code: %AI_NEKO_CHECK_EXIT%

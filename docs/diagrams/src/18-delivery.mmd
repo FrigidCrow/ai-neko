@@ -8,16 +8,18 @@ flowchart TD
     SRC["push / PR / 手动 / 版本 tag<br/>源码 commit + 依赖锁 + 许可清单"] --> TEST["Windows + Linux CI<br/>锁依赖、格式检查、合成测试"]
     TEST --> BUILD["Windows Server runner 原生构建<br/>便携 ZIP、内置运行时、构建清单"]
     BUILD --> PROBE["解压后的 EXE 实测<br/>中文路径、鉴权、启停、图恢复"]
-    PROBE --> PASS{"包验证通过？"}
+    PROBE --> PET["MVP1 桌宠验收<br/>可见猫娘、真实流式、停止、来源<br/>重开会话、拖拽、托盘、退出清理"]
+    PET --> PASS{"包验证通过？"}
     PASS -->|否| FIX["保留脱敏证据<br/>阻止发布、修复并复测"]
     FIX --> TEST
     PASS -->|是| KIND{"运行类型"}
     KIND -->|普通构建| ARTIFACT["Actions artifact 下载<br/>对应构建版本"]
     KIND -->|语义版本 tag| PRERELEASE["GitHub prerelease 下载<br/>ZIP + SHA256 + 来源与验证记录"]
-    BUILD -. "内容随阶段变化" .-> CONTENT["M0：基础诊断，无聊天/查攻略<br/>M1：网页文字聊天 + 有来源攻略"]
+    BUILD -. "MVP1 交付组成" .-> CONTENT["独立桌面宿主 + 本工程后端<br/>许可允许随包分发的猫娘素材<br/>用户无需安装 Python / Node"]
+    CONTENT -. "历史版本边界" .-> OLD["0.2.0-alpha.1 是网页工程预览<br/>不满足可见猫娘 MVP1"]
     ARTIFACT --> CLEAN["Windows 11 x64 真机解压启动<br/>CI 服务端系统通过不能替代真机"]
     PRERELEASE --> CLEAN
-    CLEAN --> FUNCTION["核对该阶段功能与隔离<br/>M1 首个可下载文字试用版"]
+    CLEAN --> FUNCTION["核对该阶段功能与隔离<br/>M1：启动就见猫娘并完成文字闭环"]
     FUNCTION --> UPGRADE["M6 完整产品：升级与备份恢复<br/>窗口、语音、共存等最终验收"]
     UPGRADE --> LONG["7 天受控使用<br/>至少 20 次退出重开"]
     LONG --> GATE{"必要验收全部通过？"}

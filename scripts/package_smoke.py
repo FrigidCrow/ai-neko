@@ -105,7 +105,9 @@ def safe_extract(archive: Path, destination: Path) -> Path:
                     shutil.copyfileobj(source, output)
     root = destination / next(iter(top_levels))
     require((root / "ai-neko.exe").is_file())
-    require((root / "_internal").is_dir())
+    require(
+        (root / "_internal").is_dir() or (root / "resources" / "backend" / "_internal").is_dir()
+    )
     require((root / "build-info.json").is_file())
     return root
 
@@ -493,8 +495,10 @@ class Probe:
 
     def prepare_archive(self, temporary: Path) -> None:
         self.root = safe_extract(self.archive, temporary / "解压 程序")
-        self.exe = self.root / "ai-neko.exe"
+        nested = self.root / "resources" / "backend" / "ai-neko.exe"
+        self.exe = nested if nested.is_file() else self.root / "ai-neko.exe"
         self.evidence["executable_sha256"] = sha256(self.exe)
+        self.evidence["desktop_executable_sha256"] = sha256(self.root / "ai-neko.exe")
         build = json.loads((self.root / "build-info.json").read_text(encoding="utf-8"))
         require(build.get("app_id") == "ai-neko" and build.get("schema_version") == 1)
         commit = build.get("source", {}).get("commit")

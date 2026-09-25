@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-09-25T09:55:15.984Z",
+  "checkedAt": "2026-09-25T14:22:53.312Z",
   "platform": "darwin",
   "arch": "arm64",
   "node": "v25.9.0",
@@ -8,23 +8,23 @@
   "diagrams": [
     {
       "id": "00-roadmap",
-      "sourceSha256": "7dd689f9ee467a8d8991801d903faff8f6794ce23b6e4c4bcc2695c265c504f9",
-      "svgSha256": "b76f9934c6e5798aa2b996cf54bacd5a1036efd9c5719af743ae1aa32b0e735a",
-      "bytes": 26280,
+      "sourceSha256": "ee1b2bcc9ee3af3d0c330c3c88b801b65537d92cfc00f5e5c7bbbabe5f409d25",
+      "svgSha256": "238917a7b757630cf8d7e73c94192f8df4dd6c152f466f68c3fbad236a41d9d6",
+      "bytes": 30505,
       "status": "PASS"
     },
     {
       "id": "01-architecture",
-      "sourceSha256": "f8e4f84d2037a0128329fd43ef4d7e126d7fb57c4bfc8066c7a6bd4e9d81a98d",
-      "svgSha256": "3173f43eb2c636c2f3329f58e8b7a0149fec4e7e5fe79066477a0e5b7402d1ed",
-      "bytes": 25701,
+      "sourceSha256": "c2997a6373feae2c22d00a04ef32b07de86ebc392692b655f011cc8bcd3e9422",
+      "svgSha256": "8b6c16c9b0752c19a00184ff3cb4918d54495ca44d87e90940855df558d3d762",
+      "bytes": 27182,
       "status": "PASS"
     },
     {
       "id": "02-turn",
-      "sourceSha256": "9e94bc5ff30cb00f64f0a6bb321c13e59f45ae77a23129cefc41b426a2a3d7a0",
-      "svgSha256": "8c4e714db8bc034345d7ef12c86ac3932287f5acd8a502dde5d26ee46a1e0f86",
-      "bytes": 37213,
+      "sourceSha256": "c6001a3e19eab2fdf455ba373e8f1c2595dba97fcb0bf34a4efbe277e074a3b7",
+      "svgSha256": "748c67dbebbdedb734c4639500a0ba109be004270780f4fbcecb0d6964777f2d",
+      "bytes": 43770,
       "status": "PASS"
     },
     {
@@ -44,8 +44,8 @@
     {
       "id": "05-runtime",
       "sourceSha256": "838e50006f1795e70b8ed064ca570a4bf51a391721c4ffbdeb4f957404159cd1",
-      "svgSha256": "6e6d22c52b0de85b6286e337a47a901357a6bd44c7f9653ce5bb24a491d18801",
-      "bytes": 35161,
+      "svgSha256": "c29a6157501f7c0fd3df5bb8b60cb2b73a5a581d7226a36406566a155def0649",
+      "bytes": 35168,
       "status": "PASS"
     },
     {
@@ -86,8 +86,8 @@
     {
       "id": "11-memory-data",
       "sourceSha256": "c126946f26a2e934e9fd015c701f21b248a0231037d992f3b18e08f9b4b2eba7",
-      "svgSha256": "9eb3e7744bfd26e048ef28453d1dd3eded12113f8ad6b3827bae5f5dd697bcef",
-      "bytes": 124989,
+      "svgSha256": "22797453287756637a55a5dcedc9108882eef5e4367ad9c739fb6720d34f004e",
+      "bytes": 125002,
       "status": "PASS"
     },
     {
@@ -113,9 +113,9 @@
     },
     {
       "id": "15-ui-avatar",
-      "sourceSha256": "c0cfab19ae40eadf7513d3c13a68f3f288b4b041af78bd590aa46c83422c81c7",
-      "svgSha256": "27939eaee401204b3c2fec1c85546d8cd4486cc3975513b7bd6f1349c2826478",
-      "bytes": 28698,
+      "sourceSha256": "59fe2abb95343e5c41ba4b4b1794352f0e1c30b744ee35d51fcf120b744837b1",
+      "svgSha256": "2f2899046ff563526411663fe8f01741efc4c4f1582dcb135e73a25b0959169f",
+      "bytes": 33736,
       "status": "PASS"
     },
     {
@@ -127,16 +127,16 @@
     },
     {
       "id": "17-desktop",
-      "sourceSha256": "3ccbafb16f6370801623e62b3e93dc5851a3a2525fec14fcd3cf8bf952c7d85e",
-      "svgSha256": "931e95b5b01e3fa8e9f0a72cba45a5f77ff5145e009db7b5541927015ce0e3e2",
-      "bytes": 24317,
+      "sourceSha256": "3d84d0846294f2d80cf07aca64009a54eb631cb3ec15eefc079805e94c5262b9",
+      "svgSha256": "09eaf3e6958567b866fb17a75a201d078802ac95bb89aa70aafb537c83cbf55c",
+      "bytes": 24148,
       "status": "PASS"
     },
     {
       "id": "18-delivery",
-      "sourceSha256": "acdad8de1cdcb1c26cb69cc0673bda3c23be9b2d0c3a9d6982ae9106dce46e8b",
-      "svgSha256": "5140f4a24136115536498ed0cd2cf833b12d4c0b8b91217536220d33618809a2",
-      "bytes": 36917,
+      "sourceSha256": "16557b3c315fcc195c1c76b306df9148f0eb1811cc9dee11dacfa6266829b9a4",
+      "svgSha256": "a60a71c9e45c598acfc97eba414906735c120eafc8a72efe848788dd1fc7778c",
+      "bytes": 40078,
       "status": "PASS"
     },
     {

@@ -1,12 +1,14 @@
 # ai-neko
 
-独立的个人 AI 伴侣项目：以 LangGraph 编排对话，参考 N.E.K.O 的源码和已整理的教程，优先复用其界面、角色、语音与记忆能力。目标是 Windows 11 x64 桌面 App，长期记忆保存在本机，允许使用云模型。
+独立的个人 AI 伴侣项目：主体是 Windows 11 x64 桌面上的可见猫娘桌宠，文字聊天、流式回复和查攻略围绕她展开。LangGraph 负责对话编排，会话保存在本机，允许调用自己配置的云模型。
 
-**[M1 文字与攻略预览 v0.2.0-alpha.1 已发布](https://github.com/FrigidCrow/ai-neko/releases/tag/v0.2.0-alpha.1)。** 已提供本地网页、OpenAI 兼容模型适配、会话持久化、取消、Tavily 搜索与公开正文读取。Windows CI 287 项、Linux 286 项（另 1 项 Windows 专属跳过）和冻结包 16 项检查通过。M0/M1 总体仍为 Partial：Windows 11 真机、真实模型 10 轮与 3 次联网攻略质量验收待完成，见 [REVIEW](REVIEW.md)。
+**当前源码为 `0.3.0` MVP1 桌宠工程预览。** 已接入参考 N.E.K.O. 的白裙 **YUI Lolita 猫娘**和本项目 Electron 宿主：透明桌面角色、待机动画、拖动、大小与置顶设置、伴随文字面板、流式回复、停止生成、历史恢复、Tavily 搜索及公开正文来源、托盘找回和退出。未配置模型时也能显示猫娘，收起聊天后她仍留在桌面。
 
-用户优先需要查攻略；不做键鼠代操作或控制游戏/其他软件。M1 不含长期事实记忆、桌宠、托盘和语音。M0 的 Windows 11 真机验收仍单列，Windows Server CI 不代替真机结论。
+本轮已完成 macOS 上 Python **291 passed / 1 skipped**、桌面宿主 **12 项测试**及 **79 个资源/许可文件**核验，并实际显示 YUI。**本轮 Windows CI、Windows ZIP 发布尚待执行；Windows 11 真机、真实模型连续 10 轮及真实搜索 3 次仍未验收。** M0/M1 总体保持 Partial，最新证据以 [REVIEW](REVIEW.md) 为准。M2 长期事实/人格记忆、语音尚未实现；不做键鼠代操作或控制其他软件。
 
-[GitHub Releases](https://github.com/FrigidCrow/ai-neko/releases) 提供按版本下载。M1 包完整解压后双击 `Start ai-neko.cmd`，在本地页面配置自己的模型及 Tavily 搜索服务；无需安装 Python/Node/uv。历史 `v0.1.0-alpha.1` 仅为基础诊断包，不能聊天。
+[GitHub Releases](https://github.com/FrigidCrow/ai-neko/releases) 提供按版本下载。**获取 `0.3.0` 对应桌宠 ZIP 后，完整解压并双击根目录 `ai-neko.exe`**；包内包含 Electron、Python、猫娘和运行依赖，使用者无需安装 Python、Node 或 uv。首次启动阅读并接受 Live2D SDK 条款后加载角色，在猫娘旁的设置中配置自己的模型和搜索凭据。桌面宿主自动启动、退出自己的后端。
+
+已发布的 [v0.2.0-alpha.1](https://github.com/FrigidCrow/ai-neko/releases/tag/v0.2.0-alpha.1) 是历史网页工程预览，仍会打开浏览器，不能用它体验桌宠；`v0.1.0-alpha.1` 仅为基础诊断包。
 
 使用说明：[M1 试用与验收](docs/M1-QUICKSTART.md)、[Windows 下载与 CI/CD](docs/CI-RELEASES.md)。
 
@@ -21,12 +23,12 @@
 
 工程位置：`/Users/frigidcrow/Dev/ai-neko`。N.E.K.O 参考工程是 `/Users/frigidcrow/Dev/neko-companion`，二者独立维护。
 
-## 第一段实现路线
+## MVP1 与后续路线
 
-固定依赖与数据隔离 → 文字聊天与联网查攻略 → 跨会话本地记忆 → 桌面角色 → 语音与打断 → 视觉/主动陪伴及截图查询 → Windows 成品验证。
+当前闭环为：启动见猫娘 → 点击输入 → 身旁流式回复 → 停止/继续聊天/查攻略 → 重开续接会话。实现范围见 [MVP1 规格](docs/MVP1-DESKTOP-PET.md)，当前继续验证 Windows 产物和真实服务；后续再加入长期记忆、角色表现扩展、语音与打断、视觉及主动陪伴。
 
-M1 的首个文字体验采用便携包加本地网页，包含固定人设对话和带来源的攻略查询，不必等桌宠或语音完成；M2 再加入关闭应用后新建会话仍能召回、修改和删除用户偏好。这些里程碑不替代后续 Windows 桌面与语音验收。
+本地会话记录与 LangGraph checkpoint 已有，二者都不能代替 M2 的长期事实/人格记忆。跨会话用户偏好的召回、修改和删除仍属后续工作。
 
-窗口与托盘对应的原版独立桌面工程本轮仍无法访问，M3 已选本项目最小 Electron 宿主；界面、渲染、音频与记忆继续按 [复用审计](docs/M0-REUSE-AUDIT.md) 提取，素材许可分别核对。
+窗口与托盘采用本项目最小 Electron 宿主；猫娘资源从只读 N.E.K.O. 参考中提取，来源、逐文件哈希及独立 SDK 许可见 [资源记录](docs/MVP1-ASSETS.md)。不会读取或迁移原工程的配置、运行数据、凭据或服务。
 
 本地仓库创建不等于 Codex 侧栏已经登记。可将本目录作为新项目打开；后续开发从这个目录继续。

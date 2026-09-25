@@ -206,3 +206,35 @@ tag 运行 `36123430471` 再次通过全部测试、原生构建和解压 exe �
 [tag workflow 36127322450](https://github.com/FrigidCrow/ai-neko/actions/runs/36127322450) 已于本轮成功完成测试/构建/解压验证/发布，仍为同一源码 SHA。实际执行 `gh release download v0.2.0-alpha.1 --repo FrigidCrow/ai-neko --dir artifacts/releases/v0.2.0-alpha.1`、`gh api repos/FrigidCrow/ai-neko/releases/tags/v0.2.0-alpha.1`、tag ref 查询，以及 `python3 artifacts/verify-m1-release.py`：6 项资产全部 hash/size 一致，源/ZIP/exe/网页身份对应，Windows 287 / Linux 286+1skip / 包 16 项与报告一致。ZIP 21,541,629 字节，SHA256 `549aec1047932520d5f68f728aea81c2fb7a05750d852f4abd980acdca14d0d5`，发布 UTC 2026-09-25T11:07:04Z。验证报告/构建清单/包报告复制 docs/evidence/m1。
 
 最后仅更新 README/PLAN/REVIEW/CI-RELEASES/WINDOWS-M0 和证据，执行文档/链接/指纹与 diff 检查并以 `[skip ci]` 提交同步；不更改已验证发布源码、tag 或产物，不重复跑未变化的产品测试。M0/M1 Partial 的待验收边界保留，不写全局记忆。
+
+## 2026-09-25 — MVP1 改为可见猫娘桌宠最小闭环（仅规划）
+
+用户明确项目主体为桌面猫娘，要求先规划 MVP1 的桌宠、文字交互和流式输出。使用 product-manager 技能整理产品范围；只读工作者核对现有实现与缺项，图册工作者同步路线。默认建议单一 Live2D 猫娘，已询问表现形式偏好；截至本轮文档编写无回复，按建议标为规划假设，未选定素材/宣称许可通过。未继续先前普通桌面窗口实现设想，未新增产品代码或发布。
+
+新增 `docs/MVP1-DESKTOP-PET.md`：可见角色的用户路径、八项必需范围、A–D 实施关卡和 V01–V09 验收；基础桌宠/单角色/基本托盘前移 M1，M2 长期记忆后置，M3 改为表现扩展。同步 PLAN/README/ARCHITECTURE/REVIEW；旧 alpha.1 试用说明明确仅适用于网页工程预览。现有 release/tag/二进制保持历史实值。
+
+读取官方 Electron custom-window-styles/security 与 Live2D sample 说明，仅用于规划透明/穿透边界、有限桌面权限和素材逐项核查；没有安装 SDK 或导入模型。首个 transparent-window 旧路径无法读取，改用实际可读的 custom-window-styles。
+
+实际执行：
+
+- `git status --short --branch`、定向 `rg`/`sed` 阅读当前计划、审计和实现边界；只读参考仓库，不读取运行资料。
+- `npm --prefix docs/diagrams/tools run render`、`npm --prefix docs/diagrams/tools run build`、`npm --prefix docs/diagrams/tools run check`（图册工作者执行）：20 图渲染与离线 1440/390 两视口检查通过。
+- `git diff --check`、`python3 docs/diagrams/tools/validate-docs.py`：PASS；206 参考文件、306 本地链接、阶段状态和图源/产物指纹通过，参考仓库 tracked diff/status 未变。
+
+本轮为文档/图册变更，无产品源码、运行依赖、CI 工作流变更，因此不重复运行产品测试。没有新增真实模型、搜索、Windows 11 或桌宠执行证据；M0/M1 保持 Partial，M2–M6 Pending。
+
+最终独立复核反馈已闭环：修正 ARCHITECTURE 的陈旧查询状态，M0-REUSE-AUDIT 加历史阶段映射说明；Root 实际查看 `docs/diagrams/evidence/00-roadmap.png`。再次执行文档验证与 `git diff --check`，仅记录实际文档检查，不改变产品验收状态。
+
+## 2026-09-26 — MVP1 桌宠实现与本地验证
+
+按用户继续实现和从 N.E.K.O 取猫娘的授权，先登记 PLAN 第 14 节，再分工资源/宿主/renderer。使用 engineering-devops-automator 技能落实锁定工具链和失败阻止发布。用户确认最终 YUI 白裙猫娘，外观固定。参考仓库仅只读源码/美术/许可，没有读取其运行配置、资料、Key 或虚拟环境。
+
+实际命令与结果：
+
+- 锁定 Python 3.11.15、Electron 44.4.5、Playwright 1.63.0；`npm --prefix desktop ci`、`node desktop/vendor/fetch-core.cjs --verify`：79 项资源通过。Core 固定来源下载并核验，源码不跟踪 Core，完整应用包包含；YUI 原始 61 文件保留字节。
+- `uv run --locked ruff format src tests scripts packaging`、`ruff check`：PASS。`uv run --locked python scripts/m0_smoke.py --output artifacts/mvp1/macos-source-smoke.json`：291 passed、1 明确 Windows-only skip、0 失败/错误；真实调用 0。该报告对应当时工作树，本轮最终 Windows 源码以 CI clean commit 为准。
+- `npm --prefix desktop test`：12 passed；`uv run --locked pytest -q tests/test_packaging.py tests/test_package_smoke.py`：44 passed（独立审查者执行）；`tests/test_desktop_backend.py tests/test_server_process.py` 此前 24 passed。
+- `node scripts/desktop_smoke.cjs --output artifacts/mvp1/desktop-smoke.json`：最终 9/9 PASS，实际 Electron、合成流模型、独立临时中文数据根；包含正常退出与真实 host 强制终止/后端管道退出/重开无自动请求重放。开发过程中旧等待条件、退出后 Playwright 对象销毁、重启历史加载 race 曾失败，修复后重跑；未将失败运行计入通过。
+- `python3 docs/diagrams/tools/validate-docs.py`：文档、20 图和 206 参考指纹通过；`git diff --check` 与新增 JS 语法检查通过。Root 查看正确猫娘和聊天截图；Mac 不执行 Windows exe。
+
+更新 Windows 构建为根 GUI exe、resources/backend 冻结后端及内置 YUI/vendor；新增实际解压 GUI 测试，保留原 16 项后端包检查与原版本 Release。待远端构建/发布结果按实际补记，不写成已完成。

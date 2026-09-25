@@ -1,44 +1,44 @@
 <!doctype html>
 <html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ai-neko · 计划与模块图册</title><link rel="stylesheet" href="atlas.css"></head>
 <body><a class="skip" href="#content">跳到图册正文</a>
-<aside><a class="brand" href="#top">ai-neko <span>设计图册</span></a><nav aria-label="图册目录"><div class="nav-group"><p>先看整体</p><a href="#00-roadmap"><span>00</span>从哪里开始做</a><a href="#01-architecture"><span>01</span>ai-neko 的整体分工</a><a href="#02-turn"><span>02</span>你说一句话之后</a><a href="#03-api"><span>03</span>本机 API 与事件为什么要有身份</a></div><div class="nav-group"><p>对话怎样运行</p><a href="#04-graph"><span>04</span>LangGraph 如何完成一轮对话</a><a href="#05-runtime"><span>05</span>Runtime 如何管理当前轮与独立收尾</a><a href="#06-cancellation"><span>06</span>用户插话时如何立即停止旧声音</a><a href="#07-model"><span>07</span>ModelAdapter 如何接入云模型</a><a href="#08-tools"><span>08</span>查攻略怎样从搜索走到有来源的回答</a><a href="#09-checkpoints"><span>09</span>checkpoint 如何恢复会话而不串用角色资料</a></div><div class="nav-group"><p>记忆如何留下</p><a href="#10-memory"><span>10</span>长期记忆如何写入和找回来</a><a href="#11-memory-data"><span>11</span>原文、事实、任务和 checkpoint 有什么关系</a><a href="#12-memory-forget"><span>12</span>纠正和遗忘为什么不只是删除一行</a></div><div class="nav-group"><p>听说看与角色</p><a href="#13-audio"><span>13</span>我说话、它回答、我插嘴时如何立即停声</a><a href="#14-vision-proactive"><span>14</span>看图和主动搭话怎样加入同一个系统</a><a href="#15-ui-avatar"><span>15</span>复用界面和角色时需要接上哪些线</a></div><div class="nav-group"><p>独立应用与交付</p><a href="#16-isolation"><span>16</span>本地资料放在哪里</a><a href="#17-desktop"><span>17</span>窗口、托盘与启动由谁负责</a><a href="#18-delivery"><span>18</span>从 GitHub 下载到 Windows 真机验收</a><a href="#19-reuse"><span>19</span>教程和 N.E.K.O 代码怎样变成自己的模块</a></div></nav><p class="aside-note">20 张图 · 本地离线阅读<br>规划设计 · 进度见验收记录</p></aside>
-<main id="content"><header id="top"><div class="eyebrow">WINDOWS 优先 / LANGGRAPH / 本地长期记忆</div><h1>把 ai-neko 看明白</h1><p class="lead">先看做事顺序和整体分工，再沿着一句话，走进对话、记忆、语音与桌面模块。</p><p class="status">这些图是阶段计划与模块设计：M0 提供基础诊断包，M1 目标是可下载的文字聊天与查攻略试用版，M6 完成产品交付验收。实际进度见计划和验收记录；Windows Server CI 不能替代 Windows 11 真机。</p><div class="quick"><a href="#00-roadmap">① 开发路线</a><a href="#01-architecture">② 整体架构</a><a href="#02-turn">③ 一次对话</a><a href="#10-memory">④ 本地记忆</a><a href="#13-audio">⑤ 语音交互</a></div><p class="read-guide">流程图沿箭头读；时序图从上往下读；状态图看触发条件；ER 图看记录间关系。所有图都可打开大图查看。</p><div class="docs"><a href="../PLAN.md">实施计划</a><a href="../ARCHITECTURE.md">接口设计</a><a href="../DIAGRAM-SKILLS.md">技能调研</a><a href="../../REVIEW.md">验证记录</a></div></header>
-<details class="mobile-nav"><summary>展开全部 20 张图的目录</summary><nav aria-label="移动端图册目录"><div class="nav-group"><p>先看整体</p><a href="#00-roadmap"><span>00</span>从哪里开始做</a><a href="#01-architecture"><span>01</span>ai-neko 的整体分工</a><a href="#02-turn"><span>02</span>你说一句话之后</a><a href="#03-api"><span>03</span>本机 API 与事件为什么要有身份</a></div><div class="nav-group"><p>对话怎样运行</p><a href="#04-graph"><span>04</span>LangGraph 如何完成一轮对话</a><a href="#05-runtime"><span>05</span>Runtime 如何管理当前轮与独立收尾</a><a href="#06-cancellation"><span>06</span>用户插话时如何立即停止旧声音</a><a href="#07-model"><span>07</span>ModelAdapter 如何接入云模型</a><a href="#08-tools"><span>08</span>查攻略怎样从搜索走到有来源的回答</a><a href="#09-checkpoints"><span>09</span>checkpoint 如何恢复会话而不串用角色资料</a></div><div class="nav-group"><p>记忆如何留下</p><a href="#10-memory"><span>10</span>长期记忆如何写入和找回来</a><a href="#11-memory-data"><span>11</span>原文、事实、任务和 checkpoint 有什么关系</a><a href="#12-memory-forget"><span>12</span>纠正和遗忘为什么不只是删除一行</a></div><div class="nav-group"><p>听说看与角色</p><a href="#13-audio"><span>13</span>我说话、它回答、我插嘴时如何立即停声</a><a href="#14-vision-proactive"><span>14</span>看图和主动搭话怎样加入同一个系统</a><a href="#15-ui-avatar"><span>15</span>复用界面和角色时需要接上哪些线</a></div><div class="nav-group"><p>独立应用与交付</p><a href="#16-isolation"><span>16</span>本地资料放在哪里</a><a href="#17-desktop"><span>17</span>窗口、托盘与启动由谁负责</a><a href="#18-delivery"><span>18</span>从 GitHub 下载到 Windows 真机验收</a><a href="#19-reuse"><span>19</span>教程和 N.E.K.O 代码怎样变成自己的模块</a></div></nav></details>
+<aside><a class="brand" href="#top">ai-neko <span>设计图册</span></a><nav aria-label="图册目录"><div class="nav-group"><p>先看整体</p><a href="#00-roadmap"><span>00</span>从哪里开始做</a><a href="#01-architecture"><span>01</span>ai-neko 的整体分工</a><a href="#02-turn"><span>02</span>你说一句话之后</a><a href="#03-api"><span>03</span>本机 API 与事件为什么要有身份</a></div><div class="nav-group"><p>对话怎样运行</p><a href="#04-graph"><span>04</span>LangGraph 如何完成一轮对话</a><a href="#05-runtime"><span>05</span>Runtime 如何管理当前轮与独立收尾</a><a href="#06-cancellation"><span>06</span>用户插话时如何立即停止旧声音</a><a href="#07-model"><span>07</span>ModelAdapter 如何接入云模型</a><a href="#08-tools"><span>08</span>查攻略怎样从搜索走到有来源的回答</a><a href="#09-checkpoints"><span>09</span>checkpoint 如何恢复会话而不串用角色资料</a></div><div class="nav-group"><p>记忆如何留下</p><a href="#10-memory"><span>10</span>长期记忆如何写入和找回来</a><a href="#11-memory-data"><span>11</span>原文、事实、任务和 checkpoint 有什么关系</a><a href="#12-memory-forget"><span>12</span>纠正和遗忘为什么不只是删除一行</a></div><div class="nav-group"><p>听说看与角色</p><a href="#13-audio"><span>13</span>我说话、它回答、我插嘴时如何立即停声</a><a href="#14-vision-proactive"><span>14</span>看图和主动搭话怎样加入同一个系统</a><a href="#15-ui-avatar"><span>15</span>围绕可见猫娘完成文字流式最小闭环</a></div><div class="nav-group"><p>独立应用与交付</p><a href="#16-isolation"><span>16</span>本地资料放在哪里</a><a href="#17-desktop"><span>17</span>窗口、托盘与启动由谁负责</a><a href="#18-delivery"><span>18</span>从 GitHub 下载到 Windows 真机验收</a><a href="#19-reuse"><span>19</span>教程和 N.E.K.O 代码怎样变成自己的模块</a></div></nav><p class="aside-note">20 张图 · 本地离线阅读<br>规划设计 · 进度见验收记录</p></aside>
+<main id="content"><header id="top"><div class="eyebrow">WINDOWS 桌宠 / 可见猫娘 / LANGGRAPH</div><h1>把 ai-neko 看明白</h1><p class="lead">先看 MVP1 的可见猫娘与文字流式闭环，再沿着一次交互理解对话、记忆和语音模块。</p><p class="status">这些图是阶段计划与模块设计：M1 已重定义为可见猫娘 MVP1，包含桌宠、真实文字流式和带来源攻略。M0/M1 仍为 Partial，M2–M6 Pending；0.2.0-alpha.1 是历史网页工程预览。Windows Server CI 不能替代 Windows 11 真机。</p><div class="quick"><a href="#00-roadmap">① 开发路线</a><a href="#01-architecture">② 整体架构</a><a href="#02-turn">③ 一次对话</a><a href="#10-memory">④ 本地记忆</a><a href="#13-audio">⑤ 语音交互</a></div><p class="read-guide">流程图沿箭头读；时序图从上往下读；状态图看触发条件；ER 图看记录间关系。所有图都可打开大图查看。</p><div class="docs"><a href="../PLAN.md">实施计划</a><a href="../ARCHITECTURE.md">接口设计</a><a href="../DIAGRAM-SKILLS.md">技能调研</a><a href="../../REVIEW.md">验证记录</a></div></header>
+<details class="mobile-nav"><summary>展开全部 20 张图的目录</summary><nav aria-label="移动端图册目录"><div class="nav-group"><p>先看整体</p><a href="#00-roadmap"><span>00</span>从哪里开始做</a><a href="#01-architecture"><span>01</span>ai-neko 的整体分工</a><a href="#02-turn"><span>02</span>你说一句话之后</a><a href="#03-api"><span>03</span>本机 API 与事件为什么要有身份</a></div><div class="nav-group"><p>对话怎样运行</p><a href="#04-graph"><span>04</span>LangGraph 如何完成一轮对话</a><a href="#05-runtime"><span>05</span>Runtime 如何管理当前轮与独立收尾</a><a href="#06-cancellation"><span>06</span>用户插话时如何立即停止旧声音</a><a href="#07-model"><span>07</span>ModelAdapter 如何接入云模型</a><a href="#08-tools"><span>08</span>查攻略怎样从搜索走到有来源的回答</a><a href="#09-checkpoints"><span>09</span>checkpoint 如何恢复会话而不串用角色资料</a></div><div class="nav-group"><p>记忆如何留下</p><a href="#10-memory"><span>10</span>长期记忆如何写入和找回来</a><a href="#11-memory-data"><span>11</span>原文、事实、任务和 checkpoint 有什么关系</a><a href="#12-memory-forget"><span>12</span>纠正和遗忘为什么不只是删除一行</a></div><div class="nav-group"><p>听说看与角色</p><a href="#13-audio"><span>13</span>我说话、它回答、我插嘴时如何立即停声</a><a href="#14-vision-proactive"><span>14</span>看图和主动搭话怎样加入同一个系统</a><a href="#15-ui-avatar"><span>15</span>围绕可见猫娘完成文字流式最小闭环</a></div><div class="nav-group"><p>独立应用与交付</p><a href="#16-isolation"><span>16</span>本地资料放在哪里</a><a href="#17-desktop"><span>17</span>窗口、托盘与启动由谁负责</a><a href="#18-delivery"><span>18</span>从 GitHub 下载到 Windows 真机验收</a><a href="#19-reuse"><span>19</span>教程和 N.E.K.O 代码怎样变成自己的模块</a></div></nav></details>
 <section class="diagram-section" id="00-roadmap" aria-labelledby="title-00-roadmap">
   <div class="eyebrow">00 / 依赖图 · M0–M6 · 待实现设计</div>
   <h2 id="title-00-roadmap">从哪里开始做</h2>
-  <p class="question">先做哪些，什么时候才算做完？</p><p>M0 提前建立 GitHub CI 并提供基础诊断 ZIP；M1 的目标是可在 Windows 下载启动的网页文字聊天和带来源攻略查询。M2 再加入长期记忆，随后接桌面和语音。</p>
+  <p class="question">先做哪些，什么时候才算做完？</p><p>M0 已建立诊断包与 GitHub 下载链路；M1 重新定义为 MVP1：启动即可看见猫娘桌宠，并围绕她完成文字流式聊天和带来源攻略查询。基础宿主与角色从旧 M3 前移，长期记忆和语音后续加入。</p>
   <p class="diagram-help">窄屏可左右滑动图形，或 <a href="svg/00-roadmap.svg" target="_blank" rel="noopener">打开完整大图</a>。</p>
-  <figure><div class="diagram-scroll"><img src="svg/00-roadmap.svg" alt="从哪里开始做。M0 提前建立 GitHub CI 并提供基础诊断 ZIP；M1 的目标是可在 Windows 下载启动的网页文字聊天和带来源攻略查询。M2 再加入长期记忆，随后接桌面和语音。"></div>
+  <figure><div class="diagram-scroll"><img src="svg/00-roadmap.svg" alt="从哪里开始做。M0 已建立诊断包与 GitHub 下载链路；M1 重新定义为 MVP1：启动即可看见猫娘桌宠，并围绕她完成文字流式聊天和带来源攻略查询。基础宿主与角色从旧 M3 前移，长期记忆和语音后续加入。"></div>
     <figcaption><span>实施计划</span><a href="svg/00-roadmap.svg" target="_blank" rel="noopener">打开大图 ↗</a><a href="src/00-roadmap.mmd">Mermaid 源文件</a></figcaption></figure>
-  <dl class="io"><div><dt>输入什么</dt><dd>用户需求与已有教材</dd></div><div><dt>怎么处理</dt><dd>按 M0 → M6 推进：M0 诊断包，M1 可下载文字试用版，M6 完整产品的升级恢复与长期使用验收。M5 复用 M1 查询能力处理用户提供的图片。</dd></div><div><dt>输出什么</dt><dd>逐阶段可下载的 Windows 版本，最终成为独立桌面伴侣；键鼠代操作当前不做。</dd></div></dl>
-  <p class="boundary"><strong>容易误解的地方</strong> M0 包不含聊天或攻略。Windows Server CI 与 Windows 11 x64 真机分别记录；M1 能力仍须实现和验收，图中不虚构完成状态或工期。</p>
+  <dl class="io"><div><dt>输入什么</dt><dd>用户需求与已有教材</dd></div><div><dt>怎么处理</dt><dd>M0 独立基础 → M1 可见猫娘最小闭环 → M2 长期记忆 → M3 角色表现与多角色扩展 → M4 语音 → M5 视觉与主动陪伴 → M6 升级恢复与长期验收。</dd></div><div><dt>输出什么</dt><dd>逐阶段提供 Windows 版本；MVP1 包含桌面宿主、后端和可分发猫娘素材，聊天与设置时角色保持可见。</dd></div></dl>
+  <p class="boundary"><strong>容易误解的地方</strong> M0/M1 仍为 Partial，M2–M6 Pending。0.2.0-alpha.1 是历史网页工程预览，不能算猫娘 MVP1；素材尚待选择与许可核查，Windows Server CI 和 Windows 11 真机分别记录。</p>
   <details><summary>复用方式与学习入口 · L01 / L09 / L23 / L24</summary><p>规划参考全部 24 课，按阶段选择移植；教程中的电脑控制不属于当前范围。</p><a href="../REFERENCES.md">查看对应教程与源码映射</a></details>
 </section>
 <section class="diagram-section" id="01-architecture" aria-labelledby="title-01-architecture">
   <div class="eyebrow">01 / 架构图 · M0–M6 · 待实现设计</div>
   <h2 id="title-01-architecture">ai-neko 的整体分工</h2>
-  <p class="question">哪些功能交给 LangGraph，哪些属于应用？</p><p>LangGraph 管对话决策，Runtime 管当下这一轮，Memory Service 管长期记忆。</p>
+  <p class="question">哪些功能交给 LangGraph，哪些属于应用？</p><p>MVP1 以桌面可见猫娘和伴随输入/回复面板为入口。LangGraph 管对话决策，Runtime 管当前回合；长期记忆、语音与视觉按后续阶段接入。</p>
   <p class="diagram-help">窄屏可左右滑动图形，或 <a href="svg/01-architecture.svg" target="_blank" rel="noopener">打开完整大图</a>。</p>
-  <figure><div class="diagram-scroll"><img src="svg/01-architecture.svg" alt="ai-neko 的整体分工。LangGraph 管对话决策，Runtime 管当下这一轮，Memory Service 管长期记忆。"></div>
+  <figure><div class="diagram-scroll"><img src="svg/01-architecture.svg" alt="ai-neko 的整体分工。MVP1 以桌面可见猫娘和伴随输入/回复面板为入口。LangGraph 管对话决策，Runtime 管当前回合；长期记忆、语音与视觉按后续阶段接入。"></div>
     <figcaption><span>系统架构</span><a href="svg/01-architecture.svg" target="_blank" rel="noopener">打开大图 ↗</a><a href="src/01-architecture.mmd">Mermaid 源文件</a></figcaption></figure>
-  <dl class="io"><div><dt>输入什么</dt><dd>文字、声音、图像和主动事件</dd></div><div><dt>怎么处理</dt><dd>本机模块协作；模型适配器按配置调用云服务。</dd></div><div><dt>输出什么</dt><dd>界面回复、角色动作、声音与本地记忆。</dd></div></dl>
+  <dl class="io"><div><dt>输入什么</dt><dd>MVP1 为点击猫娘与文字输入；语音、图像和主动事件后续加入。</dd></div><div><dt>怎么处理</dt><dd>本机模块协作；模型适配器按配置调用云服务。</dd></div><div><dt>输出什么</dt><dd>MVP1 输出持续可见猫娘、真实增量回复和攻略来源；长期记忆与声音后续扩展。</dd></div></dl>
   <p class="boundary"><strong>容易误解的地方</strong> 云模型允许接收请求上下文；本地保存不代表全离线。</p>
   <details><summary>复用方式与学习入口 · L01 / L02 / L09 / L24</summary><p>有选择地复用 N.E.K.O 交互和存储组件，编排由新图统一负责。</p><a href="../REFERENCES.md">查看对应教程与源码映射</a></details>
 </section>
 <section class="diagram-section" id="02-turn" aria-labelledby="title-02-turn">
   <div class="eyebrow">02 / 时序图 · M1–M4 · 待实现设计</div>
   <h2 id="title-02-turn">你说一句话之后</h2>
-  <p class="question">一次对话怎样经过各模块？</p><p>回复从检索、生成到显示和发声是一条链；完成生成和完成播放是两件事。</p>
+  <p class="question">一次对话怎样经过各模块？</p><p>MVP1 在猫娘保持可见的前提下，把模型真实生成片段立即追加到伴随面板，并保存本地会话。图中长期记忆与声音分支分别属于 M2、M4。</p>
   <p class="diagram-help">窄屏可左右滑动图形，或 <a href="svg/02-turn.svg" target="_blank" rel="noopener">打开完整大图</a>。</p>
-  <figure><div class="diagram-scroll"><img src="svg/02-turn.svg" alt="你说一句话之后。回复从检索、生成到显示和发声是一条链；完成生成和完成播放是两件事。"></div>
+  <figure><div class="diagram-scroll"><img src="svg/02-turn.svg" alt="你说一句话之后。MVP1 在猫娘保持可见的前提下，把模型真实生成片段立即追加到伴随面板，并保存本地会话。图中长期记忆与声音分支分别属于 M2、M4。"></div>
     <figcaption><span>端到端回合</span><a href="svg/02-turn.svg" target="_blank" rel="noopener">打开大图 ↗</a><a href="src/02-turn.mmd">Mermaid 源文件</a></figcaption></figure>
-  <dl class="io"><div><dt>输入什么</dt><dd>用户当前输入</dd></div><div><dt>怎么处理</dt><dd>Runtime 登记回合，图检索并调用模型，输出按轮次投递。</dd></div><div><dt>输出什么</dt><dd>已确认的对话记录与待整理任务。</dd></div></dl>
-  <p class="boundary"><strong>容易误解的地方</strong> 取消和崩溃走独立收尾；发送片段不能直接算已显示或已听到。</p>
+  <dl class="io"><div><dt>输入什么</dt><dd>用户当前输入</dd></div><div><dt>怎么处理</dt><dd>Runtime 登记回合，LangGraph 调模型或查攻略，text_delta 按 turn 与 seq 逐段投递；停止生成后拒收旧输出。</dd></div><div><dt>输出什么</dt><dd>猫娘旁可见的流式文字、来源和本地会话记录；M2 再加入长期整理任务。</dd></div></dl>
+  <p class="boundary"><strong>容易误解的地方</strong> 不能等整段回答完成再用打字动画冒充流式。取消和崩溃走独立收尾；发送片段不能直接算已显示或已听到。</p>
   <details><summary>复用方式与学习入口 · L02 / L03 / L06 / L09</summary><p>教学主线参考流式、上下文、语音输出和记忆写入。</p><a href="../REFERENCES.md">查看对应教程与源码映射</a></details>
 </section>
 <section class="diagram-section" id="03-api" aria-labelledby="title-03-api">
-  <div class="eyebrow">03 / 流程图 · M0–M3 · 待实现设计</div>
+  <div class="eyebrow">03 / 流程图 · M0 / M1 · 待实现设计</div>
   <h2 id="title-03-api">本机 API 与事件为什么要有身份</h2>
   <p class="question">前端能不能只给一个 thread_id 就读取记忆？</p><p>本机服务先验证连接和会话所有者，再把数据交给 Runtime；输出事件也带明确归属。</p>
   <p class="diagram-help">窄屏可左右滑动图形，或 <a href="svg/03-api.svg" target="_blank" rel="noopener">打开完整大图</a>。</p>
@@ -99,7 +99,7 @@
   <p class="diagram-help">窄屏可左右滑动图形，或 <a href="svg/08-tools.svg" target="_blank" rel="noopener">打开完整大图</a>。</p>
   <figure><div class="diagram-scroll"><img src="svg/08-tools.svg" alt="查攻略怎样从搜索走到有来源的回答。M1 就提供搜索和公开网页正文读取，由 LangGraph 整理步骤并附来源。键鼠自动操作和电脑控制当前不做。"></div>
     <figcaption><span>ToolExecutor 与公开资料查询</span><a href="svg/08-tools.svg" target="_blank" rel="noopener">打开大图 ↗</a><a href="src/08-tools.mmd">Mermaid 源文件</a></figcaption></figure>
-  <dl class="io"><div><dt>输入什么</dt><dd>当前问题、已有主题/平台/版本条件、tool_call_id、turn_id 与预算；M5 可加入用户主动提供的图片。</dd></div><div><dt>怎么处理</dt><dd>条件不足先澄清 → 查询公开资料 → 读取正文 → 关联段落和步骤 → 带链接返回。工具执行器校验参数、公开地址、预算与当前轮；合成测试和真实联网验收分列。</dd></div><div><dt>输出什么</dt><dd>实际读取正文支持的步骤、来源链接、访问状态及版本/冲突说明；无命中、不可读、超时或取消有明确结果。</dd></div></dl>
+  <dl class="io"><div><dt>输入什么</dt><dd>当前问题、已有主题/平台/版本条件、tool_call_id、turn_id 与预算；M5 可加入用户主动提供的图片。</dd></div><div><dt>怎么处理</dt><dd>条件不足先澄清 → 查询公开资料 → 读取正文 → 关联段落和步骤 → 带链接返回。工具执行器校验参数、公开地址、预算与当前轮；合成测试和真实联网验收分列。</dd></div><div><dt>输出什么</dt><dd>在猫娘伴随面板展示带来源的攻略步骤，标明只读摘要、正文读取成功或无法读取；猫娘保持可见。</dd></div></dl>
   <p class="boundary"><strong>容易误解的地方</strong> 搜索摘要不是已读全文；抓取时间不是更新时间；网页指令不授予权限。拒绝本机/内网地址并校验重定向，迟到结果不进入新轮。</p>
   <details><summary>复用方式与学习入口 · L03 / L17 / L18 / L19 / L21</summary><p>R07 工具协议与 R08 搜索适配按需提取；不接入旧完整 Agent、个人浏览器配置或键鼠执行器。供应商 adapter 不另建规划循环。</p><a href="../REFERENCES.md">查看对应教程与源码映射</a></details>
 </section>
@@ -170,15 +170,15 @@
   <details><summary>复用方式与学习入口 · L07 / L08</summary><p>评估图片规范化、multimodal_turn 与活动门控逻辑；旧 proactive service 的完整生成流程不并行启动。当前只有设计。</p><a href="../REFERENCES.md">查看对应教程与源码映射</a></details>
 </section>
 <section class="diagram-section" id="15-ui-avatar" aria-labelledby="title-15-ui-avatar">
-  <div class="eyebrow">15 / 模块流程图 · M3 / M4 · 待实现设计</div>
-  <h2 id="title-15-ui-avatar">复用界面和角色时需要接上哪些线</h2>
-  <p class="question">为什么可以沿用 N.E.K.O 的角色显示，却还要写事件适配层？</p><p>待实现设计：保留可用的展示/渲染组件，把旧全局状态、事件字段和资源地址接到 ai-neko 接口；首版选择一种角色格式。</p>
+  <div class="eyebrow">15 / 模块流程图 · M1（MVP1）/ M3 / M4 · 待实现设计</div>
+  <h2 id="title-15-ui-avatar">围绕可见猫娘完成文字流式最小闭环</h2>
+  <p class="question">怎样保证最小闭环的主体始终是桌面猫娘？</p><p>MVP1 首屏就是透明无边框猫娘，点击她打开伴随输入和回复气泡或面板；聊天和设置时她仍可见。默认建议单一 Live2D 猫娘，具体素材和分发许可尚待确认。</p>
   <p class="diagram-help">窄屏可左右滑动图形，或 <a href="svg/15-ui-avatar.svg" target="_blank" rel="noopener">打开完整大图</a>。</p>
-  <figure><div class="diagram-scroll"><img src="svg/15-ui-avatar.svg" alt="复用界面和角色时需要接上哪些线。待实现设计：保留可用的展示/渲染组件，把旧全局状态、事件字段和资源地址接到 ai-neko 接口；首版选择一种角色格式。"></div>
-    <figcaption><span>前端状态、事件适配与角色渲染</span><a href="svg/15-ui-avatar.svg" target="_blank" rel="noopener">打开大图 ↗</a><a href="src/15-ui-avatar.mmd">Mermaid 源文件</a></figcaption></figure>
-  <dl class="io"><div><dt>输入什么</dt><dd>用户交互、角色资料和模型资源，以及带角色/会话/turn_id 的文本、情绪、音频与终态事件。</dd></div><div><dt>怎么处理</dt><dd>适配器转换协议；消费前检查归属并去重。文字更新聊天框，情绪进入渲染器，实际播放时钟和音量驱动口型。</dd></div><div><dt>输出什么</dt><dd>可交互的聊天界面、角色表情和与实际声音同步的口型；生成状态和播放状态分别显示。</dd></div></dl>
-  <p class="boundary"><strong>容易误解的地方</strong> 角色切换、重连、取消后拒收旧事件；不重播已确认音频。模型加载失败显示占位与错误，切换/退出释放资源，不能靠重新生成模型回复掩盖加载失败。</p>
-  <details><summary>复用方式与学习入口 · L12 / L13 / L14 / L06</summary><p>计划评估聊天消息组件和一种角色渲染路径，需适配全局回调/API 并逐项检查素材许可；这部分不代表外部 Electron 窗口与托盘已经取得。</p><a href="../REFERENCES.md">查看对应教程与源码映射</a></details>
+  <figure><div class="diagram-scroll"><img src="svg/15-ui-avatar.svg" alt="围绕可见猫娘完成文字流式最小闭环。MVP1 首屏就是透明无边框猫娘，点击她打开伴随输入和回复气泡或面板；聊天和设置时她仍可见。默认建议单一 Live2D 猫娘，具体素材和分发许可尚待确认。"></div>
+    <figcaption><span>猫娘桌宠、伴随界面与事件适配</span><a href="svg/15-ui-avatar.svg" target="_blank" rel="noopener">打开大图 ↗</a><a href="src/15-ui-avatar.mmd">Mermaid 源文件</a></figcaption></figure>
+  <dl class="io"><div><dt>输入什么</dt><dd>用户点击、拖拽、文字、停止与设置，以及带角色/会话/turn_id/seq 的真实生成片段、来源和终态。</dd></div><div><dt>怎么处理</dt><dd>按归属检查并去重；在模型生成期间立即追加文字，映射待机/思考/回复/错误等简单状态。M3 再丰富动作与角色；M4 由实际声音驱动口型。</dd></div><div><dt>输出什么</dt><dd>具备基础待机与眨眼的可见猫娘、真实流式回复、停止按钮和可核对来源；会话本地保存。</dd></div></dl>
+  <p class="boundary"><strong>容易误解的地方</strong> 角色加载失败需显示可重试错误，不能用占位图算完成。取消、重连后不拼接旧输出；完整回答后的打字动画不算真实流式。角色许可或随包分发权未确认时不发布该素材。</p>
+  <details><summary>复用方式与学习入口 · L12 / L13 / L14 / L06</summary><p>可评估已有渲染路径与消息展示组件，必须适配本工程事件和资源地址、核实素材许可证；不承诺外部 N.E.K.O.-PC 壳已可用。</p><a href="../REFERENCES.md">查看对应教程与源码映射</a></details>
 </section>
 <section class="diagram-section" id="16-isolation" aria-labelledby="title-16-isolation">
   <div class="eyebrow">16 / 部署与数据边界图 · M0 / M2 / M6 · 待实现设计</div>
@@ -192,25 +192,25 @@
   <details><summary>复用方式与学习入口 · L23 / L24</summary><p>复用路径处理思路，应用身份与默认值必须重新定义。</p><a href="../REFERENCES.md">查看对应教程与源码映射</a></details>
 </section>
 <section class="diagram-section" id="17-desktop" aria-labelledby="title-17-desktop">
-  <div class="eyebrow">17 / 流程图 · M0 / M3 · 待实现设计</div>
+  <div class="eyebrow">17 / 流程图 · M0 / M1（MVP1） · 待实现设计</div>
   <h2 id="title-17-desktop">窗口、托盘与启动由谁负责</h2>
-  <p class="question">复用 N.E.K.O 的桌面部分怎么落地？</p><p>先核实原桌面仓库能否复用；两条选择都承载同一套前端和本机后端。</p>
+  <p class="question">怎样让下载的应用启动后直接出现猫娘，并能找回和退出？</p><p>必要 Electron 宿主前移到 MVP1，管理透明无边框猫娘、伴随聊天面板、拖拽位置和基本托盘；不再把基础桌面体验推迟到 M3。</p>
   <p class="diagram-help">窄屏可左右滑动图形，或 <a href="svg/17-desktop.svg" target="_blank" rel="noopener">打开完整大图</a>。</p>
-  <figure><div class="diagram-scroll"><img src="svg/17-desktop.svg" alt="窗口、托盘与启动由谁负责。先核实原桌面仓库能否复用；两条选择都承载同一套前端和本机后端。"></div>
+  <figure><div class="diagram-scroll"><img src="svg/17-desktop.svg" alt="窗口、托盘与启动由谁负责。必要 Electron 宿主前移到 MVP1，管理透明无边框猫娘、伴随聊天面板、拖拽位置和基本托盘；不再把基础桌面体验推迟到 M3。"></div>
     <figcaption><span>desktop / process lifecycle</span><a href="svg/17-desktop.svg" target="_blank" rel="noopener">打开大图 ↗</a><a href="src/17-desktop.mmd">Mermaid 源文件</a></figcaption></figure>
-  <dl class="io"><div><dt>输入什么</dt><dd>桌面入口与独立应用身份</dd></div><div><dt>怎么处理</dt><dd>取得宿主 → 启动后端 → 健康检查 → 加载前端 → 管理退出。</dd></div><div><dt>输出什么</dt><dd>可操作的窗口、托盘与角色。</dd></div></dl>
-  <p class="boundary"><strong>容易误解的地方</strong> 独立 N.E.K.O.-PC 的访问、许可和接口未验证；Python exe 不等于完整桌面 App。</p>
-  <details><summary>复用方式与学习入口 · L13 / L14 / L24</summary><p>原壳适用则复用；否则只补最小 Electron 宿主。</p><a href="../REFERENCES.md">查看对应教程与源码映射</a></details>
+  <dl class="io"><div><dt>输入什么</dt><dd>桌面入口与独立应用身份</dd></div><div><dt>怎么处理</dt><dd>独立启动与单实例 → 自有后端健康检查 → 猫娘可见 → 点击输入与流式回复 → 保存位置和会话 → 托盘找回或退出清理。</dd></div><div><dt>输出什么</dt><dd>可见猫娘桌宠及伴随面板；聊天和设置时角色仍在，窗口移出屏幕后可从托盘找回。</dd></div></dl>
+  <p class="boundary"><strong>容易误解的地方</strong> N.E.K.O.-PC 的访问、许可和接口仍未验证；只打开浏览器、普通聊天窗口或角色占位都不满足 MVP1。Windows Server CI 不能代替 Windows 11 桌面真机体验。</p>
+  <details><summary>复用方式与学习入口 · L13 / L14 / L24</summary><p>采用本工程必要 Electron 宿主的规划；参考组件须逐项核实来源和许可，不能借用原版运行环境。</p><a href="../REFERENCES.md">查看对应教程与源码映射</a></details>
 </section>
 <section class="diagram-section" id="18-delivery" aria-labelledby="title-18-delivery">
   <div class="eyebrow">18 / 流程图 · M0 / M1 / M6 · 待实现设计</div>
   <h2 id="title-18-delivery">从 GitHub 下载到 Windows 真机验收</h2>
-  <p class="question">什么时候能下载，CI 通过后还需要验证什么？</p><p>M0 就建立基础诊断包的下载链路，M1 交付网页文字聊天和查攻略试用版；Windows 11 真机结果单列，M6 再完成完整产品的升级、恢复和长期使用验收。</p>
+  <p class="question">什么时候能下载，CI 通过后还需要验证什么？</p><p>下载链路已经建立，但历史 0.2.0-alpha.1 只有网页工程预览。MVP1 要把桌面宿主、本工程后端和许可允许分发的猫娘素材一并打包，以启动即可见猫娘并完成文字闭环作为交付门槛。</p>
   <p class="diagram-help">窄屏可左右滑动图形，或 <a href="svg/18-delivery.svg" target="_blank" rel="noopener">打开完整大图</a>。</p>
-  <figure><div class="diagram-scroll"><img src="svg/18-delivery.svg" alt="从 GitHub 下载到 Windows 真机验收。M0 就建立基础诊断包的下载链路，M1 交付网页文字聊天和查攻略试用版；Windows 11 真机结果单列，M6 再完成完整产品的升级、恢复和长期使用验收。"></div>
+  <figure><div class="diagram-scroll"><img src="svg/18-delivery.svg" alt="从 GitHub 下载到 Windows 真机验收。下载链路已经建立，但历史 0.2.0-alpha.1 只有网页工程预览。MVP1 要把桌面宿主、本工程后端和许可允许分发的猫娘素材一并打包，以启动即可见猫娘并完成文字闭环作为交付门槛。"></div>
     <figcaption><span>build / tests / release</span><a href="svg/18-delivery.svg" target="_blank" rel="noopener">打开大图 ↗</a><a href="src/18-delivery.mmd">Mermaid 源文件</a></figcaption></figure>
-  <dl class="io"><div><dt>输入什么</dt><dd>版本化源码、产品依赖锁、许可与资源清单</dd></div><div><dt>怎么处理</dt><dd>push/PR/手动/tag → Windows + Linux 测试 → Windows Server runner 构建 → 解压 EXE 实测 → Actions artifact 或版本 tag prerelease → Windows 11 真机与 M6 最终验收。</dd></div><div><dt>输出什么</dt><dd>从 GitHub 获取对应版本的便携 ZIP，附 SHA256、源 commit、依赖锁、构建环境与脱敏验证记录。</dd></div></dl>
-  <p class="boundary"><strong>容易误解的地方</strong> 包验证失败阻止发布。Windows Server CI 通过不等于 Windows 11 真机通过；M0 诊断包不含聊天/攻略，Mac 图册渲染也不属于产品验收。</p>
+  <dl class="io"><div><dt>输入什么</dt><dd>版本化源码、产品依赖锁、许可与资源清单</dd></div><div><dt>怎么处理</dt><dd>源码/依赖/素材许可检查 → Windows + Linux 测试 → Windows Server 构建 → 解压后验证真实桌宠和文字闭环 → GitHub 对应版本下载 → Windows 11 真机另验；M6 再做完整升级恢复和长期观察。</dd></div><div><dt>输出什么</dt><dd>无需用户安装 Python 或 Node 的 Windows 便携 ZIP，附 SHA256、源 commit、依赖锁、素材许可、构建环境和脱敏验证记录。</dd></div></dl>
+  <p class="boundary"><strong>容易误解的地方</strong> 包验证失败阻止发布。构建成功、网页聊天通过或规划图通过均不等于 MVP1 已交付；素材缺失、许可未确认或猫娘不显示不能验收通过。</p>
   <details><summary>复用方式与学习入口 · L23 / L24</summary><p>参考原版构建入口，按新应用身份重新验证；不沿用原版通过结论。</p><a href="../REFERENCES.md">查看对应教程与源码映射</a></details>
 </section>
 <section class="diagram-section" id="19-reuse" aria-labelledby="title-19-reuse">
@@ -224,5 +224,5 @@
   <p class="boundary"><strong>容易误解的地方</strong> 教程实验通过只是教材证据；后续扩展不能偷偷进入首版验收范围。</p>
   <details><summary>复用方式与学习入口 · L01 / L12 / L18 / L23 / L24</summary><p>界面、角色、音频、记忆可选择性移植；旧完整对话循环不嵌入新图。</p><a href="../REFERENCES.md">查看对应教程与源码映射</a></details>
 </section>
-<section class="coverage" id="coverage"><h2>模块覆盖表</h2><p>目录是规划中的职责划分，不代表这些模块已写出代码。概念数据关系也不是最终数据库 DDL。</p><div class="table-scroll"><table><thead><tr><th>计划 / 模块</th><th>对应图</th><th>重点</th></tr></thead><tbody><tr><td>M0–M6 实施计划</td><td><a href="#00-roadmap">00</a></td><td>顺序与验收，不虚构工期</td></tr><tr><td>系统架构与完整回合</td><td><a href="#01-architecture">01</a> / <a href="#02-turn">02</a></td><td>本机/云端边界与一次对话</td></tr><tr><td>app：本机 API、事件协议</td><td><a href="#03-api">03</a></td><td>连接校验、身份与事件归属</td></tr><tr><td>graph：状态、节点、路由</td><td><a href="#04-graph">04</a></td><td>唯一对话决策与工具循环</td></tr><tr><td>runtime：回合与取消</td><td><a href="#05-runtime">05</a> / <a href="#06-cancellation">06</a></td><td>状态与独立持久收尾</td></tr><tr><td>adapters：模型协议</td><td><a href="#07-model">07</a></td><td>模型事件标准化，不自建第二个 agent</td></tr><tr><td>tools：查攻略与公开资料</td><td><a href="#08-tools">08</a></td><td>搜索、正文、版本和来源；不做键鼠控制</td></tr><tr><td>checkpoints：会话持久化</td><td><a href="#09-checkpoints">09</a></td><td>内部 ID 与恢复时记忆版本校验</td></tr><tr><td>memory：写入、检索、整理任务</td><td><a href="#10-memory">10</a> / <a href="#11-memory-data">11</a></td><td>单一长期权威与概念数据关系</td></tr><tr><td>memory：纠正与遗忘</td><td><a href="#12-memory-forget">12</a></td><td>派生物、旧副本、在途任务和恢复</td></tr><tr><td>media：ASR、TTS、播放</td><td><a href="#13-audio">13</a> / <a href="#06-cancellation">06</a></td><td>听说链路与立即停止旧音频</td></tr><tr><td>视觉与主动事件</td><td><a href="#14-vision-proactive">14</a></td><td>门控与同一 Runtime 入口</td></tr><tr><td>frontend：界面、角色、口型</td><td><a href="#15-ui-avatar">15</a></td><td>事件适配与状态呈现</td></tr><tr><td>config：路径、凭据、存储隔离</td><td><a href="#16-isolation">16</a></td><td>ai-neko 独立应用资料</td></tr><tr><td>desktop：窗口、托盘、进程</td><td><a href="#17-desktop">17</a></td><td>条件复用与本工程生命周期</td></tr><tr><td>tests / build：Windows 交付</td><td><a href="#18-delivery">18</a></td><td>M0 下载链路、M1 试用、M6 最终验收</td></tr><tr><td>来源迁入与后续扩展</td><td><a href="#19-reuse">19</a></td><td>教程到模块，首版与后续边界</td></tr></tbody></table></div></section>
+<section class="coverage" id="coverage"><h2>模块覆盖表</h2><p>目录是规划中的职责划分，不代表这些模块已写出代码。概念数据关系也不是最终数据库 DDL。</p><div class="table-scroll"><table><thead><tr><th>计划 / 模块</th><th>对应图</th><th>重点</th></tr></thead><tbody><tr><td>M0–M6 实施计划</td><td><a href="#00-roadmap">00</a></td><td>顺序与验收，不虚构工期</td></tr><tr><td>系统架构与完整回合</td><td><a href="#01-architecture">01</a> / <a href="#02-turn">02</a></td><td>本机/云端边界与一次对话</td></tr><tr><td>app：本机 API、事件协议</td><td><a href="#03-api">03</a></td><td>连接校验、身份与事件归属</td></tr><tr><td>graph：状态、节点、路由</td><td><a href="#04-graph">04</a></td><td>唯一对话决策与工具循环</td></tr><tr><td>runtime：回合与取消</td><td><a href="#05-runtime">05</a> / <a href="#06-cancellation">06</a></td><td>状态与独立持久收尾</td></tr><tr><td>adapters：模型协议</td><td><a href="#07-model">07</a></td><td>模型事件标准化，不自建第二个 agent</td></tr><tr><td>tools：查攻略与公开资料</td><td><a href="#08-tools">08</a></td><td>搜索、正文、版本和来源；不做键鼠控制</td></tr><tr><td>checkpoints：会话持久化</td><td><a href="#09-checkpoints">09</a></td><td>内部 ID 与恢复时记忆版本校验</td></tr><tr><td>memory：写入、检索、整理任务</td><td><a href="#10-memory">10</a> / <a href="#11-memory-data">11</a></td><td>单一长期权威与概念数据关系</td></tr><tr><td>memory：纠正与遗忘</td><td><a href="#12-memory-forget">12</a></td><td>派生物、旧副本、在途任务和恢复</td></tr><tr><td>media：ASR、TTS、播放</td><td><a href="#13-audio">13</a> / <a href="#06-cancellation">06</a></td><td>听说链路与立即停止旧音频</td></tr><tr><td>视觉与主动事件</td><td><a href="#14-vision-proactive">14</a></td><td>门控与同一 Runtime 入口</td></tr><tr><td>frontend：猫娘、伴随界面、口型</td><td><a href="#15-ui-avatar">15</a></td><td>MVP1 可见角色与真实流式，后续接声音</td></tr><tr><td>config：路径、凭据、存储隔离</td><td><a href="#16-isolation">16</a></td><td>ai-neko 独立应用资料</td></tr><tr><td>desktop：窗口、托盘、进程</td><td><a href="#17-desktop">17</a></td><td>MVP1 透明桌宠与本工程生命周期</td></tr><tr><td>tests / build：Windows 交付</td><td><a href="#18-delivery">18</a></td><td>M0 下载链路、MVP1 猫娘闭环、M6 最终验收</td></tr><tr><td>来源迁入与后续扩展</td><td><a href="#19-reuse">19</a></td><td>教程到模块，首版与后续边界</td></tr></tbody></table></div></section>
 <footer>图册可直接离线打开；教程与源码的绝对路径依赖本机参考工程。修改计划后，更新图源并重新生成 SVG。<a href="tools/README.md">维护方法</a></footer></main></body></html>

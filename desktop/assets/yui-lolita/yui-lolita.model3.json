@@ -1,0 +1,332 @@
+{
+  "Version": 3,
+  "FileReferences": {
+    "Moc": "yui-lolita.moc3",
+    "Textures": [
+      "yui-lolita.4096/texture_00.png"
+    ],
+    "Physics": "yui-lolita.physics3.json",
+    "DisplayInfo": "yui-lolita.cdi3.json",
+    "Expressions": [
+      {
+        "Name": "expression2",
+        "File": "expressions/bzy.exp3.json"
+      },
+      {
+        "Name": "expression3",
+        "File": "expressions/yyy.exp3.json"
+      },
+      {
+        "Name": "expression4",
+        "File": "expressions/xxy.exp3.json"
+      },
+      {
+        "Name": "expression5",
+        "File": "expressions/wuyu.exp3.json"
+      },
+      {
+        "Name": "expression6",
+        "File": "expressions/k1.exp3.json"
+      },
+      {
+        "Name": "expression7",
+        "File": "expressions/k2.exp3.json"
+      },
+      {
+        "Name": "expression8",
+        "File": "expressions/k3.exp3.json"
+      },
+      {
+        "Name": "expression9",
+        "File": "expressions/bx.exp3.json"
+      },
+      {
+        "Name": "expression10",
+        "File": "expressions/swk.exp3.json"
+      },
+      {
+        "Name": "expression11",
+        "File": "expressions/s1.exp3.json"
+      },
+      {
+        "Name": "expression12",
+        "File": "expressions/s2.exp3.json"
+      },
+      {
+        "Name": "by",
+        "File": "expressions/by.exp3.json"
+      },
+      {
+        "Name": "neutral_bx",
+        "File": "expressions/bx.exp3.json"
+      },
+      {
+        "Name": "neutral_by",
+        "File": "expressions/by.exp3.json"
+      },
+      {
+        "Name": "neutral_bzy",
+        "File": "expressions/bzy.exp3.json"
+      },
+      {
+        "Name": "neutral_k1",
+        "File": "expressions/k1.exp3.json"
+      },
+      {
+        "Name": "neutral_k2",
+        "File": "expressions/k2.exp3.json"
+      },
+      {
+        "Name": "neutral_k3",
+        "File": "expressions/k3.exp3.json"
+      },
+      {
+        "Name": "neutral_s1",
+        "File": "expressions/s1.exp3.json"
+      },
+      {
+        "Name": "neutral_s2",
+        "File": "expressions/s2.exp3.json"
+      },
+      {
+        "Name": "neutral_swk",
+        "File": "expressions/swk.exp3.json"
+      },
+      {
+        "Name": "neutral_wuyu",
+        "File": "expressions/wuyu.exp3.json"
+      },
+      {
+        "Name": "neutral_xxy",
+        "File": "expressions/xxy.exp3.json"
+      },
+      {
+        "Name": "neutral_yyy",
+        "File": "expressions/yyy.exp3.json"
+      }
+    ],
+    "Motions": {
+      "happy": [
+        {
+          "File": "happy1.motion3.json"
+        },
+        {
+          "File": "happy10.motion3.json"
+        },
+        {
+          "File": "happy11.motion3.json"
+        },
+        {
+          "File": "happy12.motion3.json"
+        },
+        {
+          "File": "happy2.motion3.json"
+        },
+        {
+          "File": "happy3.motion3.json"
+        },
+        {
+          "File": "happy4.motion3.json"
+        },
+        {
+          "File": "happy5.motion3.json"
+        },
+        {
+          "File": "happy6.motion3.json"
+        },
+        {
+          "File": "happy7.motion3.json"
+        },
+        {
+          "File": "happy8.motion3.json"
+        },
+        {
+          "File": "happy9.motion3.json"
+        }
+      ],
+      "sad": [
+        {
+          "File": "sad1.motion3.json"
+        },
+        {
+          "File": "sad2.motion3.json"
+        },
+        {
+          "File": "sad3.motion3.json"
+        },
+        {
+          "File": "sad4.motion3.json"
+        },
+        {
+          "File": "sad5.motion3.json"
+        }
+      ],
+      "angry": [
+        {
+          "File": "angry1.motion3.json"
+        },
+        {
+          "File": "angry2.motion3.json"
+        },
+        {
+          "File": "angry3.motion3.json"
+        },
+        {
+          "File": "angry4.motion3.json"
+        },
+        {
+          "File": "angry5.motion3.json"
+        },
+        {
+          "File": "angry6.motion3.json"
+        },
+        {
+          "File": "angry7.motion3.json"
+        },
+        {
+          "File": "angry8.motion3.json"
+        }
+      ],
+      "neutral": [
+        {
+          "File": "neutral1.motion3.json"
+        },
+        {
+          "File": "neutral10.motion3.json"
+        },
+        {
+          "File": "neutral2.motion3.json"
+        },
+        {
+          "File": "neutral3.motion3.json"
+        },
+        {
+          "File": "neutral4.motion3.json"
+        },
+        {
+          "File": "neutral5.motion3.json"
+        },
+        {
+          "File": "neutral6.motion3.json"
+        },
+        {
+          "File": "neutral8.motion3.json"
+        },
+        {
+          "File": "neutral9.motion3.json"
+        }
+      ],
+      "surprised": [
+        {
+          "File": "surprised1.motion3.json"
+        },
+        {
+          "File": "surprised2.motion3.json"
+        },
+        {
+          "File": "surprised3.motion3.json"
+        },
+        {
+          "File": "surprised4.motion3.json"
+        },
+        {
+          "File": "surprised5.motion3.json"
+        },
+        {
+          "File": "surprised6.motion3.json"
+        }
+      ],
+      "Idle": [
+        {
+          "File": "idle1.motion3.json"
+        },
+        {
+          "File": "idle2.motion3.json"
+        },
+        {
+          "File": "idle3.motion3.json"
+        },
+        {
+          "File": "idle4.motion3.json"
+        }
+      ]
+    }
+  },
+  "Groups": [
+    {
+      "Target": "Parameter",
+      "Name": "EyeBlink",
+      "Ids": [
+        "ParamEyeLOpen",
+        "ParamEyeROpen"
+      ]
+    },
+    {
+      "Target": "Parameter",
+      "Name": "LipSync",
+      "Ids": []
+    }
+  ],
+  "HitAreas": [],
+  "EmotionMapping": {
+    "motions": {
+      "happy": [
+        "happy1.motion3.json",
+        "happy10.motion3.json",
+        "happy11.motion3.json",
+        "happy12.motion3.json",
+        "happy2.motion3.json",
+        "happy3.motion3.json",
+        "happy4.motion3.json",
+        "happy5.motion3.json",
+        "happy6.motion3.json",
+        "happy7.motion3.json",
+        "happy8.motion3.json",
+        "happy9.motion3.json"
+      ],
+      "sad": [
+        "sad1.motion3.json",
+        "sad2.motion3.json",
+        "sad3.motion3.json",
+        "sad4.motion3.json",
+        "sad5.motion3.json"
+      ],
+      "angry": [
+        "angry1.motion3.json",
+        "angry2.motion3.json",
+        "angry3.motion3.json",
+        "angry4.motion3.json",
+        "angry5.motion3.json",
+        "angry6.motion3.json",
+        "angry7.motion3.json",
+        "angry8.motion3.json"
+      ],
+      "neutral": [
+        "neutral1.motion3.json",
+        "neutral10.motion3.json",
+        "neutral2.motion3.json",
+        "neutral3.motion3.json",
+        "neutral4.motion3.json",
+        "neutral5.motion3.json",
+        "neutral6.motion3.json",
+        "neutral8.motion3.json",
+        "neutral9.motion3.json"
+      ],
+      "surprised": [
+        "surprised1.motion3.json",
+        "surprised2.motion3.json",
+        "surprised3.motion3.json",
+        "surprised4.motion3.json",
+        "surprised5.motion3.json",
+        "surprised6.motion3.json"
+      ],
+      "Idle": [
+        "idle1.motion3.json",
+        "idle2.motion3.json",
+        "idle3.motion3.json",
+        "idle4.motion3.json"
+      ]
+    },
+    "expressions": {}
+  }
+}
