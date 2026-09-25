@@ -153,7 +153,7 @@ M0 已实现数据根、配置格式、后端实例锁与连接发现；以下�
 | 阶段 | 依赖 | 状态 | 对应教程（入口见 REFERENCES） | 下一份证据 |
 | --- | --- | --- | --- | --- |
 | P0 独立工程与计划 | 用户本次指令 | PASS（仅工程与文档） | 第 0 课及完整课程索引 | 文件、引用、架构独立复核和 Git 隔离检查已通过，见 REVIEW |
-| M0 基础与复用验证 | P0 | Partial | L01、L23、L24 | Mac 源码与进程验收见 REVIEW；Windows 真机与前端组合运行兼容仍待验证 |
+| M0 基础与复用验证 | P0 | Partial | L01、L23、L24 | Mac 与 Windows/Linux CI、冻结包证据见 REVIEW；Windows 11 真机与前端组合运行兼容仍待验证 |
 | M1 文字/查攻略/工具循环 | M0 | Pending | L01、L02、L03、L17、L19、L21 | 文字链路、真实搜索与正文、带来源攻略、取消与隔离 |
 | M2 本地长期记忆 | M1 | Pending | L09、L10、L11 | 重启/新会话、纠正/遗忘与恢复证据 |
 | M3 桌面与角色 | M0、M1、M2 | Pending | L12、L13、L14、L24 | Windows 窗口/托盘/角色和共存实测 |
@@ -217,3 +217,5 @@ M0 已实现数据根、配置格式、后端实例锁与连接发现；以下�
 - Windows hosted runner 的服务端系统结果单列为 CI Windows；Windows 11 x64 用户真机、ACL/junction 与交互仍独立 Pending。未有真机证据时 M0 总体不能写 PASS。
 
 验收：实际远端 workflow 运行成功；下载包可从对应 Actions/Release 获取；包内 exe 在 Windows runner 上通过真实启动/退出与合成图重开测试；发布资产 SHA256 与构建清单一致；文档明确当前 M0 与未来 M1 可试用功能。源码、命令、运行 URL、产物 hash 和未完成项记 WORKLOG/REVIEW。
+
+状态：PASS（本节 CI/CD 与 M0 基础包交付）。`v0.1.0-alpha.1` 已通过 tag workflow 发布并实际下载核对；Windows/Linux 各 162 项源码测试与 13 项包内检查通过。M0 总体仍 Partial，Windows 11 真机等未验收项目保留；M1 文字/攻略预览仍 Pending。

@@ -1,0 +1,106 @@
+{
+  "verified_at_utc": "2026-09-25T10:25:26.911761+00:00",
+  "status": "PASS",
+  "release": "https://github.com/FrigidCrow/ai-neko/releases/tag/v0.1.0-alpha.1",
+  "tag": "v0.1.0-alpha.1",
+  "prerelease": true,
+  "source_commit": "c745193e4a24f44489d99564aac0e08b4a3fd0dc",
+  "workflow_url": "https://github.com/FrigidCrow/ai-neko/actions/runs/36123430471",
+  "checks": {
+    "actual_release_assets_downloaded": true,
+    "all_github_asset_digests_match": true,
+    "sha256sums_match": true,
+    "zip_and_external_build_info_identical": true,
+    "exe_matches_tested_sha256": true,
+    "exe_is_pe_amd64": true,
+    "local_windows_execution": false
+  },
+  "source_tests": {
+    "Windows": {
+      "status": "PASS",
+      "passed": 162,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "real_model_tests": 0,
+      "duration_seconds": 49.484,
+      "environment": {
+        "system": "Windows",
+        "release": "10",
+        "version": "10.0.20348",
+        "machine": "AMD64",
+        "python": "3.11.15",
+        "python_implementation": "CPython",
+        "python_pointer_bits": 64,
+        "pinned_python": "3.11.15",
+        "python_matches_pin": true
+      }
+    },
+    "Linux": {
+      "status": "PASS",
+      "passed": 162,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "real_model_tests": 0,
+      "duration_seconds": 35.032,
+      "environment": {
+        "system": "Linux",
+        "release": "6.17.0-1022-azure",
+        "version": "#22-Ubuntu SMP Mon Jul 27 17:24:03 UTC 2026",
+        "machine": "x86_64",
+        "python": "3.11.15",
+        "python_implementation": "CPython",
+        "python_pointer_bits": 64,
+        "pinned_python": "3.11.15",
+        "python_matches_pin": true
+      }
+    }
+  },
+  "packaged_checks_passed": 13,
+  "scope": {
+    "packaged_service_and_synthetic_graph": "PASS",
+    "windows_server_x64_execution": "PASS",
+    "windows_11_x64_execution": "NOT_VERIFIED",
+    "desktop_tray_audio": "NOT_TESTED",
+    "real_model_search_and_chat": "NOT_TESTED"
+  },
+  "assets": [
+    {
+      "name": "ai-neko-0.1.0-alpha.1-windows-x64.zip",
+      "bytes": 21419567,
+      "sha256": "d3aad33aa6e692eda305cb3eac552a7c7f24c889704f8eb60c248722d9cf351d",
+      "url": "https://github.com/FrigidCrow/ai-neko/releases/download/v0.1.0-alpha.1/ai-neko-0.1.0-alpha.1-windows-x64.zip"
+    },
+    {
+      "name": "build-info.json",
+      "bytes": 7024,
+      "sha256": "b4ebb1bc1a47f5d236d09aad3a0cdf0c3b31b2f1a23e8b25c8d943b7a184a42d",
+      "url": "https://github.com/FrigidCrow/ai-neko/releases/download/v0.1.0-alpha.1/build-info.json"
+    },
+    {
+      "name": "Linux-smoke.json",
+      "bytes": 313156,
+      "sha256": "4dea821269030c4deab3ca13eaf654928d0b29e3a213f8790fa4a0787b6b0ba2",
+      "url": "https://github.com/FrigidCrow/ai-neko/releases/download/v0.1.0-alpha.1/Linux-smoke.json"
+    },
+    {
+      "name": "package-smoke.json",
+      "bytes": 2601,
+      "sha256": "b9dab148771e49b63dc0d4cc2331016524eefa9e2b96528ec79cfb1753bd4d4f",
+      "url": "https://github.com/FrigidCrow/ai-neko/releases/download/v0.1.0-alpha.1/package-smoke.json"
+    },
+    {
+      "name": "SHA256SUMS.txt",
+      "bytes": 186,
+      "sha256": "70bd98fd0b3db860fb25e86b62eb758769f038631718169926269972229c9ea4",
+      "url": "https://github.com/FrigidCrow/ai-neko/releases/download/v0.1.0-alpha.1/SHA256SUMS.txt"
+    },
+    {
+      "name": "Windows-smoke.json",
+      "bytes": 323260,
+      "sha256": "68b41307bf2b486e442662e7e0ab2af7fad076444244c2caba6e6ab8aa2afa08",
+      "url": "https://github.com/FrigidCrow/ai-neko/releases/download/v0.1.0-alpha.1/Windows-smoke.json"
+    }
+  ]
+}

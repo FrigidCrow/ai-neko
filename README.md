@@ -8,7 +8,9 @@
 
 当前产品优先级：**M1 提供可从 GitHub 下载、在 Windows 解压启动的文字聊天和联网查攻略试用版**，能搜索、读取网页正文、按平台/版本整理步骤并附来源。暂不做键鼠代操作或控制游戏/其他软件。此处是已确认需求，联网查询尚未实现。
 
-GitHub CI/CD 与版本下载说明：[Windows 下载与发布](docs/CI-RELEASES.md)。当前打包范围为 M0 基础诊断，M1 功能仍待实现；版本和远端验证结果见 REVIEW。
+**可下载版本：[v0.1.0-alpha.1 基础验证版](https://github.com/FrigidCrow/ai-neko/releases/tag/v0.1.0-alpha.1)**。下载 Windows x64 ZIP 并完整解压，双击 `Check foundation.cmd`，无需安装 Python/Node/uv。当前包只做 M0 基础诊断，还不能聊天或查攻略。Windows Server CI 的 162 项源码测试与 13 项包内 exe 检查通过；Windows 11 真机验收仍待执行。
+
+GitHub CI/CD 与版本下载说明：[Windows 下载与发布](docs/CI-RELEASES.md)。提交后自动测试/构建；版本 tag 经同套验收后发布 prerelease。M1 功能仍待实现，证据见 REVIEW。
 
 ## 从这里进入
 

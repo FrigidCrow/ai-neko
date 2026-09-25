@@ -34,6 +34,8 @@ uv run --locked python scripts/m0_smoke.py --output artifacts/m0/windows-smoke.j
 
 失败时报告保留测试名和状态，不保存异常局部变量、原始日志或 JUnit 文本，避免意外保存令牌。使用 `uv run --locked pytest -q` 在本机查看具体错误和跳过原因；不要公开包含 `runtime/connection.json` 的目录。记录错误与未完成项目后，修复并重跑，不能把失败或跳过记为完成。输出必须是 `.json`，已存在的文件只有确认为本工具生成的 M0 证据才可覆盖；源码和普通文档目录禁止作为输出位置。
 
+完整 smoke 总限额为 600 秒。逐项进度仅记录去掉参数 ID 的测试名、setup/call/teardown 阶段、结果和耗时；超时保留最后用例。它单列为诊断信息，未完成 JUnit 或已通过的部分用例不能让整套检查变为 PASS。Windows venv 的启动器与实际服务可能有不同 PID，启动关联使用新 instance_id/token 和鉴权健康检查；强制清理只针对测试自己启动的进程树。
+
 ## 本阶段仍需单独记录
 
 - 实际 Windows 11 x64 的此份 JSON 与执行日期；未运行时状态保持 Pending。

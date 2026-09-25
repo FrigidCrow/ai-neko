@@ -23,13 +23,13 @@
 
 | 阶段 | 状态 | 当前缺少的证据 |
 | --- | --- | --- |
-| M0 基础与复用验证 | Partial | Mac 源码与进程证据见下；Windows 真机、前端组合实际安装/构建未验证 |
+| M0 基础与复用验证 | Partial | Mac 与 Windows/Linux CI、冻结包证据见下；Windows 11 真机、前端组合实际安装/构建未验证 |
 | M1 文字/查攻略/工具循环 | Pending | 本工程实现、真实模型/联网搜索/正文/来源、流式与取消测试 |
 | M2 本地长期记忆 | Pending | 落盘、新会话召回、纠正/遗忘、进程与电脑重启 |
 | M3 桌面与角色 | Pending | 桌面接口、窗口/托盘/角色与原版共存 |
 | M4 语音与打断 | Pending | Windows 真机采集/播放、打断与迟到片段 |
 | M5 视觉/主动/查询联动 | Pending | 图像归属、活动门控和截图查询结果 |
-| M6 分发与长期运行 | Pending | Windows 产物、干净机、升级恢复、7 天观察 |
+| M6 分发与长期运行 | Pending | 完整 Windows 成品、干净机、升级恢复、7 天观察；M0 诊断包不替代这些验收 |
 
 ## 已核实的外部边界
 
@@ -76,7 +76,7 @@ Codex 项目列表本次尚无本目录；工具中未发现登记本地目录�
 
 独立审查由未编写生产代码的 `/root/m0_reuse` 执行。发现并复现两个 P2：硬链接可使 FileLock 截断外部文件；配置接受布尔版本、非字符串模型字段和外部凭据 namespace。已修为写入前拒绝硬链接/重定向与严格配置校验，并新增回归用例；独立重新执行原始复现后确认外部文件不变、非法配置拒绝、正常配置接受。未发现剩余 M0 源码阻断，此结论不代替 Windows 验证。
 
-Root 另补充 stop 的重定向测试：本机端口被其他服务接替时，shutdown 不跟随其 302 重定向，避免把 token 转发到新目标。源文件摘要在最终 smoke 前后保持一致；无首个 Git commit，因此报告 `git_commit: null` 并提供文件清单摘要，没有虚构发布来源 commit。当前未构建或发布 Windows 产物。
+Root 另补充 stop 的重定向测试：本机端口被其他服务接替时，shutdown 不跟随其 302 重定向，避免把 token 转发到新目标。源文件摘要在最终 smoke 前后保持一致；当时无首个 Git commit，因此报告 `git_commit: null` 并提供文件清单摘要，没有虚构发布来源 commit。该次验收未构建或发布 Windows 产物，后续 CI/版本交付见本文件末节。
 
 不在本轮结论中：原版 N.E.K.O 与 ai-neko 真正同时运行、真实 Windows junction/ACL、原媒体模块提取后 import 探针、前端组件集成。取消与崩溃中回合结算留 M1，完整事实删除留 M2；显式图暂停恢复不能证明这些行为。后端 Scope 需要可信调用方构造，目前只有本机合成 CLI，没有接受任意 user ID 的网络图接口。
 
@@ -92,6 +92,14 @@ Root 另补充 stop 的重定向测试：本机端口被其他服务接替时，
 
 20 图重新渲染，1440/390px 离线浏览全部加载、无坏锚点/页面溢出，见 [图册检查](docs/diagrams/browser-validation.json)；Root 查看 [查询流程截图](docs/diagrams/evidence/08-tools.png)。独立复核最终 PASS。产品源码、测试、运行依赖没有改动，本轮不重复执行产品测试；AGENTS 等文档已更新，旧 smoke 保持其运行时的源码/文档摘要，不伪改成新一轮结果。联网查询仍未实现，真实搜索与模型验收均属于 M1。
 
-## GitHub CI/CD 与 Windows 基础验证包 — In progress
+## GitHub CI/CD 与 Windows 基础验证包 — PASS（本节交付）
 
-当前实现包含固定依赖/Action 版本的跨平台测试、Windows 原生便携构建、解压后 exe 检查和 tag 预发布。已增加独立诊断入口、来源/许可证/摘要清单；这轮实际远端运行与发布验收尚在执行，不能仅凭 workflow 文件存在记为通过。M0 仍 Partial，M1–M6 仍 Pending；M1 的下载包/本地文字页面/攻略功能是下一阶段目标。具体使用见 [下载与 CI 说明](docs/CI-RELEASES.md)。
+源码基线 `c745193e4a24f44489d99564aac0e08b4a3fd0dc` 的[普通构建 36123110092](https://github.com/FrigidCrow/ai-neko/actions/runs/36123110092)已成功：Windows Server 2022 x64 与 Linux 分别通过 162 项合成测试，0 失败/错误/跳过；解压后的冻结 exe 通过 13 项真实进程检查。构建来源工作区干净，模型测试 0。
+
+包检查实际覆盖中文/空格路径、独立合成 profile、HTTP/WS 鉴权、端口占用、同根第二实例、优雅退出、跨进程图恢复和用户/角色隔离。子进程只运行包内 exe，PATH 清至系统目录；未借用开发 Python 或源码。此结论是 CI Windows Server；Windows 11 x64 真机、无开发工具机器、ACL/junction/原版共存仍须单独取证。没有真实聊天、攻略、长期记忆、桌宠、托盘或语音。
+
+已增加独立诊断入口、来源/许可证/摘要清单；许可文本按实际 wheel/CPython 发行校验，不把构建测试工具当运行依赖打包。M0 仍 Partial，M1–M6 仍 Pending；M1 的下载包/本地文字页面/攻略功能是下一阶段目标。具体使用见 [下载与 CI 说明](docs/CI-RELEASES.md)。版本 tag 发布结果在下方单列。
+
+预发布 [v0.1.0-alpha.1](https://github.com/FrigidCrow/ai-neko/releases/tag/v0.1.0-alpha.1) 已由[tag workflow 36123430471](https://github.com/FrigidCrow/ai-neko/actions/runs/36123430471)自动发布；该次 Windows/Linux 各 162 项源码测试与 13 项冻结包检查再次通过。6 个发布资产已实际下载，逐个核对 GitHub digest；ZIP/清单/构建信息和测试记录中的 exe SHA256 一致。ZIP 为 21,419,567 字节，SHA256 `d3aad33aa6e692eda305cb3eac552a7c7f24c889704f8eb60c248722d9cf351d`。
+
+直接证据：[下载核对报告](docs/evidence/m0/release-v0.1.0-alpha.1-verification.json)、[构建来源](docs/evidence/m0/release-v0.1.0-alpha.1-build.json)、[包检查](docs/evidence/m0/release-v0.1.0-alpha.1-package.json)。源码测试原始 JSON 同时作为 Release 资产保留。Mac 上只读取下载产物、核对摘要和 PE AMD64 格式，没有执行 Windows exe；Windows 执行结论来自上述远端 runner。当前可双击基础自检，无需开发工具；聊天/查询仍属于 M1，不能把基础包称为完整伴侣。

@@ -2,6 +2,8 @@
 
 当前版本线为 **M0 基础验证版**。它提供独立数据目录、本机鉴权服务和合成图恢复诊断；没有聊天页面、真实模型、联网攻略、长期记忆、桌宠或语音。M1 的目标是解压启动本地文字页面，配置自己的模型/查询服务后聊天、查攻略并查看来源。Windows 11 真机验收单列，不能由 Windows Server CI 代替。
 
+已发布：[v0.1.0-alpha.1](https://github.com/FrigidCrow/ai-neko/releases/tag/v0.1.0-alpha.1)，对应源码 `c745193e4a24f44489d99564aac0e08b4a3fd0dc`。[Windows ZIP](https://github.com/FrigidCrow/ai-neko/releases/download/v0.1.0-alpha.1/ai-neko-0.1.0-alpha.1-windows-x64.zip) 约 20.4 MiB；实际下载、资产摘要与测试证据核对通过，见 [验证记录](evidence/m0/release-v0.1.0-alpha.1-verification.json)。
+
 ## 下载和运行
 
 - 版本下载：[GitHub Releases](https://github.com/FrigidCrow/ai-neko/releases)。选择对应预发布版本中的 `ai-neko-版本-windows-x64.zip`，不是 GitHub 自动生成的 Source code。
