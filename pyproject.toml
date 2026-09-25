@@ -21,6 +21,7 @@ build-backend = "hatchling.build"
 
 [dependency-groups]
 dev = ["pytest==9.1.1", "httpx==0.28.1", "ruff==0.16.9"]
+build = ["pyinstaller==6.22.3"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/ai_neko"]

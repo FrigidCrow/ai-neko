@@ -33,13 +33,15 @@ def source_identity() -> dict:
         "src": ["*.py"],
         "tests": ["*.py"],
         "scripts": ["*.py", "*.ps1"],
+        "packaging": ["*"],
+        ".github/workflows": ["*.yml", "*.yaml"],
     }.items():
         for pattern in patterns:
             files.extend((ROOT / directory).rglob(pattern))
     manifest = [
         {"path": path.relative_to(ROOT).as_posix(), "sha256": sha256(path)}
         for path in sorted(set(files))
-        if path.is_file()
+        if path.is_file() and "__pycache__" not in path.parts
     ]
     encoded = json.dumps(manifest, sort_keys=True, separators=(",", ":")).encode("utf-8")
     commit = None

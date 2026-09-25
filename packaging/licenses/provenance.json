@@ -1,0 +1,46 @@
+[
+  {
+    "distribution": "langsmith",
+    "version": "0.14.0",
+    "source_commit": "334804423e0b27e6ff0c9bd5644bde8a603bc297",
+    "source_path": "LICENSE",
+    "source_url": "https://raw.githubusercontent.com/langchain-ai/langsmith-sdk/334804423e0b27e6ff0c9bd5644bde8a603bc297/LICENSE",
+    "file": "langsmith-0.14.0-LICENSE",
+    "sha256": "34e0b9842c7a31d34e53bc7eb224e81e07a34996106e029bbc72dea2d449f496",
+    "changes": "none; exact upstream license text",
+    "upgrade": "Replace only after verifying the pinned dependency version and its source license."
+  },
+  {
+    "distribution": "sqlite-vec",
+    "version": "0.1.9",
+    "source_commit": "e9f598abfa0c06b328d8fe5da9c3760cce74be10",
+    "source_path": "LICENSE-MIT",
+    "source_url": "https://raw.githubusercontent.com/asg017/sqlite-vec/e9f598abfa0c06b328d8fe5da9c3760cce74be10/LICENSE-MIT",
+    "file": "sqlite-vec-0.1.9-LICENSE-MIT",
+    "sha256": "6ce72bbe12d975bd5286e5ab0a064c069693300c47bccbc57bec18485f1621ea",
+    "changes": "none; exact upstream license text",
+    "upgrade": "Replace only after verifying the pinned dependency version and its source license."
+  },
+  {
+    "distribution": "sqlite-vec",
+    "version": "0.1.9",
+    "source_commit": "e9f598abfa0c06b328d8fe5da9c3760cce74be10",
+    "source_path": "LICENSE-APACHE",
+    "source_url": "https://raw.githubusercontent.com/asg017/sqlite-vec/e9f598abfa0c06b328d8fe5da9c3760cce74be10/LICENSE-APACHE",
+    "file": "sqlite-vec-0.1.9-LICENSE-APACHE",
+    "sha256": "a38070a94d4afd9cd710e3ce67bd1de78097cfe1784c1f0109ac95d3c196bfdc",
+    "changes": "none; exact upstream license text",
+    "upgrade": "Replace only after verifying the pinned dependency version and its source license."
+  },
+  {
+    "distribution": "cpython",
+    "version": "3.11.15",
+    "source_commit": "2340a037f7450e70fccfe411e6531afb4d57a312",
+    "source_path": "LICENSE",
+    "source_url": "https://raw.githubusercontent.com/python/cpython/2340a037f7450e70fccfe411e6531afb4d57a312/LICENSE",
+    "file": "cpython-3.11.15-LICENSE",
+    "sha256": "3b2f81fe21d181c499c59a256c8e1968455d6689d269aa85373bfb6af41da3bf",
+    "changes": "none; exact upstream license text",
+    "upgrade": "Replace only after verifying the exact CPython runtime version and source license."
+  }
+]

@@ -53,7 +53,12 @@ def stop(data_dir: str | None) -> None:
     print(json.dumps({"app_id": APP_ID, "status": "stopping"}))
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
+    argv = list(sys.argv[1:] if argv is None else argv)
+    if argv and argv[0] == "graph":
+        from ai_neko.graph.__main__ import main as graph_main
+
+        return graph_main(argv[1:])
     parser = argparse.ArgumentParser(description="ai-neko M0 local foundation")
     commands = parser.add_subparsers(dest="command", required=True)
     serve_parser = commands.add_parser("serve", help="start the authenticated loopback probe")
@@ -63,7 +68,21 @@ def main() -> int:
     stop_parser.add_argument("--data-dir")
     paths_parser = commands.add_parser("paths", help="show chosen paths without creating them")
     paths_parser.add_argument("--data-dir")
-    args = parser.parse_args()
+    commands.add_parser("graph", help="run synthetic graph/checkpoint diagnostics (graph --help)")
+    commands.add_parser(
+        "self-check", help="check the M0 foundation using disposable synthetic data"
+    )
+    if not argv:
+        parser.print_help()
+        print(
+            "\nM0 foundation only: chat, web search, voice and desktop avatar are not implemented."
+        )
+        return 0
+    args = parser.parse_args(argv)
+    if args.command == "self-check":
+        from ai_neko.diagnostics import main as diagnostic_main
+
+        return diagnostic_main()
     from ai_neko.app.server import InstanceInUseError, PortInUseError, serve
     from ai_neko.config.settings import Settings
 

@@ -91,3 +91,7 @@ Root 另补充 stop 的重定向测试：本机端口被其他服务接替时，
 独立复核 `/root/search_scope_plan_review` 指出的两项已修复：首个文字体验从 M1 引出，M2 单列记忆；R01 的外部副作用要求明确留作未来参考。工具图无结果/不可读路径输出缺口说明，不强行给出攻略。reference-manifest 的 R07/R08 仅更新规划边界及阶段，206 个原始来源文件指纹未更改。
 
 20 图重新渲染，1440/390px 离线浏览全部加载、无坏锚点/页面溢出，见 [图册检查](docs/diagrams/browser-validation.json)；Root 查看 [查询流程截图](docs/diagrams/evidence/08-tools.png)。独立复核最终 PASS。产品源码、测试、运行依赖没有改动，本轮不重复执行产品测试；AGENTS 等文档已更新，旧 smoke 保持其运行时的源码/文档摘要，不伪改成新一轮结果。联网查询仍未实现，真实搜索与模型验收均属于 M1。
+
+## GitHub CI/CD 与 Windows 基础验证包 — In progress
+
+当前实现包含固定依赖/Action 版本的跨平台测试、Windows 原生便携构建、解压后 exe 检查和 tag 预发布。已增加独立诊断入口、来源/许可证/摘要清单；这轮实际远端运行与发布验收尚在执行，不能仅凭 workflow 文件存在记为通过。M0 仍 Partial，M1–M6 仍 Pending；M1 的下载包/本地文字页面/攻略功能是下一阶段目标。具体使用见 [下载与 CI 说明](docs/CI-RELEASES.md)。

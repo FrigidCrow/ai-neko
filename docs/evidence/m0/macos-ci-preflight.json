@@ -1,0 +1,1444 @@
+{
+  "schema_version": 1,
+  "app_id": "ai-neko",
+  "stage": "M0",
+  "started_at_utc": "2026-09-25T09:53:47.021301+00:00",
+  "duration_seconds": 17.902,
+  "status": "PASS",
+  "environment": {
+    "system": "Darwin",
+    "release": "25.6.0",
+    "version": "Darwin Kernel Version 25.6.0: Fri Jul 31 19:11:03 PDT 2026; root:xnu-12377.161.14~5/RELEASE_ARM64_T8132",
+    "machine": "arm64",
+    "python": "3.11.15",
+    "python_implementation": "CPython",
+    "python_pointer_bits": 64,
+    "pinned_python": "3.11.15",
+    "python_matches_pin": true
+  },
+  "source": {
+    "git_commit": "d6b71ddd4aceede4918bc2f2eab7435fa5f26d4a",
+    "git_dirty": true,
+    "tree_sha256": "148957a833b8a258e21767822f40f4edeb620780deea10ab5da25ed5c9d9537a",
+    "manifest": [
+      {
+        "path": ".github/workflows/windows-preview.yml",
+        "sha256": "7021aa7676e0f6730fa5f9f3a3221d536fbcf5460afefce7678d7c5f8c5c743b"
+      },
+      {
+        "path": ".python-version",
+        "sha256": "db82937e1f1830581a9553c7814f5c5fcacb6dfdef8310b43e9a812c887acaf5"
+      },
+      {
+        "path": "AGENTS.md",
+        "sha256": "fce77256c8588ad546b282c68a578dcac915a1ecf67df09c4fa3f5b383cb334b"
+      },
+      {
+        "path": "packaging/Check foundation.cmd",
+        "sha256": "2575eb368685b6d9efca2b7476c54884d20f7f5d8ad996b53e81cee81de5b6ea"
+      },
+      {
+        "path": "packaging/README-WINDOWS.txt",
+        "sha256": "268b8053756ee60ea67a7a4ed2a7296f1936184e765bf8058a8034fb50aa0f34"
+      },
+      {
+        "path": "packaging/Start service.cmd",
+        "sha256": "ef8c1502abbbe8a7362cb9eff873e232633f8bd647e0e6398e4207dfd129b2cc"
+      },
+      {
+        "path": "packaging/Stop service.cmd",
+        "sha256": "8dc9a2b5c56df2fb8557d36d9f5e6e8f414aa44664b0cbe0229838d5eaf75ca4"
+      },
+      {
+        "path": "packaging/ai-neko.spec",
+        "sha256": "1abb1e74ee7446469311a4c6fed2bcf0ad858728324ba0b82bc70a7dfeccb747"
+      },
+      {
+        "path": "packaging/entry.py",
+        "sha256": "fc0a7da337d89f0d312dc4e24a88a32a4f7418df2d3f0f864eb85185671e1dbb"
+      },
+      {
+        "path": "packaging/licenses/cpython-3.11.15-LICENSE",
+        "sha256": "3b2f81fe21d181c499c59a256c8e1968455d6689d269aa85373bfb6af41da3bf"
+      },
+      {
+        "path": "packaging/licenses/langsmith-0.14.0-LICENSE",
+        "sha256": "34e0b9842c7a31d34e53bc7eb224e81e07a34996106e029bbc72dea2d449f496"
+      },
+      {
+        "path": "packaging/licenses/provenance.json",
+        "sha256": "2322633111314a180d0bdc1926d3236062c70afb1da611442418e94426736746"
+      },
+      {
+        "path": "packaging/licenses/sqlite-vec-0.1.9-LICENSE-APACHE",
+        "sha256": "a38070a94d4afd9cd710e3ce67bd1de78097cfe1784c1f0109ac95d3c196bfdc"
+      },
+      {
+        "path": "packaging/licenses/sqlite-vec-0.1.9-LICENSE-MIT",
+        "sha256": "6ce72bbe12d975bd5286e5ab0a064c069693300c47bccbc57bec18485f1621ea"
+      },
+      {
+        "path": "pyproject.toml",
+        "sha256": "616b8830aa1a25df1cfd6a6d6ba03d79b754e836417af615dc069bd8bc222623"
+      },
+      {
+        "path": "scripts/build_windows.py",
+        "sha256": "a8da00d3641849f62018c47a0763ee6f460c799f91578e129903881951bcf134"
+      },
+      {
+        "path": "scripts/m0_smoke.py",
+        "sha256": "4dae37d4726003028f02b6c94487c8e10055f03b91db6f1e99063e5973bc5f01"
+      },
+      {
+        "path": "scripts/package_smoke.py",
+        "sha256": "ae4d5f1b74a6ab08c72b5405c398af5008cdf90c06c318b20e3d84f32e292398"
+      },
+      {
+        "path": "scripts/windows-m0.ps1",
+        "sha256": "5f283e8a4b23ea1d3e800d08d1e9a9367b8585ba37dbbc4b6eea6bc13d0266f1"
+      },
+      {
+        "path": "src/ai_neko/__init__.py",
+        "sha256": "0af20bfe535ad6f047cf931f5f15581106fe64742f7b1ff909d246bb8214fcde"
+      },
+      {
+        "path": "src/ai_neko/__main__.py",
+        "sha256": "993cf4bcb04beaafe072a96986e221d30a7318d710b915d27057f0091f7605a8"
+      },
+      {
+        "path": "src/ai_neko/app/__init__.py",
+        "sha256": "c559be6cfcad20083ce892bd5c736e5547de1571adbcd5d9c5a1550361f588d2"
+      },
+      {
+        "path": "src/ai_neko/app/server.py",
+        "sha256": "cb9940e7eea592ca3b10055d6a5e303eb82bd2623cdbbb024d8bc59c8bfe4437"
+      },
+      {
+        "path": "src/ai_neko/config/__init__.py",
+        "sha256": "63cd2a0b2613b9ade4b7fcb9ad33337fbca8f864d9c9198b0a769a316ac6fe8b"
+      },
+      {
+        "path": "src/ai_neko/config/paths.py",
+        "sha256": "a59c89070100391be5464c617c1cfe59584f49d671bfd121ec5b2713a9240b1b"
+      },
+      {
+        "path": "src/ai_neko/config/settings.py",
+        "sha256": "6bae37ef698cad195270d31dd898a759cc5efb22db53083fb7ae5a147876aca0"
+      },
+      {
+        "path": "src/ai_neko/diagnostics.py",
+        "sha256": "0b1b658b6e8f74b8d8ea8de45de15472eba1b659cbdbf889e03d61277e7bc8e4"
+      },
+      {
+        "path": "src/ai_neko/graph/__init__.py",
+        "sha256": "d9152e6547aa627bcb4ecff609853df52ef8e026645a65c55fdec8ba06de59ac"
+      },
+      {
+        "path": "src/ai_neko/graph/__main__.py",
+        "sha256": "9a5579516876c7c58a1fa81a56ae015c4079253762970966bf9e3480519e3dd6"
+      },
+      {
+        "path": "src/ai_neko/graph/service.py",
+        "sha256": "e6d419db6092d6a679e6a2df86ff802290fbbbb71152229804d2e8c83c51b8a2"
+      },
+      {
+        "path": "tests/test_config.py",
+        "sha256": "bcbf8ea88f6312277b197adae9d61f8a664624be9896c9c6b6c6c578a1bc6e41"
+      },
+      {
+        "path": "tests/test_graph.py",
+        "sha256": "7e37a4d9c884ea152638f1eddf23ccb05ac5c049bf6cf079416a05533c265de4"
+      },
+      {
+        "path": "tests/test_package_smoke.py",
+        "sha256": "49e161f593103132626aed7d1058195023b84f925ab27095b3d3c586c3892bed"
+      },
+      {
+        "path": "tests/test_packaging.py",
+        "sha256": "153463a614277f2fc366b8cf81895eb3ea2023f6b135c51d918e5f7f6b26acd9"
+      },
+      {
+        "path": "tests/test_server_process.py",
+        "sha256": "e33d5177abe287368a2a0c59657fe4843e759fc2774bdc9eae3d35075bd3d0b3"
+      },
+      {
+        "path": "uv.lock",
+        "sha256": "8ff16ab492eebc0ecdb65a39a88fa2b66874d804a7d12aa98f1caee43426a605"
+      }
+    ]
+  },
+  "source_unchanged_during_run": true,
+  "dependencies": {
+    "lock_sha256": "8ff16ab492eebc0ecdb65a39a88fa2b66874d804a7d12aa98f1caee43426a605",
+    "packages": [
+      {
+        "name": "ai-neko",
+        "locked": "0.1.0",
+        "installed": "0.1.0",
+        "local_project": true
+      },
+      {
+        "name": "aiosqlite",
+        "locked": "0.22.1",
+        "installed": "0.22.1",
+        "local_project": false
+      },
+      {
+        "name": "altgraph",
+        "locked": "0.17.5",
+        "installed": "0.17.5",
+        "local_project": false
+      },
+      {
+        "name": "annotated-doc",
+        "locked": "0.0.5",
+        "installed": "0.0.5",
+        "local_project": false
+      },
+      {
+        "name": "annotated-types",
+        "locked": "0.8.0",
+        "installed": "0.8.0",
+        "local_project": false
+      },
+      {
+        "name": "anyio",
+        "locked": "4.15.1",
+        "installed": "4.15.1",
+        "local_project": false
+      },
+      {
+        "name": "certifi",
+        "locked": "2026.7.22",
+        "installed": "2026.7.22",
+        "local_project": false
+      },
+      {
+        "name": "charset-normalizer",
+        "locked": "3.5.1",
+        "installed": "3.5.1",
+        "local_project": false
+      },
+      {
+        "name": "click",
+        "locked": "8.5.0",
+        "installed": "8.5.0",
+        "local_project": false
+      },
+      {
+        "name": "colorama",
+        "locked": "0.4.6",
+        "installed": null,
+        "local_project": false
+      },
+      {
+        "name": "distro",
+        "locked": "1.9.0",
+        "installed": "1.9.0",
+        "local_project": false
+      },
+      {
+        "name": "fastapi",
+        "locked": "0.141.1",
+        "installed": "0.141.1",
+        "local_project": false
+      },
+      {
+        "name": "filelock",
+        "locked": "3.32.7",
+        "installed": "3.32.7",
+        "local_project": false
+      },
+      {
+        "name": "h11",
+        "locked": "0.16.0",
+        "installed": "0.16.0",
+        "local_project": false
+      },
+      {
+        "name": "httpcore",
+        "locked": "1.0.9",
+        "installed": "1.0.9",
+        "local_project": false
+      },
+      {
+        "name": "httpcore2",
+        "locked": "2.13.1",
+        "installed": "2.13.1",
+        "local_project": false
+      },
+      {
+        "name": "httpx",
+        "locked": "0.28.1",
+        "installed": "0.28.1",
+        "local_project": false
+      },
+      {
+        "name": "httpx2",
+        "locked": "2.13.1",
+        "installed": "2.13.1",
+        "local_project": false
+      },
+      {
+        "name": "idna",
+        "locked": "3.20",
+        "installed": "3.20",
+        "local_project": false
+      },
+      {
+        "name": "iniconfig",
+        "locked": "2.3.0",
+        "installed": "2.3.0",
+        "local_project": false
+      },
+      {
+        "name": "jsonpatch",
+        "locked": "1.33",
+        "installed": "1.33",
+        "local_project": false
+      },
+      {
+        "name": "jsonpointer",
+        "locked": "3.1.1",
+        "installed": "3.1.1",
+        "local_project": false
+      },
+      {
+        "name": "langchain-core",
+        "locked": "1.6.5",
+        "installed": "1.6.5",
+        "local_project": false
+      },
+      {
+        "name": "langchain-protocol",
+        "locked": "0.0.19",
+        "installed": "0.0.19",
+        "local_project": false
+      },
+      {
+        "name": "langgraph",
+        "locked": "1.2.12",
+        "installed": "1.2.12",
+        "local_project": false
+      },
+      {
+        "name": "langgraph-checkpoint",
+        "locked": "4.2.0",
+        "installed": "4.2.0",
+        "local_project": false
+      },
+      {
+        "name": "langgraph-checkpoint-sqlite",
+        "locked": "3.1.1",
+        "installed": "3.1.1",
+        "local_project": false
+      },
+      {
+        "name": "langgraph-prebuilt",
+        "locked": "1.1.0",
+        "installed": "1.1.0",
+        "local_project": false
+      },
+      {
+        "name": "langgraph-sdk",
+        "locked": "0.4.5",
+        "installed": "0.4.5",
+        "local_project": false
+      },
+      {
+        "name": "langsmith",
+        "locked": "0.14.0",
+        "installed": "0.14.0",
+        "local_project": false
+      },
+      {
+        "name": "macholib",
+        "locked": "1.16.4",
+        "installed": "1.16.4",
+        "local_project": false
+      },
+      {
+        "name": "orjson",
+        "locked": "3.12.0",
+        "installed": "3.12.0",
+        "local_project": false
+      },
+      {
+        "name": "ormsgpack",
+        "locked": "1.12.2",
+        "installed": "1.12.2",
+        "local_project": false
+      },
+      {
+        "name": "packaging",
+        "locked": "26.3",
+        "installed": "26.3",
+        "local_project": false
+      },
+      {
+        "name": "pefile",
+        "locked": "2024.8.26",
+        "installed": null,
+        "local_project": false
+      },
+      {
+        "name": "pluggy",
+        "locked": "1.6.0",
+        "installed": "1.6.0",
+        "local_project": false
+      },
+      {
+        "name": "pydantic",
+        "locked": "2.13.5",
+        "installed": "2.13.5",
+        "local_project": false
+      },
+      {
+        "name": "pydantic-core",
+        "locked": "2.46.5",
+        "installed": "2.46.5",
+        "local_project": false
+      },
+      {
+        "name": "pygments",
+        "locked": "2.21.0",
+        "installed": "2.21.0",
+        "local_project": false
+      },
+      {
+        "name": "pyinstaller",
+        "locked": "6.22.3",
+        "installed": "6.22.3",
+        "local_project": false
+      },
+      {
+        "name": "pyinstaller-hooks-contrib",
+        "locked": "2026.7",
+        "installed": "2026.7",
+        "local_project": false
+      },
+      {
+        "name": "pytest",
+        "locked": "9.1.1",
+        "installed": "9.1.1",
+        "local_project": false
+      },
+      {
+        "name": "pywin32-ctypes",
+        "locked": "0.2.3",
+        "installed": null,
+        "local_project": false
+      },
+      {
+        "name": "pyyaml",
+        "locked": "6.0.3",
+        "installed": "6.0.3",
+        "local_project": false
+      },
+      {
+        "name": "requests",
+        "locked": "2.34.2",
+        "installed": "2.34.2",
+        "local_project": false
+      },
+      {
+        "name": "requests-toolbelt",
+        "locked": "1.0.0",
+        "installed": "1.0.0",
+        "local_project": false
+      },
+      {
+        "name": "ruff",
+        "locked": "0.16.9",
+        "installed": "0.16.9",
+        "local_project": false
+      },
+      {
+        "name": "setuptools",
+        "locked": "84.0.0",
+        "installed": "84.0.0",
+        "local_project": false
+      },
+      {
+        "name": "sniffio",
+        "locked": "1.3.1",
+        "installed": "1.3.1",
+        "local_project": false
+      },
+      {
+        "name": "sqlite-vec",
+        "locked": "0.1.9",
+        "installed": "0.1.9",
+        "local_project": false
+      },
+      {
+        "name": "starlette",
+        "locked": "1.7.0",
+        "installed": "1.7.0",
+        "local_project": false
+      },
+      {
+        "name": "tenacity",
+        "locked": "9.1.4",
+        "installed": "9.1.4",
+        "local_project": false
+      },
+      {
+        "name": "truststore",
+        "locked": "0.10.4",
+        "installed": "0.10.4",
+        "local_project": false
+      },
+      {
+        "name": "typing-extensions",
+        "locked": "4.16.0",
+        "installed": "4.16.0",
+        "local_project": false
+      },
+      {
+        "name": "typing-inspection",
+        "locked": "0.4.4",
+        "installed": "0.4.4",
+        "local_project": false
+      },
+      {
+        "name": "urllib3",
+        "locked": "2.8.0",
+        "installed": "2.8.0",
+        "local_project": false
+      },
+      {
+        "name": "uuid-utils",
+        "locked": "0.17.1",
+        "installed": "0.17.1",
+        "local_project": false
+      },
+      {
+        "name": "uvicorn",
+        "locked": "0.54.0",
+        "installed": "0.54.0",
+        "local_project": false
+      },
+      {
+        "name": "websockets",
+        "locked": "16.1.1",
+        "installed": "16.1.1",
+        "local_project": false
+      },
+      {
+        "name": "xxhash",
+        "locked": "4.0.1",
+        "installed": "4.0.1",
+        "local_project": false
+      },
+      {
+        "name": "zstandard",
+        "locked": "0.25.0",
+        "installed": "0.25.0",
+        "local_project": false
+      }
+    ],
+    "installed_version_mismatches": []
+  },
+  "tests": {
+    "kind": "synthetic_deterministic",
+    "pytest_exit_code": 0,
+    "collected": 147,
+    "passed": 147,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "cases": [
+      {
+        "name": "test_isolated_layout_reopens_without_touching_sibling",
+        "class": "tests.test_config",
+        "seconds": 0.004,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_override_only_uses_dedicated_environment",
+        "class": "tests.test_config",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_original_paths_rejected[N.E.K.O]",
+        "class": "tests.test_config",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_original_paths_rejected[N.E.K.O/config]",
+        "class": "tests.test_config",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_original_paths_rejected[neko-companion]",
+        "class": "tests.test_config",
+        "seconds": 0.0,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_original_paths_rejected[n.e.k.o]",
+        "class": "tests.test_config",
+        "seconds": 0.0,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_bad_paths[relative]",
+        "class": "tests.test_config",
+        "seconds": 0.0,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_bad_paths[]",
+        "class": "tests.test_config",
+        "seconds": 0.0,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_bad_paths[/]",
+        "class": "tests.test_config",
+        "seconds": 0.0,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_bad_paths[\\x00bad]",
+        "class": "tests.test_config",
+        "seconds": 0.0,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_user_home_rejected",
+        "class": "tests.test_config",
+        "seconds": 0.0,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_existing_unowned_root_is_not_adopted",
+        "class": "tests.test_config",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_foreign_or_corrupt_marker",
+        "class": "tests.test_config",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_file_data_root",
+        "class": "tests.test_config",
+        "seconds": 0.0,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_symlink_root_or_child_cannot_redirect_writes",
+        "class": "tests.test_config",
+        "seconds": 0.002,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_settings_do_not_use_generic_credentials",
+        "class": "tests.test_config",
+        "seconds": 0.0,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_invalid_port[abc]",
+        "class": "tests.test_config",
+        "seconds": 0.0,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_invalid_port[-1]",
+        "class": "tests.test_config",
+        "seconds": 0.0,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_invalid_port[65536]",
+        "class": "tests.test_config",
+        "seconds": 0.0,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_invalid_port[1.5]",
+        "class": "tests.test_config",
+        "seconds": 0.0,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_dedicated_port_and_explicit_override",
+        "class": "tests.test_config",
+        "seconds": 0.0,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_config_never_persists_key",
+        "class": "tests.test_config",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_invalid_config_has_clear_error[None]",
+        "class": "tests.test_config",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_invalid_config_has_clear_error[value1]",
+        "class": "tests.test_config",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_invalid_config_has_clear_error[bad]",
+        "class": "tests.test_config",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_invalid_config_has_clear_error[value3]",
+        "class": "tests.test_config",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_imports_have_no_runtime_side_effects",
+        "class": "tests.test_config",
+        "seconds": 0.463,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_windows_default_has_no_roaming_fallback",
+        "class": "tests.test_config",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_stop_rejects_corrupt_descriptor_without_exposing_token[descriptor0]",
+        "class": "tests.test_config",
+        "seconds": 0.002,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_stop_rejects_corrupt_descriptor_without_exposing_token[None]",
+        "class": "tests.test_config",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_stop_rejects_corrupt_descriptor_without_exposing_token[descriptor2]",
+        "class": "tests.test_config",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_direct_settings_rejects_noninteger_port[True]",
+        "class": "tests.test_config",
+        "seconds": 0.0,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_direct_settings_rejects_noninteger_port[False]",
+        "class": "tests.test_config",
+        "seconds": 0.0,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_direct_settings_rejects_noninteger_port[123.9]",
+        "class": "tests.test_config",
+        "seconds": 0.0,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_direct_settings_rejects_noninteger_port[1.0]",
+        "class": "tests.test_config",
+        "seconds": 0.0,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_configuration_rejects_malformed_types_and_foreign_namespace[change0]",
+        "class": "tests.test_config",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_configuration_rejects_malformed_types_and_foreign_namespace[change1]",
+        "class": "tests.test_config",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_configuration_rejects_malformed_types_and_foreign_namespace[change2]",
+        "class": "tests.test_config",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_configuration_rejects_malformed_types_and_foreign_namespace[change3]",
+        "class": "tests.test_config",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_configuration_rejects_malformed_types_and_foreign_namespace[change4]",
+        "class": "tests.test_config",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_config_rejects_invalid_or_credential_bearing_urls[ftp://example.invalid]",
+        "class": "tests.test_config",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_config_rejects_invalid_or_credential_bearing_urls[https://user:synthetic@example.invalid/v1]",
+        "class": "tests.test_config",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_config_rejects_invalid_or_credential_bearing_urls[https://example.invalid/v1?api_key=synthetic]",
+        "class": "tests.test_config",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_config_rejects_invalid_or_credential_bearing_urls[https://example.invalid/#fragment]",
+        "class": "tests.test_config",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_config_rejects_invalid_or_credential_bearing_urls[https://example.invalid:notaport]",
+        "class": "tests.test_config",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_config_rejects_invalid_or_credential_bearing_urls[https://]",
+        "class": "tests.test_config",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_config_rejects_invalid_or_credential_bearing_urls[https://example.invalid:0]",
+        "class": "tests.test_config",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_valid_cloud_config_is_read_without_calling_endpoint",
+        "class": "tests.test_config",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_existing_hardlinks_cannot_modify_other_data[.ai-neko.json]",
+        "class": "tests.test_config",
+        "seconds": 0.088,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_existing_hardlinks_cannot_modify_other_data[runtime/instance.lock]",
+        "class": "tests.test_config",
+        "seconds": 0.002,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_existing_hardlinks_cannot_modify_other_data[logs/service.jsonl]",
+        "class": "tests.test_config",
+        "seconds": 0.002,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_existing_hardlinks_cannot_modify_other_data[config/app.json]",
+        "class": "tests.test_config",
+        "seconds": 0.002,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_marker_rejects_boolean_schema_version",
+        "class": "tests.test_config",
+        "seconds": 0.002,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_reparse_attribute_detection_is_explicit",
+        "class": "tests.test_config",
+        "seconds": 0.0,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_stop_never_forwards_token_along_redirect",
+        "class": "tests.test_config",
+        "seconds": 0.509,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_condition_and_custom_stream",
+        "class": "tests.test_graph",
+        "seconds": 0.011,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_interrupt_resume_and_checkpoint_guards",
+        "class": "tests.test_graph",
+        "seconds": 0.007,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_all_operations_reject_foreign_handle_and_checkpoint[other0-get]",
+        "class": "tests.test_graph",
+        "seconds": 0.006,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_all_operations_reject_foreign_handle_and_checkpoint[other0-history]",
+        "class": "tests.test_graph",
+        "seconds": 0.008,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_all_operations_reject_foreign_handle_and_checkpoint[other0-run]",
+        "class": "tests.test_graph",
+        "seconds": 0.007,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_all_operations_reject_foreign_handle_and_checkpoint[other0-resume]",
+        "class": "tests.test_graph",
+        "seconds": 0.007,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_all_operations_reject_foreign_handle_and_checkpoint[other0-delete]",
+        "class": "tests.test_graph",
+        "seconds": 0.006,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_all_operations_reject_foreign_handle_and_checkpoint[other1-get]",
+        "class": "tests.test_graph",
+        "seconds": 0.006,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_all_operations_reject_foreign_handle_and_checkpoint[other1-history]",
+        "class": "tests.test_graph",
+        "seconds": 0.007,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_all_operations_reject_foreign_handle_and_checkpoint[other1-run]",
+        "class": "tests.test_graph",
+        "seconds": 0.007,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_all_operations_reject_foreign_handle_and_checkpoint[other1-resume]",
+        "class": "tests.test_graph",
+        "seconds": 0.006,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_all_operations_reject_foreign_handle_and_checkpoint[other1-delete]",
+        "class": "tests.test_graph",
+        "seconds": 0.007,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_all_operations_reject_foreign_handle_and_checkpoint[other2-get]",
+        "class": "tests.test_graph",
+        "seconds": 0.007,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_all_operations_reject_foreign_handle_and_checkpoint[other2-history]",
+        "class": "tests.test_graph",
+        "seconds": 0.007,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_all_operations_reject_foreign_handle_and_checkpoint[other2-run]",
+        "class": "tests.test_graph",
+        "seconds": 0.007,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_all_operations_reject_foreign_handle_and_checkpoint[other2-resume]",
+        "class": "tests.test_graph",
+        "seconds": 0.007,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_all_operations_reject_foreign_handle_and_checkpoint[other2-delete]",
+        "class": "tests.test_graph",
+        "seconds": 0.007,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_delete_revokes_handle_and_removes_all_checkpoint_rows",
+        "class": "tests.test_graph",
+        "seconds": 0.007,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_fresh_process_recovers_paused_graph_and_scope_mapping",
+        "class": "tests.test_graph",
+        "seconds": 1.441,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_second_graph_process_rejected_and_lock_released",
+        "class": "tests.test_graph",
+        "seconds": 0.293,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_constructor_and_import_have_no_application_writes",
+        "class": "tests.test_graph",
+        "seconds": 0.281,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_graph_disables_environment_enabled_cloud_tracing",
+        "class": "tests.test_graph",
+        "seconds": 0.006,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_graph_rejects_redirected_database_and_lock_paths[graph.sqlite]",
+        "class": "tests.test_graph",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_graph_rejects_redirected_database_and_lock_paths[scopes.sqlite]",
+        "class": "tests.test_graph",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_graph_rejects_redirected_database_and_lock_paths[graph.sqlite-wal]",
+        "class": "tests.test_graph",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_graph_rejects_redirected_database_and_lock_paths[.graph.lock]",
+        "class": "tests.test_graph",
+        "seconds": 0.0,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_graph_rejects_hardlinked_files_before_any_write[.graph.lock]",
+        "class": "tests.test_graph",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_graph_rejects_hardlinked_files_before_any_write[graph.sqlite]",
+        "class": "tests.test_graph",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_graph_rejects_hardlinked_files_before_any_write[graph.sqlite-wal]",
+        "class": "tests.test_graph",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_graph_rejects_hardlinked_files_before_any_write[graph.sqlite-shm]",
+        "class": "tests.test_graph",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_graph_rejects_hardlinked_files_before_any_write[graph.sqlite-journal]",
+        "class": "tests.test_graph",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_graph_rejects_hardlinked_files_before_any_write[scopes.sqlite]",
+        "class": "tests.test_graph",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_graph_rejects_hardlinked_files_before_any_write[scopes.sqlite-wal]",
+        "class": "tests.test_graph",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_graph_rejects_hardlinked_files_before_any_write[scopes.sqlite-shm]",
+        "class": "tests.test_graph",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_graph_rejects_hardlinked_files_before_any_write[scopes.sqlite-journal]",
+        "class": "tests.test_graph",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_graph_rejects_redirected_checkpoint_directory",
+        "class": "tests.test_graph",
+        "seconds": 0.0,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_missing_or_closed_service_and_invalid_scope_are_rejected",
+        "class": "tests.test_graph",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_safe_extract_preserves_artifact_and_chinese_space_path",
+        "class": "tests.test_package_smoke",
+        "seconds": 0.002,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_unsafe_archive_is_rejected_before_writing[../escape.txt]",
+        "class": "tests.test_package_smoke",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_unsafe_archive_is_rejected_before_writing[/absolute.txt]",
+        "class": "tests.test_package_smoke",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_unsafe_archive_is_rejected_before_writing[C:/escape.txt]",
+        "class": "tests.test_package_smoke",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_unsafe_archive_is_rejected_before_writing[folder/../../escape.txt]",
+        "class": "tests.test_package_smoke",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_unsafe_archive_is_rejected_before_writing[folder\\\\escape.txt]",
+        "class": "tests.test_package_smoke",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_unsafe_archive_is_rejected_before_writing[folder/./escape.txt]",
+        "class": "tests.test_package_smoke",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_unsafe_archive_is_rejected_before_writing[folder//escape.txt]",
+        "class": "tests.test_package_smoke",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_unsafe_archive_is_rejected_before_writing[ai-neko-test-windows-x64/CON]",
+        "class": "tests.test_package_smoke",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_unsafe_archive_is_rejected_before_writing[ai-neko-test-windows-x64/aux.txt]",
+        "class": "tests.test_package_smoke",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_unsafe_archive_is_rejected_before_writing[ai-neko-test-windows-x64/trailing. ]",
+        "class": "tests.test_package_smoke",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_unsafe_archive_is_rejected_before_writing[ai-neko-test-windows-x64/trailing.]",
+        "class": "tests.test_package_smoke",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_unsafe_archive_is_rejected_before_writing[ai-neko-test-windows-x64/file:stream]",
+        "class": "tests.test_package_smoke",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_unsafe_archive_is_rejected_before_writing[ai-neko-test-windows-x64/wild?.txt]",
+        "class": "tests.test_package_smoke",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_unsafe_archive_is_rejected_before_writing[ai-neko-test-windows-x64/AI-NEKO.EXE]",
+        "class": "tests.test_package_smoke",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_unsafe_archive_is_rejected_before_writing[second-root/file.txt]",
+        "class": "tests.test_package_smoke",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_symlink_archive_entry_is_rejected_before_writing",
+        "class": "tests.test_package_smoke",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_application_environment_excludes_source_python_and_credentials",
+        "class": "tests.test_package_smoke",
+        "seconds": 0.0,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_failure_records_only_case_result",
+        "class": "tests.test_package_smoke",
+        "seconds": 0.0,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_unsupported_host_writes_failure_evidence_without_executing",
+        "class": "tests.test_package_smoke",
+        "seconds": 0.002,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_release_version[0.1.0]",
+        "class": "tests.test_packaging",
+        "seconds": 0.0,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_release_version[0.1.0-alpha.1]",
+        "class": "tests.test_packaging",
+        "seconds": 0.0,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_release_version[0.1.0-dev.123abcd]",
+        "class": "tests.test_packaging",
+        "seconds": 0.0,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_reject_unsafe_or_mismatched_version[v0.1.0]",
+        "class": "tests.test_packaging",
+        "seconds": 0.0,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_reject_unsafe_or_mismatched_version[0.2.0]",
+        "class": "tests.test_packaging",
+        "seconds": 0.0,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_reject_unsafe_or_mismatched_version[../0.1.0]",
+        "class": "tests.test_packaging",
+        "seconds": 0.0,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_reject_unsafe_or_mismatched_version[0.1.0\\n]",
+        "class": "tests.test_packaging",
+        "seconds": 0.0,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_reject_unsafe_or_mismatched_version[0.1.0-../../escape]",
+        "class": "tests.test_packaging",
+        "seconds": 0.0,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_reject_unsafe_or_mismatched_version[0.1.0-]",
+        "class": "tests.test_packaging",
+        "seconds": 0.0,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_reject_unsafe_or_mismatched_version[0.1.0-axxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx]",
+        "class": "tests.test_packaging",
+        "seconds": 0.0,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_build_never_cross_compiles",
+        "class": "tests.test_packaging",
+        "seconds": 0.0,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_license_fallbacks_match_recorded_hashes",
+        "class": "tests.test_packaging",
+        "seconds": 0.0,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_python_license_fallback_checks_runtime_version_and_hash",
+        "class": "tests.test_packaging",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_python_license_prefers_interpreter_stdlib_notice",
+        "class": "tests.test_packaging",
+        "seconds": 0.0,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_archive_has_one_root_and_no_outside_files",
+        "class": "tests.test_packaging",
+        "seconds": 0.001,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_diagnostic_ignores_user_data_and_credentials",
+        "class": "tests.test_packaging",
+        "seconds": 0.007,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_new_entry_dispatches_self_check_and_graph",
+        "class": "tests.test_packaging",
+        "seconds": 0.567,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_health_descriptor_and_graceful_cli_stop",
+        "class": "tests.test_server_process",
+        "seconds": 0.485,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_http_requires_token[headers0]",
+        "class": "tests.test_server_process",
+        "seconds": 0.427,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_http_requires_token[headers1]",
+        "class": "tests.test_server_process",
+        "seconds": 0.427,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_websocket_auth_and_ping",
+        "class": "tests.test_server_process",
+        "seconds": 0.427,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_websocket_rejects_missing_or_wrong_origin[None]",
+        "class": "tests.test_server_process",
+        "seconds": 0.419,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_websocket_rejects_missing_or_wrong_origin[https://synthetic-untrusted.invalid]",
+        "class": "tests.test_server_process",
+        "seconds": 0.419,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_websocket_rejects_wrong_token",
+        "class": "tests.test_server_process",
+        "seconds": 0.372,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_websocket_requires_auth_before_ping",
+        "class": "tests.test_server_process",
+        "seconds": 0.418,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_websocket_rejects_token_in_query_string",
+        "class": "tests.test_server_process",
+        "seconds": 0.421,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_http_rejects_untrusted_host",
+        "class": "tests.test_server_process",
+        "seconds": 0.429,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_shutdown_closes_active_websocket",
+        "class": "tests.test_server_process",
+        "seconds": 0.372,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_websocket_auth_timeout",
+        "class": "tests.test_server_process",
+        "seconds": 5.474,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_invalid_roots_are_rejected",
+        "class": "tests.test_server_process",
+        "seconds": 0.284,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_occupied_explicit_port_is_rejected",
+        "class": "tests.test_server_process",
+        "seconds": 0.144,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_second_instance_cannot_replace_running_descriptor",
+        "class": "tests.test_server_process",
+        "seconds": 0.515,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_two_data_roots_coexist_and_cleanup_independently",
+        "class": "tests.test_server_process",
+        "seconds": 0.906,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_crash_restart_replaces_stale_descriptor_and_token",
+        "class": "tests.test_server_process",
+        "seconds": 0.603,
+        "outcome": "passed"
+      },
+      {
+        "name": "test_session_token_is_absent_from_process_and_persistent_logs",
+        "class": "tests.test_server_process",
+        "seconds": 0.546,
+        "outcome": "passed"
+      }
+    ],
+    "real_model_tests": 0
+  },
+  "scope": {
+    "service_and_synthetic_graph": "PASS",
+    "windows_11_x64_execution": "NOT_VERIFIED",
+    "desktop_tray_audio_packaging": "NOT_TESTED",
+    "original_neko_coexistence": "NOT_TESTED"
+  },
+  "failure_detail_policy": "Raw JUnit, stdout, stderr and failure locals are excluded; rerun uv run pytest -q for local diagnosis."
+}

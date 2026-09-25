@@ -1,6 +1,6 @@
 # M0 Windows 11 x64 取证
 
-此入口验证本机服务与合成 LangGraph 基础。Mac 结果不代表 Windows 通过；窗口、托盘、角色、音频、安装包与真实模型不在本次 smoke 范围。
+此入口验证源码环境中的本机服务与合成 LangGraph 基础。已增加独立的 [CI 包构建/下载/解压 exe 验证流程](CI-RELEASES.md)；本文的源码 smoke 不替代它。Mac 或 Windows Server 结果均不代表 Windows 11 真机通过；窗口、托盘、角色、音频与真实模型不在本次 smoke 范围。
 
 ## 执行条件
 

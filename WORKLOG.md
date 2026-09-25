@@ -144,3 +144,13 @@ git diff --check
 另用现有 `launchBrowser` / Puppeteer 对本地 08 SVG 截图至 `docs/diagrams/evidence/08-tools.png`，并实际查看。图渲染/检查在修正缺口输出与首个里程碑归属后重新执行；最终 20 图渲染、两视口离线加载/锚点/边界检查 PASS。
 
 独立只读工作者 `/root/search_scope_plan_review` 检查范围与验收一致性，指出 M2 被标首个体验以及 R01 仍要求外部副作用执行两个残留；修改并复核后 PASS。产品源码、测试、运行依赖没有差异，因此未重跑产品测试；110 passed 只引用先前 M0 记录，旧 smoke 中包括 AGENTS 的摘要保留历史实值。本次文档变更沿用用户此前授权的 origin 与 `codex/initial-plan` 分支同步；不发布产品，也不把规划通过记为搜索功能可用。
+
+## 2026-09-25 — GitHub CI/CD 与 Windows M0 便携预发布
+
+用户要求先收尾基础阶段，并让 M1 可以在 Windows 下载试用。本轮先更新 PLAN 第 11 节与 M1 验收：M0 交付基础诊断包和 CI，M1 再交付本地文字网页、模型配置和带来源攻略查询。读取 engineering-devops-automator 技能，采用同一 workflow 的跨平台测试 → Windows 原生构建 → 解压 exe 验收 → 版本 tag 预发布；不接模型 Key 或消息通知服务。
+
+本地新增 PyInstaller 6.22.3 build 依赖组并执行 `uv lock`、`uv sync --locked --group build`。打包器仅接受 Windows x64，Mac 调用已验证明确拒绝；诊断使用临时合成数据。增加打包/探针辅助测试，构建入口、许可来源和 workflow 均纳入来源摘要。独立审查发现 setup-python 没有 3.11.15 Windows 下载项，已改固定 uv 0.11.8 的 managed Python，并补充固定上游 commit/hash 的 CPython 许可证后备文本。
+
+首轮全目录 Ruff 命中了旧文档校验脚本的既有格式；CI 将检查范围明确为产品 `src tests scripts packaging`。首轮完整 smoke 为 144 passed / 1 failed，失败是许可证清单新加 CPython 后原测试预期尚未更新；不作为通过证据。后续修复、最终测试与远端结果在下方追加。
+
+修复后执行 `uv run --locked ruff check src tests scripts packaging`、`uv run --locked ruff format --check src tests scripts packaging`、`uv run --locked python scripts/m0_smoke.py --output artifacts/m0/macos-ci-preflight.json`，最终 **147 passed / 0 failed / 0 errors / 0 skipped**，真实模型 0；20 个 Python 文件格式通过，源码测试期间未变化。证据复制至 `docs/evidence/m0/macos-ci-preflight.json`，保留执行时 commit/dirty 实值。许可证测试 17 项包含 Python stdlib 许可证优先和 exact-version fallback；本机 uv Python 的许可证实际位于 stdlib，并非完全缺失。Windows 真实运行留待下方 CI 记录。
