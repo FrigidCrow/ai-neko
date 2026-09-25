@@ -82,7 +82,8 @@ class OwnedBackend {
 
   start() {
     this.child = spawn(this.command.command,
-      [...this.command.prefix, 'serve', '--desktop-parent', '--data-dir', this.dataRoot], {
+      [...this.command.prefix, 'serve', '--desktop-parent', '--desktop-parent-pid',
+        String(process.pid), '--data-dir', this.dataRoot], {
         windowsHide: true, stdio: ['pipe', 'pipe', 'pipe'],
         env: { ...process.env, PYTHONUNBUFFERED: '1' },
       });
@@ -158,7 +159,8 @@ class OwnedBackend {
     clearTimeout(this.timer);
     const child = this.child;
     if (!child || child.exitCode !== null || child.signalCode !== null) return;
-    // EOF is both the normal shutdown signal and the parent-crash watchdog.
+    // EOF requests normal shutdown. Windows also holds a native handle to this
+    // host because inherited pipe copies can delay EOF after a host crash.
     child.stdin.end();
     let timer;
     const exited = await Promise.race([this.exitPromise.then(() => true), new Promise((resolve) => {

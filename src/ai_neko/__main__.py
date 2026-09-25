@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import sys
 from urllib.error import URLError
@@ -65,6 +66,7 @@ def main(argv: list[str] | None = None) -> int:
     serve_parser.add_argument("--data-dir")
     serve_parser.add_argument("--port", type=int, default=None)
     serve_parser.add_argument("--desktop-parent", action="store_true", help=argparse.SUPPRESS)
+    serve_parser.add_argument("--desktop-parent-pid", type=int, help=argparse.SUPPRESS)
     start_parser = commands.add_parser("start", help="start ai-neko and open the local chat page")
     start_parser.add_argument("--data-dir")
     start_parser.add_argument("--port", type=int, default=None)
@@ -80,8 +82,9 @@ def main(argv: list[str] | None = None) -> int:
     if not argv:
         parser.print_help()
         print(
-            "\nUse 'start' to open chat and configure your model/search services. "
-            "Voice and desktop avatar are not included in this preview."
+            "\nThis executable is the backend CLI. Launch the root ai-neko.exe for the "
+            "desktop catgirl, or use 'npm --prefix desktop start' from the source checkout. "
+            "Voice is not implemented in this preview."
         )
         return 0
     args = parser.parse_args(argv)
@@ -89,7 +92,7 @@ def main(argv: list[str] | None = None) -> int:
         from ai_neko.diagnostics import main as diagnostic_main
 
         return diagnostic_main()
-    from ai_neko.app.server import InstanceInUseError, PortInUseError, serve
+    from ai_neko.app.server import InstanceInUseError, PortInUseError, WindowsParentProcess, serve
     from ai_neko.config.settings import Settings
 
     try:
@@ -106,17 +109,36 @@ def main(argv: list[str] | None = None) -> int:
             stop(args.data_dir)
         else:
             desktop_parent = bool(getattr(args, "desktop_parent", False))
+            parent_pid = getattr(args, "desktop_parent_pid", None)
+            if parent_pid is not None and (
+                not desktop_parent or not 0 < parent_pid <= 0xFFFFFFFF or parent_pid == os.getpid()
+            ):
+                raise ValueError(
+                    "desktop parent process ID requires private pipe mode and a valid ID"
+                )
+            if desktop_parent and os.name == "nt" and parent_pid is None:
+                raise ValueError("Windows desktop parent requires its process ID")
             if desktop_parent and (
                 sys.stdin is None or sys.stdout is None or sys.stdin.isatty() or sys.stdout.isatty()
             ):
                 raise ValueError("desktop parent requires private stdin and stdout pipes")
-            settings = Settings.load(args.port)
-            serve(
-                initialize_data_root(args.data_dir),
-                settings,
-                open_browser=args.command == "start",
-                parent_input=sys.stdin if desktop_parent else None,
+            # Open once before creating application data or listening. The held
+            # process object remains stable even if Windows later reuses its PID.
+            parent_process = (
+                WindowsParentProcess(parent_pid) if desktop_parent and os.name == "nt" else None
             )
+            try:
+                settings = Settings.load(args.port)
+                serve(
+                    initialize_data_root(args.data_dir),
+                    settings,
+                    open_browser=args.command == "start",
+                    parent_input=sys.stdin if desktop_parent else None,
+                    parent_process=parent_process,
+                )
+            finally:
+                if parent_process is not None:
+                    parent_process.close()
     except InstanceInUseError as exc:
         print(f"ai-neko: {exc}", file=sys.stderr)
         return 3

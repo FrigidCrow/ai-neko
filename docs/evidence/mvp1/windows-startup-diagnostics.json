@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "purpose": "Synthetic diagnostic comparison, not an acceptance PASS",
+  "run_url": "https://github.com/FrigidCrow/ai-neko/actions/runs/36172266079",
+  "source_commit": "1e4d8e554758c27155028e37568a3c275b0691ea",
+  "raw_report_sha256": "0cd529c1cb0b3955a72f1161fea5aea9b1e28b3badb4d4a4edee061833409731",
+  "platform": "win32",
+  "electron": "44.4.5",
+  "cases": [
+    {
+      "name": "plain-tiny",
+      "automated": false,
+      "isolated": false,
+      "flags": [],
+      "status": "WINDOW_CREATED"
+    },
+    {
+      "name": "automated-tiny",
+      "automated": true,
+      "isolated": false,
+      "flags": [],
+      "status": "WINDOW_CREATED"
+    },
+    {
+      "name": "isolated-tiny",
+      "automated": true,
+      "isolated": true,
+      "flags": [],
+      "status": "FAILED"
+    },
+    {
+      "name": "software-tiny",
+      "automated": true,
+      "isolated": true,
+      "flags": [
+        "--disable-gpu"
+      ],
+      "status": "FAILED"
+    },
+    {
+      "name": "plain-source",
+      "automated": true,
+      "isolated": false,
+      "flags": [],
+      "status": "WINDOW_CREATED"
+    },
+    {
+      "name": "isolated-source",
+      "automated": true,
+      "isolated": true,
+      "flags": [],
+      "status": "WINDOW_CREATED"
+    }
+  ]
+}

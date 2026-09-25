@@ -242,3 +242,9 @@ tag 运行 `36123430471` 再次通过全部测试、原生构建和解压 exe �
 首次桌宠源码 `fe20e171cca18dbde63a920771797e2ad7e97cb7` 的 Windows 292/0skip、Linux 291/1skip 通过，构建和冻结后端 16 项通过；[36170950261](https://github.com/FrigidCrow/ai-neko/actions/runs/36170950261) 的实际桌宠启动失败（Windows native exit 0xC0000005），正确阻止上传已验证包和发布。新增只含合成窗口的独立诊断流水线，对照原生/Playwright、隔离 profile/PATH 和 GPU 标志；取消没有修复的重复主流程 36171710691，保留失败事实。
 
 独立排查发现主进程先异步等待 Python 初始化路径，存在 Electron ready 先发生的明确风险。改为有界同步路径初始化，在首个 await 前设置独立 userData/sessionData；保留 30 秒超时、16KiB 输出上限和身份校验。宿主回归增至 15 项通过，真实路径初始化 228ms；`node scripts/desktop_smoke.cjs --output artifacts/mvp1/desktop-sync-smoke.json` 本地仍 9/9 PASS。此时尚未确认该问题就是 Windows native crash 根因。
+
+Windows 对照 [36172266079](https://github.com/FrigidCrow/ai-neko/actions/runs/36172266079) 实际证明普通 tiny 窗口的原生/Playwright 启动成功；改 profile/PATH 的 tiny 崩溃，禁 GPU 仍失败；同步路径修复后的项目源码在两种环境均能打开许可窗口。报告精简为 [启动对照](docs/evidence/mvp1/windows-startup-diagnostics.json)，诊断 workflow 的 success 只表示报告生成，不把失败 case 写成通过。早期诊断遇到未有界退出的窗口，取消该轮并为自己创建的进程补上限清理后重跑。
+
+随后 [36172265880](https://github.com/FrigidCrow/ai-neko/actions/runs/36172265880) 的原生 Windows 包实际通过前 8 项桌宠检查，已能显示 YUI 并完成流式聊天、停止、设置、正常退出重开与单实例。Root 查看包内实际桌宠流式截图。第 9 项真实强杀 GUI 后仍有后端连接文件，15 秒等待超时；发布继续阻止。这说明 Windows 的继承 stdin EOF 不足以独自保证宿主崩溃收尾，需补一次捕获的原生父进程 HANDLE 监督，不能靠静态 PID 文件或结束同名程序。
+
+已增加 Windows HANDLE 监督：宿主传入本次 PID，后端在建数据/监听之前仅以 SYNCHRONIZE 权限捕获一次 HANDLE 并验活；监控固定内核对象，退出或 wait 失败走同一收尾，停止线程后才释放 HANDLE。正常 EOF 保留，stdin 改为 os.read 避免被阻塞的 daemon 持有缓冲锁。非法/自身 PID、无 pipe 模式与 Windows 缺 PID 均拒绝。独立回归 desktop/server 34 passed，宿主 15 passed；Root 为实际服务监控用例补健康检查就绪条件，重跑 desktop_backend 13 passed（3.11 秒），Ruff 通过；`desktop-handle-smoke.json` 本地实际 Electron 仍 9/9 PASS。Windows native 分支留待最终 CI，不把 Mac 的明确 fake HANDLE 当作原生 Windows 通过。

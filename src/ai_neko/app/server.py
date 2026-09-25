@@ -33,6 +33,74 @@ class PortInUseError(RuntimeError):
     pass
 
 
+def _windows_kernel32():
+    import ctypes
+    from ctypes import wintypes
+
+    kernel = ctypes.WinDLL("kernel32", use_last_error=True)
+    kernel.OpenProcess.argtypes = [wintypes.DWORD, wintypes.BOOL, wintypes.DWORD]
+    kernel.OpenProcess.restype = wintypes.HANDLE
+    kernel.WaitForSingleObject.argtypes = [wintypes.HANDLE, wintypes.DWORD]
+    kernel.WaitForSingleObject.restype = wintypes.DWORD
+    kernel.CloseHandle.argtypes = [wintypes.HANDLE]
+    kernel.CloseHandle.restype = wintypes.BOOL
+    return kernel
+
+
+class WindowsParentProcess:
+    """Capture one process object, then observe that HANDLE without PID reuse races."""
+
+    def __init__(self, pid: int):
+        if type(pid) is not int or not 0 < pid <= 0xFFFFFFFF or pid == os.getpid():
+            raise ValueError("invalid desktop parent process ID")
+        self._kernel = _windows_kernel32()
+        self._stopped = threading.Event()
+        self._thread: threading.Thread | None = None
+        # SYNCHRONIZE is sufficient; no termination, memory or inherited rights.
+        self._handle = self._kernel.OpenProcess(0x00100000, False, pid)
+        if not self._handle:
+            raise ValueError("desktop parent process is unavailable")
+        try:
+            self.ensure_alive()
+        except (ValueError, OSError):
+            self.close()
+            raise
+
+    def ensure_alive(self) -> None:
+        if not self._handle or self._kernel.WaitForSingleObject(self._handle, 0) != 0x102:
+            raise ValueError("desktop parent process has ended or cannot be monitored")
+
+    def start(self, on_parent_exit) -> None:
+        if self._thread is not None:
+            raise RuntimeError("desktop parent monitor was already started")
+        self.ensure_alive()
+
+        def watch():
+            while not self._stopped.is_set():
+                # Poll the captured kernel object, never reopen a potentially
+                # reused PID. A bounded wait also permits safe normal cleanup.
+                outcome = self._kernel.WaitForSingleObject(self._handle, 250)
+                if self._stopped.is_set():
+                    return
+                if outcome != 0x102:
+                    # Signaled means exit. Any failed wait must also fail closed.
+                    on_parent_exit()
+                    return
+
+        self._thread = threading.Thread(target=watch, name="desktop-parent-handle", daemon=True)
+        self._thread.start()
+
+    def close(self) -> None:
+        self._stopped.set()
+        if self._thread is not None:
+            # Closing a HANDLE while WaitForSingleObject is pending is undefined.
+            # Every wait is bounded to 250 ms, so join before releasing it.
+            self._thread.join()
+        if self._handle:
+            self._kernel.CloseHandle(self._handle)
+            self._handle = None
+
+
 @dataclass(frozen=True)
 class Connection:
     port: int
@@ -143,7 +211,10 @@ def serve(
     *,
     open_browser: bool = False,
     parent_input: TextIO | None = None,
+    parent_process: WindowsParentProcess | None = None,
 ) -> None:
+    if parent_process is not None and parent_input is None:
+        raise ValueError("desktop parent process monitoring requires the private pipe mode")
     lock_path = safe_child(paths.runtime, "instance.lock")
     lock = FileLock(lock_path, timeout=0)
     try:
@@ -196,18 +267,27 @@ def serve(
                 print(json.dumps({"event": "connection", **connection.descriptor()}), flush=True)
                 loop = asyncio.get_running_loop()
 
-                def watch_parent():
-                    try:
-                        while parent_input.read(4096):
-                            pass
-                    except (OSError, ValueError):
-                        pass
+                def parent_ended():
                     try:
                         loop.call_soon_threadsafe(request_shutdown)
                     except RuntimeError:
                         pass  # The service has already completed shutdown.
 
+                def watch_parent():
+                    try:
+                        # Do not hold TextIO/BufferedReader locks in a daemon:
+                        # Windows may retain another pipe writer after the GUI
+                        # exits, while the HANDLE watcher must still shut down.
+                        descriptor = parent_input.fileno()
+                        while os.read(descriptor, 4096):
+                            pass
+                    except (OSError, ValueError):
+                        pass
+                    parent_ended()
+
                 threading.Thread(target=watch_parent, name="desktop-parent", daemon=True).start()
+                if parent_process is not None:
+                    parent_process.start(parent_ended)
             if bootstrap_code is not None:
                 # Fragments never reach the HTTP server or access logs. The UI
                 # consumes the one-use code, clears the URL, and obtains a token.
