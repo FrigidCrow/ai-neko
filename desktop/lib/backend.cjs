@@ -1,6 +1,6 @@
 'use strict';
 
-const { spawn, execFile } = require('node:child_process');
+const { spawn, execFile, execFileSync } = require('node:child_process');
 const http = require('node:http');
 const path = require('node:path');
 const { validateDescriptor } = require('./security.cjs');
@@ -14,22 +14,26 @@ function commandFor({ packaged, resourcesPath, appPath, platform = process.platf
   };
 }
 
-async function initializePaths(command) {
-  return new Promise((resolve, reject) => {
-    execFile(command.command, [...command.prefix, 'paths', '--initialize'], {
-      windowsHide: true, timeout: 30000, maxBuffer: 16384,
+function initializePaths(command) {
+  // This bounded bootstrap must finish in the initial main-process turn so
+  // Electron's profile paths can be assigned before its ready event.
+  let stdout;
+  try {
+    stdout = execFileSync(command.command, [...command.prefix, 'paths', '--initialize'], {
+      windowsHide: true, timeout: 30000, killSignal: 'SIGKILL', maxBuffer: 16384,
+      encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'],
       env: { ...process.env, PYTHONUNBUFFERED: '1' },
-    }, (error, stdout) => {
-      if (error) return reject(new Error('无法初始化 ai-neko 专属数据目录。请检查目录设置与权限。'));
-      try {
-        const value = JSON.parse(stdout);
-        if (value.app_id !== 'ai-neko' || typeof value.data_root !== 'string' ||
-            typeof value.desktop_root !== 'string' || !path.isAbsolute(value.data_root) ||
-            value.desktop_root !== path.join(value.data_root, 'desktop')) throw new Error();
-        resolve(value);
-      } catch { reject(new Error('ai-neko 数据目录校验失败。')); }
     });
-  });
+  } catch {
+    throw new Error('无法初始化 ai-neko 专属数据目录。请检查目录设置与权限。');
+  }
+  try {
+    const value = JSON.parse(stdout);
+    if (!value || value.app_id !== 'ai-neko' || typeof value.data_root !== 'string' ||
+        typeof value.desktop_root !== 'string' || !path.isAbsolute(value.data_root) ||
+        value.desktop_root !== path.join(value.data_root, 'desktop')) throw new Error();
+    return value;
+  } catch { throw new Error('ai-neko 数据目录校验失败。'); }
 }
 
 function requestJSON(connection, method, route, encoded) {

@@ -277,7 +277,9 @@ async function confirmTerms() {
 
 async function start() {
   const command = commandFor({ packaged: app.isPackaged, resourcesPath: process.resourcesPath, appPath: app.getAppPath() });
-  paths = await initializePaths(command);
+  // Do not yield before setting userData/sessionData: Electron may otherwise
+  // finish ready and initialize a default profile while the path child runs.
+  paths = initializePaths(command);
   app.setPath('userData', paths.desktop_root);
   app.setPath('sessionData', paths.desktop_root);
   if (!app.requestSingleInstanceLock()) { app.quit(); return; }

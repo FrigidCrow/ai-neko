@@ -238,3 +238,7 @@ tag 运行 `36123430471` 再次通过全部测试、原生构建和解压 exe �
 - `python3 docs/diagrams/tools/validate-docs.py`：文档、20 图和 206 参考指纹通过；`git diff --check` 与新增 JS 语法检查通过。Root 查看正确猫娘和聊天截图；Mac 不执行 Windows exe。
 
 更新 Windows 构建为根 GUI exe、resources/backend 冻结后端及内置 YUI/vendor；新增实际解压 GUI 测试，保留原 16 项后端包检查与原版本 Release。待远端构建/发布结果按实际补记，不写成已完成。
+
+首次桌宠源码 `fe20e171cca18dbde63a920771797e2ad7e97cb7` 的 Windows 292/0skip、Linux 291/1skip 通过，构建和冻结后端 16 项通过；[36170950261](https://github.com/FrigidCrow/ai-neko/actions/runs/36170950261) 的实际桌宠启动失败（Windows native exit 0xC0000005），正确阻止上传已验证包和发布。新增只含合成窗口的独立诊断流水线，对照原生/Playwright、隔离 profile/PATH 和 GPU 标志；取消没有修复的重复主流程 36171710691，保留失败事实。
+
+独立排查发现主进程先异步等待 Python 初始化路径，存在 Electron ready 先发生的明确风险。改为有界同步路径初始化，在首个 await 前设置独立 userData/sessionData；保留 30 秒超时、16KiB 输出上限和身份校验。宿主回归增至 15 项通过，真实路径初始化 228ms；`node scripts/desktop_smoke.cjs --output artifacts/mvp1/desktop-sync-smoke.json` 本地仍 9/9 PASS。此时尚未确认该问题就是 Windows native crash 根因。
