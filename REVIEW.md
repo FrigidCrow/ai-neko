@@ -251,3 +251,11 @@ Root 用 gh run download 分别取得两平台源码、package-evidence 和 ai-n
 源码`669a8f181e45f838239bf7900bb20765588bbbd8`的[CI](https://github.com/FrigidCrow/ai-neko/actions/runs/36229884609)全部必要jobs通过：Windows575项/0skip、Linux574项/1平台skip、宿主58项、冻结后端16/16、实际桌宠9/9、陪伴闭环18/18。包内程序验证了实际IPC撤销、迟到图片请求409及关闭观察后的活动模型取消，已查看[Windows实际截图](docs/evidence/companion/windows/companion-smoke.png)。全部采集和服务仍为合成资料，Windows Server不等于Windows11游戏真机。
 
 已实际下载并核对[新开发包](https://github.com/FrigidCrow/ai-neko/actions/runs/36229884609/artifacts/10902556977)：ZIP `ai-neko-0.3.0-dev.669a8f181e45-windows-x64.zip`，191,856,745字节，SHA256 `d803d6e68dcbfbc90a92e48c2501f1c98bc302dec01d8dd97d26fbe8fafbf849`。源码、build-info、PE执行摘要、许可、截图和报告一致，[核对记录](docs/evidence/companion/windows/download-verification.json)为PASS；Mac只核对文件，未运行exe。旧Release不变。真实云模型/搜索/ASR/TTS与游戏判断、Windows11真机及20次取消p95仍Pending，完整目标不记完成。
+
+## 2026-09-26 — 完成审计的补证
+
+真实网页读取组件已验证：应用自身读取三份公开官方文档，正文片段及来源元数据通过，见[独立报告](docs/evidence/companion/public-page-reads.json)。这只证明公开页面读取，真实搜索和模型组织带来源答案仍未执行。
+
+十条记忆的原新进程测试只读取列表，未证明逐条问答前的召回与注入。本轮新增两个真实子进程、十个新会话的逐项检索和实际模型请求验证；相关37项本机测试通过，剥除注入的负控失败。生产代码未出现新故障，该补证不代表真实模型使用正确，也不代替Windows11重启验收。Windows新增回归等待本轮CI。
+
+五项目标的真实验收仍缺：人格10场景人工质量、10张实际游戏截图、10轮真实麦克风到扬声器和20次取消/时延、3次真实搜索→正文→回答、记忆模型正确使用/未知信息回答及Windows11重启。当前没有可用项目服务配置或Windows11会话，不能以新增合成测试把这些项标记完成；免按键、多角色和长期运行扩展不作为本轮补证的新任务。

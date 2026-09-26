@@ -369,3 +369,11 @@ Final documentation check: python3 docs/diagrams/tools/validate-docs.py > artifa
 开发包`ai-neko-0.3.0-dev.669a8f181e45-windows-x64.zip`为191,856,745字节，SHA256 `d803d6e68dcbfbc90a92e48c2501f1c98bc302dec01d8dd97d26fbe8fafbf849`，[下载](https://github.com/FrigidCrow/ai-neko/actions/runs/36229884609/artifacts/10902556977)。Root实际查看Windows桌宠截图，白裙YUI、观察关闭和迟到文字缺席可见；报告证实延迟图片409及模型中途取消。Windows合成17模型/3ASR/9TTS，单次停音40ms，真实服务和用户采集0。更新Windows归档时仅将JSON行尾统一LF，原始文件保留artifacts；当前文档和README下载入口同步，不运行Windows程序于Mac，也不发布新Release。
 
 最终`python3 docs/diagrams/tools/validate-docs.py > artifacts/mvp1/lifecycle-final-docs.json`为PASS：24文档、364本地链接、20图和206参考文件，参考仓库tracked状态未变。逐项比对Windows归档JSON内容及截图与原始下载一致，`git diff --check`通过；证据与当前下载说明另提交`[skip ci]`，产品源码仍为上方已验证commit。
+
+## 2026-09-26 — 真实正文与十项新会话记忆补证
+
+上轮是有效进展：产品669a8f1和证据b6d8bd0已推送，Windows CI36229884609终态SUCCESS、下载摘要核对通过。本轮重新读取当前工作树、计划与CI确认；本机仍为Darwin，可访问的ai-neko数据根无有效归属标记，四种项目专用服务Key环境变量均未配置。未初始化/接管该目录，也未读取其他项目配置或Key。完整真实模型/搜索/语音及Windows11验收继续缺少环境条件。
+
+通过未修改的生产`WebTools({}, None).execute('read_web_page', ...)`真实访问Python venv、Git git-switch、LangGraph overview官方文档。第一组3次核对读取状态/关键词；第二组3次进一步核对正文位置与片段，前后正文SHA一致。实际正文分别20000（工具上限）、12089、6277字符，来源URL/id、读取时间和正文指纹均记录；页面没有可识别内容日期，因此保留null。局部原文只保留20词证据，完整提取文本仅位于artifacts；[归档报告](docs/evidence/companion/public-page-reads.json)为PASS。合计6次真实页面读取，真实搜索、模型、ASR、TTS调用仍为0，不能替代三次完整联网问答。
+
+独立M2审查发现原十项新进程测试只证明list_facts保留数据，逐项召回/注入证据不足。先更新PLAN，再新增`tests/test_memory_recall_acceptance.py`：两个实际Python子进程，前者写5偏好+5事件并退出，后者创建10个新会话，分别提问并核对有效事实、来源原文、实际模型请求和数据库checkpoint thread_id。移除图上下文的临时负控确实失败。`.venv/bin/pytest -q tests/test_memory_recall_acceptance.py tests/test_memory.py tests/test_companion_integration.py`：37 passed in2.48s；Ruff与格式通过。确定性适配器只观察输入，不证明模型理解正确或Windows电脑重启。生产源码、桌面代码、依赖和构建配置均未修改；将新增回归交由既有Windows/Linux CI验证。

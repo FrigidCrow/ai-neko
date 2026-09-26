@@ -1,0 +1,76 @@
+{
+  "kind": "real_public_page_substantive_body_verification",
+  "started_at": "2026-09-26T08:43:59.762137+00:00",
+  "platform": "macOS-26.6.2-arm64-arm-64bit",
+  "source_commit": "b6d8bd0379943b3dd5f21b1fa6efc66fb1f490cc",
+  "read_tool_calls": 3,
+  "earlier_read_tool_calls": 3,
+  "real_model_calls": 0,
+  "real_search_calls": 0,
+  "real_asr_calls": 0,
+  "real_tts_calls": 0,
+  "complete_answer_evaluation": "NOT_RUN",
+  "cases": [
+    {
+      "requested_url": "https://docs.python.org/3.11/library/venv.html",
+      "status": "ok",
+      "error": null,
+      "source_status": "read",
+      "source_url": "https://docs.python.org/3.11/library/venv.html",
+      "source_id": "c299ec7f174a",
+      "title": "venv — Creation of virtual environments — Python 3.11.16 documentation",
+      "retrieved_at": "2026-09-26T08:44:00.000372+00:00",
+      "content_date": null,
+      "body_characters": 20000,
+      "body_sha256": "587a1287d64f9529fff147f6f31854db57dadca491cec4a2f0e77eaf73f67125",
+      "substantive_term": "lightweight",
+      "substantive_term_offset": 330,
+      "substantive_excerpt": "3. Source code: Lib/venv/ The venv module supports creating lightweight “virtual environments”, each with their own independent set of Python"
+    },
+    {
+      "requested_url": "https://git-scm.com/docs/git-switch",
+      "status": "ok",
+      "error": null,
+      "source_status": "read",
+      "source_url": "https://git-scm.com/docs/git-switch",
+      "source_id": "5da7005293f1",
+      "title": "Git - git-switch Documentation",
+      "retrieved_at": "2026-09-26T08:44:00.271621+00:00",
+      "content_date": null,
+      "body_characters": 12089,
+      "body_sha256": "873617386825ff51b58b4650dc5d22c827d41c65b00e1c12c2db859a0d79f9b2",
+      "substantive_term": "Switch to a specified branch",
+      "substantive_term_offset": 2014,
+      "substantive_excerpt": ">] git switch [<options>] --orphan <new-branch> DESCRIPTION Switch to a specified branch. The working tree and the index are updated"
+    },
+    {
+      "requested_url": "https://docs.langchain.com/oss/python/langgraph/overview",
+      "status": "ok",
+      "error": null,
+      "source_status": "read",
+      "source_url": "https://docs.langchain.com/oss/python/langgraph/overview",
+      "source_id": "399cf6369bd3",
+      "title": "LangGraph overview - Docs by LangChain",
+      "retrieved_at": "2026-09-26T08:44:01.626633+00:00",
+      "content_date": null,
+      "body_characters": 6277,
+      "body_sha256": "beff07f22b5887f07e7983e2964c62701ad1bcfa73c58ac77cf2363835a881f2",
+      "substantive_term": "StateGraph",
+      "substantive_term_offset": 3067,
+      "substantive_excerpt": "e a simple hello world example: from langgraph.graph import StateGraph, MessagesState, START, END def mock_llm(state: MessagesState): return {\"messages\": [{\"role\": \"ai\","
+    }
+  ],
+  "status": "PASS",
+  "production_files_unchanged_from_source_commit": true,
+  "implementation_sha256": {
+    "src/ai_neko/tools/web.py": "79fc04e74779efae96604c81ab204c10aa9815b4c7bde088314a7cd8ea84c133",
+    "src/ai_neko/tools/network.py": "8480529ce75abef4d5672b568245f79baa26b3350be36c351780a7bd280f2f2e",
+    "uv.lock": "2d99b2c42875ecb2fec56c07e34558f6d990ffc2a65e302701b2d24ae3291b59"
+  },
+  "limitations": [
+    "Only direct public webpage reads were run.",
+    "No search provider or real model answer was evaluated.",
+    "Not a Windows 11 runtime test.",
+    "Content dates remain unknown when the page provides no recognized metadata."
+  ]
+}
