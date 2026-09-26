@@ -7,9 +7,9 @@
     "arch": "arm64",
     "node": "v25.9.0"
   },
-  "source_commit": "e06f3c383bb9de23ae75b940f3557f06abc530e9",
+  "source_commit": "393e3655890a4e1759fc0981931dc3294f1d6432",
   "source_dirty": true,
-  "harness_sha256": "e1684730b95c0ec51f5a67d5f97a837de183daaedb5ae4f4c2c75d736545d62a",
+  "harness_sha256": "3d1e684cba4a199b34fe5e7771768f576055ea40b9cd505eeb83ea695a17eec8",
   "real_model_calls": 0,
   "real_search_calls": 0,
   "windows_11": "pending",
@@ -17,74 +17,74 @@
     {
       "name": "consent_real_catgirl_and_owned_backend",
       "status": "PASS",
-      "elapsed_ms": 1972
+      "elapsed_ms": 1787
     },
     {
       "name": "renderer_sandbox_and_ipc_boundaries",
       "status": "PASS",
-      "elapsed_ms": 6
+      "elapsed_ms": 3
     },
     {
       "name": "settings_keep_catgirl_visible_and_configure_synthetic_model",
       "status": "PASS",
-      "elapsed_ms": 163
+      "elapsed_ms": 184
     },
     {
       "name": "incremental_reply_cancel_and_old_delta_rejection",
       "status": "PASS",
-      "elapsed_ms": 1206
+      "elapsed_ms": 1211
     },
     {
       "name": "normal_reply_after_cancel_and_guide_error_feedback",
       "status": "PASS",
-      "elapsed_ms": 517
+      "elapsed_ms": 868
     },
     {
       "name": "fold_keeps_pet_and_preferences_persist",
       "status": "PASS",
-      "elapsed_ms": 33
+      "elapsed_ms": 38
     },
     {
       "name": "second_launch_reuses_single_instance",
       "status": "PASS",
-      "elapsed_ms": 404
+      "elapsed_ms": 307
     },
     {
       "name": "quit_cleans_backend_and_restart_recovers_history",
       "status": "PASS",
-      "elapsed_ms": 2054
+      "elapsed_ms": 1979
     },
     {
       "name": "actual_host_crash_reaps_owned_backend_and_does_not_replay",
       "status": "PASS",
-      "elapsed_ms": 4068
+      "elapsed_ms": 2840
     }
   ],
   "screenshots": [
     {
       "file": "desktop-catgirl.png",
-      "sha256": "5853f991dd146f3f12f25f0f97324646ee20a10ecc6782a63c97750dec70b362"
+      "sha256": "90df1a9763fc8b652b76e85df80ac4d02716cdad36b4ababeab8efbd3dd3fcc8"
     },
     {
       "file": "desktop-settings.png",
-      "sha256": "3e2968a6549c875c3801a0848681398fd91c0f178d86c88ef24c2916c013e5b8"
+      "sha256": "266937fd4339fce436291c613b65a2f3fe2370f87222d4dedfc98e81adde7a07"
     },
     {
       "file": "desktop-streaming.png",
-      "sha256": "85142fb31767aceb5375335495658b8d318cd6c6d38e587936729e5db574c8c0"
+      "sha256": "118f39f84d30eb2465398679ddce91f2506e283c163d0569bc10c05409ce3eda"
     },
     {
       "file": "desktop-guide.png",
-      "sha256": "21d2de55714882ac414a4f21ea4d7711c51138165b53ae108f17132ab1b07dd8"
+      "sha256": "e441ed89d6fb6f62c9f7ee22e5e8e4a9e70c47409eced907e21db0d688dc3828"
     },
     {
       "file": "desktop-restored.png",
-      "sha256": "b38dd8cc3268117dbb8bd82192d0d4a19d1ded776c014c2e2d51d8d65dac4c52"
+      "sha256": "dab335cd4793aeaeb5e616f7b238aca536a5be72c760403971f9031a29d65d2b"
     }
   ],
   "executable_sha256": "e06891704834df56f24489e1f971428161ae17312143624af13736255cc0ab34",
   "character_pixels": {
-    "visible": 233270,
+    "visible": 233336,
     "total": 844800
   },
   "host_crash": {
@@ -101,6 +101,6 @@
     ],
     "backend_exit_confirmed": true
   },
-  "synthetic_model_requests": 3,
-  "finished_utc": "2026-09-26T06:27:45.849Z"
+  "synthetic_model_requests": 5,
+  "finished_utc": "2026-09-26T06:55:13.987Z"
 }

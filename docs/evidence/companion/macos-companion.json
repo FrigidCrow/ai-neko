@@ -2,9 +2,9 @@
   "status": "PASS",
   "platform": "darwin",
   "node": "v25.9.0",
-  "source_commit": "e06f3c383bb9de23ae75b940f3557f06abc530e9",
+  "source_commit": "393e3655890a4e1759fc0981931dc3294f1d6432",
   "source_dirty": true,
-  "harness_sha256": "837ba9aab4f59fc28cbc728967eda171693e058668a5119178c961fb99c66885",
+  "harness_sha256": "e1ce4edf5a9987e105826f9fe4769e138a311bd55f9170824356052d5481694d",
   "real_model_calls": 0,
   "real_audio_service_calls": 0,
   "actual_user_microphone_captures": 0,
@@ -28,6 +28,10 @@
       "status": "PASS"
     },
     {
+      "name": "default_on_demand_mode_and_new_session_keep_explicit_choice",
+      "status": "PASS"
+    },
+    {
       "name": "selected_synthetic_window_preview_and_per_turn_fresh_image",
       "status": "PASS"
     },
@@ -37,6 +41,18 @@
     },
     {
       "name": "fake_microphone_asr_image_chat_sentence_tts_loop",
+      "status": "PASS"
+    },
+    {
+      "name": "default_voice_image_can_request_search_and_reports_actual_missing_key",
+      "status": "PASS"
+    },
+    {
+      "name": "opening_history_preserves_explicit_search_permission",
+      "status": "PASS"
+    },
+    {
+      "name": "failed_history_retry_uses_current_chat_only_permission",
       "status": "PASS"
     },
     {
@@ -82,13 +98,32 @@
     "electron": "44.4.5",
     "chrome": "152.0.7977.130"
   },
-  "stop_observed_ms": 17,
-  "screenshot": "companion-ui-smoke.png",
-  "screenshot_sha256": "87add430e1bc86b6421a90170606fad8551cef7ac44e5ad7e5f6b01159fd8509",
-  "synthetic_calls": {
-    "model": 4,
-    "asr": 2,
-    "tts": 3
+  "on_demand_plain_question": {
+    "tool_schemas_available": true,
+    "search_calls": 0,
+    "missing_search_key_did_not_block": true
   },
-  "renderer_errors": []
+  "stop_observed_ms": 21,
+  "voice_search": {
+    "default_mode": "on_demand",
+    "image_and_tool_schemas": true,
+    "actual_tool_error": "search_key_missing"
+  },
+  "history_retry": {
+    "original_guide": true,
+    "retry_guide": false,
+    "tool_schemas_sent": false
+  },
+  "screenshot": "macos-companion.png",
+  "screenshot_sha256": "fd93585df43f97812c1d48ac5e2cfff21d62c7732ff4e2f47bcae49e718006cc",
+  "synthetic_calls": {
+    "model": 12,
+    "asr": 3,
+    "tts": 5
+  },
+  "renderer_errors": [],
+  "archive": {
+    "original_report_sha256": "29e2995578af804284139eb15ee46be144bf76ace7a67f024a4ddd7d68671ec3",
+    "original_screenshot": "companion-on-demand-smoke.png"
+  }
 }

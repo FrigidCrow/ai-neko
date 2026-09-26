@@ -3,12 +3,15 @@
 import asyncio
 import base64
 import json
+import mmap
+import os
 import sqlite3
 import time
 from uuid import uuid4
 
 import httpx
 import pytest
+from filelock import FileLock
 from test_runtime import Model, Store, settled, text_ready
 
 from ai_neko.app.server import Connection, create_app
@@ -20,6 +23,46 @@ from ai_neko.runtime import service as runtime_module
 
 def make_runtime(tmp_path, name="adversarial", model=None):
     return SessionRuntime(initialize_data_root(tmp_path / name), Store(model))
+
+
+def assert_no_image_bytes_on_disk(root, forbidden, *, active):
+    for path in root.rglob("*"):
+        if not path.is_file():
+            continue
+        if active:
+            # Windows byte-range locks can deny a second handle's read, even in
+            # the same process. Read-only mapped views inspect the actual file
+            # bytes without excluding lock files or SQLite DB/WAL/SHM files.
+            with path.open("rb") as handle:
+                if os.fstat(handle.fileno()).st_size == 0:
+                    continue  # Empty files contain no image bytes and cannot be mapped.
+                with mmap.mmap(handle.fileno(), 0, access=mmap.ACCESS_READ) as view:
+                    contents = view[:]
+        else:
+            contents = path.read_bytes()
+        for value in forbidden:
+            assert value not in contents, f"Image bytes persisted in {path.relative_to(root)}"
+
+
+@pytest.mark.parametrize(
+    "filename",
+    [
+        "conversation.sqlite",
+        "conversation.sqlite-wal",
+        "conversation.sqlite-shm",
+        ".conversation.lock",
+    ],
+)
+@pytest.mark.parametrize("encoded", [False, True])
+def test_image_disk_scan_detects_leaks_even_in_locked_files(tmp_path, filename, encoded):
+    marker = b"SYNTHETIC_IMAGE_SCAN_MUST_DETECT_THIS_LEAK"
+    payload = base64.b64encode(marker) if encoded else marker
+    path = tmp_path / filename
+    # Use the public borrowed-descriptor hook: the owning handle can write a
+    # synthetic leak after acquisition on both Windows and POSIX.
+    with FileLock(path, on_acquired=lambda fd: os.write(fd, payload)):
+        with pytest.raises(AssertionError, match="Image bytes persisted"):
+            assert_no_image_bytes_on_disk(tmp_path, (payload,), active=True)
 
 
 @pytest.mark.parametrize("length", [2001, 8000])
@@ -182,6 +225,11 @@ def test_raw_screenshot_stays_out_of_disk_during_cancel_and_next_turn(tmp_path):
         "data_url": "data:image/png;base64,"
         + base64.b64encode(b"\x89PNG\r\n\x1a\n" + marker).decode(),
     }
+    forbidden = (
+        marker,
+        picture["data_url"].encode(),
+        picture["data_url"].split(",", 1)[1].encode(),
+    )
 
     async def run():
         runtime = make_runtime(tmp_path, model=Model(gate=asyncio.Event()))
@@ -190,18 +238,18 @@ def test_raw_screenshot_stays_out_of_disk_during_cancel_and_next_turn(tmp_path):
             first = await runtime.start_turn(sid, "Inspect this synthetic frame", image=picture)
             await text_ready(runtime, sid, first["id"])
             assert picture["data_url"] in json.dumps(runtime.providers.adapter.messages)
-            for path in runtime.paths.root.rglob("*"):
-                if path.is_file():
-                    contents = path.read_bytes()
-                    assert marker not in contents
-                    assert picture["data_url"].encode() not in contents
+            assert_no_image_bytes_on_disk(runtime.paths.root, forbidden, active=True)
             await runtime.cancel_turn(sid, first["id"])
+            assert_no_image_bytes_on_disk(runtime.paths.root, forbidden, active=True)
             runtime.providers.adapter = Model(["Only the new question"])
             second = await runtime.start_turn(sid, "No image for this turn")
             await settled(runtime, sid, second["id"])
             assert picture["data_url"] not in json.dumps(runtime.providers.adapter.messages)
+            assert_no_image_bytes_on_disk(runtime.paths.root, forbidden, active=True)
         finally:
             await runtime.close()
+        # Also inspect ordinary reads after all handles close and SQLite flushes.
+        assert_no_image_bytes_on_disk(runtime.paths.root, forbidden, active=False)
 
     asyncio.run(run())
 

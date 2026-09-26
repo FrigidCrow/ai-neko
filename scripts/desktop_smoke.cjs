@@ -67,12 +67,14 @@ if (archive) {
 }
 report.executable_sha256 = crypto.createHash('sha256').update(fs.readFileSync(executablePath)).digest('hex');
 let electronApp; let page; let modelCalls = 0;
+const modelRequests = [];
 const rendererErrors = [];
 const model = http.createServer((request, response) => {
   const body = []; request.on('data', (chunk) => body.push(chunk));
   request.on('end', async () => {
     const value = JSON.parse(Buffer.concat(body).toString()); modelCalls += 1;
     const last = [...value.messages].reverse().find((m) => m.role === 'user')?.content || '';
+    modelRequests.push({ text: last, tools: Boolean(value.tools) });
     let pieces = last.includes('slow') ? Array(35).fill('合成慢速片段。') : ['合成回复：', '你好，', '本轮已收到。'];
     let deltas = pieces.map((content) => ({ content }));
     if (value.tools && !value.messages.some((m) => m.role === 'tool')) {
@@ -162,6 +164,8 @@ async function quit() {
     await page.waitForFunction(() => document.querySelector('#settings-panel').hidden && document.querySelector('#turn-status').textContent.includes('设置已保存'));
   });
   await check('incremental_reply_cancel_and_old_delta_rejection', async () => {
+    await page.locator('#mode-chat').click();
+    assert.equal(await page.locator('#mode-chat').getAttribute('aria-pressed'), 'true');
     await page.locator('#message-input').fill('slow synthetic desktop');
     await page.locator('#message-form').evaluate((form) => form.requestSubmit());
     await page.waitForFunction(() => [...document.querySelectorAll('.assistant-output')].some((e) => e.textContent.includes('合成慢速片段')));
@@ -176,6 +180,7 @@ async function quit() {
     await pause(650);
     assert.equal(await page.locator('.assistant-output').last().innerText(), frozen);
     assert.ok(frozen.length < '合成慢速片段。'.repeat(35).length);
+    assert.ok(modelRequests.filter((request) => request.text === 'slow synthetic desktop').every((request) => !request.tools));
   });
   await check('normal_reply_after_cancel_and_guide_error_feedback', async () => {
     await page.locator('#message-input').fill('hello synthetic desktop');
@@ -185,11 +190,20 @@ async function quit() {
     await page.locator('#mode-guide').click();
     await page.locator('#message-input').fill('synthetic guide');
     await page.locator('#message-form').evaluate((form) => form.requestSubmit());
-    await page.waitForFunction(() => !document.querySelector('#settings-panel').hidden);
+    await page.waitForFunction(() => !document.querySelector('#notice').hidden && document.querySelector('#notice-text').textContent.includes('Tavily'));
+    await page.waitForFunction(() => document.querySelector('#cancel-turn').hidden);
+    assert.equal(await page.locator('#settings-panel').isHidden(), true);
     assert.equal(await page.locator('#pet-stage').isVisible(), true);
-    assert.ok(await page.locator('#settings-message').innerText());
+    assert.ok((await page.locator('#notice-text').innerText()).includes('Key'));
+    const toolFailure = await page.evaluate(async () => {
+      const id = localStorage.getItem('ai-neko.desktop.last-session');
+      const turn = (await window.aiNeko.request({ method: 'GET', path: `/api/sessions/${id}` })).body.turns.at(-1);
+      const events = (await window.aiNeko.request({ method: 'GET', path: `/api/sessions/${id}/turns/${turn.turn_id || turn.id}/events?after=0` })).body.events;
+      return events.some((event) => event.type === 'tool' && event.error === 'search_key_missing');
+    });
+    assert.equal(toolFailure, true);
     await snap('desktop-guide');
-    await page.locator('#close-settings').click();
+    await page.locator('#mode-chat').click();
   });
   await check('fold_keeps_pet_and_preferences_persist', async () => {
     await page.locator('#close-chat').click();
@@ -216,6 +230,7 @@ async function quit() {
   });
   await check('actual_host_crash_reaps_owned_backend_and_does_not_replay', async () => {
     await launch();
+    await page.locator('#mode-chat').click();
     await page.locator('#message-input').fill('slow host crash synthetic');
     await page.locator('#message-form').evaluate((form) => form.requestSubmit());
     await page.waitForFunction(() => !document.querySelector('#cancel-turn').hidden &&

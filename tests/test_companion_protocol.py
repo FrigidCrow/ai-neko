@@ -93,3 +93,28 @@ def test_deepseek_official_chat_uses_documented_output_limit_field(provider_http
     collect(adapter(base="https://api.deepseek.com"))
     payload = json.loads(requests[0].content)
     assert payload["max_tokens"] == 4096 and "max_completion_tokens" not in payload
+
+
+def test_search_enabled_greeting_neither_fetches_nor_injects_empty_evidence():
+    model = ScriptModel([[], [text("你好，今天想聊什么？")]])
+    web = ScriptWeb([])
+    state, events, _ = run_graph(model, web, guide=True, question="你好")
+    assert not web.calls
+    assert model.calls[0][1]
+    assert model.calls[-1][1] is None
+    assert model.calls[-1][0][-1]["content"] == "你好"
+    assert not any(event["type"] == "tool" for event in events)
+    assert not any(event.get("status") == "researching" for event in events)
+
+
+def test_missing_search_configuration_answers_without_futile_retry():
+    model = ScriptModel(
+        [[call("search_web", query="最新游戏规则")], [text("需要先配置搜索服务。")]]
+    )
+    web = ScriptWeb([result(status="error", error="search_key_missing")])
+    state, events, _ = run_graph(model, web)
+    assert len(web.calls) == 1 and len(model.calls) == 2
+    assert "search_key_missing" in model.calls[-1][0][-1]["content"]
+    assert any(event.get("status") == "researching" for event in events)
+    assert any(event.get("error") == "search_key_missing" for event in events)
+    assert state["output"] == "需要先配置搜索服务。"

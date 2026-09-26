@@ -23,14 +23,26 @@ const report = { status: 'RUNNING', platform: process.platform, node: process.ve
 const save = () => fs.writeFileSync(output, JSON.stringify(report, null, 2));
 const pause = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const calls = { models: [], asr: 0, tts: 0 };
+let asrText = '合成语音问题，请看当前棋盘。';
+let failHistoricalQuestion = false;
 const mp3 = fs.readFileSync(path.join(__dirname, 'fixtures/synthetic-tone.mp3'));
 const server = http.createServer((req, res) => {
   const chunks = []; req.on('data', (chunk) => chunks.push(chunk)); req.on('end', async () => {
-    if (req.url === '/v1/audio/transcriptions') { calls.asr++; res.writeHead(200, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ text: '合成语音问题，请看当前棋盘。' })); return; }
+    if (req.url === '/v1/audio/transcriptions') { calls.asr++; res.writeHead(200, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ text: asrText })); return; }
     if (req.url === '/v1/audio/speech') { calls.tts++; res.writeHead(200, { 'Content-Type': 'audio/mpeg' }); res.end(mp3); return; }
     if (req.url !== '/v1/chat/completions') { res.writeHead(404); res.end(); return; }
     const body = JSON.parse(Buffer.concat(chunks)); calls.models.push(body);
+    const lastUser = body.messages.findLast((message) => message.role === 'user')?.content;
+    const userText = Array.isArray(lastUser) ? lastUser.filter((part) => part.type === 'text').map((part) => part.text).join(' ') : lastUser || '';
+    if (failHistoricalQuestion && userText.includes('合成失败历史重试问题')) {
+      failHistoricalQuestion = false; res.writeHead(503, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: { message: 'Synthetic provider failure' } })); return;
+    }
     res.writeHead(200, { 'Content-Type': 'text/event-stream' });
+    if (body.tools && userText.includes('合成语音查规则') && !body.messages.some((message) => message.role === 'tool')) {
+      res.end('data: ' + JSON.stringify({ choices: [{ delta: { tool_calls: [{ index: 0, id: 'synthetic-voice-search', type: 'function', function: { name: 'search_web', arguments: JSON.stringify({ query: 'synthetic latest game rules' }) } }] } }] }) + '\n\ndata: [DONE]\n\n');
+      return;
+    }
     for (const content of ['合成场景建议：先观察。', '再决定下一步。']) { res.write('data: ' + JSON.stringify({ choices: [{ delta: { content } }] }) + '\n\n'); await pause(180); }
     res.end('data: [DONE]\n\n');
   });
@@ -122,6 +134,16 @@ report.executable_sha256 = crypto.createHash('sha256').update(fs.readFileSync(ex
     await page.locator('#settings-form').evaluate((form) => form.requestSubmit());
     await page.waitForFunction(() => document.querySelector('#settings-panel').hidden);
   });
+  await check('default_on_demand_mode_and_new_session_keep_explicit_choice', async () => {
+    assert.equal(await page.locator('#mode-guide').getAttribute('aria-pressed'), 'true');
+    assert.ok((await page.locator('#mode-guide').innerText()).includes('按需联网'));
+    assert.equal(await page.locator('#notice').isHidden(), true);
+    await page.locator('#mode-chat').click(); await page.locator('#new-session').click();
+    assert.equal(await page.locator('#mode-chat').getAttribute('aria-pressed'), 'true');
+    assert.equal(await page.locator('#mode-hint').innerText(), '不联网搜索');
+    await page.locator('#mode-guide').click(); await page.locator('#new-session').click();
+    assert.equal(await page.locator('#mode-guide').getAttribute('aria-pressed'), 'true');
+  });
   await check('selected_synthetic_window_preview_and_per_turn_fresh_image', async () => {
     await application.evaluate(async ({ BrowserWindow, desktopCapturer, nativeImage }) => {
       const fixture = new BrowserWindow({ show: false, width: 680, height: 420, webPreferences: { sandbox: true, partition: 'ai-neko-synthetic-fixture' } });
@@ -138,6 +160,10 @@ report.executable_sha256 = crypto.createHash('sha256').update(fs.readFileSync(ex
     const last = calls.models.at(-1).messages.findLast((item) => item.role === 'user').content;
     assert.ok(Array.isArray(last) && last.some((part) => part.type === 'image_url'));
     assert.equal(await application.evaluate(() => globalThis.syntheticVisionCalls), 3);
+    assert.ok(calls.models.some((request) => request.tools?.some((tool) => tool.function?.name === 'search_web')));
+    assert.ok(calls.models.every((request) => !request.messages.some((message) => message.role === 'tool')));
+    assert.equal(await page.locator('#notice').isHidden(), true);
+    report.on_demand_plain_question = { tool_schemas_available: true, search_calls: 0, missing_search_key_did_not_block: true };
   });
   await check('real_web_audio_playback_cancel_stops_queue', async () => {
     const before = calls.tts;
@@ -158,6 +184,64 @@ report.executable_sha256 = crypto.createHash('sha256').update(fs.readFileSync(ex
     const last = calls.models.at(-1).messages.findLast((item) => item.role === 'user').content;
     assert.ok(Array.isArray(last) && last.some((part) => part.type === 'image_url'));
     await page.locator('#stop-audio').click();
+  });
+  await check('default_voice_image_can_request_search_and_reports_actual_missing_key', async () => {
+    await page.waitForFunction(() => document.querySelector('#cancel-turn').hidden);
+    assert.equal(await page.locator('#mode-guide').getAttribute('aria-pressed'), 'true');
+    const before = calls.models.length;
+    asrText = '合成语音查规则，需要查询最新规则。';
+    await page.locator('#record-voice').click();
+    await page.waitForFunction(() => document.querySelector('#record-voice').getAttribute('aria-pressed') === 'true');
+    await pause(400); await page.locator('#record-voice').click();
+    await page.waitForFunction(() => document.querySelector('#notice-text').textContent.includes('Tavily') && !document.querySelector('#notice').hidden);
+    await page.waitForFunction(() => document.querySelector('#cancel-turn').hidden);
+    const requests = calls.models.slice(before);
+    const planner = requests.find((request) => request.tools?.some((tool) => tool.function?.name === 'search_web'));
+    assert.ok(planner);
+    assert.ok(planner.messages.findLast((message) => message.role === 'user').content.some((part) => part.type === 'image_url'));
+    assert.ok(requests.some((request) => !request.tools && request.messages.some((message) => typeof message.content === 'string' && message.content.includes('search_key_missing'))));
+    const events = await page.evaluate(async () => {
+      const id = localStorage.getItem('ai-neko.desktop.last-session');
+      const turn = (await window.aiNekoChat.api(`/api/sessions/${id}`)).turns.at(-1);
+      return (await window.aiNekoChat.api(`/api/sessions/${id}/turns/${turn.turn_id || turn.id}/events?after=0`)).events;
+    });
+    assert.ok(events.some((event) => event.type === 'tool' && event.name === 'search_web' && event.error === 'search_key_missing'));
+    assert.equal(await page.locator('#settings-panel').isHidden(), true);
+    report.voice_search = { default_mode: 'on_demand', image_and_tool_schemas: true, actual_tool_error: 'search_key_missing' };
+    await page.locator('#stop-audio').click();
+    asrText = '合成语音问题，请看当前棋盘。';
+  });
+  await check('opening_history_preserves_explicit_search_permission', async () => {
+    await page.locator('#mode-chat').click();
+    await page.locator('#open-history').click();
+    await page.locator('#session-list .session-item').first().click();
+    await page.waitForFunction(() => !document.querySelector('#chat-panel').hidden && document.body.dataset.sessionLoading === 'false');
+    assert.equal(await page.locator('#mode-chat').getAttribute('aria-pressed'), 'true');
+    assert.equal(await page.locator('#mode-hint').innerText(), '不联网搜索');
+    await page.locator('#mode-guide').click();
+  });
+  await check('failed_history_retry_uses_current_chat_only_permission', async () => {
+    assert.equal(await page.locator('#mode-guide').getAttribute('aria-pressed'), 'true');
+    failHistoricalQuestion = true;
+    await page.locator('#message-input').fill('合成失败历史重试问题');
+    await page.locator('#message-form').evaluate((form) => form.requestSubmit());
+    await page.waitForFunction(() => ![...document.querySelectorAll('.retry-turn')].at(-1).hidden && document.querySelector('#cancel-turn').hidden);
+    await page.locator('#mode-chat').click();
+    await page.locator('#open-history').click(); await page.locator('#session-list .session-item').first().click();
+    await page.waitForFunction(() => !document.querySelector('#chat-panel').hidden && document.body.dataset.sessionLoading === 'false');
+    const before = calls.models.length;
+    const beforeReplies = await page.locator('.assistant-output').count();
+    await page.locator('.retry-turn').last().click();
+    await page.waitForFunction((count) => document.querySelector('#cancel-turn').hidden && [...document.querySelectorAll('.assistant-output')].length === count + 1 && [...document.querySelectorAll('.assistant-output')].at(-1).textContent.includes('再决定下一步。'), beforeReplies);
+    assert.equal(await page.locator('#mode-chat').getAttribute('aria-pressed'), 'true');
+    assert.equal(await page.locator('#mode-hint').innerText(), '不联网搜索');
+    const retried = calls.models.slice(before);
+    assert.equal(retried.length, 1); assert.ok(retried.every((request) => !request.tools));
+    const turns = await page.evaluate(async () => { const id = localStorage.getItem('ai-neko.desktop.last-session'); return (await window.aiNekoChat.api(`/api/sessions/${id}`)).turns; });
+    assert.equal(turns.at(-2).status, 'error'); assert.equal(turns.at(-2).error, 'provider_http_error'); assert.equal(turns.at(-2).guide, true);
+    assert.equal(turns.at(-1).status, 'completed'); assert.equal(turns.at(-1).guide, false);
+    report.history_retry = { original_guide: true, retry_guide: false, tool_schemas_sent: false };
+    await page.locator('#stop-audio').click(); await page.locator('#mode-guide').click();
   });
   await check('folded_panel_voice_keeps_playing_without_false_display_ack', async () => {
     await page.waitForFunction(() => document.querySelector('#cancel-turn').hidden);
@@ -183,8 +267,9 @@ report.executable_sha256 = crypto.createHash('sha256').update(fs.readFileSync(ex
     await page.waitForSelector('#vision-preview', { state: 'hidden' });
     const count = await application.evaluate(() => globalThis.syntheticVisionCalls);
     await page.locator('#close-settings').click(); await page.locator('#speak-replies').uncheck();
+    const beforeReplies = await page.locator('.assistant-output').count();
     await page.locator('#message-input').fill('关闭观察后的合成文字问题'); await page.locator('#message-form').evaluate((form) => form.requestSubmit());
-    await page.waitForFunction(() => document.querySelector('#cancel-turn').hidden && [...document.querySelectorAll('.assistant-output')].length >= 4 && [...document.querySelectorAll('.assistant-output')].at(-1).textContent.includes('再决定下一步。'));
+    await page.waitForFunction((count) => document.querySelector('#cancel-turn').hidden && [...document.querySelectorAll('.assistant-output')].length === count + 1 && [...document.querySelectorAll('.assistant-output')].at(-1).textContent.includes('再决定下一步。'), beforeReplies);
     assert.equal(await application.evaluate(() => globalThis.syntheticVisionCalls), count);
     const last = calls.models.at(-1).messages.findLast((item) => item.role === 'user').content;
     assert.equal(typeof last, 'string');

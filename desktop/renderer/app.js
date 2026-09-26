@@ -18,7 +18,7 @@
   const terminalStatuses = new Set(["completed", "complete", "done", "cancelled", "canceled", "failed", "error", "interrupted"]);
   const state = {
     connected: false, stopped: false, initializing: true, loadingSession: false, historyError: false, config: {}, sessions: [],
-    sessionId: null, guide: false, generation: 0, active: null, submitting: false,
+    sessionId: null, guide: true, generation: 0, active: null, submitting: false,
     pollController: null, noticeAction: null, pendingRequest: null,
   };
 
@@ -163,17 +163,10 @@
       (localModel || configValue("model_key_set", "model_api_key_set", "model_configured")));
   }
 
-  function searchReady() {
-    return Boolean(configValue("search_base_url") &&
-      configValue("search_key_set", "search_api_key_set", "search_configured"));
-  }
-
   function showConfigurationNotice() {
-    byId("welcome-settings").hidden = modelReady() && searchReady();
+    byId("welcome-settings").hidden = modelReady();
     if (!modelReady()) {
       showNotice("先连接一个对话模型，就可以开始使用。", { label: "前往设置", action: openSettings });
-    } else if (state.guide && !searchReady()) {
-      showNotice("查攻略还需要 Tavily 搜索；也可以切换到日常聊天。", { label: "设置搜索", action: openSettings });
     } else showNotice("");
   }
 
@@ -183,8 +176,8 @@
     byId("mode-chat").classList.toggle("is-active", !guide);
     byId("mode-guide").setAttribute("aria-pressed", String(guide));
     byId("mode-chat").setAttribute("aria-pressed", String(!guide));
-    byId("mode-hint").textContent = guide ? "联网 · 附来源" : "不联网搜索";
-    elements.input.placeholder = guide ? "告诉我游戏、平台和版本，或直接说说你遇到的问题…" : "今天想聊些什么？";
+    byId("mode-hint").textContent = guide ? "需要时查询 · 附来源" : "不联网搜索";
+    elements.input.placeholder = guide ? "聊聊天，或问问当前局面；需要资料时我会查询…" : "今天想聊些什么？";
     if (state.connected) showConfigurationNotice();
   }
 
@@ -320,7 +313,7 @@
     retry.addEventListener("click", () => {
       if (state.active || state.submitting || !state.connected) return;
       showPanel("chat");
-      if (typeof turn.guide === "boolean") setGuide(turn.guide);
+      // Retry reuses the question, not its historical search permission.
       elements.input.value = input;
       resizeInput();
       byId("message-form").requestSubmit();
@@ -435,7 +428,8 @@
       const session = response.session || response;
       elements.title.textContent = session.title || "对话";
       const turns = session.turns || response.turns || [];
-      if (turns.length && typeof turns[turns.length - 1].guide === "boolean") setGuide(turns[turns.length - 1].guide);
+      // Historical turns record their old permission; opening them must not change
+      // the visibly selected search permission for the next question.
       if (!turns.length) elements.welcome.hidden = false;
       const pending = [];
       for (const turn of turns) {
@@ -495,6 +489,15 @@
       if (view.liveTurnId) window.aiNekoCompanion?.text(view.liveTurnId, typeof data.text === "string" ? data.text : "");
     } else if (event.type === "source") {
       updateSource(view, data.source);
+    } else if (event.type === "tool") {
+      if (data.status === "running") {
+        elements.status.textContent = data.name === "read_web_page" ? "正在读取网页…" : "正在查资料…";
+        setPetState("searching");
+      } else if (data.status === "error") {
+        if (data.error === "search_key_missing") {
+          showNotice(friendlyError({ code: data.error }), { error: true, label: "设置搜索", action: openSettings });
+        } else showNotice("这次资料查询未完成，回答中的信息缺口需要继续核实。", { error: true });
+      }
     } else if (event.type === "status") {
       elements.status.textContent = data.message || ({ accepted: "正在想…", researching: "正在查资料…", answering: "正在组织回答…" }[data.status] || "正在想…");
       setPetState(/查|搜|读|search|read|tool/i.test(data.message || data.status || "") ? "searching" : "thinking");
@@ -598,12 +601,6 @@
       openSettings();
       elements.settingsMessage.textContent = "请先填写模型 API 地址、模型名称和 API Key；本机模型可以不填 Key。";
       (!configValue("model_base_url") ? elements.modelUrl : !configValue("model") ? elements.model : elements.modelKey).focus();
-      return;
-    }
-    if (state.guide && !searchReady()) {
-      openSettings();
-      elements.settingsMessage.textContent = "查攻略需要 Tavily API Key，请先填写搜索设置。也可以返回后切换到聊聊天。";
-      elements.searchKey.focus();
       return;
     }
     const generation = state.generation;
@@ -874,5 +871,6 @@
       await sendMessage({ preventDefault() {} });
     },
   });
+  setGuide(state.guide);
   initialize();
 })();

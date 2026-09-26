@@ -146,7 +146,7 @@ def build_chat_graph(
         return [{"role": "system", "content": persona + "\n" + PLANNING}] + messages
 
     async def plan(state: ChatState) -> dict[str, Any]:
-        emit({"type": "status", "status": "researching", "round": state["rounds"] + 1})
+        emit({"type": "status", "status": "planning", "round": state["rounds"] + 1})
         calls = []
         async for event in model.stream(
             planning_messages(state),
@@ -185,8 +185,10 @@ def build_chat_graph(
         return {"calls": calls}
 
     async def execute_tools(state: ChatState) -> dict[str, Any]:
+        emit({"type": "status", "status": "researching", "round": state["rounds"] + 1})
         sources = [dict(source) for source in state["sources"]]
         tool_messages = list(state["tool_messages"])
+        configuration_missing = False
         assistant_calls = [
             {
                 "id": call["id"],
@@ -202,6 +204,7 @@ def build_chat_graph(
         for call in state["calls"]:
             emit({"type": "tool", "name": call["name"], "status": "running"})
             result = await web_tools.execute(call["name"], call["arguments"])
+            configuration_missing |= result.get("error") == "search_key_missing"
             result_sources = []
             for source in result.get("sources", [])[:8]:
                 if not isinstance(source, dict) or not isinstance(source.get("url"), str):
@@ -241,14 +244,14 @@ def build_chat_graph(
         return {
             "sources": sources,
             "tool_messages": tool_messages,
-            "rounds": state["rounds"] + 1,
+            "rounds": 3 if configuration_missing else state["rounds"] + 1,
             "calls": [],
         }
 
     async def answer(state: ChatState) -> dict[str, Any]:
         emit({"type": "status", "status": "answering"})
         messages = [{"role": "system", "content": persona}] + attach_image(state["messages"], image)
-        if state["guide"]:
+        if state["guide"] and (state["rounds"] or state["sources"]):
             evidence = []
             remaining = 24000
             for source in state["sources"]:

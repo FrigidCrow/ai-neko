@@ -354,12 +354,15 @@ def test_backup_does_not_accept_arbitrary_path(memory, backup_id):
 
 
 def test_symlink_database_is_rejected(paths, tmp_path):
-    if os.name == "nt":
-        pytest.skip("Windows non-admin symlink permission is not required by this fixture")
     foreign = tmp_path / "foreign.sqlite"
     foreign.write_text("foreign")
-    (paths.memory / "long-term.sqlite").symlink_to(foreign)
-    with pytest.raises(ValueError, match="symlink"):
+    try:
+        (paths.memory / "long-term.sqlite").symlink_to(foreign)
+    except OSError as exc:
+        if getattr(exc, "winerror", None) == 1314:
+            pytest.skip("Host needs Windows Developer Mode or symlink privileges")
+        raise
+    with pytest.raises(ValueError, match="symlink|reparse"):
         MemoryService(paths)
     assert foreign.read_text() == "foreign"
 

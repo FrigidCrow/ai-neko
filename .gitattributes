@@ -2,3 +2,4 @@
 packaging/licenses/* -text -whitespace
 desktop/vendor/** -text -whitespace
 desktop/assets/** -text -whitespace
+src/ai_neko/memory/licenses/* -text -whitespace

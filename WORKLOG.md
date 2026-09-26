@@ -300,3 +300,16 @@ gh run download 36175618386 --name package-evidence --dir artifacts/mvp1/tag-evi
 安全边界回归发现并修复过程及未完成项见REVIEW。新增Windows ZIP的companion smoke门禁与NEKO memory许可证复制测试；本机未运行Windows程序，未发布新版。当前完整目标尚不满足真实服务和Windows验收，保持active。
 
 `python3 docs/diagrams/tools/validate-docs.py`：PASS，24文档、349本地链接、206参考文件指纹与阶段一致性通过；参考仓库tracked diff/status未变。沿用此前对同一仓库上传与CI的授权，将通过检查的五项能力提交至独立`codex/companion-five-capabilities`分支并运行Windows CI；不创建发布tag。远端运行结果另行追加，未执行前保持Pending。
+
+
+### 按需联网与首轮Windows复验修正
+
+已推送功能分支commit `393e3655890a4e1759fc0981931dc3294f1d6432`，首轮CI [36224678803](https://github.com/FrigidCrow/ai-neko/actions/runs/36224678803) Linux通过；Windows为455 passed、2 failed、1 skipped，打包正确未启动。`gh run view --log-failed`与`gh run download -n evidence-Windows`取得脱敏报告，定位截图落盘检查及记忆组件许可hash两项失败，报告未保留原始traceback。
+
+修复新增许可文件的Git行尾策略，`.gitattributes`将`src/ai_neko/memory/licenses/*`设为字节保留；`git -c core.autocrlf=true cat-file --filters`输出SHA与记录一致，打包测试24项通过。截图测试根据Windows字节锁行为改成活跃时只读mmap、关闭后普通全量读取；包含所有锁/SQLite/WAL/SHM，并增加取消/下一轮/裸Base64检查及8个真实持锁文件扫描回归。Windows不再无条件跳过记忆数据库symlink检查，只有实际缺少创建权限时才记skip，CI仍拒绝未通过的必要检查。
+
+只读搜索审查指出语音默认仅聊天不能按需查询，已修正默认明确显示“按需联网”，保留“仅聊天”。缺Key不阻止普通聊天，实际工具错误才提示；规划只显示思考，实际工具执行才显示查询；无工具不注入空证据，缺凭据不徒劳重试。历史与重试遵循当前明确模式。对应graph协议18项通过。打包README同步新功能和真实验收缺口，旧Release保持不变。
+
+最终本地全套`.venv/bin/python -m pytest -q`：467 passed、1项Windows凭据库专属skip，37.82s。Ruff检查/格式和diff检查通过；真实云调用仍为0。
+
+`node desktop/tests/companion.smoke.cjs --output artifacts/mvp1/companion-on-demand-smoke.json`最终13/13 PASS；`node scripts/desktop_smoke.cjs --output artifacts/mvp1/desktop-on-demand-baseline.json`9/9 PASS，宿主28/28。新增默认语音/图片按需工具、无Key普通聊天、打开历史/失败重试遵循当前模式；重试用真实合成HTTP503触发，随后仅聊天只发1次不带tools的模型请求。报告和截图更新至docs/evidence/companion；合成模型12、ASR3、TTS5，实际用户采集及云服务调用0。
