@@ -2,7 +2,6 @@
 
 import asyncio
 import json
-from uuid import uuid4
 
 import pytest
 from test_chat import ScriptModel, ScriptWeb, call, result, run_graph, text
@@ -59,7 +58,7 @@ def test_adapter_keeps_fragmented_reasoning_only_as_internal_context(provider_ht
     assert not any(item["type"] == "text" for item in response)
 
 
-def test_actual_playback_ack_is_independent_of_text_delivery_and_recovers(tmp_path):
+def test_actual_playback_ack_is_independent_of_text_delivery_and_recovers(tmp_path, monkeypatch):
     paths = initialize_data_root(tmp_path / "playback")
 
     async def run():
@@ -67,21 +66,29 @@ def test_actual_playback_ack_is_independent_of_text_delivery_and_recovers(tmp_pa
         sid = runtime.create_session()["id"]
         tid = (await runtime.start_turn(sid, "你好"))["id"]
         await settled(runtime, sid, tid)
-        first, second = uuid4().hex, uuid4().hex
-        with pytest.raises(RuntimeConflictError):
+        first, second = "f" * 32, "a" * 32
+        # Clock readings need not be unique. Equal timestamps sort by ID, so
+        # identify receipts by their stable segment ID rather than list order.
+        with monkeypatch.context() as clock:
+            clock.setattr("ai_neko.runtime.service.time.time", lambda: 1_000_000_000)
+            with pytest.raises(RuntimeConflictError):
+                runtime.audio_ack(sid, tid, first, "completed")
+            runtime.audio_ack(sid, tid, first, "started")
             runtime.audio_ack(sid, tid, first, "completed")
-        runtime.audio_ack(sid, tid, first, "started")
-        runtime.audio_ack(sid, tid, first, "completed")
-        assert runtime.audio_ack(sid, tid, first, "stopped")["state"] == "completed"
-        runtime.audio_ack(sid, tid, second, "started")
+            assert runtime.audio_ack(sid, tid, first, "stopped")["state"] == "completed"
+            runtime.audio_ack(sid, tid, second, "started")
         row = runtime.get_session(sid)["turns"][0]
         assert row["ack_seq"] == 0 and row["confirmed_text"] == ""
-        assert [item["state"] for item in row["audio_playback"]] == ["completed", "started"]
+        assert {item["segment_id"]: item["state"] for item in row["audio_playback"]} == {
+            first: "completed",
+            second: "started",
+        }
         await runtime.close()
         reopened = SessionRuntime(paths, Store())
         assert {
-            item["state"] for item in reopened.get_session(sid)["turns"][0]["audio_playback"]
-        } == {"completed", "interrupted"}
+            item["segment_id"]: item["state"]
+            for item in reopened.get_session(sid)["turns"][0]["audio_playback"]
+        } == {first: "completed", second: "interrupted"}
         await reopened.close()
 
     asyncio.run(run())

@@ -3,7 +3,7 @@ ai-neko MVP1 desktop catgirl preview (Windows x64)
 1. Extract the ENTIRE ZIP to a separate folder. Keep resources and all runtime files.
 2. Double-click ai-neko.exe (or Start ai-neko.cmd). No Python/Node/uv installation is needed.
 3. On first launch, read the bundled Live2D terms and choose whether to accept.
-4. The catgirl appears on your desktop. Click her to open text chat; drag the handle to move.
+4. The catgirl appears on your desktop. Click her to open text chat; drag her to move.
 5. Open Settings beside the catgirl to configure your own model and Tavily search credentials.
 6. Replies stream beside her. Stop cancels a reply. On-demand search is enabled by default;
    the model chooses whether it needs public sources. Chat-only disables search tools.
@@ -11,7 +11,7 @@ ai-neko MVP1 desktop catgirl preview (Windows x64)
 
 Companion settings:
 - Edit the catgirl persona; saved changes apply from the next question.
-- Choose and preview a window/screen, then enable observation. Each question captures one new
+- Choose a window/screen, enable observation and verify the preview. Each question captures one new
   frame and sends it to your configured image-capable model. Turning observation off revokes it.
 - Configure compatible speech recognition and speech synthesis services separately. Select your
   microphone, press Speak to start/stop recording, and enable spoken replies to hear answers.
