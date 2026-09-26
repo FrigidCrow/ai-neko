@@ -2,15 +2,15 @@
 
 独立的个人 AI 伴侣项目：主体是 Windows 11 x64 桌面上的可见猫娘桌宠，文字聊天、流式回复和查攻略围绕她展开。LangGraph 负责对话编排，会话保存在本机，允许调用自己配置的云模型。
 
-**MVP1 桌宠工程预览 `v0.3.0-alpha.1` 已发布。** 已接入参考 N.E.K.O. 的白裙 **YUI Lolita 猫娘**和本项目 Electron 宿主：透明桌面角色、待机动画、拖动、大小与置顶设置、伴随文字面板、流式回复、停止生成、历史恢复、Tavily 搜索及公开正文来源、托盘找回和退出。未配置模型时也能显示猫娘，收起聊天后她仍留在桌面。
+**当前发布目标：五项能力桌宠预览 `v0.4.0-alpha.1`。** 保留参考 N.E.K.O. 的白裙 **YUI Lolita 猫娘**和本项目 Electron 宿主，提供透明角色、待机、拖动/缩放/置顶、伴随聊天、托盘找回和退出。未配置模型时也能显示猫娘，收起聊天后她仍留在桌面。
 
-[发布 CI](https://github.com/FrigidCrow/ai-neko/actions/runs/36175618386) 已通过：Windows Python **302 passed / 0 skipped**、Linux **301 passed / 1 skipped**、桌面宿主 **15 项**、冻结后端 **16/16**、实际打包 Electron 桌面 **9/9**，并核验 **79 个资源/许可文件**。Linux 跳过项为 Windows 凭据专属测试，不计通过。桌面检查包含实际角色窗口、强制结束 GUI 后清理及重启无重放。**真实模型对话和真实搜索验收目前均为 0；Windows 11 真机、连续 10 轮真实对话、3 次真实搜索及 p95 性能仍待验收。** M0/M1 总体保持 Partial，最新证据以 [REVIEW](REVIEW.md) 为准。该已发布版本不含长期事实/人格记忆和语音；开发分支的新能力见下文。不做键鼠代操作或控制其他软件。
+本版加入可编辑人格、选定窗口的当轮视觉、按键语音输入与按句朗读、跨兼容模型共享的按需搜索，以及本地长期记忆的保存、召回、依据、纠正、遗忘和快照管理。已完整听完的句子可进入后续上下文。N.E.K.O. 分词/BM25组件的来源和许可已保留，使用与验收见[五项能力说明](docs/COMPANION-IMPLEMENTATION.md)。
 
-前往 [v0.3.0-alpha.1 下载页](https://github.com/FrigidCrow/ai-neko/releases/tag/v0.3.0-alpha.1)，下载 **`ai-neko-0.3.0-alpha.1-windows-x64.zip`，完整解压并双击根目录 `ai-neko.exe`**。包内包含 Electron、Python、猫娘和运行依赖，使用者无需安装 Python、Node 或 uv。首次启动阅读并接受 Live2D SDK 条款后加载角色，在猫娘旁的设置中配置自己的模型和搜索凭据。桌面宿主自动启动、退出自己的后端。
+前往 [v0.4.0-alpha.1 下载页](https://github.com/FrigidCrow/ai-neko/releases/tag/v0.4.0-alpha.1)，下载 **`ai-neko-0.4.0-alpha.1-windows-x64.zip`，完整解压并双击根目录 `ai-neko.exe`**。版本tag的两平台测试、Windows打包和实际桌面检查全部通过后才创建Release，结果以下载页和[发布记录](docs/CI-RELEASES.md)为准。包内包含Electron、Python、猫娘和运行依赖，无需另装Python、Node或uv。首次接受Live2D条款后加载角色；在猫娘设置中配置模型、搜索和ASR/TTS，看图需使用支持图片输入的模型。
 
-已发布的 [v0.2.0-alpha.1](https://github.com/FrigidCrow/ai-neko/releases/tag/v0.2.0-alpha.1) 是历史网页工程预览，仍会打开浏览器，不能用它体验桌宠；`v0.1.0-alpha.1` 仅为基础诊断包。
+**真实云模型/搜索/语音质量、Windows11游戏真机及p95性能仍待验收。** CI使用合成窗口、麦克风和服务；应用的公开网页读取已另行实测。M0/M1等阶段的完整验收不因发布而转为完成，最新证据见[REVIEW](REVIEW.md)。免按键语音、角色扩展和主动陪伴仍属后续范围，当前不做键鼠代操作。
 
-**当前开发分支新增**：可编辑猫娘人格、选定窗口的当轮视觉、按键语音输入与按句语音回复、默认按需共享联网查询，以及本地长期记忆的保存、召回、依据、纠正、遗忘与快照管理；语音续聊会保留已完整听完的句子。已参照 N.E.K.O 并提取分词/BM25 纯组件，完整实现、使用方法和未完成验收见 [五项能力说明](docs/COMPANION-IMPLEMENTATION.md)。这些功能尚未发布到旧版下载页；[本轮 CI](https://github.com/FrigidCrow/ai-neko/actions/runs/36229884609) 已通过Windows575项、冻结后端16项、桌宠9项和新增陪伴闭环18项；可登录GitHub下载 [Windows开发包](https://github.com/FrigidCrow/ai-neko/actions/runs/36229884609/artifacts/10902556977)。真实云服务、Windows11游戏场景与质量/时延仍未验收。
+[v0.3.0-alpha.1](https://github.com/FrigidCrow/ai-neko/releases/tag/v0.3.0-alpha.1)是历史基础桌宠版；[v0.2.0-alpha.1](https://github.com/FrigidCrow/ai-neko/releases/tag/v0.2.0-alpha.1)是网页预览，`v0.1.0-alpha.1`为基础诊断包。旧版本保留。
 
 使用说明：[M1 试用与验收](docs/M1-QUICKSTART.md)、[Windows 下载与 CI/CD](docs/CI-RELEASES.md)。
 
@@ -27,9 +27,9 @@
 
 ## MVP1 与后续路线
 
-当前闭环为：启动见猫娘 → 点击输入 → 身旁流式回复 → 停止/继续聊天/查攻略 → 重开续接会话。实现范围见 [MVP1 规格](docs/MVP1-DESKTOP-PET.md)，开发分支已扩展人格、视觉、按键语音与长期记忆。接下来继续 Windows 11 真机和真实服务验收；免按键对话、角色表现扩展与主动陪伴仍属后续范围。
+当前闭环为：启动见猫娘 → 点击输入 → 身旁流式回复 → 停止/继续聊天/查攻略 → 重开续接会话。实现范围见 [MVP1 规格](docs/MVP1-DESKTOP-PET.md)，本版已扩展人格、视觉、按键语音与长期记忆。接下来继续 Windows 11 真机和真实服务验收；免按键对话、角色表现扩展与主动陪伴仍属后续范围。
 
-本地会话记录与 LangGraph checkpoint 已有，二者都不能代替 M2 的长期事实/人格记忆。当前开发分支以独立 Memory Service 实现跨会话用户偏好的召回、修改和删除，保留来源及持久提取任务；真实记忆质量仍需验收。
+本地会话记录与 LangGraph checkpoint 已有，二者都不能代替 M2 的长期事实/人格记忆。本版以独立 Memory Service 实现跨会话用户偏好的召回、修改和删除，保留来源及持久提取任务；真实记忆质量仍需验收。
 
 窗口与托盘采用本项目最小 Electron 宿主；猫娘资源从只读 N.E.K.O. 参考中提取，来源、逐文件哈希及独立 SDK 许可见 [资源记录](docs/MVP1-ASSETS.md)。不会读取或迁移原工程的配置、运行数据、凭据或服务。
 

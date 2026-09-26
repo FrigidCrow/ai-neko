@@ -381,3 +381,11 @@ Final documentation check: python3 docs/diagrams/tools/validate-docs.py > artifa
 提交`2a41fc0fe4da520d5fe36ae9f3a622c5f82bc29b`并推送后，[CI36230897663](https://github.com/FrigidCrow/ai-neko/actions/runs/36230897663)终态SUCCESS。下载Windows/Linux源码报告，新增十项回归分别2.992s/1.434s通过；整套Windows576/0skip、Linux575/1skip。下载package-evidence核对同一source与archive摘要，冻结后端16/16、桌宠9/9、陪伴闭环18/18。精选结果与原始报告摘要见[记忆补证CI](docs/evidence/companion/memory-recall-ci.json)，原件保留artifacts/ci/36230897663；本次没有重新下载ZIP。`git diff --exit-code 669a8f1 HEAD -- src desktop packaging scripts .github pyproject.toml uv.lock`通过，既有已核对下载包仍有效；不把新构建报告当成本机下载校验。
 
 仅依据源代码和已有用例核对默认路径初始化顺序：先同步校验/创建后端所有权标记，再创建desktop子目录并设置Electron profile，未发现正常启动会自行污染根目录的证据；未读取或修改实际默认目录。其已有无标记状态不作归因。本轮没有待运行的真实服务测试或Windows11会话，完整目标尚缺外部配置与实际场景质量验收，不启动无凭据调用或扩展到后续VAD/多角色功能。
+
+## 2026-09-26 — v0.4.0-alpha.1 发布准备
+
+用户明确要求发布新的Release。本轮登记PLAN发布验收项，将Python、Electron及两份锁文件中的应用版本统一为0.4.0，版本标签计划为v0.4.0-alpha.1；不升级依赖。沿用已验证的两平台测试→Windows打包→实际桌面检查→tag发布门禁，Release补充桌面截图和五项能力说明。
+
+实际执行`uv lock --offline`、`npm --prefix desktop version 0.4.0 --no-git-tag-version --ignore-scripts`与`uv sync --locked --offline`成功；六处版本声明和构建器alpha标签校验一致。`.venv/bin/pytest -q tests/test_packaging.py tests/test_package_smoke.py tests/test_provider_config.py`为67 passed / 1 Windows凭据专属skip。此时尚未创建标签、运行本次tag CI或发布；后续按实际结果补记。真实服务和Windows11验收继续单列。
+
+发布前Ruff检查与63个文件格式检查通过；桌面宿主58/58通过；文档校验PASS、无issues，git diff --check通过。

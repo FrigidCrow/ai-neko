@@ -365,7 +365,7 @@ def make_zip(folder: Path, archive: Path) -> None:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--version", required=True, help="0.3.0-alpha.1 or 0.3.0-dev.COMMIT")
+    parser.add_argument("--version", required=True, help="0.4.0-alpha.1 or 0.4.0-dev.COMMIT")
     parser.add_argument("--output", type=Path, default=Path("artifacts/package"))
     args = parser.parse_args(argv)
     try:

@@ -1,6 +1,6 @@
 # 五项能力的实施与验收
 
-日期：2026-09-26。状态：源码、合成闭环及Windows Server打包运行已通过；真实服务和Windows11真机验收未完成。GitHub现有`v0.3.0-alpha.1`不包含这里的新增功能；本轮没有发布新版。
+日期：2026-09-26。状态：源码、合成闭环及Windows Server打包运行已通过；真实服务和Windows11真机验收未完成。本次发布目标为`v0.4.0-alpha.1`，将包含这里的新增功能；tag构建通过后可从[Release页](https://github.com/FrigidCrow/ai-neko/releases/tag/v0.4.0-alpha.1)下载。历史`v0.3.0-alpha.1`不包含这些新增功能。
 
 ## 可操作的功能
 
@@ -52,6 +52,6 @@
 
 本轮没有以静态检查、合成回复、文档通过或已有旧Release作为五项功能全部完成的证据。完整目标保持进行中。
 
-开发包：登录GitHub后下载 [ai-neko-windows-x64](https://github.com/FrigidCrow/ai-neko/actions/runs/36229884609/artifacts/10902556977)，展开构建产物，再完整解压内层`ai-neko-0.3.0-dev.669a8f181e45-windows-x64.zip`并运行根目录`ai-neko.exe`。该包包含五项能力、快照管理、已听上下文，以及本次录音生命周期与视觉撤销修复。无需本机Python/Node；这是开发构建，未创建新版Release，产物保留14天。
+发布前已验证的开发包：登录GitHub后下载 [ai-neko-windows-x64](https://github.com/FrigidCrow/ai-neko/actions/runs/36229884609/artifacts/10902556977)，展开构建产物，再完整解压内层`ai-neko-0.3.0-dev.669a8f181e45-windows-x64.zip`并运行根目录`ai-neko.exe`。该包包含五项能力、快照管理、已听上下文，以及本次录音生命周期与视觉撤销修复。无需本机Python/Node；该链接为发布前开发构建，产物保留14天；本次Release发布结果见[发布记录](CI-RELEASES.md)。
 
 [下载核对记录](evidence/companion/windows/download-verification.json)确认ZIP为191,856,745字节，SHA256 `d803d6e68dcbfbc90a92e48c2501f1c98bc302dec01d8dd97d26fbe8fafbf849`；源码、程序、报告和两张截图摘要一致。本机只核对下载文件，未运行Windows程序。
