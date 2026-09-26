@@ -7,7 +7,7 @@
     "arch": "x64",
     "node": "v24.21.0"
   },
-  "source_commit": "5871f2d94e2f176a863262ae12c86edf2e05066c",
+  "source_commit": "669a8f181e45f838239bf7900bb20765588bbbd8",
   "source_dirty": false,
   "harness_sha256": "f925c6e36afbc3d85de37cd84aed0d8203c59985c310b1f597eb676436f097d5",
   "real_model_calls": 0,
@@ -17,82 +17,82 @@
     {
       "name": "consent_real_catgirl_and_owned_backend",
       "status": "PASS",
-      "elapsed_ms": 8745
+      "elapsed_ms": 8929
     },
     {
       "name": "renderer_sandbox_and_ipc_boundaries",
       "status": "PASS",
-      "elapsed_ms": 58
+      "elapsed_ms": 23
     },
     {
       "name": "settings_keep_catgirl_visible_and_configure_synthetic_model",
       "status": "PASS",
-      "elapsed_ms": 458
+      "elapsed_ms": 430
     },
     {
       "name": "incremental_reply_cancel_and_old_delta_rejection",
       "status": "PASS",
-      "elapsed_ms": 2188
+      "elapsed_ms": 1673
     },
     {
       "name": "normal_reply_after_cancel_and_guide_error_feedback",
       "status": "PASS",
-      "elapsed_ms": 1411
+      "elapsed_ms": 1472
     },
     {
       "name": "fold_keeps_pet_and_preferences_persist",
       "status": "PASS",
-      "elapsed_ms": 134
+      "elapsed_ms": 69
     },
     {
       "name": "second_launch_reuses_single_instance",
       "status": "PASS",
-      "elapsed_ms": 1125
+      "elapsed_ms": 1022
     },
     {
       "name": "quit_cleans_backend_and_restart_recovers_history",
       "status": "PASS",
-      "elapsed_ms": 4521
+      "elapsed_ms": 4663
     },
     {
       "name": "actual_host_crash_reaps_owned_backend_and_does_not_replay",
       "status": "PASS",
-      "elapsed_ms": 7210
+      "elapsed_ms": 7593
     }
   ],
   "screenshots": [
     {
       "file": "desktop-catgirl.png",
-      "sha256": "8c8adb4d06e37d9712c8352387e4816c9d8e4bca6716ef44c05d857be2665e69"
+      "sha256": "0e8d3c52005fb54e79c37cbea113e306f7c85828808cadc0727714e2295387cc"
     },
     {
       "file": "desktop-settings.png",
-      "sha256": "f15f6dbb03c26363a08955f2cf49096d7f2ac7249d1a84ed729ce2df8397ba85"
+      "sha256": "787f26ab15208a7cfa7cb205f1bc830fd2b0c1e2a46822695ed6cd05d39a6f78"
     },
     {
       "file": "desktop-streaming.png",
-      "sha256": "cdb0a47cdd24c06cf7b6991ac858d7dc1fbeb8b27615209f0869a05b36d02013"
+      "sha256": "3921012d1e1174a7b88cbc4756b5af30f8115904733f833e66010c99c68c4597"
     },
     {
       "file": "desktop-guide.png",
-      "sha256": "d3c4d5d6b067c86f585f3fb644f71211916298f6f33d083376c6c6ee0598e19f"
+      "sha256": "2aab1209cd5671849850f08b7dea000f00ae5b556897245fe711d7dadcedfc3a"
     },
     {
       "file": "desktop-restored.png",
-      "sha256": "a84f3c7f4f36dd0ff96e15691c7f95980a9c297cd495f1ed79124da52a41a49c"
+      "sha256": "aca467e9e8314199920f3ee03daa2fce3dce606332f827b94bca6f81b123d24b"
     }
   ],
-  "archive_sha256": "af1f20aecd0673421d35c914b3e240f3aeca7a36b9cadf068af610676a355015",
+  "archive_sha256": "d803d6e68dcbfbc90a92e48c2501f1c98bc302dec01d8dd97d26fbe8fafbf849",
   "build": {
     "schema_version": 1,
     "app_id": "ai-neko",
     "stage": "MVP1-desktop",
-    "version": "0.3.0-dev.5871f2d94e2f",
-    "release_version": "0.3.0-dev.5871f2d94e2f",
+    "version": "0.3.0-dev.669a8f181e45",
+    "release_version": "0.3.0-dev.669a8f181e45",
     "base_version": "0.3.0",
     "app_version": "0.3.0",
     "source": {
-      "commit": "5871f2d94e2f176a863262ae12c86edf2e05066c",
+      "commit": "669a8f181e45f838239bf7900bb20765588bbbd8",
       "dirty": false,
       "input_sha256": {
         ".gitattributes": "46565f4f6d5aa790043885eeb08a10e628735d93747448ecaa316f1e8fc132b8",
@@ -167,25 +167,27 @@
         "desktop/lib/backend.cjs": "55e10b133cc1511e644b15b586b0833197b8c492b41141df34cb60694d6e5555",
         "desktop/lib/consent.cjs": "0f5007067fb928e7f85b664030382e528feda0dfe40df31ad3c3185e767dc668",
         "desktop/lib/preferences.cjs": "48ecf97e5060b3fc77ae8825e1072b20929670e76cbf30c23f38a0d630cde12c",
-        "desktop/lib/security.cjs": "2ee03f7aa161b5fa8fbf4697fc8f665720364c6cb74c62024a8274a99e5cd2c3",
+        "desktop/lib/security.cjs": "0bb62e76a77dbba688c491ba783764b68fe00cade37bcd9b385a92d281f0ab72",
         "desktop/lib/tray-icon.cjs": "2cdad025c183e94aa04487e09b43c65898c0d81d641dce59646ad35cedef3586",
         "desktop/lib/vision.cjs": "c146e1b6f9d5947b022f9e24d55d3100b3e9863a880df0ec2593b62a28d9a119",
         "desktop/main.cjs": "1b8c8711ff81c88de35b56859488f9ae1182a87a7412d8b5eb0a829b98b1bba6",
         "desktop/package-lock.json": "ad945b3790e9d451fc2acfd3f1d3bf3ee112a3a751fde0306592ab807309895f",
         "desktop/package.json": "e018ab2e1359e1d418d452b6ea7ca2a0c01860dae0a19f88d7e9e259ce8de9e6",
         "desktop/preload.cjs": "ca074643c76c5407771b53212b98f3062e9ec4114be83bc35ffa5cdde359fd55",
-        "desktop/renderer/app.js": "8bbc0d0b5f1aeb322499c61c08d75a1f521ca6a78064c78ecaedbe67cd37cbc2",
-        "desktop/renderer/companion.js": "34eaaf633a647b506838362fc42694019271d17b4dc4e1c5eb61f1cb9f60925c",
+        "desktop/renderer/app.js": "52ab48700de6a24c0473b769145bb88ac58462a3f5271487d6bc5f1716f0a04d",
+        "desktop/renderer/companion.js": "345d02a6c723ff2e80de5a92265f76ba0876db60d75b41a7831441886337e527",
         "desktop/renderer/index.html": "ab64f7d6875dbb450513cfd11928add66274550c47e61c15605ea45fdc7a6080",
         "desktop/renderer/media.js": "95b3eb5f609342189ffab88d030f4c8eb354bf9bb062989f9a5c4ef6f739f7f0",
         "desktop/renderer/pet.js": "d40e438fcf9f92127cddfd815067831ae149404e36ec36958fda422541084b65",
         "desktop/renderer/style.css": "dd37c26c27e84a908c3fef48dce9f67f10c3f4f235537eccc522a5523ef78b58",
         "desktop/tests/backend.test.cjs": "70d1ef8ae43fab7b611bdc93c7fe578c7c5686fe50e657dd576bb4a391ba57e0",
-        "desktop/tests/companion.smoke.cjs": "5aa857439ed2095b3c474de1da628ee9d20509f0cb645a642c783b57205d9b67",
+        "desktop/tests/companion-lifecycle.test.cjs": "175959ce4762d15523bff75997c1a1628b5e6b38d18dc9958675fa941af521e1",
+        "desktop/tests/companion.smoke.cjs": "2950abc978ba1b33d1a83081b67f4bd84a7d341c28c43461358634cd987e5800",
         "desktop/tests/companion.test.cjs": "6669856d0cdfabe3fb5c3246ecceaff7d3f3633e89fb4a27fc6e7e72ff136271",
         "desktop/tests/fixtures/README.md": "3f31492c3a4fee27299f59a305abbd90fa600f91bc42aa8e313e30aa37e04b56",
         "desktop/tests/fixtures/synthetic-tone.mp3": "3963bbbe4afa7c694ac3b5dc436a01bf524ee6ccbbe972c22e7318d84f6d60f5",
         "desktop/tests/preferences.test.cjs": "963badaf11181f106129f18f7965391070a47827c353256f7aa3efe75c1b5d0f",
+        "desktop/tests/request-lifecycle.test.cjs": "3a17730909eb2372d7b6eb31fcf95deb698aebc16353c199c63f9ab0503eb365",
         "desktop/tests/security.test.cjs": "0e21681aa32fea4e6c55212d3204977b60aa156f53dd909f22d45a10275e4bf5",
         "desktop/vendor/cubism4.min.js": "f49fd0917edfcd7f007df0100065ddead78f1747b562e7bc53fb398775542a98",
         "desktop/vendor/fetch-core.cjs": "56ef2d501b735c99bfbb2478d88833e5dc780d32b9f20c326e8d13a512bd6bda",
@@ -240,12 +242,12 @@
         "src/ai_neko/__init__.py": "7ba80d6385b9a8e7ef4f782a344c7964b405f337c81f84c2a01f734fdf870138",
         "src/ai_neko/__main__.py": "dded6e37bbfda901c51307a79dc7e5ddf2813808cd2842bad5074c92d485f119",
         "src/ai_neko/app/__init__.py": "ed96a5fcf0200b83f130fea3e9ee9cdbaaf410ae1bb60922fcd7648642bca9c0",
-        "src/ai_neko/app/api.py": "1323dea9c41a025a8111d5a57b0a9ac1450f78a5b3d6be0121651f31ec7d270e",
+        "src/ai_neko/app/api.py": "52aa1515d5718dd3df93bc589c4db9bcd5cd2cb46448e5eff8e3813fdf91450a",
         "src/ai_neko/app/server.py": "f6164e8be65b857f580943dd67166d0c16d93c12bed4af1c672d3af754878a93",
         "src/ai_neko/chat/__init__.py": "9b31070554f7ade625efc4a1dd1b37b4ce9c29c903e35c914f2e349535eb83d3",
         "src/ai_neko/chat/extraction.py": "4aa290f7e6dd23cf6aaf8693a66be420b6f057316a130a80ddb75a67a20c30ae",
-        "src/ai_neko/chat/graph.py": "73fce32b86ed349c5ec1e3eb7efeabc232a535e63bdd2771e878b42a04fe6b8b",
-        "src/ai_neko/chat/vision.py": "c76cd76bb5d0615d38a790d0656c99f6c81f58829e78a3d6ab675a4b548af9a3",
+        "src/ai_neko/chat/graph.py": "81e7861b75c836e9ffb04b2764899ec738763ab54c64c7605ccc8a21734ca144",
+        "src/ai_neko/chat/vision.py": "4c2351068ddf912d6abd4d60790cb3614af20eeced10cd2109d8d5b2408d6ef0",
         "src/ai_neko/config/__init__.py": "f61c3ab8d52fb88c37db97456751f3d7269284536145c5e9dce403d6f86ffe7f",
         "src/ai_neko/config/credentials.py": "2668c74d5d1e869f9c39592a5a4d5f30842d833f20c69e9dda4aad3e642f897b",
         "src/ai_neko/config/memory.py": "f2202ff6e27377fdbfe697649faa8123f6c8a69d341d5ea037824588a7aef03c",
@@ -266,7 +268,7 @@
         "src/ai_neko/memory/service.py": "e685c7e27574a0361afa5323d9e23e194083d9c57a025a201b368870e77cb6a3",
         "src/ai_neko/providers.py": "6822cc729c4310475079e4733d7c4cb8705c58433bd6893502d2b776ef6870b8",
         "src/ai_neko/runtime/__init__.py": "85c260f23ed0edefbcb3a386fa92ddb97e4ad001c2686d68720535fd6203b047",
-        "src/ai_neko/runtime/service.py": "7555ff9f401f2a6f1a43331937d38d15eb09f5096c1481956f3da256607e8c54",
+        "src/ai_neko/runtime/service.py": "efd2c2b6ce929c0727eb49549f99c670279b52466f460c8f309f701533a2987d",
         "src/ai_neko/tools/__init__.py": "13d4c62edf0ebc1dd584ce9511db61b880c131bfe48dd140223f806fe8a8b4c6",
         "src/ai_neko/tools/network.py": "b342c1098412c35a700f36e6ca3e8940dcd121de5fce3e5c27df7bb31a9cf98e",
         "src/ai_neko/tools/web.py": "9ee3ec1536a46f8a7aa4108e89aa521de79a75fc8ba219633e847b8e8f948bbf",
@@ -281,7 +283,7 @@
       "sha256": "9d2ad6689af0c7d2464deb3159b81bdbcd5be0f61f58fb0fc95e87fbdfcc00f1"
     },
     "build": {
-      "created_utc": "2026-09-26T07:58:31.608127+00:00",
+      "created_utc": "2026-09-26T08:32:10.662281+00:00",
       "platform": "Windows-10-10.0.20348-SP0",
       "architecture": "AMD64",
       "python": "3.11.15",
@@ -290,7 +292,7 @@
       "runner_os": "Windows",
       "runner_image": "win22",
       "runner_image_version": "20260920.314.1",
-      "github_run_id": "36228220001",
+      "github_run_id": "36229884609",
       "github_run_attempt": "1"
     },
     "dependencies": {
@@ -354,7 +356,7 @@
       "entry": "ai-neko.exe",
       "executable_sha256": "bd14928e0728366fd3f41499cb398ff3f4304dab259a3e605077899a6f8c748e",
       "backend_entry": "resources/backend/ai-neko.exe",
-      "backend_sha256": "7df795293f1c3e10ca029c0fb8ee1d7ab524644103693747ac2509c119562858",
+      "backend_sha256": "cf50c28210671f95fa11041034a53b40107b4ed85f32402e1ac2cbea18f651e0",
       "core_sha256": "25ae938cb4fe282ce189b357bcc97e603d1e1f7ec78bf04150d401c23cdc792f"
     },
     "memory_reuse": {
@@ -367,7 +369,7 @@
   },
   "executable_sha256": "bd14928e0728366fd3f41499cb398ff3f4304dab259a3e605077899a6f8c748e",
   "character_pixels": {
-    "visible": 57574,
+    "visible": 58183,
     "total": 211200
   },
   "host_crash": {
@@ -385,5 +387,5 @@
     "backend_exit_confirmed": true
   },
   "synthetic_model_requests": 5,
-  "finished_utc": "2026-09-26T08:00:03.219Z"
+  "finished_utc": "2026-09-26T08:33:43.740Z"
 }

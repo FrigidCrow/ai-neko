@@ -245,3 +245,9 @@ Root 用 gh run download 分别取得两平台源码、package-evidence 和 ai-n
 新增回归执行真实前端代码；独立审查复现恢复期间拒绝取消的缺陷，修复后迟到上传409、模型调用0。实际Electron联调另发现勾选意图与语音识别提示回归，已纳入修复，最终结果待下方补记。真实音色/术语识别/游戏判断、真实云服务、Windows11与取消p95仍未验收，未创建新版Release。
 
 本轮最终Mac源码574项通过、1平台skip且源码扫描未变化；宿主58/58、实际Electron基线9/9、陪伴闭环18/18。最终闭环包含真实IPC请求取消、迟到图片409以及模型响应中关闭观察后无晚到输出，见[Mac报告](docs/evidence/companion/macos-companion.json)。前述勾选和识别状态回归均在实际桌面通过；合成17模型/3ASR/9TTS，用户采集和真实服务0。当前Windows旧开发包仍为5871f2d，新的Windows验收结果随后单列。
+
+### 录音与视觉生命周期 Windows 交付通过
+
+源码`669a8f181e45f838239bf7900bb20765588bbbd8`的[CI](https://github.com/FrigidCrow/ai-neko/actions/runs/36229884609)全部必要jobs通过：Windows575项/0skip、Linux574项/1平台skip、宿主58项、冻结后端16/16、实际桌宠9/9、陪伴闭环18/18。包内程序验证了实际IPC撤销、迟到图片请求409及关闭观察后的活动模型取消，已查看[Windows实际截图](docs/evidence/companion/windows/companion-smoke.png)。全部采集和服务仍为合成资料，Windows Server不等于Windows11游戏真机。
+
+已实际下载并核对[新开发包](https://github.com/FrigidCrow/ai-neko/actions/runs/36229884609/artifacts/10902556977)：ZIP `ai-neko-0.3.0-dev.669a8f181e45-windows-x64.zip`，191,856,745字节，SHA256 `d803d6e68dcbfbc90a92e48c2501f1c98bc302dec01d8dd97d26fbe8fafbf849`。源码、build-info、PE执行摘要、许可、截图和报告一致，[核对记录](docs/evidence/companion/windows/download-verification.json)为PASS；Mac只核对文件，未运行exe。旧Release不变。真实云模型/搜索/ASR/TTS与游戏判断、Windows11真机及20次取消p95仍Pending，完整目标不记完成。

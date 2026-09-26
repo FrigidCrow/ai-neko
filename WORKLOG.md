@@ -363,3 +363,9 @@ Final documentation check: python3 docs/diagrams/tools/validate-docs.py > artifa
 初次源码全套573项通过/1平台skip；新增恢复回归后574项通过/1skip，但扫描期间前端仍被修改，m0_smoke正确拒绝CI门禁，不能记为最终通过。待源码停止变化后再执行完整门禁。`node scripts/desktop_smoke.cjs --output artifacts/mvp1/desktop-lifecycle-baseline.json`实际桌面基线9/9通过，最终前端闭环和Windows包以下方证据补记。真实云服务与用户采集均0。
 
 最终`.venv/bin/python scripts/m0_smoke.py --output artifacts/mvp1/companion-lifecycle-source.json`：574 passed、1 Windows凭据专属skip、0失败/错误，source_unchanged_during_run=true、ci_gate=PASS，报告如实保留PARTIAL。`node --test desktop/tests/*.test.cjs`：58/58；`node desktop/tests/companion.smoke.cjs --output artifacts/mvp1/companion-lifecycle-ui.json`：18/18，新增实际IPC撤销后延迟图片请求409及中途关闭观察取消活动模型、无晚到文字。实际查看白裙YUI截图，报告与截图归档至docs/evidence/companion。合成17模型/3ASR/9TTS，单次停音15ms非p95；Ruff检查/格式与diff检查通过。提交并推送既有开发分支运行Windows CI，不创建tag。
+
+产品源码`669a8f181e45f838239bf7900bb20765588bbbd8`推送后，[CI 36229884609](https://github.com/FrigidCrow/ai-neko/actions/runs/36229884609)终态SUCCESS，Windows575/0skip、Linux574/1skip，宿主58、冻结后端16/16、实际桌宠基线9/9与陪伴闭环18/18均通过；非tag发布正常跳过。`gh run download`分别下载四个产物，合并时逐字节比对重复文件。`python3 artifacts/ci/verify-companion-download.py artifacts/ci/36229884609/verified 669a8f181e45f838239bf7900bb20765588bbbd8`为PASS：ZIP及清单、同一clean源码、内外build-info、GUI/后端AMD64 PE、实际执行摘要、NEKO记忆通知、两张截图及本轮撤销证据一致。
+
+开发包`ai-neko-0.3.0-dev.669a8f181e45-windows-x64.zip`为191,856,745字节，SHA256 `d803d6e68dcbfbc90a92e48c2501f1c98bc302dec01d8dd97d26fbe8fafbf849`，[下载](https://github.com/FrigidCrow/ai-neko/actions/runs/36229884609/artifacts/10902556977)。Root实际查看Windows桌宠截图，白裙YUI、观察关闭和迟到文字缺席可见；报告证实延迟图片409及模型中途取消。Windows合成17模型/3ASR/9TTS，单次停音40ms，真实服务和用户采集0。更新Windows归档时仅将JSON行尾统一LF，原始文件保留artifacts；当前文档和README下载入口同步，不运行Windows程序于Mac，也不发布新Release。
+
+最终`python3 docs/diagrams/tools/validate-docs.py > artifacts/mvp1/lifecycle-final-docs.json`为PASS：24文档、364本地链接、20图和206参考文件，参考仓库tracked状态未变。逐项比对Windows归档JSON内容及截图与原始下载一致，`git diff --check`通过；证据与当前下载说明另提交`[skip ci]`，产品源码仍为上方已验证commit。

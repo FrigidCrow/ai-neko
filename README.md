@@ -10,7 +10,7 @@
 
 已发布的 [v0.2.0-alpha.1](https://github.com/FrigidCrow/ai-neko/releases/tag/v0.2.0-alpha.1) 是历史网页工程预览，仍会打开浏览器，不能用它体验桌宠；`v0.1.0-alpha.1` 仅为基础诊断包。
 
-**当前开发分支新增**：可编辑猫娘人格、选定窗口的当轮视觉、按键语音输入与按句语音回复、默认按需共享联网查询，以及本地长期记忆的保存、召回、依据、纠正、遗忘与快照管理；语音续聊会保留已完整听完的句子。已参照 N.E.K.O 并提取分词/BM25 纯组件，完整实现、使用方法和未完成验收见 [五项能力说明](docs/COMPANION-IMPLEMENTATION.md)。这些功能尚未发布到旧版下载页；[本轮 CI](https://github.com/FrigidCrow/ai-neko/actions/runs/36228220001) 已通过Windows545项、冻结后端16项、桌宠9项和新增陪伴闭环16项；可登录GitHub下载 [Windows开发包](https://github.com/FrigidCrow/ai-neko/actions/runs/36228220001/artifacts/10902330067)。真实云服务、Windows11游戏场景与质量/时延仍未验收。
+**当前开发分支新增**：可编辑猫娘人格、选定窗口的当轮视觉、按键语音输入与按句语音回复、默认按需共享联网查询，以及本地长期记忆的保存、召回、依据、纠正、遗忘与快照管理；语音续聊会保留已完整听完的句子。已参照 N.E.K.O 并提取分词/BM25 纯组件，完整实现、使用方法和未完成验收见 [五项能力说明](docs/COMPANION-IMPLEMENTATION.md)。这些功能尚未发布到旧版下载页；[本轮 CI](https://github.com/FrigidCrow/ai-neko/actions/runs/36229884609) 已通过Windows575项、冻结后端16项、桌宠9项和新增陪伴闭环18项；可登录GitHub下载 [Windows开发包](https://github.com/FrigidCrow/ai-neko/actions/runs/36229884609/artifacts/10902556977)。真实云服务、Windows11游戏场景与质量/时延仍未验收。
 
 使用说明：[M1 试用与验收](docs/M1-QUICKSTART.md)、[Windows 下载与 CI/CD](docs/CI-RELEASES.md)。
 

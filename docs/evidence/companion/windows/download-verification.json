@@ -1,15 +1,15 @@
 {
   "status": "PASS",
-  "source_commit": "5871f2d94e2f176a863262ae12c86edf2e05066c",
-  "archive": "ai-neko-0.3.0-dev.5871f2d94e2f-windows-x64.zip",
-  "archive_bytes": 191849807,
-  "archive_sha256": "af1f20aecd0673421d35c914b3e240f3aeca7a36b9cadf068af610676a355015",
+  "source_commit": "669a8f181e45f838239bf7900bb20765588bbbd8",
+  "archive": "ai-neko-0.3.0-dev.669a8f181e45-windows-x64.zip",
+  "archive_bytes": 191856745,
+  "archive_sha256": "d803d6e68dcbfbc90a92e48c2501f1c98bc302dec01d8dd97d26fbe8fafbf849",
   "build_source_clean": true,
   "source_tests": [
     {
       "name": "Windows-smoke.json",
-      "sha256": "926ac5af8e7554fa1b48de24dd9849580a85b81b7449c9d9270c8d84a38f9030",
-      "passed": 545,
+      "sha256": "29cd8e0c279b3b0189601291496558e99732cab2645b65960db3db142fd24b13",
+      "passed": 575,
       "skipped": 0,
       "failed": 0,
       "errors": 0,
@@ -28,8 +28,8 @@
     },
     {
       "name": "Linux-smoke.json",
-      "sha256": "27b55a1b4d7387b2cf051d739d29faca98aa2d14e7e891fc5ad47ab5ae769549",
-      "passed": 544,
+      "sha256": "059afbaa8bb781f5df4082c27988e3271c85d5e509bf7cab5fdf9717d2ae592d",
+      "passed": 574,
       "skipped": 1,
       "failed": 0,
       "errors": 0,
@@ -53,7 +53,7 @@
       "machine": "AMD64"
     },
     "backend": {
-      "sha256": "7df795293f1c3e10ca029c0fb8ee1d7ab524644103693747ac2509c119562858",
+      "sha256": "cf50c28210671f95fa11041034a53b40107b4ed85f32402e1ac2cbea18f651e0",
       "machine": "AMD64"
     }
   },
@@ -135,14 +135,14 @@
     ]
   },
   "desktop_cases_passed": 9,
-  "companion_cases_passed": 16,
+  "companion_cases_passed": 18,
   "real_model_calls": 0,
   "real_audio_service_calls": 0,
   "actual_desktop_captures": 0,
   "windows_11": "NOT_VERIFIED",
-  "screenshot_sha256": "9b334175ebf7b82e36bc8b7b0916330253f1828e0ee43b54bf4ab30e877c88fc",
+  "screenshot_sha256": "4ecbfc6e4d1244099ff0a21688f7782b4e85b8a2e4862df4eb82bc38770e4be1",
   "local_executable_run": false,
-  "snapshot_screenshot_sha256": "57e43b1c39ae6e2b189e758c3a8e0cb98ccd2f35fe325e39829143c482bf5477",
+  "snapshot_screenshot_sha256": "ee09fe708c620633833a6399216b217fede7444e145e32e3f1a436fc843585f2",
   "memory_snapshot_ui": {
     "explicit_restore_confirmation": true,
     "stale_revision_did_not_restore": true,
@@ -157,16 +157,16 @@
     "display_ack": 0,
     "actual_playback": [
       {
-        "segment_id": "410bb810fa3646c89fc1eecd819cc4b7",
+        "segment_id": "934499d294334f1c8b8a3d8da0296a32",
         "state": "completed",
-        "updated_at": 1790409628.583428,
+        "updated_at": 1790411651.6209283,
         "text_start": 0,
         "text_end": 11
       },
       {
-        "segment_id": "de961eeba7ce483d96cfc92b5812e61e",
+        "segment_id": "16d0e979fa074b91a0dad956e3de509e",
         "state": "stopped",
-        "updated_at": 1790409628.687429,
+        "updated_at": 1790411651.739928,
         "text_start": 11,
         "text_end": 23
       }
@@ -176,5 +176,15 @@
     "heard_text": "合成场景建议：先观察。再决定下一步。",
     "display_ack": 0,
     "completed_segments": 2
+  },
+  "request_revocation": {
+    "actual_bridge": true,
+    "delayed_image_rejected": true,
+    "no_new_turn": true
+  },
+  "active_vision_revocation": {
+    "cancelled": true,
+    "model_requests": 1,
+    "late_text_absent": true
   }
 }
