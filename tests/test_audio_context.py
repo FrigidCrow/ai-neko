@@ -2,6 +2,7 @@
 
 import asyncio
 import sqlite3
+from contextlib import closing
 from uuid import uuid4
 
 import httpx
@@ -148,7 +149,7 @@ def test_previous_audio_schema_migrates_without_fabricating_heard_ranges(tmp_pat
         runtime.audio_ack(sid, tid, segment, "started")
         runtime.audio_ack(sid, tid, segment, "completed")
         await runtime.close()
-        with sqlite3.connect(paths.memory / "conversation.sqlite") as db:
+        with closing(sqlite3.connect(paths.memory / "conversation.sqlite")) as db, db:
             db.execute("ALTER TABLE audio_playback DROP COLUMN text_start")
             db.execute("ALTER TABLE audio_playback DROP COLUMN text_end")
         reopened = SessionRuntime(paths, Store())

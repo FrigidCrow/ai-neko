@@ -334,3 +334,6 @@ gh run download 36175618386 --name package-evidence --dir artifacts/mvp1/tag-evi
 实际执行 `.venv/bin/python -m pytest -q > artifacts/mvp1/companion-snapshot-heard-python-final.txt`：544 passed / 1 Windows凭据库专属skip，40.27s；最后清理失败期间API拒读与重启可读断言另在25项快照API测试通过。`.venv/bin/ruff check src tests scripts packaging`与`ruff format --check`通过。
 
 桌面工作者执行 `node --test desktop/tests/*.test.cjs`：31/31；`node desktop/tests/companion.smoke.cjs --output artifacts/mvp1/companion-snapshot-heard-smoke.json`：16/16，含快照创建/取消确认/过期revision/恢复/删除/损坏项及隐藏面板首句完成、第二句停止后下一轮正确上下文。Root执行 `node scripts/desktop_smoke.cjs --output artifacts/mvp1/desktop-snapshot-heard-baseline.json`：9/9。Root实际查看快照确认界面截图，仍为白裙YUI；Mac报告归档至docs/evidence/companion。16模型/3ASR/9TTS调用均合成，真实服务与用户采集0；本次Windows包验证仍待运行。更新未来tag发布说明的功能范围，不创建tag或发布新版。
+
+
+本轮首个Windows CI [36227635761](https://github.com/FrigidCrow/ai-neko/actions/runs/36227635761)未通过：源码ba77e55，Linux544/1平台skip；Windows540 passed、5 failed、0skip，打包未启动。下载源码证据后确认五项失败集中于test_memory_backups的旧格式、损坏快照和非法数据快照删除；报告未包含原始异常堆栈。代码检查发现SQLite测试上下文只提交、未关闭连接，现改为显式closing，在删除/恢复/VACUUM前释放测试连接；迁移/清理测试同步释放连接，新进程探针加30秒上限。产品代码不变，需以Windows复跑确认修正，不仅凭Mac通过推定。

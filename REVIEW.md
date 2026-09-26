@@ -220,3 +220,6 @@ Python全套457 passed/1 Windows凭据存储专属skip；最后增加每轮人�
 独立审查复现并修正两项恢复缺陷：仅保存来源ID会漏清手动事实曾被召回的旧回答；恢复清理失败时事件接口仍可读旧内容。现在移除事实ID同事务持久化，失败期间会话/事件/列表/取消/ACK均拒绝返回旧内容，重启完成清理。另修复显示ACK停在URL或引用内部时，未读出的后缀误入已听历史。
 
 Mac全套544 passed / 1 Windows凭据专属skip；快照API25项、已听上下文15项、记忆底层61项定向通过。宿主31/31、实际Electron基线9/9、新增闭环16/16，证据见[Mac报告](docs/evidence/companion/macos-companion.json)及[快照界面](docs/evidence/companion/macos-snapshots.png)。报告真实记录未提交工作区及旧HEAD，不把它当新不可变源码。Windows包尚待本轮CI；真实模型/搜索/语音及用户采集均0，Windows11游戏场景仍Pending。
+
+
+本轮首个Windows CI [36227635761](https://github.com/FrigidCrow/ai-neko/actions/runs/36227635761)未通过：源码ba77e55，Linux544/1平台skip；Windows540 passed、5 failed、0skip，打包未启动。下载源码证据后确认五项失败集中于test_memory_backups的旧格式、损坏快照和非法数据快照删除；报告未包含原始异常堆栈。代码检查发现SQLite测试上下文只提交、未关闭连接，现改为显式closing，在删除/恢复/VACUUM前释放测试连接；迁移/清理测试同步释放连接，新进程探针加30秒上限。产品代码不变，需以Windows复跑确认修正，不仅凭Mac通过推定。

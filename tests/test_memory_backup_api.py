@@ -3,7 +3,7 @@
 import asyncio
 import json
 import sqlite3
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, closing
 from uuid import uuid4
 
 import httpx
@@ -103,7 +103,7 @@ async def recalled_manual_turn(client, runtime, confirmation):
         )
     row = (await response_json(client, "GET", base))["turns"][0]
     assert row["heard_text" if confirmation == "audio" else "confirmed_text"] == MARKER
-    with sqlite3.connect(runtime.paths.checkpoints / "chat-graph.sqlite") as database:
+    with closing(sqlite3.connect(runtime.paths.checkpoints / "chat-graph.sqlite")) as database:
         assert database.execute("SELECT COUNT(*) FROM checkpoints").fetchone()[0] > 0
     return sid, tid, fact["id"]
 
@@ -118,7 +118,7 @@ def assert_erased(runtime, sid, tid):
     assert not runtime._db.execute("SELECT 1 FROM memory_erasure").fetchone()
     for table in ("turn_memory", "events", "audio_playback", "turn_images", "turn_metadata"):
         assert not runtime._db.execute(f"SELECT 1 FROM {table} WHERE turn_id=?", (tid,)).fetchone()
-    with sqlite3.connect(runtime.paths.checkpoints / "chat-graph.sqlite") as database:
+    with closing(sqlite3.connect(runtime.paths.checkpoints / "chat-graph.sqlite")) as database:
         for table in ("checkpoints", "writes"):
             assert database.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0] == 0
 

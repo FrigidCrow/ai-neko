@@ -5,6 +5,7 @@ import os
 import sqlite3
 import subprocess
 import sys
+from contextlib import closing
 
 import pytest
 
@@ -72,7 +73,7 @@ def test_management_uses_creator_scope_even_when_snapshot_contains_both_scopes(p
 
 def test_legacy_single_scope_snapshot_can_be_managed(memory, paths):
     snapshot = memory.backup()
-    with sqlite3.connect(paths.backups / snapshot["id"]) as db:
+    with closing(sqlite3.connect(paths.backups / snapshot["id"])) as db, db:
         db.execute("DROP TABLE memory_backup_info")
     assert memory.list_backups()[0]["restorable"]
     memory.delete_backup(snapshot["id"])
@@ -82,7 +83,7 @@ def test_legacy_single_scope_snapshot_can_be_managed(memory, paths):
 def test_legacy_multiple_scope_snapshot_is_not_exposed_for_deletion(paths):
     with MemoryService(paths) as first, MemoryService(paths, character_id="other"):
         snapshot = first.backup()
-        with sqlite3.connect(paths.backups / snapshot["id"]) as db:
+        with closing(sqlite3.connect(paths.backups / snapshot["id"])) as db, db:
             db.execute("DROP TABLE memory_backup_info")
         assert first.list_backups() == []
         with pytest.raises(MemoryAccessError, match="scope"):
@@ -126,7 +127,7 @@ def test_redirected_snapshot_is_not_read_or_deleted(memory, paths, tmp_path, lin
 def test_owned_damaged_snapshot_remains_deletable_but_cannot_restore(memory, paths):
     remembered = memory.remember("喜欢无糖咖啡", source_id="source")
     snapshot = memory.backup()
-    with sqlite3.connect(paths.backups / snapshot["id"]) as db:
+    with closing(sqlite3.connect(paths.backups / snapshot["id"])) as db, db:
         db.execute("DROP TABLE memory_sources")
     assert memory.list_backups() == [
         {
@@ -167,7 +168,7 @@ def test_structurally_valid_snapshot_with_invalid_data_cannot_replace_live_memor
 ):
     fact = memory.remember("喜欢无糖咖啡", source_id="source")
     snapshot = memory.backup()
-    with sqlite3.connect(paths.backups / snapshot["id"]) as db:
+    with closing(sqlite3.connect(paths.backups / snapshot["id"])) as db, db:
         db.execute(damage)
     assert memory.list_backups()[0]["restorable"] is False
     with pytest.raises(MemoryInputError, match="invalid_memory_backup"):
@@ -235,6 +236,7 @@ with MemoryService(initialize_data_root(sys.argv[1])) as memory:
         text=True,
         encoding="utf-8",
         env={**os.environ, "PYTHONIOENCODING": "utf-8"},
+        timeout=30,
     )
     recovered = json.loads(process.stdout)
     assert set(recovered["source_ids"]) == set(result["source_ids"])
@@ -265,7 +267,7 @@ def test_restore_rejects_changed_meaning_under_existing_fact_id_atomically(
 ):
     fact = memory.remember("喜欢咖啡", source_id="manual:source")
     snapshot = memory.backup()
-    with sqlite3.connect(paths.backups / snapshot["id"]) as db:
+    with closing(sqlite3.connect(paths.backups / snapshot["id"])) as db, db:
         db.execute(f"UPDATE memory_facts SET {field}=?", (value,))
     before = memory.erasure_state()
     persona = memory.get_persona()
