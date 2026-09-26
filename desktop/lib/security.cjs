@@ -25,14 +25,15 @@ function validateRequest(value) {
     throw new Error('Invalid request');
   }
   const id = '[A-Za-z0-9_-]{1,80}';
+  const backupId = 'memory-[a-f0-9]{32}\\.sqlite';
   const routes = {
-    GET: [ /^\/api\/(?:persona|memories|memory\/config|voice\/config)$/, /^\/api\/config$/, /^\/api\/sessions$/,
+    GET: [ /^\/api\/(?:persona|memories|memory\/(?:config|backups)|voice\/config)$/, /^\/api\/config$/, /^\/api\/sessions$/,
       new RegExp(`^/api/memories/${id}/sources$`),
       new RegExp(`^/api/sessions/${id}$`),
       new RegExp(`^/api/sessions/${id}/turns/${id}/events(?:\\?after=[0-9]{1,9})?$`) ],
     PUT: [ /^\/api\/(?:config|persona|memory\/config|voice\/config)$/, new RegExp(`^/api/memories/${id}$`) ],
-    DELETE: [ new RegExp(`^/api/memories/${id}$`) ],
-    POST: [ /^\/api\/memories$/, /^\/api\/voice\/(?:transcribe|synthesize|cancel)$/, /^\/api\/sessions$/, new RegExp(`^/api/sessions/${id}/turns$`),
+    DELETE: [ new RegExp(`^/api/memories/${id}$`), new RegExp(`^/api/memory/backups/${backupId}$`) ],
+    POST: [ /^\/api\/memories$/, /^\/api\/memory\/backups$/, new RegExp(`^/api/memory/backups/${backupId}/restore$`), /^\/api\/voice\/(?:transcribe|synthesize|cancel)$/, /^\/api\/sessions$/, new RegExp(`^/api/sessions/${id}/turns$`),
       new RegExp(`^/api/sessions/${id}/turns/${id}/(?:ack|cancel|audio)$`) ],
   };
   if (!routes[method].some((matcher) => matcher.test(route))) throw new Error('Route not allowed');

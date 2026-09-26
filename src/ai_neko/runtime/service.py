@@ -25,7 +25,7 @@ from ai_neko.chat.extraction import extract_facts
 from ai_neko.chat.vision import validate_image
 from ai_neko.config.memory import MemoryPreferences
 from ai_neko.config.paths import DataPaths, safe_child
-from ai_neko.memory import MemoryService, persona_prompt
+from ai_neko.memory import MemoryConflictError, MemoryService, persona_prompt
 
 TERMINAL = {"completed", "cancelled", "error", "interrupted"}
 ACTIVE = {"accepted", "running"}
@@ -129,6 +129,13 @@ class SessionRuntime:
                     PRIMARY KEY(turn_id,segment_id)
                 );
             """)
+            audio_columns = {
+                row[1] for row in self._db.execute("PRAGMA table_info(audio_playback)")
+            }
+            with self._db:
+                for column in ("text_start", "text_end"):
+                    if column not in audio_columns:
+                        self._db.execute(f"ALTER TABLE audio_playback ADD COLUMN {column} INTEGER")
             self.memory = MemoryService(paths)
             self.memory_preferences = MemoryPreferences(paths)
             self._recover()
@@ -147,6 +154,8 @@ class SessionRuntime:
 
     def _session(self, session_id: str):
         self._check_open()
+        if self._erasure_failed:
+            raise RuntimeConflictError("记忆清理尚未完成，请重试删除或重启应用。")
         _identifier(session_id)
         row = self._db.execute(
             "SELECT * FROM sessions WHERE id=? AND user_id='local' AND character_id='default'",
@@ -224,7 +233,7 @@ class SessionRuntime:
     def create_session(self) -> dict[str, Any]:
         with self._guard:
             self._check_open()
-            if self._closing:
+            if self._closing or self._erasure_failed:
                 raise RuntimeConflictError("会话服务正在关闭。")
             identifier, internal = uuid4().hex, uuid4().hex
             now = time.time()
@@ -248,6 +257,8 @@ class SessionRuntime:
     def list_sessions(self) -> list[dict[str, Any]]:
         with self._guard:
             self._check_open()
+            if self._erasure_failed:
+                raise RuntimeConflictError("记忆清理尚未完成，请重试删除或重启应用。")
             rows = self._db.execute(
                 "SELECT * FROM sessions WHERE user_id='local' AND character_id='default' ORDER BY updated_at DESC LIMIT 200"
             ).fetchall()
@@ -267,6 +278,7 @@ class SessionRuntime:
         confirmed = "".join(
             e.get("text", "") for e in events if e["type"] == "text" and e["seq"] <= row["ack_seq"]
         )
+        heard_end = self._heard_prefix(row["id"], len(delivered))
         sources = {}
         for event in events:
             if event["type"] == "source":
@@ -289,10 +301,13 @@ class SessionRuntime:
             "assistant_text": delivered,
             "output": delivered,
             "confirmed_text": confirmed,
+            "heard_text": _speech_text(delivered[:heard_end]),
+            "heard_characters": heard_end,
+            "confirmed_characters": max(len(confirmed), heard_end),
             "audio_playback": [
                 dict(item)
                 for item in self._db.execute(
-                    "SELECT segment_id,state,updated_at FROM audio_playback WHERE turn_id=? ORDER BY updated_at,segment_id",
+                    "SELECT segment_id,state,updated_at,text_start,text_end FROM audio_playback WHERE turn_id=? ORDER BY updated_at,segment_id",
                     (row["id"],),
                 )
             ],
@@ -303,6 +318,18 @@ class SessionRuntime:
             "last_seq": row["next_seq"] - 1,
             "error": row["error"],
         }
+
+    def _heard_prefix(self, turn_id: str, delivered_length: int) -> int:
+        end = 0
+        for row in self._db.execute(
+            "SELECT text_start,text_end FROM audio_playback WHERE turn_id=? "
+            "AND state='completed' AND text_start IS NOT NULL ORDER BY text_start,text_end",
+            (turn_id,),
+        ):
+            if row[0] > end or row[1] > delivered_length:
+                break
+            end = max(end, row[1])
+        return end
 
     def get_session(self, session_id: str) -> dict[str, Any]:
         with self._guard:
@@ -323,13 +350,14 @@ class SessionRuntime:
         history = []
         for row in reversed(rows):
             history.append({"role": "user", "content": _clip(row["input"], 1600)})
-            # Confirmed partial prefixes are the only assistant context after interruption.
-            through = row["sent_seq"] if row["status"] == "completed" else row["ack_seq"]
-            text = "".join(
-                e.get("text", "")
-                for e in self._payloads(row["id"], through=through)
-                if e["type"] == "text"
-            )
+            # Delivery and completed generation are not proof of seeing/hearing.
+            summary = self._turn_summary(row)
+            text = summary["confirmed_text"]
+            if summary["heard_characters"] > len(text):
+                text += _speech_slice(
+                    summary["delivered_text"], len(text), summary["heard_characters"]
+                )
+            text = text.strip()
             if text:
                 # Source identifiers belong to one turn. Reusing an old [S1]
                 # beside this turn's S1 would silently attribute the old claim
@@ -598,17 +626,43 @@ class SessionRuntime:
                 )
             return {"turn_id": turn_id, "ack_seq": max(row["ack_seq"], sequence)}
 
-    def audio_ack(self, session_id: str, turn_id: str, segment_id: str, state: str):
+    def audio_ack(
+        self,
+        session_id: str,
+        turn_id: str,
+        segment_id: str,
+        state: str,
+        *,
+        text_start: int | None = None,
+        text_end: int | None = None,
+    ):
         _identifier(segment_id)
         if state not in {"started", "completed", "stopped"}:
             raise RuntimeInputError("无效播放状态。")
         with self._guard, self._db:
+            self._check_open()
+            if self._closing or self._memory_mutating or self._erasure_failed:
+                raise RuntimeConflictError("播放回执当前不可更新。")
             turn = self._turn(session_id, turn_id)
+            if text_start is not None or text_end is not None:
+                delivered = "".join(
+                    event.get("text", "")
+                    for event in self._payloads(turn_id, through=turn["sent_seq"])
+                    if event["type"] == "text"
+                )
+                if (
+                    type(text_start) is not int
+                    or type(text_end) is not int
+                    or not 0 <= text_start < text_end <= len(delivered)
+                ):
+                    raise RuntimeInputError("播放范围必须属于已发送的回复文字。")
             row = self._db.execute(
-                "SELECT state FROM audio_playback WHERE turn_id=? AND segment_id=?",
+                "SELECT state,text_start,text_end FROM audio_playback WHERE turn_id=? AND segment_id=?",
                 (turn_id, segment_id),
             ).fetchone()
             if row:
+                if text_start is not None and (text_start, text_end) != (row[1], row[2]):
+                    raise RuntimeConflictError("播放片段范围不可修改。")
                 if row[0] in {"completed", "stopped", "interrupted"}:
                     return {"segment_id": segment_id, "state": row[0]}
                 self._db.execute(
@@ -618,9 +672,18 @@ class SessionRuntime:
             else:
                 if state != "started" or turn["status"] not in {"running", "completed"}:
                     raise RuntimeConflictError("播放回执没有有效开始事件。")
+                if (
+                    text_start is not None
+                    and self._db.execute(
+                        "SELECT 1 FROM audio_playback WHERE turn_id=? AND text_start<? AND text_end>?",
+                        (turn_id, text_end, text_start),
+                    ).fetchone()
+                ):
+                    raise RuntimeConflictError("播放片段范围重叠。")
                 self._db.execute(
-                    "INSERT INTO audio_playback VALUES (?,?,?,?)",
-                    (turn_id, segment_id, state, time.time()),
+                    "INSERT INTO audio_playback "
+                    "(turn_id,segment_id,state,updated_at,text_start,text_end) VALUES (?,?,?,?,?,?)",
+                    (turn_id, segment_id, state, time.time(), text_start, text_end),
                 )
         return {"segment_id": segment_id, "state": state}
 
@@ -726,6 +789,61 @@ class SessionRuntime:
             await asyncio.gather(self._memory_task, return_exceptions=True)
         self.start_memory_worker()
         return result
+
+    def _check_memory_available(self):
+        self._check_open()
+        if self._closing or self._memory_mutating or self._erasure_failed:
+            raise RuntimeConflictError("记忆当前不可更新。")
+
+    def memory_backups(self):
+        with self._guard:
+            self._check_memory_available()
+            return {"backups": self.memory.list_backups(), "revision": self.memory.revision()}
+
+    async def backup_memory(self):
+        async with self._mutation_lock:
+            self._check_memory_available()
+            return self.memory.backup()
+
+    async def delete_memory_backup(self, backup_id: str):
+        async with self._mutation_lock:
+            self._check_memory_available()
+            return self.memory.delete_backup(backup_id)
+
+    async def restore_memory(self, backup_id: str, expected_revision: int):
+        async with self._mutation_lock:
+            self._check_memory_available()
+            if type(expected_revision) is not int or expected_revision != self.memory.revision():
+                raise MemoryConflictError("memory_revision_changed")
+            self._memory_mutating = True
+            try:
+                await self._stop_memory_work()
+                # Persist intent before changing Memory. Its restore transaction
+                # retains removed-source tombstones, so recovery can reconstruct
+                # the history cleanup even if the process dies before return.
+                intent = {"fact_ids": [], "source_ids": []}
+                with self._db:
+                    self._db.execute(
+                        "INSERT OR REPLACE INTO memory_erasure VALUES (1,?)",
+                        (json.dumps(intent),),
+                    )
+                try:
+                    result = self.memory.restore(backup_id, expected_revision=expected_revision)
+                except BaseException:
+                    # A rejected snapshot leaves Memory unchanged. Finish any
+                    # pre-existing deletion intent without pretending it restored.
+                    self._complete_erasure(intent)
+                    raise
+                return self._complete_erasure(result)
+            except BaseException:
+                self._erasure_failed = bool(
+                    self._db.execute("SELECT 1 FROM memory_erasure").fetchone()
+                )
+                raise
+            finally:
+                self._memory_mutating = self._erasure_failed
+                if not self._memory_mutating:
+                    self.start_memory_worker()
 
     async def forget_memory(self, fact_id: str):
         async with self._mutation_lock:
@@ -876,6 +994,27 @@ class SessionRuntime:
 
 def _clip(text: str, limit: int) -> str:
     return text if len(text) <= limit else text[:limit] + "\n[较早消息已裁剪]"
+
+
+def _speech_text(text: str) -> str:
+    """Match the desktop's speech cleanup; silent URLs/markup are not heard words."""
+    return _speech_slice(text, 0, len(text)).strip()
+
+
+def _speech_slice(text: str, start: int, end: int) -> str:
+    # Identify silent tokens before slicing: display ACKs can split a URL or
+    # citation. Cleaning the suffix alone would credit its unspoken remainder.
+    pieces = []
+    cursor = start
+    for match in re.finditer(r"https?://\S+|\[S\d+\]|[*#`]", text):
+        if match.end() <= start:
+            continue
+        if match.start() >= end:
+            break
+        pieces.append(text[cursor : max(cursor, min(end, match.start()))])
+        cursor = max(cursor, min(end, match.end()))
+    pieces.append(text[cursor:end])
+    return "".join(pieces)
 
 
 def _error_message(code: str) -> str:

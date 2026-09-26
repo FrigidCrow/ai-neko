@@ -114,6 +114,18 @@
           <button type="submit" class="primary-button">保存记忆</button></form>
           <button id="refresh-memories" type="button" class="text-button">刷新记忆</button><p id="memory-status" class="settings-message" role="status"></p><div id="memory-list"></div>
         </section>
+        <section class="companion-settings" aria-label="记忆快照">
+          <h3>记忆快照</h3><p class="field-help">本机保存人格和长期记忆。恢复旧快照会保留之后的纠正和遗忘，不会恢复已遗忘的内容。</p>
+          <button id="create-memory-backup" type="button" class="soft-button">创建快照</button>
+          <button id="refresh-memory-backups" type="button" class="text-button">刷新快照</button>
+          <p id="memory-backup-status" class="settings-message" role="status"></p>
+          <section id="memory-backup-confirmation" class="backup-confirmation" role="alertdialog" aria-modal="false" aria-labelledby="memory-backup-confirm-title" hidden>
+            <strong id="memory-backup-confirm-title"></strong><p id="memory-backup-confirm-detail"></p>
+            <button id="confirm-memory-backup" type="button" class="primary-button"></button>
+            <button id="cancel-memory-backup" type="button" class="soft-button">取消</button>
+          </section>
+          <div id="memory-backup-list"></div>
+        </section>
         <details class="asset-notice"><summary>角色与组件署名</summary><p>角色资源：YUI Lolita，来源 Project N.E.K.O.。Copyright 2025–2026 Project N.E.K.O. Team / Copyright (c) 2025 Hongzhi Wen。随包保留上游 Apache-2.0 LICENSE、NOTICE 与贡献许可声明。Live2D Cubism SDK 另依其独立条款。</p><p>ai-neko 是独立项目，不代表原版或官方背书。</p></details><div class="settings-footer"><span>ai-neko · 桌宠工程预览<br>角色：YUI Lolita</span><button id="exit-app" class="text-button" type="button">退出应用</button></div>
       </div>
     </section>

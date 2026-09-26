@@ -2,9 +2,9 @@
   "status": "PASS",
   "platform": "darwin",
   "node": "v25.9.0",
-  "source_commit": "393e3655890a4e1759fc0981931dc3294f1d6432",
+  "source_commit": "5c568a03f65baf3a77ea23aa76e1d929378fc173",
   "source_dirty": true,
-  "harness_sha256": "e1ce4edf5a9987e105826f9fe4769e138a311bd55f9170824356052d5481694d",
+  "harness_sha256": "2cb052b1ea8729e8af93d975cc88950b146bcda259bb064a2c30e392273c073b",
   "real_model_calls": 0,
   "real_audio_service_calls": 0,
   "actual_user_microphone_captures": 0,
@@ -21,6 +21,14 @@
     },
     {
       "name": "memory_save_correct_forget_and_auto_extract_setting",
+      "status": "PASS"
+    },
+    {
+      "name": "memory_snapshot_ui_requires_confirmation_and_preserves_corrections_and_forgetting",
+      "status": "PASS"
+    },
+    {
+      "name": "damaged_owned_snapshot_is_visible_deletable_and_cannot_restore",
       "status": "PASS"
     },
     {
@@ -57,6 +65,10 @@
     },
     {
       "name": "folded_panel_voice_keeps_playing_without_false_display_ack",
+      "status": "PASS"
+    },
+    {
+      "name": "hidden_complete_playback_confirms_both_sentences_without_display_ack",
       "status": "PASS"
     },
     {
@@ -98,12 +110,22 @@
     "electron": "44.4.5",
     "chrome": "152.0.7977.130"
   },
+  "memory_snapshot_ui": {
+    "explicit_restore_confirmation": true,
+    "stale_revision_did_not_restore": true,
+    "restored_persona": true,
+    "correction_preserved": true,
+    "forgotten_fact_absent": true,
+    "explicit_delete_confirmation": true
+  },
+  "snapshot_screenshot": "companion-snapshot-heard-smoke-snapshots.png",
+  "snapshot_screenshot_sha256": "38ccccbd0801abc845e2189f96b018093147cb8f0c70a5f7b85286071106b091",
   "on_demand_plain_question": {
     "tool_schemas_available": true,
     "search_calls": 0,
     "missing_search_key_did_not_block": true
   },
-  "stop_observed_ms": 21,
+  "stop_observed_ms": 16,
   "voice_search": {
     "default_mode": "on_demand",
     "image_and_tool_schemas": true,
@@ -114,16 +136,87 @@
     "retry_guide": false,
     "tool_schemas_sent": false
   },
-  "screenshot": "macos-companion.png",
-  "screenshot_sha256": "fd93585df43f97812c1d48ac5e2cfff21d62c7732ff4e2f47bcae49e718006cc",
-  "synthetic_calls": {
-    "model": 12,
-    "asr": 3,
-    "tts": 5
+  "partial_heard_observation": {
+    "id": "e4a597212b3847bea29b83f620d452c6",
+    "turn_id": "e4a597212b3847bea29b83f620d452c6",
+    "session_id": "65a2a2168f9c449da9cd136c02361585",
+    "input": "合成实际听到测试",
+    "text": "合成实际听到测试",
+    "guide": true,
+    "context": {
+      "persona_version": 4,
+      "memory_revision": 15,
+      "image": {
+        "frame_id": "234ce838-6a85-410e-aa6d-dbf97ad05dc7",
+        "source_id": "window:98765:0",
+        "captured_at": 1790408265.908
+      }
+    },
+    "status": "completed",
+    "created_at": 1790408265.9110348,
+    "settled_at": 1790408266.665906,
+    "delivered_text": "**第一句🐾已经听完。**\n第二句还没有听完。",
+    "assistant_text": "**第一句🐾已经听完。**\n第二句还没有听完。",
+    "output": "**第一句🐾已经听完。**\n第二句还没有听完。",
+    "confirmed_text": "",
+    "heard_text": "第一句🐾已经听完。",
+    "heard_characters": 11,
+    "confirmed_characters": 11,
+    "audio_playback": [
+      {
+        "segment_id": "b2601a62ad7e4c16a321ba638d0b9796",
+        "state": "completed",
+        "updated_at": 1790408270.629889,
+        "text_start": 0,
+        "text_end": 11
+      },
+      {
+        "segment_id": "c8eaf9e71d154f48a12df245d46e9148",
+        "state": "stopped",
+        "updated_at": 1790408270.663702,
+        "text_start": 11,
+        "text_end": 23
+      }
+    ],
+    "sources": [],
+    "ack_seq": 0,
+    "sent_seq": 6,
+    "last_sequence": 6,
+    "last_seq": 6,
+    "error": null
   },
-  "renderer_errors": [],
-  "archive": {
-    "original_report_sha256": "29e2995578af804284139eb15ee46be144bf76ace7a67f024a4ddd7d68671ec3",
-    "original_screenshot": "companion-on-demand-smoke.png"
-  }
+  "heard_context": {
+    "first_sentence": "第一句🐾已经听完。",
+    "second_sentence_absent": true,
+    "display_ack": 0,
+    "actual_playback": [
+      {
+        "segment_id": "b2601a62ad7e4c16a321ba638d0b9796",
+        "state": "completed",
+        "updated_at": 1790408270.629889,
+        "text_start": 0,
+        "text_end": 11
+      },
+      {
+        "segment_id": "c8eaf9e71d154f48a12df245d46e9148",
+        "state": "stopped",
+        "updated_at": 1790408270.663702,
+        "text_start": 11,
+        "text_end": 23
+      }
+    ]
+  },
+  "full_heard": {
+    "heard_text": "合成场景建议：先观察。再决定下一步。",
+    "display_ack": 0,
+    "completed_segments": 2
+  },
+  "screenshot": "companion-snapshot-heard-smoke.png",
+  "screenshot_sha256": "534e627c5ced027b8405f4c6bf7e97bb0ba5ba2104635c76b824c06b8bc7529a",
+  "synthetic_calls": {
+    "model": 16,
+    "asr": 3,
+    "tts": 9
+  },
+  "renderer_errors": []
 }

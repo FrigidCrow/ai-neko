@@ -145,3 +145,41 @@ test('URL periods do not create spoken URL fragments and punctuation alone is si
   queue.append('com/path 。下一步。！！', true); await tick();
   assert.deepEqual(spoken, ['参考  。', '下一步。']);
 });
+
+test('playback spans count original Unicode code points including filtered leading sources', async () => {
+  const seen = [];
+  const queue = new SpeechQueue({ synthesize: async (text) => text, play: async (_audio, _signal, segment) => seen.push(segment) });
+  queue.begin({ sessionId: 'test', turnId: 'first' });
+  const prefix = '[S1]\nhttps://example.com/path\n**！';
+  queue.append(prefix); await tick(); assert.equal(seen.length, 0);
+  queue.append('第一句🐾。第'); queue.append('二句。', true); await tick();
+  assert.deepEqual(seen.map(({ text, text_start, text_end }) => ({ text, text_start, text_end })), [
+    { text: '第一句🐾。', text_start: 0, text_end: Array.from(prefix + '第一句🐾。').length },
+    { text: '第二句。', text_start: Array.from(prefix + '第一句🐾。').length, text_end: Array.from(prefix + '第一句🐾。第二句。').length },
+  ]);
+  queue.begin({ sessionId: 'test', turnId: 'next' }); queue.append('新的。'); await tick();
+  assert.equal(seen.at(-1).text_start, 0); assert.equal(seen.at(-1).text_end, 3);
+});
+
+test('long sentence limit does not split an astral Unicode character', async () => {
+  const seen = [];
+  const queue = new SpeechQueue({ synthesize: async (text) => text, play: async (_audio, _signal, segment) => seen.push(segment) });
+  queue.append('字'.repeat(239) + '🐾' + '余字', true); await tick();
+  assert.equal(seen[0].text, '字'.repeat(239) + '🐾');
+  assert.equal(seen[0].text_end, 240);
+  assert.equal(seen[1].text_start, 240); assert.equal(seen[1].text_end, 242);
+  queue.begin({ sessionId: 'test', turnId: 'split-surrogate' }); seen.length = 0;
+  queue.append('字'.repeat(239) + '\uD83D'); queue.append('\uDC3E结束。', true); await tick();
+  assert.equal(seen.map((segment) => segment.text).join(''), '字'.repeat(239) + '🐾结束。');
+  assert.equal(seen.at(-1).text_end, 243);
+});
+
+test('memory snapshot routes allow only fixed names, never paths or arbitrary database files', () => {
+  const valid = 'memory-' + 'a'.repeat(32) + '.sqlite';
+  for (const [method, path] of [['GET', '/api/memory/backups'], ['POST', '/api/memory/backups'], ['POST', `/api/memory/backups/${valid}/restore`], ['DELETE', `/api/memory/backups/${valid}`]]) assert.doesNotThrow(() => validateRequest({ method, path }));
+  for (const name of ['memory.sqlite', '../' + valid, '%2e%2e%2f' + valid, valid + '.bak', valid.toUpperCase(), 'memory-' + 'f'.repeat(31) + '.sqlite']) {
+    assert.throws(() => validateRequest({ method: 'POST', path: `/api/memory/backups/${name}/restore` }));
+    assert.throws(() => validateRequest({ method: 'DELETE', path: `/api/memory/backups/${name}` }));
+  }
+  assert.throws(() => validateRequest({ method: 'GET', path: `/api/memory/backups/${valid}` }));
+});

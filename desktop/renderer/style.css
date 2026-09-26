@@ -7,3 +7,5 @@
 body[data-recording=true] .pet-indicator{background:#bd6684;animation:blink 1s ease-in-out infinite}
 
 .memory-evidence{border-top:1px solid var(--line);margin-top:8px;padding-top:5px;font-size:10px;color:#86677c;white-space:pre-wrap;overflow-wrap:anywhere;user-select:text}
+
+.backup-card,.backup-confirmation{margin:10px 0;padding:10px;border:1px solid #e9dce5;border-radius:9px;font-size:11px}.backup-card strong,.backup-card small{display:block}.backup-card small{font-size:9px;color:#a1889b;overflow-wrap:anywhere;user-select:text}.backup-card button,.backup-confirmation button{margin-right:8px}.backup-confirmation{background:#fff6eb;border-color:#dbc2a7}.backup-confirmation p{white-space:pre-wrap;overflow-wrap:anywhere;font-size:10px}

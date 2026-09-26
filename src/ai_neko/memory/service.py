@@ -11,15 +11,17 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 import re
 import sqlite3
 import time
 from contextlib import closing, contextmanager
+from pathlib import Path
 from threading import RLock
 from typing import Any
 from uuid import uuid4
 
-from ai_neko.config.paths import DataPaths, safe_child
+from ai_neko.config.paths import DataPaths, DataRootError, safe_child
 
 from .recall import bm25_rank
 from .script_fold import fold_script
@@ -47,6 +49,17 @@ DEFAULT_PERSONA = {
 }
 _LIMITS = {"name": 40, "user_name": 40, "speaking_style": 400, "catchphrase": 60, "game_style": 400}
 _KINDS = {"preference", "event", "fact"}
+_BACKUP_NAME = re.compile(r"memory-[a-f0-9]{32}\.sqlite")
+_BACKUP_MAX_BYTES = 256 * 1024 * 1024
+_BACKUP_TABLES = (
+    "memory_scopes",
+    "memory_sources",
+    "memory_facts",
+    "memory_fact_sources",
+    "memory_corrections",
+    "memory_tombstones",
+    "memory_jobs",
+)
 
 
 def _text(value: Any, maximum: int, field: str, *, empty: bool = False) -> str:
@@ -685,6 +698,163 @@ class MemoryService:
             )
             return self._job(job_id)
 
+    def _backup_directory(self) -> Path:
+        try:
+            directory = safe_child(self.paths.root, "backups")
+        except DataRootError as exc:
+            raise MemoryInputError("invalid_memory_backup") from exc
+        if not directory.is_dir():
+            raise MemoryInputError("invalid_memory_backup")
+        return directory
+
+    def _backup_path(self, backup_id: str) -> Path:
+        if not isinstance(backup_id, str) or not _BACKUP_NAME.fullmatch(backup_id):
+            raise MemoryInputError("invalid_memory_backup")
+        try:
+            path = safe_child(self._backup_directory(), backup_id)
+        except DataRootError as exc:
+            raise MemoryInputError("invalid_memory_backup") from exc
+        if not path.is_file():
+            raise MemoryAccessError("memory_backup_not_found")
+        return path
+
+    def _backup_owner(self, source: sqlite3.Connection, path: Path) -> dict:
+        """New snapshots have an owner; old single-scope snapshots are unambiguous.
+
+        Older multi-scope files can still be explicitly restored, but are not
+        exposed for management: their creator cannot be reliably determined.
+        """
+        table = source.execute(
+            "SELECT type FROM sqlite_master WHERE name='memory_backup_info'"
+        ).fetchone()
+        if table is None:
+            scopes = source.execute("SELECT scope FROM memory_scopes LIMIT 2").fetchall()
+            if len(scopes) != 1 or scopes[0][0] != self.scope:
+                raise MemoryAccessError("memory_backup_scope_not_found")
+            created_at = path.stat().st_mtime
+        else:
+            if table[0] != "table":
+                raise MemoryInputError("invalid_memory_backup")
+            rows = source.execute(
+                "SELECT id,owner_scope,created_at FROM memory_backup_info LIMIT 2"
+            ).fetchall()
+            if len(rows) != 1 or rows[0][0] != path.name or rows[0][1] != self.scope:
+                raise MemoryAccessError("memory_backup_scope_not_found")
+            created_at = rows[0][2]
+        if type(created_at) not in (int, float) or not math.isfinite(created_at) or created_at <= 0:
+            raise MemoryInputError("invalid_memory_backup")
+        return {"id": path.name, "created_at": created_at, "bytes": path.stat().st_size}
+
+    @contextmanager
+    def _open_backup(self, path: Path):
+        if path.stat().st_size > _BACKUP_MAX_BYTES:
+            raise MemoryInputError("memory_backup_too_large")
+        # Immutable snapshots never need WAL/journal files or a write lock. The
+        # app creates them with SQLite backup and closes them before exposing them.
+        try:
+            with closing(
+                sqlite3.connect(path.as_uri() + "?mode=ro&immutable=1", uri=True)
+            ) as source:
+                source.row_factory = sqlite3.Row
+                source.execute("PRAGMA trusted_schema=OFF")
+                yield source
+        except sqlite3.DatabaseError as exc:
+            raise MemoryInputError("invalid_memory_backup") from exc
+
+    def _read_backup(self, source: sqlite3.Connection) -> dict:
+        if source.execute("PRAGMA integrity_check").fetchone()[0] != "ok":
+            raise MemoryInputError("invalid_memory_backup")
+        tables = {}
+        for table in _BACKUP_TABLES:
+            schema = source.execute(
+                "SELECT type FROM sqlite_master WHERE name=?", (table,)
+            ).fetchone()
+            if schema is None or schema[0] != "table":
+                raise MemoryInputError("invalid_memory_backup")
+            # Fixed table/column names only. Never interpolate schema identifiers
+            # taken from a corrupt or replaced snapshot into write statements.
+            expected = {row[1] for row in self._db.execute(f"PRAGMA table_info({table})")}
+            actual = {row[1] for row in source.execute(f"PRAGMA table_info({table})")}
+            if actual != expected and not (
+                table == "memory_scopes" and actual == expected - {"invalidation_revision"}
+            ):
+                raise MemoryInputError("invalid_memory_backup")
+            tables[table] = [
+                dict(row)
+                for row in source.execute(f"SELECT * FROM {table} WHERE scope=?", (self.scope,))
+            ]
+        if not tables["memory_scopes"]:
+            raise MemoryAccessError("memory_backup_scope_not_found")
+        try:
+            if len(tables["memory_scopes"]) != 1:
+                raise MemoryInputError("invalid_memory_backup")
+            scope = tables["memory_scopes"][0]
+            _integer(scope["revision"], 0, 2**63 - 2, "revision")
+            _integer(scope["persona_version"], 1, 2**63 - 2, "persona_version")
+            _profile(json.loads(scope["persona"]), {})
+            source_ids = {row["id"] for row in tables["memory_sources"]}
+            fact_ids = {row["id"] for row in tables["memory_facts"]}
+            for row in tables["memory_sources"]:
+                _text(row["id"], 200, "source_id")
+                _text(row["body"], 16000, "source_text")
+            for row in tables["memory_facts"]:
+                _text(row["id"], 200, "fact_id")
+                self._validate_fact(row["content"], row["fact_key"], row["kind"])
+            for row in tables["memory_fact_sources"]:
+                if row["fact_id"] not in fact_ids or row["source_id"] not in source_ids:
+                    raise MemoryInputError("invalid_memory_backup")
+            if {row["fact_id"] for row in tables["memory_fact_sources"]} != fact_ids:
+                raise MemoryInputError("invalid_memory_backup")
+        except (ValueError, TypeError, KeyError) as exc:
+            raise MemoryInputError("invalid_memory_backup") from exc
+        return tables
+
+    def list_backups(self) -> list[dict]:
+        """At most 100 owned snapshots, newest first; unidentifiable files are skipped.
+
+        A readable owner with invalid memory tables is returned as non-restorable
+        and remains deletable. A fully corrupt file has no trustworthy owner, so
+        the application deliberately neither lists nor deletes it.
+        """
+        with self._guard:
+            if self._closed:
+                raise MemoryConflictError("memory_closed")
+            directory = self._backup_directory()
+            candidates = sorted(
+                (path for path in directory.iterdir() if _BACKUP_NAME.fullmatch(path.name)),
+                key=lambda path: path.name,
+            )
+            results = []
+            for candidate in candidates:
+                try:
+                    path = self._backup_path(candidate.name)
+                    with self._open_backup(path) as source:
+                        metadata = self._backup_owner(source, path)
+                        try:
+                            tables = self._read_backup(source)
+                        except (MemoryInputError, MemoryAccessError, sqlite3.DatabaseError):
+                            metadata.update(restorable=False, error="invalid_memory_backup")
+                        else:
+                            metadata.update(
+                                restorable=True, facts_count=len(tables["memory_facts"])
+                            )
+                        results.append(metadata)
+                except (MemoryInputError, MemoryAccessError, OSError):
+                    continue
+            return sorted(results, key=lambda item: (item["created_at"], item["id"]), reverse=True)[
+                :100
+            ]
+
+    def delete_backup(self, backup_id: str) -> dict:
+        with self._guard:
+            if self._closed:
+                raise MemoryConflictError("memory_closed")
+            path = self._backup_path(backup_id)
+            with self._open_backup(path) as source:
+                self._backup_owner(source, path)
+            path.unlink()
+            return {"id": backup_id, "deleted": True}
+
     def backup(self) -> dict:
         # SQLite online backup includes all scopes; restore only imports this
         # service's scope. No provider credentials or external directories.
@@ -692,49 +862,43 @@ class MemoryService:
             if self._closed:
                 raise MemoryConflictError("memory_closed")
             backup_id = "memory-" + uuid4().hex + ".sqlite"
-            path = safe_child(self.paths.backups, backup_id)
-            with closing(sqlite3.connect(path)) as target:
-                self._db.backup(target)
-            path.chmod(0o600)
-            return {"id": backup_id, "created_at": time.time(), "revision": self.revision()}
-
-    def restore(self, backup_id: str) -> dict:
-        if not isinstance(backup_id, str) or not re.fullmatch(
-            r"memory-[a-f0-9]{32}\.sqlite", backup_id
-        ):
-            raise MemoryInputError("invalid_memory_backup")
-        path = safe_child(self.paths.backups, backup_id)
-        if not path.is_file():
-            raise MemoryAccessError("memory_backup_not_found")
-        # Read through mode=ro, refusing arbitrary files and executing no SQL from
-        # the snapshot. Rows are inserted with bound values into a fixed schema.
-        with closing(sqlite3.connect(path.as_uri() + "?mode=ro", uri=True)) as source:
-            source.row_factory = sqlite3.Row
+            path = safe_child(self._backup_directory(), backup_id)
+            created_at = time.time()
+            page_bytes = self._db.execute("PRAGMA page_size").fetchone()[0]
+            page_count = self._db.execute("PRAGMA page_count").fetchone()[0]
+            if (page_count + 4) * page_bytes > _BACKUP_MAX_BYTES:
+                raise MemoryInputError("memory_backup_too_large")
+            # Reserve a new file without overwriting a pre-existing path, and
+            # remove partial snapshots if writing fails.
+            path.touch(mode=0o600, exist_ok=False)
             try:
-                if source.execute("PRAGMA integrity_check").fetchone()[0] != "ok":
-                    raise MemoryInputError("invalid_memory_backup")
-                tables = {
-                    table: [
-                        dict(row)
-                        for row in source.execute(
-                            f"SELECT * FROM {table} WHERE scope=?", (self.scope,)
-                        )
-                    ]
-                    for table in (
-                        "memory_scopes",
-                        "memory_sources",
-                        "memory_facts",
-                        "memory_fact_sources",
-                        "memory_corrections",
-                        "memory_tombstones",
-                        "memory_jobs",
+                with closing(sqlite3.connect(path)) as target:
+                    self._db.backup(target)
+                    target.execute(
+                        "CREATE TABLE memory_backup_info "
+                        "(id TEXT PRIMARY KEY, owner_scope TEXT NOT NULL, created_at REAL NOT NULL)"
                     )
-                }
-            except sqlite3.DatabaseError as exc:
-                raise MemoryInputError("invalid_memory_backup") from exc
-        if not tables["memory_scopes"]:
-            raise MemoryAccessError("memory_backup_scope_not_found")
+                    target.execute(
+                        "INSERT INTO memory_backup_info VALUES (?,?,?)",
+                        (backup_id, self.scope, created_at),
+                    )
+                    target.commit()
+                    revision = target.execute(
+                        "SELECT revision FROM memory_scopes WHERE scope=?", (self.scope,)
+                    ).fetchone()[0]
+                if path.stat().st_size > _BACKUP_MAX_BYTES:
+                    raise MemoryInputError("memory_backup_too_large")
+            except BaseException:
+                path.unlink(missing_ok=True)
+                raise
+            return {"id": backup_id, "created_at": created_at, "revision": revision}
+
+    def restore(self, backup_id: str, *, expected_revision: int | None = None) -> dict:
         with self._transaction():
+            self._check_revision(expected_revision)
+            path = self._backup_path(backup_id)
+            with self._open_backup(path) as source:
+                tables = self._read_backup(source)
             revision = max(self._revision(), tables["memory_scopes"][0]["revision"]) + 1
             current_persona_version = self._db.execute(
                 "SELECT persona_version FROM memory_scopes WHERE scope=?", (self.scope,)
@@ -834,6 +998,25 @@ class MemoryService:
                 {row[1] for row in all_tombstones if row[0] == "source"},
                 revision,
             )
+            remaining_facts = {
+                row["id"]: dict(row)
+                for row in self._db.execute(
+                    "SELECT * FROM memory_facts WHERE scope=?", (self.scope,)
+                )
+            }
+            for fact_id in current_facts.keys() & remaining_facts.keys():
+                # Normal edits are corrections and were preserved above. A
+                # replaced snapshot must not reinterpret existing turn_memory
+                # references as different facts under the same stable ID.
+                if any(
+                    current_facts[fact_id][field] != remaining_facts[fact_id][field]
+                    for field in ("content", "fact_key", "kind")
+                ):
+                    raise MemoryInputError("invalid_memory_backup")
+            removed_facts = current_facts.keys() - remaining_facts.keys()
+            for fact_id in removed_facts:
+                self._tombstone("fact", fact_id, revision)
+            erased["fact_ids"] = sorted(set(erased["fact_ids"]) | removed_facts)
             self._db.execute(
                 "UPDATE memory_scopes SET revision=?,invalidation_revision=?,persona_version=? "
                 "WHERE scope=?",
@@ -850,7 +1033,10 @@ class MemoryService:
                     "SELECT id FROM memory_sources WHERE scope=?", (self.scope,)
                 )
             }
-            erased["source_ids"] = sorted(set(erased["source_ids"]) | (old_sources - remaining))
+            removed_sources = old_sources - remaining
+            for source_id in removed_sources:
+                self._tombstone("source", source_id, revision)
+            erased["source_ids"] = sorted(set(erased["source_ids"]) | removed_sources)
             return erased
 
     def close(self):

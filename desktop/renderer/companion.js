@@ -7,6 +7,12 @@
   const status = (message) => { el('media-status').textContent = message; };
   const abortError = () => new DOMException('Cancelled', 'AbortError');
   const errorText = (error) => error.code ? `${chat.friendlyError(error)}${error.status ? `（${error.status}）` : ''}` : (error.message || '操作失败，请重试。');
+  let playbackReceipts = Promise.resolve();
+  async function flushPlayback() {
+    let timer;
+    try { await Promise.race([playbackReceipts, new Promise((resolve) => { timer = setTimeout(resolve, 5000); })]); }
+    finally { clearTimeout(timer); }
+  }
 
   async function voiceRequest(path, body, signal) {
     const requestId = crypto.randomUUID().replaceAll('-', '');
@@ -39,12 +45,11 @@
       const levels = new Uint8Array(analyser.fftSize);
       let frame;
       let started = false;
-      let acknowledgement = Promise.resolve();
       const record = (playbackState) => {
         if (!segment?.context) return;
         const { sessionId, turnId } = segment.context;
-        acknowledgement = acknowledgement.catch(() => {}).then(() => chat.api(`/api/sessions/${encodeURIComponent(sessionId)}/turns/${encodeURIComponent(turnId)}/audio`, {
-          method: 'POST', body: { segment_id: segment.segment_id, state: playbackState },
+        playbackReceipts = playbackReceipts.catch(() => {}).then(() => chat.api(`/api/sessions/${encodeURIComponent(sessionId)}/turns/${encodeURIComponent(turnId)}/audio`, {
+          method: 'POST', body: { segment_id: segment.segment_id, state: playbackState, text_start: segment.text_start, text_end: segment.text_end },
         })).catch(() => {});
       };
       const meter = () => {
@@ -208,6 +213,80 @@
     if (!result.memories?.length) el('memory-list').textContent = '还没有长期记忆。';
     const config = await chat.api('/api/memory/config'); el('memory-auto-extract').checked = config.auto_extract;
   }
+  let backupRevision = null;
+  let backupConfirmation = null;
+  let backupBusy = false;
+  function closeBackupConfirmation() { backupConfirmation = null; el('memory-backup-confirmation').hidden = true; }
+  function backupControls(busy) {
+    backupBusy = busy;
+    for (const button of document.querySelectorAll('[aria-label="记忆快照"] button')) button.disabled = busy || button.dataset.unrestorable === 'true';
+  }
+  function confirmBackupAction(action, item) {
+    if (backupBusy) return;
+    backupConfirmation = { action, id: item.id, revision: backupRevision };
+    const restore = action === 'restore';
+    el('memory-backup-confirm-title').textContent = restore ? '确认恢复这个快照？' : '确认删除这个快照？';
+    el('memory-backup-confirm-detail').textContent = `${item.id}\n${restore ? '恢复其中的人格和事实，保留之后的纠正和遗忘。会停止当前任务，并按删除策略刷新当前历史。' : '仅删除选中的本地快照，无法撤销；当前人格和记忆保持不变。此操作会停止当前任务。'}`;
+    el('confirm-memory-backup').textContent = restore ? '确认恢复' : '确认删除';
+    el('memory-backup-confirmation').hidden = false;
+    el('cancel-memory-backup').focus();
+  }
+  async function loadBackups() {
+    const result = await chat.api('/api/memory/backups');
+    backupRevision = result.revision;
+    el('memory-backup-list').dataset.revision = String(result.revision);
+    closeBackupConfirmation();
+    el('memory-backup-list').replaceChildren();
+    for (const item of result.backups || []) {
+      if (!/^memory-[a-f0-9]{32}\.sqlite$/.test(item.id)) continue;
+      const card = document.createElement('div'); card.className = 'backup-card'; card.dataset.backupId = item.id;
+      const title = document.createElement('strong');
+      const timestamp = typeof item.created_at === 'number' ? (item.created_at < 1e12 ? item.created_at * 1000 : item.created_at) : item.created_at;
+      const date = new Date(timestamp);
+      title.textContent = Number.isNaN(date.getTime()) ? '本地记忆快照' : date.toLocaleString();
+      const detail = document.createElement('small'); detail.textContent = `${item.id} · ${Math.ceil((item.bytes || 0) / 1024)} KB${Number.isInteger(item.facts_count) ? ` · ${item.facts_count} 条记忆` : ''}`;
+      const restore = document.createElement('button'); restore.type = 'button'; restore.className = 'soft-button'; restore.textContent = '恢复';
+      restore.dataset.unrestorable = String(item.restorable === false); restore.disabled = backupBusy || item.restorable === false;
+      restore.onclick = () => confirmBackupAction('restore', item);
+      const remove = document.createElement('button'); remove.type = 'button'; remove.className = 'text-button'; remove.textContent = '删除快照'; remove.disabled = backupBusy;
+      remove.onclick = () => confirmBackupAction('delete', item);
+      card.append(title, detail, restore, remove);
+      if (item.restorable === false) { const error = document.createElement('p'); error.className = 'settings-message'; error.textContent = '此快照文件损坏或格式不兼容，无法恢复。可以删除。'; card.append(error); }
+      el('memory-backup-list').append(card);
+    }
+    if (!el('memory-backup-list').children.length) el('memory-backup-list').textContent = '还没有记忆快照。';
+  }
+  async function prepareMemoryAction() {
+    stopSpeech(); stopRecording(true); chat.invalidatePending();
+    await chat.cancelTurn(); await flushPlayback();
+  }
+  el('create-memory-backup').onclick = async () => {
+    if (backupBusy) return;
+    backupControls(true); closeBackupConfirmation();
+    try { await prepareMemoryAction(); await chat.api('/api/memory/backups', { method: 'POST', body: {} }); await chat.refreshAfterForget(); await loadBackups(); el('memory-backup-status').textContent = '已创建本地记忆快照。'; }
+    catch (error) { await chat.refreshAfterForget().catch(() => {}); el('memory-backup-status').textContent = errorText(error); }
+    finally { backupControls(false); }
+  };
+  el('refresh-memory-backups').onclick = () => loadBackups().catch((error) => { el('memory-backup-status').textContent = errorText(error); });
+  el('cancel-memory-backup').onclick = closeBackupConfirmation;
+  el('confirm-memory-backup').onclick = async () => {
+    if (!backupConfirmation || backupBusy) return;
+    const selected = backupConfirmation; backupControls(true); closeBackupConfirmation();
+    try {
+      await prepareMemoryAction();
+      const path = `/api/memory/backups/${encodeURIComponent(selected.id)}`;
+      if (selected.action === 'restore') {
+        await chat.api(`${path}/restore`, { method: 'POST', body: { confirm: true, expected_revision: selected.revision } });
+        await chat.refreshAfterForget(); await Promise.all([loadPersona(), loadMemories()]);
+      } else { await chat.api(path, { method: 'DELETE' }); await chat.refreshAfterForget(); }
+      await loadBackups();
+      el('memory-backup-status').textContent = selected.action === 'restore' ? '已恢复人格和记忆，保留后续纠正与遗忘，并刷新历史。' : '已删除选中的快照。';
+    } catch (error) {
+      await loadBackups().catch(() => {});
+      await chat.refreshAfterForget().catch(() => {});
+      el('memory-backup-status').textContent = error.status === 409 ? '记忆已经变化，请重新选择快照并确认恢复。' : errorText(error);
+    } finally { backupControls(false); }
+  };
   el('persona-form').onsubmit = async (event) => {
     event.preventDefault();
     const payload = {};
@@ -275,13 +354,14 @@
     loadPersona().catch((error) => { el('persona-status').textContent = errorText(error); });
     loadVoiceConfig().catch((error) => { el('voice-config-status').textContent = errorText(error); });
     loadMemories().catch((error) => { el('memory-status').textContent = errorText(error); });
+    loadBackups().catch((error) => { el('memory-backup-status').textContent = errorText(error); });
   };
   window.addEventListener('ai-neko-settings', loadSettings);
   window.addEventListener('ai-neko-connected', loadSettings);
   window.addEventListener('pagehide', () => { stopRecording(true); stopSpeech(); void disableVision(); clearKeys(); });
   bridge?.onAction((action) => { if (action === 'voice-toggle') void toggleRecording(); });
   window.aiNekoCompanion = Object.freeze({
-    captureForTurn, frameStillAllowed, stopSpeech, stopRecording, clearKeys,
+    captureForTurn, frameStillAllowed, stopSpeech, stopRecording, clearKeys, flushPlayback,
     beginTurn: (id, sessionId) => { stopSpeech(); if (el('speak-replies').checked) { state.speechTurn = id; speech.begin({ sessionId, turnId: id }); } },
     text: (id, value) => { if (state.speechTurn === id && el('speak-replies').checked) speech.append(value); },
     done: (id, completed) => { if (state.speechTurn === id) { if (completed) speech.append('', true); else stopSpeech(); } },

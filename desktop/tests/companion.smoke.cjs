@@ -43,7 +43,8 @@ const server = http.createServer((req, res) => {
       res.end('data: ' + JSON.stringify({ choices: [{ delta: { tool_calls: [{ index: 0, id: 'synthetic-voice-search', type: 'function', function: { name: 'search_web', arguments: JSON.stringify({ query: 'synthetic latest game rules' }) } }] } }] }) + '\n\ndata: [DONE]\n\n');
       return;
     }
-    for (const content of ['合成场景建议：先观察。', '再决定下一步。']) { res.write('data: ' + JSON.stringify({ choices: [{ delta: { content } }] }) + '\n\n'); await pause(180); }
+    const answer = userText.includes('合成实际听到测试') ? ['**第一句🐾已经听完。', '**\n第二句还没有听完。'] : ['合成场景建议：先观察。', '再决定下一步。'];
+    for (const content of answer) { res.write('data: ' + JSON.stringify({ choices: [{ delta: { content } }] }) + '\n\n'); await pause(180); }
     res.end('data: [DONE]\n\n');
   });
 });
@@ -51,6 +52,14 @@ let application; let page; const errors = [];
 async function check(name, operation) {
   const value = { name, status: 'RUNNING' }; report.cases.push(value); save();
   try { await operation(); value.status = 'PASS'; } catch (error) { value.status = 'FAIL'; throw error; } finally { save(); }
+}
+async function waitForBackend(predicate, timeout = 20000) {
+  const deadline = Date.now() + timeout;
+  while (Date.now() < deadline) {
+    if (await page.evaluate(predicate)) return;
+    await pause(100);
+  }
+  throw new Error(`Backend condition timed out: ${String(predicate)}`);
 }
 const env = { ...process.env };
 for (const key of Object.keys(env)) if (/^(AI_NEKO_|ELECTRON_|LANGSMITH_)/.test(key) || ['PYTHONPATH', 'PYTHONHOME', 'NODE_OPTIONS'].includes(key)) delete env[key];
@@ -126,6 +135,81 @@ report.executable_sha256 = crypto.createHash('sha256').update(fs.readFileSync(ex
     await page.locator('#memory-auto-extract').uncheck();
     await page.waitForFunction(() => document.querySelector('#memory-status').textContent.includes('关闭自动'));
   });
+  await check('memory_snapshot_ui_requires_confirmation_and_preserves_corrections_and_forgetting', async () => {
+    for (const content of ['快照偏好：喜欢慢节奏。', '快照遗忘：旧的事件。']) {
+      await page.locator('#memory-content').fill(content); await page.locator('#memory-form').evaluate((form) => form.requestSubmit());
+      await page.waitForFunction((text) => [...document.querySelectorAll('.memory-card textarea')].some((item) => item.value === text), content);
+    }
+    await page.locator('#create-memory-backup').click();
+    await page.waitForFunction(() => document.querySelector('#memory-backup-status').textContent.includes('已创建'));
+    const snapshotId = await page.locator('.backup-card').first().getAttribute('data-backup-id');
+    assert.match(snapshotId, /^memory-[a-f0-9]{32}\.sqlite$/);
+    await page.locator('#persona-name').fill('快照之后的名字'); await page.locator('#persona-form').evaluate((form) => form.requestSubmit());
+    await page.waitForFunction(() => document.querySelector('#persona-status').textContent.includes('下一轮'));
+    // Locate by persisted content rather than relying on SQLite row order.
+    const memoryRows = await page.evaluate(() => window.aiNekoChat.api('/api/memories'));
+    const correctId = memoryRows.memories.find((item) => item.content.includes('快照偏好')).id;
+    const forgetId = memoryRows.memories.find((item) => item.content.includes('快照遗忘')).id;
+    await page.evaluate(async ({ correctId, forgetId }) => {
+      await window.aiNekoChat.api(`/api/memories/${correctId}`, { method: 'PUT', body: { content: '快照偏好：现在喜欢快节奏。' } });
+      await window.aiNekoChat.api(`/api/memories/${forgetId}`, { method: 'DELETE' });
+    }, { correctId, forgetId });
+    const revision = (await page.evaluate(() => window.aiNekoChat.api('/api/memory/backups'))).revision;
+    await page.locator('#refresh-memory-backups').click();
+    await page.waitForFunction((revision) => document.querySelector('#memory-backup-list').dataset.revision === String(revision), revision);
+    await page.locator('.backup-card').first().getByRole('button', { name: '恢复', exact: true }).click();
+    await page.waitForSelector('#memory-backup-confirmation:not([hidden])');
+    assert.ok((await page.locator('#memory-backup-confirm-detail').innerText()).includes(snapshotId));
+    assert.equal((await page.evaluate(() => window.aiNekoChat.api('/api/persona'))).name, '快照之后的名字');
+    await page.locator('#cancel-memory-backup').click();
+    assert.equal((await page.evaluate(() => window.aiNekoChat.api('/api/persona'))).name, '快照之后的名字');
+    await page.locator('.backup-card').first().getByRole('button', { name: '恢复', exact: true }).click();
+    await page.evaluate(async (id) => window.aiNekoChat.api(`/api/memories/${id}`, { method: 'PUT', body: { content: '快照偏好：现在喜欢快节奏。' } }), correctId);
+    await page.locator('#confirm-memory-backup').click();
+    await page.waitForFunction(() => document.querySelector('#memory-backup-status').textContent.includes('记忆已经变化'));
+    assert.equal(await page.locator('#memory-backup-confirmation').isHidden(), true);
+    assert.equal((await page.evaluate(() => window.aiNekoChat.api('/api/persona'))).name, '快照之后的名字');
+    await page.locator('.backup-card').first().getByRole('button', { name: '恢复', exact: true }).click();
+    await page.locator('#confirm-memory-backup').click();
+    await page.waitForFunction(() => document.querySelector('#memory-backup-status').textContent.includes('已恢复'));
+    assert.equal(await page.locator('#persona-name').inputValue(), '合成小猫');
+    const restored = await page.evaluate(() => window.aiNekoChat.api('/api/memories'));
+    assert.equal(restored.memories.find((item) => item.id === correctId)?.content, '快照偏好：现在喜欢快节奏。');
+    assert.equal(restored.memories.some((item) => item.id === forgetId), false);
+    const visible = await page.locator('.memory-card textarea').evaluateAll((items) => items.map((item) => item.value));
+    assert.ok(visible.includes('快照偏好：现在喜欢快节奏。')); assert.ok(!visible.some((text) => text.includes('快照遗忘')));
+    await page.locator('.backup-card').first().getByRole('button', { name: '删除快照', exact: true }).click();
+    assert.equal((await page.evaluate(() => window.aiNekoChat.api('/api/memory/backups'))).backups.length, 1);
+    await page.locator('#confirm-memory-backup').click();
+    await page.waitForFunction(() => document.querySelector('#memory-backup-status').textContent.includes('已删除'));
+    assert.equal((await page.evaluate(() => window.aiNekoChat.api('/api/memory/backups'))).backups.length, 0);
+    report.memory_snapshot_ui = { explicit_restore_confirmation: true, stale_revision_did_not_restore: true, restored_persona: true, correction_preserved: true, forgotten_fact_absent: true, explicit_delete_confirmation: true };
+  });
+  await check('damaged_owned_snapshot_is_visible_deletable_and_cannot_restore', async () => {
+    await page.locator('#create-memory-backup').click();
+    await page.waitForSelector('.backup-card');
+    await page.waitForFunction(() => !document.querySelector('#create-memory-backup').disabled);
+    const id = await page.locator('.backup-card').first().getAttribute('data-backup-id');
+    // Alter only this harness's freshly created synthetic snapshot. Its owner
+    // stays readable, while the persona JSON makes restoration invalid.
+    const { DatabaseSync } = require('node:sqlite');
+    const fixtureDB = new DatabaseSync(path.join(env.AI_NEKO_DATA_DIR, 'backups', id));
+    try { fixtureDB.exec("UPDATE memory_scopes SET persona='invalid synthetic JSON'"); } finally { fixtureDB.close(); }
+    await page.locator('#refresh-memory-backups').click();
+    await page.waitForFunction(() => document.querySelector('.backup-card button[data-unrestorable="true"]')?.disabled);
+    assert.ok((await page.locator('.backup-card').innerText()).includes('无法恢复'));
+    assert.equal(await page.locator('.backup-card').getByRole('button', { name: '删除快照', exact: true }).isEnabled(), true);
+    await page.locator('.backup-card').getByRole('button', { name: '删除快照', exact: true }).click();
+    const evidencePath = screenshotPath.replace(/\.png$/, '-snapshots.png');
+    await page.locator('#memory-backup-confirmation').scrollIntoViewIfNeeded();
+    await page.screenshot({ path: evidencePath, omitBackground: true });
+    report.snapshot_screenshot = path.basename(evidencePath);
+    report.snapshot_screenshot_sha256 = crypto.createHash('sha256').update(fs.readFileSync(evidencePath)).digest('hex');
+    assert.equal((await page.evaluate(() => window.aiNekoChat.api('/api/memory/backups'))).backups.length, 1);
+    await page.locator('#confirm-memory-backup').click();
+    await page.waitForSelector('.backup-card', { state: 'detached' });
+    assert.equal((await page.evaluate(() => window.aiNekoChat.api('/api/memory/backups'))).backups.length, 0);
+  });
   await check('configure_independent_model_and_audio_services', async () => {
     for (const [id, value] of [['asr-base-url', endpoint], ['asr-model', 'synthetic-asr'], ['tts-base-url', endpoint], ['tts-model', 'synthetic-tts'], ['tts-voice', 'synthetic-voice']]) await page.locator(`#${id}`).fill(value);
     await page.locator('#voice-form').evaluate((form) => form.requestSubmit());
@@ -172,7 +256,7 @@ report.executable_sha256 = crypto.createHash('sha256').update(fs.readFileSync(ex
     report.stop_observed_ms = Date.now() - start;
     await pause(650); assert.equal(calls.tts, before);
     await page.waitForFunction(() => document.querySelector('#cancel-turn').hidden);
-    await page.waitForFunction(async () => { const id = localStorage.getItem('ai-neko.desktop.last-session'); return (await window.aiNekoChat.api(`/api/sessions/${id}`)).turns.at(-1).audio_playback?.some((segment) => segment.state === 'stopped'); });
+    await waitForBackend(async () => { const id = localStorage.getItem('ai-neko.desktop.last-session'); return (await window.aiNekoChat.api(`/api/sessions/${id}`)).turns.at(-1).audio_playback?.some((segment) => segment.state === 'stopped'); });
   });
   await check('fake_microphone_asr_image_chat_sentence_tts_loop', async () => {
     await page.locator('#record-voice').click();
@@ -245,6 +329,7 @@ report.executable_sha256 = crypto.createHash('sha256').update(fs.readFileSync(ex
   });
   await check('folded_panel_voice_keeps_playing_without_false_display_ack', async () => {
     await page.waitForFunction(() => document.querySelector('#cancel-turn').hidden);
+    asrText = '合成实际听到测试';
     await page.locator('#close-chat').click();
     const trigger = () => application.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows().find((window) => window.webContents.getURL().includes('/renderer/')).webContents.send('ai-neko:action', 'voice-toggle'));
     await trigger();
@@ -257,8 +342,28 @@ report.executable_sha256 = crypto.createHash('sha256').update(fs.readFileSync(ex
       return (await window.aiNekoChat.api(`/api/sessions/${id}`)).turns.at(-1);
     });
     assert.equal(turn.status, 'completed'); assert.equal(turn.ack_seq, 0);
-    await page.waitForFunction(async () => { const id = localStorage.getItem('ai-neko.desktop.last-session'); return (await window.aiNekoChat.api(`/api/sessions/${id}`)).turns.at(-1).audio_playback?.some((segment) => segment.state === 'completed'); });
+    await waitForBackend(async () => { const id = localStorage.getItem('ai-neko.desktop.last-session'); const audio = (await window.aiNekoChat.api(`/api/sessions/${id}`)).turns.at(-1).audio_playback; return audio?.some((segment) => segment.state === 'completed') && audio.some((segment) => segment.state === 'started'); });
     await page.evaluate(() => window.aiNekoCompanion.stopSpeech());
+    // Submit while still hidden. The submit path must flush the stopped receipt
+    // before the backend builds the next model's confirmed-history context.
+    await page.evaluate(() => window.aiNekoChat.submitText('合成核对已听到的内容'));
+    await page.waitForFunction(() => document.querySelector('#cancel-turn').hidden);
+    const prior = await page.evaluate(async () => { const id = localStorage.getItem('ai-neko.desktop.last-session'); return (await window.aiNekoChat.api(`/api/sessions/${id}`)).turns.at(-2); });
+    report.partial_heard_observation = prior;
+    assert.equal(prior.ack_seq, 0); assert.equal(prior.heard_text, '第一句🐾已经听完。');
+    assert.ok(prior.audio_playback.some((segment) => segment.state === 'stopped'));
+    const context = calls.models.at(-1).messages.filter((message) => message.role === 'assistant').map((message) => message.content).join('\n');
+    assert.ok(context.includes('第一句🐾已经听完。')); assert.ok(!context.includes('第二句还没有听完。'));
+    report.heard_context = { first_sentence: prior.heard_text, second_sentence_absent: true, display_ack: prior.ack_seq, actual_playback: prior.audio_playback };
+    await page.evaluate(() => window.aiNekoCompanion.stopSpeech());
+    asrText = '合成语音问题，请看当前棋盘。';
+  });
+  await check('hidden_complete_playback_confirms_both_sentences_without_display_ack', async () => {
+    await page.evaluate(() => window.aiNekoChat.submitText('合成完整播放测试'));
+    await waitForBackend(async () => { const id = localStorage.getItem('ai-neko.desktop.last-session'); const turn = (await window.aiNekoChat.api(`/api/sessions/${id}`)).turns.at(-1); return turn.audio_playback?.filter((segment) => segment.state === 'completed').length === 2; });
+    const turn = await page.evaluate(async () => { const id = localStorage.getItem('ai-neko.desktop.last-session'); return (await window.aiNekoChat.api(`/api/sessions/${id}`)).turns.at(-1); });
+    assert.equal(turn.ack_seq, 0); assert.equal(turn.heard_text, '合成场景建议：先观察。再决定下一步。');
+    report.full_heard = { heard_text: turn.heard_text, display_ack: turn.ack_seq, completed_segments: turn.audio_playback.length };
     await page.locator('#show-chat').click();
   });
   await check('vision_off_revokes_capture_and_does_not_fallback', async () => {

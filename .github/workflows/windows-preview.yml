@@ -172,11 +172,11 @@ jobs:
 
           下载 `ai-neko-…-windows-x64.zip` 后解压到独立目录，阅读包内 README，双击 `ai-neko.exe`。包内包含 Electron、Python、猫娘与运行依赖，无需安装 Python、Node 或 uv。首次使用请阅读 Live2D 条款并选择是否接受。
 
-          本版提供可见猫娘桌宠、伴随文字面板、OpenAI 兼容模型配置、流式聊天、会话保存/恢复、取消，以及 Tavily 公开搜索和正文读取/来源。可拖拽、缩放、设置置顶并从托盘找回/退出。猫娘使用参考 N.E.K.O 中的 默认 YUI Lolita 猫娘，来源与许可记录随包提供。请配置自己的模型和搜索凭据，调用按相应服务商计费。**不含长期事实记忆、语音、多角色导入或键鼠控制。**
+          本版提供可见猫娘桌宠、流式文字聊天、可编辑人格、明确选源后每次提问截图、按键语音输入与按句朗读，以及共享 Tavily 搜索和网页正文/来源。长期记忆本地保存，支持查看依据、纠正、遗忘与快照恢复；自动整理对话需显式开启。猫娘使用参考 N.E.K.O 的默认 YUI Lolita，来源与许可随包提供。请配置自己的模型、搜索和语音服务，调用按相应服务商计费；观察画面需要支持图片的模型。**不含免按键语音唤醒、多角色导入或键鼠控制。**
 
           本版本在 GitHub Windows Server 2022 x64 runner 构建，并用解压后的 exe 实际验证启动、鉴权、退出和图恢复。Windows 11 x64 用户真机验收仍待完成；尚未签名。
 
-          `build-info.json` 记录源码 commit、锁文件、依赖和构建环境，`SHA256SUMS.txt` 可核对 ZIP；`package-smoke.json`、`desktop-smoke.json` 与各平台 smoke 报告为合成验证证据。CI 使用本地合成模型和资料，真实云模型/搜索验收未包含在这些合成报告中；未提供真实凭据时真实测试数为 0。Windows 11 真机和真实攻略质量仍需单独验收。旧版本保留，可按版本下载，不自动迁移数据。
+          `build-info.json` 记录源码 commit、锁文件、依赖和构建环境，`SHA256SUMS.txt` 可核对 ZIP；`package-smoke.json`、`desktop-smoke.json`、`companion-smoke.json` 与各平台 smoke 报告为合成验证证据。CI 使用本地合成模型、画面和音频服务，真实云模型/搜索/语音质量未包含在这些合成报告中；未提供真实凭据时真实测试数为 0。Windows 11 真机和真实攻略质量仍需单独验收。旧版本保留，可按版本下载，不自动迁移数据。
           NOTES
           printf '\nSource: `%s`\nWorkflow: %s/%s/actions/runs/%s\n' "$GITHUB_SHA" "$GITHUB_SERVER_URL" "$GITHUB_REPOSITORY" "$GITHUB_RUN_ID" >> release-notes.md
       - name: Create new prerelease (never overwrite an existing version)

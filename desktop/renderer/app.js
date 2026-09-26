@@ -611,6 +611,8 @@
     elements.status.textContent = "正在发送…";
     updateComposer();
     try {
+      await window.aiNekoCompanion?.flushPlayback();
+      if (generation !== state.generation) return;
       const capture = await window.aiNekoCompanion?.captureForTurn();
       if (generation !== state.generation) return;
       if (!state.sessionId) {

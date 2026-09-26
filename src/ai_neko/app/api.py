@@ -188,9 +188,27 @@ def install_api(app: FastAPI, connection, authorize, runtime, providers, bootstr
     async def audio_ack(request: Request, session_id: str, turn_id: str):
         auth(request)
         value = await body(request)
-        if set(value) != {"segment_id", "state"}:
+        if not {"segment_id", "state"} <= set(value) or set(value) - {
+            "segment_id",
+            "state",
+            "text_start",
+            "text_end",
+        }:
             raise HTTPException(400, "invalid audio acknowledgement")
-        return runtime.audio_ack(session_id, turn_id, value["segment_id"], value["state"])
+        if ("text_start" in value) != ("text_end" in value):
+            raise HTTPException(400, "incomplete audio range")
+        if "text_start" in value and (
+            type(value["text_start"]) is not int or type(value["text_end"]) is not int
+        ):
+            raise HTTPException(400, "invalid audio range")
+        return runtime.audio_ack(
+            session_id,
+            turn_id,
+            value["segment_id"],
+            value["state"],
+            text_start=value.get("text_start"),
+            text_end=value.get("text_end"),
+        )
 
     @app.get("/api/persona")
     async def persona(request: Request):
@@ -244,6 +262,36 @@ def install_api(app: FastAPI, connection, authorize, runtime, providers, bootstr
     async def memory_config(request: Request):
         auth(request)
         return dict(runtime.memory_preferences.value)
+
+    @app.get("/api/memory/backups")
+    async def memory_backups(request: Request):
+        auth(request)
+        return runtime.memory_backups()
+
+    @app.post("/api/memory/backups", status_code=201)
+    async def backup_memory(request: Request):
+        auth(request)
+        if await body(request):
+            raise HTTPException(400, "unknown backup fields")
+        return await runtime.backup_memory()
+
+    @app.post("/api/memory/backups/{backup_id}/restore")
+    async def restore_memory(request: Request, backup_id: str):
+        auth(request)
+        value = await body(request)
+        if (
+            set(value) != {"confirm", "expected_revision"}
+            or value["confirm"] is not True
+            or type(value["expected_revision"]) is not int
+            or value["expected_revision"] < 0
+        ):
+            raise HTTPException(400, "explicit restore confirmation and revision required")
+        return await runtime.restore_memory(backup_id, value["expected_revision"])
+
+    @app.delete("/api/memory/backups/{backup_id}")
+    async def delete_memory_backup(request: Request, backup_id: str):
+        auth(request)
+        return await runtime.delete_memory_backup(backup_id)
 
     @app.put("/api/memory/config")
     async def set_memory_config(request: Request):

@@ -323,3 +323,14 @@ gh run download 36175618386 --name package-evidence --dir artifacts/mvp1/tag-evi
 第三轮`7bd14343178a5066182ac75007cf9137fafe6074`推送后，[36225891452](https://github.com/FrigidCrow/ai-neko/actions/runs/36225891452)必要jobs全部SUCCESS：Windows469 passed/0skip、Linux468 passed/1平台skip、冻结后端16/16、实际桌宠9/9、新增陪伴闭环13/13。发布job因非tag正常skipped。`gh run download`取得两平台源码证据和package-evidence，逐项核对同一源码及报告PASS；Root目视Windows新功能截图，白裙YUI和按需联网显示正确。合成模型12、ASR3、TTS5，单次停止70ms，不称p95；真实服务/用户采集0。Windows Server2022不等于Windows11真机。
 
 最终开发包已实际下载，191,838,005字节，SHA256 `2f995145581ec22a59f1ba7de01a38832169214dea67c41c2c9871f9d33dd4e9`。核对SHA256SUMS、两平台同一clean源码、包内外build-info、GUI/后端AMD64 PE与执行报告摘要、记忆组件通知、桌面新模块及截图摘要通过；Mac未运行Windows exe。下载核对见 `docs/evidence/companion/windows/download-verification.json`。
+
+
+## 2026-09-26 — 快照入口与已听上下文收尾
+
+先在PLAN第16节登记完成审计缺口，再实现桌宠记忆快照创建/列表/确认恢复/删除，API沿用认证和受限IPC。Memory快照增加来源scope、读取大小和结构检查；恢复保留纠正/遗忘，同事务保存被移除事实及来源ID。Runtime先停止生成/语音/提取任务并写入恢复清理意图，清理受影响对话、播放回执与checkpoint；失败时禁止读取旧事件/标题，重启继续清理。
+
+语音范围用原文Unicode码点绑定实际播放回执；仅连续完成的片段进入已听上下文。后端分别计算显示与已听内容，处理URL/引用被显示ACK截断的投影；旧无范围回执不虚构已听。桌宠停止音源立即执行，新问题提交前有界等待回执。参考N.E.K.O既有分句/取消边界，未启动参考工程或读取其数据。
+
+实际执行 `.venv/bin/python -m pytest -q > artifacts/mvp1/companion-snapshot-heard-python-final.txt`：544 passed / 1 Windows凭据库专属skip，40.27s；最后清理失败期间API拒读与重启可读断言另在25项快照API测试通过。`.venv/bin/ruff check src tests scripts packaging`与`ruff format --check`通过。
+
+桌面工作者执行 `node --test desktop/tests/*.test.cjs`：31/31；`node desktop/tests/companion.smoke.cjs --output artifacts/mvp1/companion-snapshot-heard-smoke.json`：16/16，含快照创建/取消确认/过期revision/恢复/删除/损坏项及隐藏面板首句完成、第二句停止后下一轮正确上下文。Root执行 `node scripts/desktop_smoke.cjs --output artifacts/mvp1/desktop-snapshot-heard-baseline.json`：9/9。Root实际查看快照确认界面截图，仍为白裙YUI；Mac报告归档至docs/evidence/companion。16模型/3ASR/9TTS调用均合成，真实服务与用户采集0；本次Windows包验证仍待运行。更新未来tag发布说明的功能范围，不创建tag或发布新版。

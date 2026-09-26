@@ -18,6 +18,10 @@ Companion settings:
   Stop audio clears playback and pending speech; Ctrl+Shift+Space can be enabled for recording.
 - Save, inspect, correct or forget facts in Long-term memory. Automatic extraction is opt-in
   and uses the configured model only for subsequent completed conversations.
+  Create, restore or delete local memory snapshots in the same settings. Restore retains later
+  corrections and forgetting, and clears conversations affected by removed memories.
+- Spoken replies have separate playback receipts. The next question retains completed sentences
+  even with the panel hidden; an interrupted sentence is not treated as fully heard.
 
 Your own AI/search/audio services may charge for calls. No cloud keys are bundled.
 Data: %LOCALAPPDATA%\ai-neko (or explicit AI_NEKO_DATA_DIR); no original N.E.K.O data is read.

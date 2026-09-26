@@ -211,3 +211,12 @@ Python全套457 passed/1 Windows凭据存储专属skip；最后增加每轮人�
 已上传[Windows开发构建](https://github.com/FrigidCrow/ai-neko/actions/runs/36225891452/artifacts/10901235961)，未创建新tag或Release，旧版保持不变。真实云模型/搜索/ASR/TTS调用0，Windows11真机、真实游戏决策质量及性能仍Pending；完整目标继续进行中。
 
 最终开发包已实际下载，191,838,005字节，SHA256 `2f995145581ec22a59f1ba7de01a38832169214dea67c41c2c9871f9d33dd4e9`。核对SHA256SUMS、两平台同一clean源码、包内外build-info、GUI/后端AMD64 PE与执行报告摘要、记忆组件通知、桌面新模块及截图摘要通过；Mac未运行Windows exe。下载核对见 [Windows下载核对](docs/evidence/companion/windows/download-verification.json)。
+
+
+## 2026-09-26 — 记忆快照与语音上下文收尾
+
+桌宠现有记忆快照管理入口及确认恢复/删除；恢复保留纠正与遗忘。已听句子按原文范围登记，隐藏面板时能续接已听完前缀，仍不增加文字显示ACK。相同事实ID异常内容快照拒绝恢复，不能把旧对话中的事实引用改指其他内容。
+
+独立审查复现并修正两项恢复缺陷：仅保存来源ID会漏清手动事实曾被召回的旧回答；恢复清理失败时事件接口仍可读旧内容。现在移除事实ID同事务持久化，失败期间会话/事件/列表/取消/ACK均拒绝返回旧内容，重启完成清理。另修复显示ACK停在URL或引用内部时，未读出的后缀误入已听历史。
+
+Mac全套544 passed / 1 Windows凭据专属skip；快照API25项、已听上下文15项、记忆底层61项定向通过。宿主31/31、实际Electron基线9/9、新增闭环16/16，证据见[Mac报告](docs/evidence/companion/macos-companion.json)及[快照界面](docs/evidence/companion/macos-snapshots.png)。报告真实记录未提交工作区及旧HEAD，不把它当新不可变源码。Windows包尚待本轮CI；真实模型/搜索/语音及用户采集均0，Windows11游戏场景仍Pending。
