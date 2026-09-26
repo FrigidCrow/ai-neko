@@ -56,6 +56,15 @@ def test_license_fallbacks_match_recorded_hashes():
         assert record["source_commit"] in record["source_url"]
 
 
+def test_memory_component_notices_are_preserved_for_windows_package(tmp_path):
+    output = tmp_path / "notices"
+    manifest = builder.copy_memory_notices(output)
+    assert manifest["source_commit"] == "90ccf79c95e80f899b9bf3395fa8cd9a9bfe29be"
+    for name, digest in manifest["notices"].items():
+        assert builder.sha256(output / name) == digest
+    assert "BM25" in (output / "MEMORY-REUSE.md").read_text(encoding="utf-8")
+
+
 @pytest.mark.parametrize("separator", ["/", "\\"])
 def test_license_collection_handles_windows_wheel_record_paths(tmp_path, monkeypatch, separator):
     wheel_root = tmp_path / "wheel"

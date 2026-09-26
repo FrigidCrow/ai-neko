@@ -8,6 +8,8 @@
   let app;
   let model;
   let scale = 1;
+  let speechLevel = 0;
+  function setSpeechLevel(value) { speechLevel = Number.isFinite(value) ? Math.max(0, Math.min(1, value)) : 0; document.body.dataset.speechLevel = String(speechLevel); }
   let currentState = "idle";
   let interactive = true;
   let pointer = null;
@@ -73,7 +75,7 @@
     if (value === currentState) return;
     currentState = value;
     if (!model) return;
-    // No synthetic speech/lip-sync or extra model calls: a single existing motion signals turn activity.
+    // Motion signals turn activity; mouth opening separately follows actual audio RMS.
     const motion = {
       idle: ["Idle", 0], thinking: ["neutral", 0], searching: ["neutral", 1],
       responding: ["happy", 0], failed: ["neutral", 0],
@@ -165,7 +167,7 @@
     app = null; model = null;
     previous?.destroy(false, { children: true, texture: true, baseTexture: true });
   });
-  window.aiNekoPet = Object.freeze({ setState, setScale, refreshInteractive, endDrag });
+  window.aiNekoPet = Object.freeze({ setState, setScale, setSpeechLevel, refreshInteractive, endDrag });
 
   async function load() {
     try {
@@ -179,6 +181,9 @@
       app.ticker.maxFPS = 30;
       model = await PIXI.live2d.Live2DModel.from(new URL("../assets/yui-lolita/yui-lolita.model3.json", location.href).href, {
         autoHitTest: false, autoFocus: false, autoUpdate: true, checkMocConsistency: true,
+      });
+      model.internalModel.on('beforeModelUpdate', () => {
+        model.internalModel.coreModel.setParameterValueById('ParamMouthOpenY', speechLevel);
       });
       size = { width: model.width, height: model.height };
       model.anchor.set(0.5, 1);

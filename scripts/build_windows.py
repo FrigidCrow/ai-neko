@@ -291,6 +291,24 @@ def verify_desktop_assets() -> None:
             raise RuntimeError(f"Desktop asset integrity mismatch: {relative.as_posix()}")
 
 
+def copy_memory_notices(destination: Path) -> dict:
+    """Preserve notices for the independently extracted upstream memory helpers."""
+    destination.mkdir(parents=True, exist_ok=True)
+    records = {}
+    expected = {
+        "NEKO-LICENSE.txt": "0d99b64baf1323c3a7f70a28075b14d573df6d773aa2d33d827053cc775062d8",
+        "NEKO-NOTICE.txt": "96199da23327c5086c4f562e4c1a05685e18643ab32ce896f13934b15b4a8aca",
+    }
+    for name, digest in expected.items():
+        source = ROOT / "src" / "ai_neko" / "memory" / "licenses" / name
+        if sha256(source) != digest:
+            raise RuntimeError("Memory component license provenance mismatch")
+        shutil.copyfile(source, destination / name)
+        records[name] = digest
+    shutil.copyfile(ROOT / "docs" / "MEMORY-REUSE.md", destination / "MEMORY-REUSE.md")
+    return {"source_commit": "90ccf79c95e80f899b9bf3395fa8cd9a9bfe29be", "notices": records}
+
+
 def assemble_desktop(package: Path, backend: Path) -> dict:
     """Copy Electron's exact installed distribution, never depend on user Node/Python."""
     desktop = ROOT / "desktop"
@@ -396,6 +414,9 @@ def main(argv: list[str] | None = None) -> int:
                     source.read_text(encoding="utf-8"), encoding="utf-8", newline="\r\n"
                 )
             copy_licenses(package / "third-party-licenses", dependencies)
+            info["memory_reuse"] = copy_memory_notices(
+                package / "third-party-licenses" / "neko-memory"
+            )
             rendered = json.dumps(info, indent=2) + "\n"
             (package / "build-info.json").write_text(rendered, encoding="utf-8")
             output.mkdir(parents=True, exist_ok=True)

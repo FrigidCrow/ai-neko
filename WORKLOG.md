@@ -270,3 +270,33 @@ gh run download 36175618386 --name package-evidence --dir artifacts/mvp1/tag-evi
 本轮最后只更新交付文档及证据；按原授权在文档验证与diff检查后以 `[skip ci]` 提交同步。已发布tag和源码保持不变，不因文档更新重复运行产品测试。桌面预览与CI/CD交付PASS，M0/M1总体Partial；真实服务与Windows11真机等未验收项保留。
 
 最终执行 `python3 docs/diagrams/tools/validate-docs.py > artifacts/mvp1/docs-final-validation.json`：PASS，330本地链接、20图、206参考文件与阶段一致性通过，参考仓库tracked diff/status未变。`git diff --check` 通过；独立文档工作者核对下载页、ZIP名称、启动入口及真实服务/真机边界。
+
+## 2026-09-26 — 人格、视觉与语音陪玩下一步方案
+
+用户提出三个能力和实际游戏提问场景。使用 product-manager 技能将其整理为单一可验收闭环；先询问模型服务/模型名及画面是在本机、模拟器、投屏还是手机。未要求提供Key或读取已有凭据。默认建议按键说话、当轮截图与短句语音，免按键另验游戏音/回声；未将建议当成已确认偏好。
+
+实际执行定向 `rg`、`rg --files`、`sed`、`nl`，核对本工程PLAN/ARCHITECTURE/Runtime与参考人格、选源/图片、采集/播放、TTS基础模块；只读人格工作者核实预设与长期记忆边界。另核对Electron desktopCapturer及MDN getUserMedia官方说明。新建 `docs/NEXT-GAME-COMPANION.md`，同步PLAN第15节、ARCHITECTURE与REVIEW；没有新增产品代码、依赖、素材导入、运行原版或真实API调用，未写全局记忆。文档检查结果在本节续记。
+
+执行 `python3 docs/diagrams/tools/validate-docs.py > artifacts/mvp1/game-companion-plan-validation.json`：PASS，21文档、335本地链接、参考仓库206文件指纹/工作区状态及M0–M6阶段一致性通过。`git diff --check`通过。独立只读审查确认三项需求、未定条件、人格/局内/长期记忆分层及目标值未冒充测量结果；明确A–C即可形成按键版下载交付，后续免按键不阻塞。只有方案文档变化，未重跑产品测试、提交推送或发布新版。
+
+用户补充第4点网络查询打算用DeepSeek。实际检索/打开DeepSeek官方模型能力、Vision、Claude Code联网说明、Anthropic/Responses兼容表、Thinking Mode与Tool Calls。Anthropic直开超时后通过官方搜索结果正文取得兼容表；未把搜索文档中的示例当真实请求。本轮官网已明确Flash原生视觉及不同协议的搜索差异，因此不沿用旧印象称DeepSeek无视觉，也不把兼容Responses等同支持内置web_search。只读工作者核对当前ModelAdapter/Graph/API缺口；Root更新陪玩方案6.1、PLAN与REVIEW。询问官方/第三方渠道，未要求Key；真实服务调用0，未改产品代码或运行参考工程。
+
+执行 `python3 docs/diagrams/tools/validate-docs.py > artifacts/mvp1/deepseek-plan-validation.json`：PASS，21文档/335本地链接与参考指纹、阶段一致性通过；`git diff --check`通过。保留已有未提交规划修改，本轮不提交、推送或发布；新增DeepSeek能力仍为待适配/待真实联调。
+
+用户追问通用联网搜索是否需要逐个模型接入。定向核对当前共享工具/模型适配边界，复用搜索审查工作者独立只读确认；修正NEXT-GAME-COMPANION第6节、PLAN、ARCHITECTURE与REVIEW为应用统一搜索优先。明确当前Tavily Key配置一次、模型共用；原生搜索是可选后端，模型协议仍需兼容。未修改产品代码、替换服务或调用真实API，验证结果续记。
+
+执行 `python3 docs/diagrams/tools/validate-docs.py > artifacts/mvp1/shared-search-plan-validation.json`：PASS，21文档、335本地链接、206参考文件指纹与阶段一致性通过；`git diff --check`通过。独立审查确认当前图尚无不支持工具调用模型的初始检索兜底，该能力仅列为后续方案；没有提交、推送或发布。
+
+## 2026-09-26 — 五项能力实施与本地运行
+
+用户持续目标把人格、视觉、语音、查询和长期记忆全部授权实施；先写PLAN第16节，再并行完成MemoryService/人格、媒体服务、桌面UI，Root集成Runtime/LangGraph/API/协议。用户强调参照N.E.K.O后，记录只读源码commit并实际提取纯检索组件，许可随源码和Windows打包保留。参考项目未运行，未读取其配置/凭据/数据。自动提取可显式开启，使用已配置模型；默认关闭不影响用户明确保存和召回。
+
+实际执行`.venv/bin/pytest -q > artifacts/mvp1/companion-python-tests-final.txt`：457 passed/1 Windows Credential Manager skip，40.03s。`.venv/bin/ruff check src tests scripts packaging`与`ruff format --check`通过。最后添加不含图像字节的回合版本/来源元数据后，运行Runtime/companion integration/adversarial/protocol四文件62项通过（`companion-final-integration.txt`）。
+
+`node --test desktop/tests/*.test.cjs`：28/28；桌面工作者运行`node scripts/desktop_smoke.cjs --output artifacts/mvp1/companion-baseline-smoke.json`：9/9，含实际杀宿主后后端退出；`node desktop/tests/companion.smoke.cjs`最终9/9，含合成窗口、fake麦克风、实际MP3解码/播放/停止、音量口型、独立播放ACK和隐藏面板显示ACK=0。4次合成模型、2次合成ASR、3次合成TTS；真实服务0、用户屏幕/麦克风0。单次停播17ms不能算p95。报告与截图复制至docs/evidence/companion，来源是未提交工作区，旧HEAD不冒充新代码的不可变commit。
+
+核对DeepSeek官方Thinking Mode及Oh My Pi兼容说明后，补官方端点max_tokens与工具往返内部上下文；普通模型继续通用工具。`tests/test_companion_protocol.py`等35项通过，未使用真实账户。直接打开Chat Completions文档曾超时，使用其他可读官方页面核实字段，不把超时当成功。
+
+安全边界回归发现并修复过程及未完成项见REVIEW。新增Windows ZIP的companion smoke门禁与NEKO memory许可证复制测试；本机未运行Windows程序，未发布新版。当前完整目标尚不满足真实服务和Windows验收，保持active。
+
+`python3 docs/diagrams/tools/validate-docs.py`：PASS，24文档、349本地链接、206参考文件指纹与阶段一致性通过；参考仓库tracked diff/status未变。沿用此前对同一仓库上传与CI的授权，将通过检查的五项能力提交至独立`codex/companion-five-capabilities`分支并运行Windows CI；不创建发布tag。远端运行结果另行追加，未执行前保持Pending。

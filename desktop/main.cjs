@@ -1,11 +1,14 @@
 'use strict';
 
-const { app, BrowserWindow, Tray, Menu, nativeImage, screen, protocol, ipcMain, shell, dialog } = require('electron');
+const { app, BrowserWindow, Tray, Menu, nativeImage, screen, protocol, ipcMain, shell, dialog, desktopCapturer, globalShortcut } = require('electron');
 const fs = require('node:fs/promises');
 const path = require('node:path');
 const { ENTRY_URL, CONSENT_URL, CSP, trustedSender, validateRequest, externalURL, localAsset } = require('./lib/security.cjs');
 const { clampBounds, validatePreferences, loadPreferences, savePreferences } = require('./lib/preferences.cjs');
 const { commandFor, initializePaths, OwnedBackend } = require('./lib/backend.cjs');
+const { VisionCapture, microphonePermission } = require('./lib/vision.cjs');
+const vision = new VisionCapture((options) => desktopCapturer.getSources(options));
+let microphoneUntil = 0;
 const { trayIconPNG } = require('./lib/tray-icon.cjs');
 const { readTerms, hasConsent, acceptTerms } = require('./lib/consent.cjs');
 
@@ -118,6 +121,21 @@ function installIPC() {
     const request = validateRequest(value);
     return backend ? backend.request(request) : { status: 503, body: { detail: '本地服务尚未准备好。' } };
   });
+  ipcMain.handle('ai-neko:vision-list', async (event) => { requireSender(event); return vision.list(); });
+  ipcMain.handle('ai-neko:vision-select', async (event, id) => { requireSender(event); return vision.select(id); });
+  ipcMain.handle('ai-neko:vision-capture', async (event) => { requireSender(event); return vision.capture(); });
+  ipcMain.handle('ai-neko:vision-stop', (event) => { requireSender(event); return vision.disable(); });
+  ipcMain.handle('ai-neko:microphone', (event, enabled) => {
+    requireSender(event);
+    microphoneUntil = enabled === true ? Date.now() + 15000 : 0;
+    return enabled === true;
+  });
+  ipcMain.handle('ai-neko:voice-shortcut', (event, enabled) => {
+    requireSender(event);
+    globalShortcut.unregister('CommandOrControl+Shift+Space');
+    if (enabled !== true) return false;
+    return globalShortcut.register('CommandOrControl+Shift+Space', () => send('ai-neko:action', 'voice-toggle'));
+  });
   ipcMain.handle('ai-neko:status', (event) => { requireSender(event); return status; });
   ipcMain.handle('ai-neko:get-preferences', (event) => { requireSender(event); return publicPreferences(); });
   ipcMain.handle('ai-neko:preferences', (event, value) => {
@@ -153,8 +171,11 @@ function secureContents(contents) {
   contents.on('will-navigate', (event) => event.preventDefault());
   contents.on('will-redirect', (event) => event.preventDefault());
   contents.on('will-attach-webview', (event) => event.preventDefault());
-  contents.session.setPermissionRequestHandler((_webContents, _permission, callback) => callback(false));
-  contents.session.setPermissionCheckHandler(() => false);
+  contents.session.setPermissionRequestHandler((webContents, permission, callback, details) => {
+    callback(microphonePermission(webContents, mainWindow?.webContents, permission, details, microphoneUntil));
+  });
+  contents.session.setPermissionCheckHandler((webContents, permission, _origin, details) =>
+    microphonePermission(webContents, mainWindow?.webContents, permission, details, microphoneUntil));
   contents.session.setDevicePermissionHandler(() => false);
   contents.session.on('will-download', (event) => event.preventDefault());
   contents.session.webRequest.onBeforeRequest((details, callback) => {
@@ -206,7 +227,8 @@ async function createPetWindow() {
     if (!quitting) { event.preventDefault(); stopDrag(); mainWindow.hide(); }
   });
   mainWindow.on('move', () => { clearTimeout(persistTimer); persistTimer = setTimeout(persist, 300); });
-  mainWindow.webContents.on('render-process-gone', () => { stopDrag(); app.quit(); });
+  mainWindow.webContents.on('render-process-gone', () => { vision.disable(); microphoneUntil = 0; stopDrag(); app.quit(); });
+  mainWindow.webContents.on('did-start-navigation', () => { vision.disable(); microphoneUntil = 0; globalShortcut.unregister('CommandOrControl+Shift+Space'); });
   installIPC();
   const icon = nativeImage.createFromBuffer(trayIconPNG());
   if (process.platform === 'darwin') icon.setTemplateImage(true);
@@ -317,3 +339,5 @@ void start().catch(async () => {
   dialog.showErrorBox('ai-neko 无法启动', '应用文件或独立数据目录未通过检查。请确认解压完整，数据目录可写，且没有其他 ai-neko 正在使用它。');
   app.quit();
 });
+
+app.on('will-quit', () => { vision.disable(); microphoneUntil = 0; if (app.isReady()) globalShortcut.unregisterAll(); });

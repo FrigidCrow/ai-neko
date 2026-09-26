@@ -9,6 +9,12 @@ const subscribe = (channel, callback) => {
 };
 
 contextBridge.exposeInMainWorld('aiNeko', Object.freeze({
+  visionSources: () => ipcRenderer.invoke('ai-neko:vision-list'),
+  selectVision: (id) => ipcRenderer.invoke('ai-neko:vision-select', id),
+  captureVision: () => ipcRenderer.invoke('ai-neko:vision-capture'),
+  stopVision: () => ipcRenderer.invoke('ai-neko:vision-stop'),
+  microphone: (enabled) => ipcRenderer.invoke('ai-neko:microphone', enabled),
+  voiceShortcut: (enabled) => ipcRenderer.invoke('ai-neko:voice-shortcut', enabled),
   request: (value) => ipcRenderer.invoke('ai-neko:request', value),
   status: () => ipcRenderer.invoke('ai-neko:status'),
   onStatus: (callback) => subscribe('ai-neko:status', callback),

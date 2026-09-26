@@ -128,5 +128,5 @@ class Credentials:
 
     @staticmethod
     def _kind(kind):
-        if kind not in {"model", "search"}:
+        if kind not in {"model", "search", "asr", "tts"}:
             raise CredentialError("credential_kind_invalid")

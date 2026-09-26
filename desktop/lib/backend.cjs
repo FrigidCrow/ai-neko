@@ -49,7 +49,7 @@ function requestJSON(connection, method, route, encoded) {
       let size = 0;
       response.on('data', (chunk) => {
         size += chunk.length;
-        if (size > 8 * 1024 * 1024) request.destroy(new Error('Response too large'));
+        if (size > (route.startsWith('/api/voice/') ? 12 : 8) * 1024 * 1024) request.destroy(new Error('Response too large'));
         else chunks.push(chunk);
       });
       response.on('error', () => reject(new Error('本地服务连接已中断。')));
@@ -62,7 +62,7 @@ function requestJSON(connection, method, route, encoded) {
         } catch { reject(new Error('本地服务返回了无效响应。')); }
       });
     });
-    request.setTimeout(15000, () => request.destroy());
+    request.setTimeout(route.startsWith('/api/voice/') ? 125000 : 15000, () => request.destroy());
     request.on('error', () => reject(new Error('无法连接本地服务，请退出后重新启动。')));
     request.end(encoded);
   });

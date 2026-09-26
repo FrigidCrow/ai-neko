@@ -58,6 +58,9 @@ class ModelAdapter:
                 "stream": True,
                 "max_completion_tokens": 4096,
             }
+            if url.host == "api.deepseek.com":
+                # Official DeepSeek Chat Completions uses the legacy token field.
+                payload["max_tokens"] = payload.pop("max_completion_tokens")
             if tools:
                 payload.update(tools=tools, tool_choice="auto", parallel_tool_calls=False)
             async with asyncio.timeout(self.TIMEOUT):
@@ -73,6 +76,7 @@ class ModelAdapter:
                         }:
                             raise ProviderError("invalid_response", "模型流格式不受支持。")
                         calls: dict[int, dict] = {}
+                        reasoning = ""
                         total_text = 0
                         finished = False
                         async for data in self._events(response):
@@ -91,6 +95,13 @@ class ModelAdapter:
                                     "output_limit", "模型输出达到长度上限，请缩小问题范围。"
                                 )
                             delta = choice.get("delta", {})
+                            thought = delta.get("reasoning_content")
+                            if thought:
+                                if not isinstance(thought, str):
+                                    raise ValueError
+                                reasoning += thought
+                                if len(reasoning) > self.MAX_TEXT:
+                                    raise ProviderError("output_limit", "模型输出达到长度上限。")
                             content = delta.get("content")
                             if content:
                                 if not isinstance(content, str):
@@ -119,6 +130,9 @@ class ModelAdapter:
                                         raise ValueError
                         if not finished:
                             raise ProviderError("stream_interrupted", "模型连接中断，请重试。")
+                        if reasoning and calls:
+                            # Protocol-only context: graph keeps it in memory, never emits it.
+                            yield {"type": "assistant_context", "reasoning_content": reasoning}
                         for index in sorted(calls):
                             call = calls[index]
                             arguments = json.loads(call["arguments"])

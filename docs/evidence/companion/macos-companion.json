@@ -1,0 +1,94 @@
+{
+  "status": "PASS",
+  "platform": "darwin",
+  "node": "v25.9.0",
+  "source_commit": "e06f3c383bb9de23ae75b940f3557f06abc530e9",
+  "source_dirty": true,
+  "harness_sha256": "837ba9aab4f59fc28cbc728967eda171693e058668a5119178c961fb99c66885",
+  "real_model_calls": 0,
+  "real_audio_service_calls": 0,
+  "actual_user_microphone_captures": 0,
+  "actual_desktop_captures": 0,
+  "windows_11": "pending",
+  "cases": [
+    {
+      "name": "native_permissions_deny_unarmed_microphone_camera_and_unselected_capture",
+      "status": "PASS"
+    },
+    {
+      "name": "persona_edit_and_versioned_reload",
+      "status": "PASS"
+    },
+    {
+      "name": "memory_save_correct_forget_and_auto_extract_setting",
+      "status": "PASS"
+    },
+    {
+      "name": "configure_independent_model_and_audio_services",
+      "status": "PASS"
+    },
+    {
+      "name": "selected_synthetic_window_preview_and_per_turn_fresh_image",
+      "status": "PASS"
+    },
+    {
+      "name": "real_web_audio_playback_cancel_stops_queue",
+      "status": "PASS"
+    },
+    {
+      "name": "fake_microphone_asr_image_chat_sentence_tts_loop",
+      "status": "PASS"
+    },
+    {
+      "name": "folded_panel_voice_keeps_playing_without_false_display_ack",
+      "status": "PASS"
+    },
+    {
+      "name": "vision_off_revokes_capture_and_does_not_fallback",
+      "status": "PASS"
+    }
+  ],
+  "executable_sha256": "e06891704834df56f24489e1f971428161ae17312143624af13736255cc0ab34",
+  "runtime_versions": {
+    "node": "24.21.0",
+    "acorn": "8.18.0",
+    "ada": "4.0.0",
+    "amaro": "1.1.11",
+    "ares": "1.34.8",
+    "brotli": "1.2.0",
+    "cldr": "48.0",
+    "icu": "78.2",
+    "llhttp": "9.4.3",
+    "merve": "1.2.2",
+    "modules": "149",
+    "napi": "10",
+    "nbytes": "0.1.4",
+    "ncrypto": "0.0.1",
+    "nghttp2": "1.70.0",
+    "nghttp3": "",
+    "ngtcp2": "",
+    "openssl": "0.0.0",
+    "simdjson": "4.6.7",
+    "simdutf": "7.7.0",
+    "sqlite": "3.53.4",
+    "tz": "2025c",
+    "undici": "7.29.1",
+    "unicode": "17.0",
+    "uv": "1.52.1",
+    "uvwasi": "0.0.23",
+    "v8": "15.2.124.28-electron.0",
+    "zlib": "1.3.2.1-motley",
+    "zstd": "1.6.0",
+    "electron": "44.4.5",
+    "chrome": "152.0.7977.130"
+  },
+  "stop_observed_ms": 17,
+  "screenshot": "companion-ui-smoke.png",
+  "screenshot_sha256": "87add430e1bc86b6421a90170606fad8551cef7ac44e5ad7e5f6b01159fd8509",
+  "synthetic_calls": {
+    "model": 4,
+    "asr": 2,
+    "tts": 3
+  },
+  "renderer_errors": []
+}

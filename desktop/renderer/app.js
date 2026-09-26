@@ -30,6 +30,7 @@
   }
 
   function friendlyError(error) {
+    if (error.publicMessage) return error.publicMessage;
     const messages = {
       unauthorized: "连接已失效，请从桌宠菜单退出后重新打开 ai-neko。",
       config_required: "请先在设置中填写模型地址、模型名称和 API Key。",
@@ -53,8 +54,22 @@
       busy: "这个对话仍在生成回答，请等待完成或先停止生成。",
       not_found: "没有找到这条对话，请尝试新建对话。",
       invalid_config: "设置格式有误，请检查 API 地址和模型名称。",
+      vision_revoked: "观察已关闭，本次问题没有发送，请重新提问。",
+      invalid_image: "截图不受支持或已过期，请重新选择窗口后再试。",
+      voice_not_configured: "请先在设置中填写语音服务地址和模型。",
+      asr_not_configured: "请先配置语音识别服务。",
+      tts_not_configured: "请先配置语音合成服务。",
+      voice_key_missing: "请填写对应语音服务的 API Key。",
+      voice_invalid_response: "语音服务返回了无法使用的结果，请检查模型和接口。",
+      voice_timeout: "语音服务响应超时，请重试。",
       network: "暂时无法连接本地服务。请确认 ai-neko 仍在运行，再重试连接。",
     };
+    if (/^(asr|tts)_/.test(error.code || "")) {
+      const kind = error.code.startsWith("asr_") ? "语音识别" : "语音合成";
+      const suffix = error.code.slice(4);
+      const detail = { not_configured: "服务尚未配置，请填写地址、模型和音色。", key_missing: "缺少 API Key。", authentication_failed: "鉴权失败，请检查 API Key。", rate_limited: "请求受限，请稍后重试。", timeout: "响应超时，请重试。", invalid_response: "返回了不受支持的音频或文字格式，请检查接口。", network_error: "服务无法连接，请检查地址和网络。", output_limit: "返回内容超过限制。", empty_text: "没有识别到文字，请再说一次。", http_error: "服务返回错误，请检查配置。" }[suffix];
+      if (detail) return kind + detail;
+    }
     return messages[error.code] || "操作未完成，请稍后重试。如果问题持续，请重新启动 ai-neko。";
   }
 
@@ -69,7 +84,7 @@
         new Promise((_, reject) => {
           abort = () => reject(new DOMException("Cancelled", "AbortError"));
           signal?.addEventListener("abort", abort, { once: true });
-          timer = setTimeout(() => reject(Object.assign(new Error("API timeout"), { code: "network" })), 30000);
+          timer = setTimeout(() => reject(Object.assign(new Error("API timeout"), { code: "network" })), path.startsWith("/api/voice/") ? 125000 : 30000);
         }),
       ]);
       if (signal?.aborted) throw new DOMException("Cancelled", "AbortError");
@@ -78,6 +93,7 @@
         const detail = data.detail || data.error || data;
         throw Object.assign(new Error("API request failed"), {
           status: response.status,
+          publicMessage: typeof detail === "object" && typeof detail.message === "string" ? detail.message.slice(0, 500) : undefined,
           code: response.status === 401 ? "unauthorized" : (typeof detail === "object" && detail.code) || data.code ||
             (response.status === 404 ? "not_found" : response.status === 409 ? "turn_active" : "request_failed"),
         });
@@ -107,7 +123,7 @@
     byId("chat-panel").hidden = name !== "chat";
     byId("history-panel").hidden = name !== "history";
     byId("settings-panel").hidden = name !== "settings";
-    if (name !== "settings") clearKeyInputs();
+    if (name !== "settings") { clearKeyInputs(); window.aiNekoCompanion?.clearKeys(); }
     window.aiNekoPet?.refreshInteractive();
   }
 
@@ -208,6 +224,8 @@
   function closeSidebar() { showPanel("chat"); }
 
   function resetView() {
+    window.aiNekoCompanion?.stopSpeech();
+    window.aiNekoCompanion?.stopRecording(true);
     state.generation += 1;
     state.pollController?.abort();
     state.pollController = null;
@@ -293,7 +311,7 @@
     const heading = node("div", "assistant-heading");
     const avatar = node("span", "assistant-avatar", "✳");
     avatar.setAttribute("aria-hidden", "true");
-    heading.append(avatar, node("span", "", "小猫"));
+    heading.append(avatar, node("span", "", state.personaName || "小猫"));
     const output = node("div", "assistant-output", textFromTurn(turn));
     const result = node("p", "turn-result");
     const retry = node("button", "text-button retry-turn", "重试这条消息");
@@ -474,6 +492,7 @@
       setPetState("responding");
       view.output.dataset.lastDeltaAt = String(performance.now());
       view.output.append(document.createTextNode(typeof data.text === "string" ? data.text : ""));
+      if (view.liveTurnId) window.aiNekoCompanion?.text(view.liveTurnId, typeof data.text === "string" ? data.text : "");
     } else if (event.type === "source") {
       updateSource(view, data.source);
     } else if (event.type === "status") {
@@ -486,6 +505,7 @@
       view.result.classList.add("is-error");
     } else if (event.type === "done") {
       finishView(view, data.status || "completed");
+      if (view.liveTurnId) window.aiNekoCompanion?.done(view.liveTurnId, ["completed", "complete", "done"].includes(data.status || "completed"));
     }
   }
 
@@ -508,10 +528,10 @@
       while (!controller.signal.aborted && generation === state.generation) {
         try {
           // Do not claim unseen content was displayed while the companion panel is tucked away.
-          if (!viewVisible()) { await pause(150, controller.signal); continue; }
+          if (!viewVisible() && !active.cancelling && !window.aiNekoCompanion?.speakingTurn(view.liveTurnId)) { await pause(150, controller.signal); continue; }
           const response = await api(`${path}/events?after=${sequence}`, { signal: controller.signal });
           if (generation !== state.generation || controller.signal.aborted) return;
-          if (!viewVisible()) { await pause(150, controller.signal); continue; }
+          if (!viewVisible() && !active.cancelling && !window.aiNekoCompanion?.speakingTurn(view.liveTurnId)) { await pause(150, controller.signal); continue; }
           if (errors) elements.status.textContent = "连接已恢复，正在接收回答…";
           const follow = nearBottom();
           const events = Array.isArray(response.events) ? response.events : [];
@@ -532,9 +552,10 @@
           }
           errors = 0;
           const last = Number(response.last_seq ?? response.last_sequence ?? sequence);
-          if ((sawDone || terminalStatuses.has(response.status)) && sequence >= last && viewVisible()) {
+          if ((sawDone || terminalStatuses.has(response.status)) && sequence >= last && (viewVisible() || active.cancelling || window.aiNekoCompanion?.speakingTurn(view.liveTurnId))) {
             finalStatus = finalStatus || response.status;
             finishView(view, finalStatus);
+            if (view.liveTurnId) window.aiNekoCompanion?.done(view.liveTurnId, ["completed", "complete", "done"].includes(finalStatus));
             break;
           }
           await pause(150, controller.signal);
@@ -587,22 +608,28 @@
     }
     const generation = state.generation;
     const guide = state.guide;
+    window.aiNekoCompanion?.stopSpeech();
+    window.aiNekoCompanion?.stopRecording(true);
     state.submitting = true;
     elements.status.textContent = "正在发送…";
     updateComposer();
     try {
+      const capture = await window.aiNekoCompanion?.captureForTurn();
+      if (generation !== state.generation) return;
       if (!state.sessionId) {
         const response = await api("/api/sessions", { method: "POST", body: {} });
         state.sessionId = sessionId(response.session || response);
         if (!state.sessionId) throw new Error("Missing session identifier");
         rememberSession(state.sessionId);
       }
+      if (generation !== state.generation) return;
       const id = state.sessionId;
       const prior = state.pendingRequest;
       if (!prior || prior.sessionId !== id || prior.text !== text || prior.guide !== guide) {
         state.pendingRequest = { sessionId: id, text, guide, requestId: crypto.randomUUID().replaceAll("-", "") };
       }
-      const response = await api(`/api/sessions/${encodeURIComponent(id)}/turns`, { method: "POST", body: { text, guide, request_id: state.pendingRequest.requestId } });
+      if (!window.aiNekoCompanion?.frameStillAllowed(capture)) throw Object.assign(new Error("Vision revoked"), { code: "vision_revoked" });
+      const response = await api(`/api/sessions/${encodeURIComponent(id)}/turns`, { method: "POST", body: { text, guide, request_id: state.pendingRequest.requestId, ...(capture?.frame ? { image: capture.frame } : {}) } });
       const turn = response.turn || response;
       const turnId = turn.turn_id || turn.id;
       if (!turnId) throw new Error("Missing turn identifier");
@@ -612,6 +639,8 @@
       elements.input.value = "";
       resizeInput();
       const view = createTurnView({ ...turn, text, input: text });
+      view.liveTurnId = String(turnId);
+      window.aiNekoCompanion?.beginTurn(view.liveTurnId, id);
       scrollBottom(true);
       startPolling(id, String(turnId), view, Number(turn.sent_seq || 0), generation);
       refreshSessions().catch(() => {});
@@ -620,12 +649,13 @@
       elements.status.textContent = "未能确认发送结果，输入内容已保留；重试可恢复本次回答。";
       showNotice(friendlyError(error), { error: true, label: "检查设置", action: openSettings });
     } finally {
-      state.submitting = false;
+      if (generation === state.generation) state.submitting = false;
       updateComposer();
     }
   }
 
   async function cancelTurn() {
+    window.aiNekoCompanion?.stopSpeech();
     const active = state.active;
     if (!active || active.cancelling) return;
     active.cancelling = true;
@@ -668,6 +698,7 @@
     elements.settingsMessage.textContent = state.connected ? "" : "本地服务尚未连接，请等待服务准备完成。";
     byId("save-settings").disabled = !state.connected;
     showPanel("settings");
+    window.dispatchEvent(new Event("ai-neko-settings"));
   }
 
   function validEndpoint(value) {
@@ -723,6 +754,7 @@
       state.config = response.config || response;
       await refreshSessions();
       connectionState(true, "正在恢复对话…");
+      window.dispatchEvent(new Event("ai-neko-connected"));
       showConfigurationNotice();
       let previous = "";
       try { previous = localStorage.getItem(LAST_SESSION) || ""; } catch { /* Optional preference. */ }
@@ -745,6 +777,8 @@
       connectionState(false, status.state === "starting" ? "正在准备见面" : "服务暂时不可用");
       if (status.state === "failed" || status.state === "stopped") {
         state.pollController?.abort();
+        window.aiNekoCompanion?.stopSpeech();
+        window.aiNekoCompanion?.stopRecording(true);
         state.active = null;
         setPetState("failed");
         showNotice(status.message || "服务已停止，请从桌宠菜单退出后重新打开。", { error: true });
@@ -821,5 +855,24 @@
     });
   });
   window.addEventListener("pagehide", () => { clearKeyInputs(); state.pollController?.abort(); });
+  window.addEventListener("ai-neko-persona", (event) => { state.personaName = event.detail.name; });
+  window.aiNekoChat = Object.freeze({ api, friendlyError, cancelTurn,
+    invalidatePending: () => {
+      state.generation += 1; state.pendingRequest = null; state.submitting = false;
+      state.pollController?.abort();
+    },
+    refreshAfterForget: async () => {
+      if (state.sessionId) await openSession(state.sessionId);
+      await refreshSessions(); showPanel("settings");
+    },
+    canRecord: () => chatReady() && modelReady() && !state.submitting,
+    submitText: async (text) => {
+      elements.input.value = text; resizeInput();
+      const deadline = Date.now() + 15000;
+      while (state.active && Date.now() < deadline) await new Promise((resolve) => setTimeout(resolve, 100));
+      if (state.active) throw Object.assign(new Error("Previous turn active"), { code: "turn_active" });
+      await sendMessage({ preventDefault() {} });
+    },
+  });
   initialize();
 })();

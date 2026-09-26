@@ -116,6 +116,10 @@ jobs:
         env:
           PREVIEW_VERSION: ${{ steps.version.outputs.value }}
         run: node scripts/desktop_smoke.cjs --archive "artifacts/package/ai-neko-$env:PREVIEW_VERSION-windows-x64.zip" --output artifacts/package/desktop-smoke.json
+      - name: Exercise packaged persona memory vision and voice loop
+        env:
+          PREVIEW_VERSION: ${{ steps.version.outputs.value }}
+        run: node desktop/tests/companion.smoke.cjs --archive "artifacts/package/ai-neko-$env:PREVIEW_VERSION-windows-x64.zip" --output artifacts/package/companion-smoke.json
       - name: Preserve package evidence
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

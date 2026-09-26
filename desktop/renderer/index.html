@@ -12,7 +12,9 @@
   <script src="../vendor/pixi-unsafe-eval.min.js" defer></script>
   <script src="../vendor/cubism4.min.js" defer></script>
   <script src="./pet.js" defer></script>
+  <script src="./media.js" defer></script>
   <script src="./app.js" defer></script>
+  <script src="./companion.js" defer></script>
 </head>
 <body data-pet-state="idle" data-chat-ready="false" data-session-loading="true">
   <main id="companion" aria-label="ai-neko 桌面猫娘">
@@ -40,6 +42,7 @@
         <section id="messages" class="messages" aria-label="聊天记录" aria-busy="false" hidden></section>
       </div>
       <div class="composer-wrap">
+        <div class="companion-tools"><button id="record-voice" type="button" class="soft-button">● 说话</button><button id="stop-audio" type="button" class="soft-button">停止声音</button><label class="check-label"><input id="speak-replies" type="checkbox">朗读回复</label><span id="vision-badge">观察已关闭</span></div><p id="media-status" class="media-status" role="status" aria-live="polite"></p>
         <div id="turn-status" class="turn-status" role="status" aria-live="polite"></div>
         <form id="message-form" class="composer">
           <div class="composer-toolbar"><div class="mode-picker" role="group" aria-label="对话模式"><button id="mode-chat" class="mode-button is-active" type="button" aria-pressed="true">聊聊天</button><button id="mode-guide" class="mode-button" type="button" aria-pressed="false">⌕ 查攻略</button></div><span id="mode-hint">不联网搜索</span></div>
@@ -52,7 +55,7 @@
 
     <section id="history-panel" class="companion-panel secondary-panel" data-interactive aria-labelledby="history-title" hidden>
       <header class="panel-header"><div><span class="eyebrow">留在这里的小话题</span><h2 id="history-title">最近对话</h2></div><button id="close-history" class="icon-button" type="button" aria-label="返回聊天">×</button></header>
-      <nav id="session-list" class="session-list" aria-label="最近对话"></nav><p class="panel-footnote">只有会话记录；长期记忆将在后续加入。</p>
+      <nav id="session-list" class="session-list" aria-label="最近对话"></nav><p class="panel-footnote">聊天记录与长期记忆分开保存；在设置中查看和管理记忆。</p>
     </section>
 
     <section id="settings-panel" class="companion-panel secondary-panel" data-interactive aria-labelledby="settings-title" hidden>
@@ -60,10 +63,57 @@
       <div class="settings-scroll">
         <section class="appearance-settings" aria-label="桌宠外观"><h3>在桌面上</h3><label class="range-label" for="pet-scale">角色大小 <output id="scale-value">100%</output></label><input id="pet-scale" type="range" min="0.7" max="1.35" step="0.05" value="1"><label class="check-label"><input id="always-on-top" type="checkbox" checked>让小猫保持在最前面</label><p class="field-help">拖动角色移动位置；右键打开菜单。放大时自动适应可见区域。</p></section>
         <form id="settings-form" autocomplete="off">
-          <fieldset><legend>对话模型 <small>OpenAI 兼容接口</small></legend><label for="model-base-url">API 地址</label><input id="model-base-url" type="url" placeholder="https://api.example.com/v1" spellcheck="false" required><label for="model-name">模型名称</label><input id="model-name" type="text" placeholder="供应商支持的模型名称" spellcheck="false" required><div class="label-row"><label for="model-api-key">API Key</label><span id="model-key-state" class="key-state">尚未设置</span></div><input id="model-api-key" type="password" autocomplete="new-password" spellcheck="false" placeholder="填写模型 API Key"><label id="clear-model-label" class="check-label" hidden><input id="clear-model-key" type="checkbox">清除已保存的模型 Key</label></fieldset>
-          <fieldset><legend>联网搜索 <small>Tavily</small></legend><label for="search-base-url">API 地址</label><input id="search-base-url" type="url" placeholder="https://api.tavily.com" spellcheck="false"><div class="label-row"><label for="search-api-key">API Key</label><span id="search-key-state" class="key-state">尚未设置</span></div><input id="search-api-key" type="password" autocomplete="new-password" spellcheck="false" placeholder="查攻略时需要"><label id="clear-search-label" class="check-label" hidden><input id="clear-search-key" type="checkbox">清除已保存的搜索 Key</label><p class="field-help">未配置搜索时，仍可以聊聊天。</p></fieldset>
+          <fieldset><legend>对话模型 <small>OpenAI 兼容接口</small></legend><p class="field-help">观察画面需要支持图片输入的模型；纯文字模型无法理解截图。联网查询共用下方搜索服务。</p><label for="model-base-url">API 地址</label><input id="model-base-url" type="url" placeholder="https://api.example.com/v1" spellcheck="false" required><label for="model-name">模型名称</label><input id="model-name" type="text" placeholder="供应商支持的模型名称" spellcheck="false" required><div class="label-row"><label for="model-api-key">API Key</label><span id="model-key-state" class="key-state">尚未设置</span></div><input id="model-api-key" type="password" autocomplete="new-password" spellcheck="false" placeholder="填写模型 API Key"><label id="clear-model-label" class="check-label" hidden><input id="clear-model-key" type="checkbox">清除已保存的模型 Key</label></fieldset>
+          <fieldset><legend>共享联网搜索 <small>Tavily</small></legend><label for="search-base-url">API 地址</label><input id="search-base-url" type="url" placeholder="https://api.tavily.com" spellcheck="false"><div class="label-row"><label for="search-api-key">API Key</label><span id="search-key-state" class="key-state">尚未设置</span></div><input id="search-api-key" type="password" autocomplete="new-password" spellcheck="false" placeholder="查攻略时需要"><label id="clear-search-label" class="check-label" hidden><input id="clear-search-key" type="checkbox">清除已保存的搜索 Key</label><p class="field-help">此搜索配置供所有对话模型共用。未配置时仍可以聊聊天。</p></fieldset>
           <p id="credential-note" class="field-help">Key 不会写入界面存储。</p><p class="field-help">请求及费用由你配置的模型和搜索供应商处理。</p><p id="settings-message" class="settings-message" role="status" aria-live="polite"></p><button id="save-settings" class="primary-button" type="submit">保存连接设置</button>
         </form>
+
+        <form id="persona-form" class="companion-settings" autocomplete="off">
+          <h3>猫娘人格</h3><p class="field-help">下一轮生效，不清空对话；语音与文字使用同一人格。</p>
+          <label for="persona-name">名字</label><input id="persona-name" maxlength="40" required>
+          <label for="persona-user-name">怎样称呼你</label><input id="persona-user-name" maxlength="40">
+          <label for="persona-traits">性格</label><textarea id="persona-traits" placeholder="1–5个特点，用逗号分隔" maxlength="154" rows="2"></textarea>
+          <label for="persona-speaking-style">说话风格</label><textarea id="persona-speaking-style" maxlength="400" rows="2"></textarea>
+          <label for="persona-catchphrase">口癖（可以留空）</label><input id="persona-catchphrase" maxlength="60">
+          <label for="persona-game-style">游戏陪伴风格</label><textarea id="persona-game-style" maxlength="400" rows="2"></textarea>
+          <p id="persona-status" class="settings-message" role="status"></p><button type="submit" class="primary-button">保存人格</button>
+        </form>
+        <section class="companion-settings" aria-label="桌面观察">
+          <h3>桌面视觉</h3><p class="field-help">明确选定窗口或屏幕后，每次提问才取一张新图。图片会随问题发送给配置的模型服务；不会保存为本地相册。</p>
+          <button id="refresh-vision" type="button" class="soft-button">刷新可观察的窗口</button>
+          <label for="vision-source">画面来源</label><select id="vision-source"><option value="">请先刷新并选择</option></select>
+          <label class="check-label"><input id="vision-enabled" type="checkbox">允许提问时观察此来源</label>
+          <img id="vision-preview" class="vision-preview" alt="所选来源的最近一次截图" hidden>
+          <p id="vision-status" class="field-help" role="status">观察已关闭</p>
+        </section>
+        <form id="voice-form" class="companion-settings" autocomplete="off">
+          <h3>语音输入与输出</h3><p class="field-help">选择供应商实际提供的音频接口。对话模型、语音识别和语音合成可以使用不同服务。</p>
+          <label for="asr-base-url">识别 API 基础地址</label><input id="asr-base-url" type="url" placeholder="https://供应商/v1">
+          <label for="asr-model">识别模型</label><input id="asr-model" maxlength="200">
+          <label for="asr-api-key">识别 Key <span id="asr-key-state"></span></label><input id="asr-api-key" type="password" autocomplete="new-password">
+          <label class="check-label"><input id="clear-asr-key" type="checkbox">清除已保存识别 Key</label>
+          <label for="tts-base-url">合成 API 基础地址</label><input id="tts-base-url" type="url" placeholder="https://供应商/v1">
+          <label for="tts-model">合成模型</label><input id="tts-model" maxlength="200">
+          <label for="tts-voice">音色名称</label><input id="tts-voice" maxlength="200">
+          <label for="tts-api-key">合成 Key <span id="tts-key-state"></span></label><input id="tts-api-key" type="password" autocomplete="new-password">
+          <label class="check-label"><input id="clear-tts-key" type="checkbox">清除已保存合成 Key</label>
+          <p id="voice-config-status" class="settings-message" role="status"></p><button type="submit" class="primary-button">保存语音设置</button>
+        </form>
+        <section class="companion-settings" aria-label="声音设备">
+          <button id="refresh-audio-devices" type="button" class="soft-button">允许麦克风并刷新设备</button>
+          <label for="microphone-device">麦克风</label><select id="microphone-device"><option value="">系统默认麦克风</option></select>
+          <label for="speaker-device">播放设备</label><select id="speaker-device"><option value="">系统默认扬声器</option></select>
+          <button id="test-voice" type="button" class="soft-button">试听已保存的音色</button>
+          <label class="check-label"><input id="voice-shortcut" type="checkbox">启用 Ctrl+Shift+Space 开始／结束说话</label>
+          <p class="field-help">macOS 使用 ⌘+Shift+Space。按一次开始，再按一次结束并发送；最长录音60秒。开始说话会打断旧回复。快捷键只对本应用生效，不控制游戏。</p>
+        </section>
+        <section class="companion-settings" aria-label="长期记忆">
+          <h3>长期记忆</h3><p class="field-help">跨对话保留的事实和偏好；可以查看、纠正或遗忘。</p>
+          <label class="check-label"><input id="memory-auto-extract" type="checkbox">自动整理之后的对话记忆</label><p class="field-help">从之后的对话整理偏好和事件，会调用已配置模型。默认关闭，明确保存随时可用。</p><form id="memory-form"><label for="memory-content">明确让小猫记住</label><textarea id="memory-content" maxlength="1000" rows="2" required></textarea>
+          <label for="memory-kind">类型</label><select id="memory-kind"><option value="preference">偏好</option><option value="fact">事实</option><option value="event">事件</option></select>
+          <button type="submit" class="primary-button">保存记忆</button></form>
+          <button id="refresh-memories" type="button" class="text-button">刷新记忆</button><p id="memory-status" class="settings-message" role="status"></p><div id="memory-list"></div>
+        </section>
         <details class="asset-notice"><summary>角色与组件署名</summary><p>角色资源：YUI Lolita，来源 Project N.E.K.O.。Copyright 2025–2026 Project N.E.K.O. Team / Copyright (c) 2025 Hongzhi Wen。随包保留上游 Apache-2.0 LICENSE、NOTICE 与贡献许可声明。Live2D Cubism SDK 另依其独立条款。</p><p>ai-neko 是独立项目，不代表原版或官方背书。</p></details><div class="settings-footer"><span>ai-neko · 桌宠工程预览<br>角色：YUI Lolita</span><button id="exit-app" class="text-button" type="button">退出应用</button></div>
       </div>
     </section>

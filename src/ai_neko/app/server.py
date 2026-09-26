@@ -260,6 +260,7 @@ def serve(
         async def lifespan(_app):
             write_private_json(connection_file, connection.descriptor())
             event("started")
+            runtime.start_memory_worker()
             if parent_input is not None:
                 # A private inherited pipe is an ownership capability, avoiding
                 # stale PID checks or attaching to another service's descriptor.

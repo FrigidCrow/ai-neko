@@ -8,7 +8,7 @@ const CONSENT_URL = 'ai-neko://app/consent/index.html';
 const MAX_BODY_BYTES = 65536;
 const CSP = "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; " +
   "connect-src 'self'; img-src 'self' data: blob:; font-src 'self'; " +
-  "media-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'";
+  "media-src blob:; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'";
 
 function trustedSender(event, contents, entry = ENTRY_URL) {
   return Boolean(contents && !contents.isDestroyed() && event.sender === contents &&
@@ -21,17 +21,19 @@ function validateRequest(value) {
     throw new Error('Invalid request');
   }
   const { method, path: route, body } = value;
-  if (!['GET', 'POST', 'PUT'].includes(method) || typeof route !== 'string' || route.length > 256) {
+  if (!['GET', 'POST', 'PUT', 'DELETE'].includes(method) || typeof route !== 'string' || route.length > 256) {
     throw new Error('Invalid request');
   }
   const id = '[A-Za-z0-9_-]{1,80}';
   const routes = {
-    GET: [ /^\/api\/config$/, /^\/api\/sessions$/,
+    GET: [ /^\/api\/(?:persona|memories|memory\/config|voice\/config)$/, /^\/api\/config$/, /^\/api\/sessions$/,
+      new RegExp(`^/api/memories/${id}/sources$`),
       new RegExp(`^/api/sessions/${id}$`),
       new RegExp(`^/api/sessions/${id}/turns/${id}/events(?:\\?after=[0-9]{1,9})?$`) ],
-    PUT: [ /^\/api\/config$/ ],
-    POST: [ /^\/api\/sessions$/, new RegExp(`^/api/sessions/${id}/turns$`),
-      new RegExp(`^/api/sessions/${id}/turns/${id}/(?:ack|cancel)$`) ],
+    PUT: [ /^\/api\/(?:config|persona|memory\/config|voice\/config)$/, new RegExp(`^/api/memories/${id}$`) ],
+    DELETE: [ new RegExp(`^/api/memories/${id}$`) ],
+    POST: [ /^\/api\/memories$/, /^\/api\/voice\/(?:transcribe|synthesize|cancel)$/, /^\/api\/sessions$/, new RegExp(`^/api/sessions/${id}/turns$`),
+      new RegExp(`^/api/sessions/${id}/turns/${id}/(?:ack|cancel|audio)$`) ],
   };
   if (!routes[method].some((matcher) => matcher.test(route))) throw new Error('Route not allowed');
   if (body !== undefined && (!body || typeof body !== 'object' || Array.isArray(body))) {
@@ -39,7 +41,9 @@ function validateRequest(value) {
   }
   if (method === 'GET' && body !== undefined) throw new Error('GET body not allowed');
   const encoded = body === undefined ? undefined : JSON.stringify(body);
-  if (encoded && Buffer.byteLength(encoded) > MAX_BODY_BYTES) throw new Error('Request too large');
+  const maxBytes = route === '/api/voice/transcribe' ? 12 * 1024 * 1024 :
+    /\/turns$/.test(route) ? 3 * 1024 * 1024 : MAX_BODY_BYTES;
+  if (encoded && Buffer.byteLength(encoded) > maxBytes) throw new Error('Request too large');
   return { method, path: route, encoded };
 }
 

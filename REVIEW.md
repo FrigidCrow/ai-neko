@@ -1,6 +1,6 @@
 # ai-neko 验收记录
 
-2026-09-26 当前状态：M0/M1 Partial，M2–M6 Pending。YUI 猫娘资源、Electron 宿主、伴随文字流式交互与 Windows 包流水线已实现；本轮自动验证/发布结果见文末，真实服务和 Windows 11 真机验收仍待。历史记录保留当时实际状态，当前目标见 [MVP1 规格](docs/MVP1-DESKTOP-PET.md)。
+2026-09-26 当前状态：M0/M1/M2/M4/M5 Partial，M3/M6 Pending。五项能力的本地实现与合成闭环已推进，详见文末及[实施及验收](docs/COMPANION-IMPLEMENTATION.md)；真实服务与Windows11真机尚待。本轮没有发布新版，历史记录保留当时实际状态。
 
 ## P0 — 独立工程与可实施计划
 
@@ -25,10 +25,10 @@
 | --- | --- | --- |
 | M0 基础与复用验证 | Partial | 基础源码/CI/冻结包已验证；Windows 11 真机/ACL/junction/原版共存仍待；桌宠工具链在 M1 补验 |
 | M1 / MVP1 猫娘桌宠闭环 | Partial | YUI 猫娘、宿主、伴随交互与打包已实现；真实服务、Windows 11 真机及完整 V01–V09 仍待验收 |
-| M2 本地长期记忆 | Pending | 落盘、新会话召回、纠正/遗忘、进程与电脑重启 |
+| M2 本地长期记忆 | Partial | 本地落盘/新会话/纠正/遗忘/进程恢复合成通过；模型正确使用及Windows重启待验 |
 | M3 角色表现扩展 | Pending | 新动作/多角色/扩展渲染与隔离；基础桌宠已前移 M1 |
-| M4 语音与打断 | Pending | Windows 真机采集/播放、打断与迟到片段 |
-| M5 视觉/主动/查询联动 | Pending | 图像归属、活动门控和截图查询结果 |
+| M4 语音与打断 | Partial | 合成录音/ASR/TTS/WebAudio停播和迟到片段验证；真实语音、Windows设备、20次延迟待验 |
+| M5 视觉/主动/查询联动 | Partial | 当轮选源/图像/关闭门控合成通过；真实游戏理解及主动模式待验 |
 | M6 分发与长期运行 | Pending | 完整 Windows 成品、干净机、升级恢复、7 天观察；M0 诊断包不替代这些验收 |
 
 ## 已核实的外部边界
@@ -172,3 +172,23 @@ Windows 原生实测还发现并修复两项 Mac 未暴露的问题：独立 pro
 直接证据：[发布核对](docs/evidence/mvp1/release-v0.3.0-alpha.1-verification.json)、[构建来源](docs/evidence/mvp1/release-v0.3.0-alpha.1-build.json)、[冻结后端](docs/evidence/mvp1/release-v0.3.0-alpha.1-package.json)、[实际桌宠报告](docs/evidence/mvp1/windows/desktop-smoke.json)、[猫娘与恢复聊天截图](docs/evidence/mvp1/windows/desktop-restored.png)。Windows/Linux完整源码报告保留为Release资产；入库JSON只正规化行尾，原始下载摘要在核对报告中。
 
 桌面预览与 CI/CD 交付 PASS。真实模型/搜索调用0；Windows 11 真机与上表完整 MVP1 用户验收仍 Pending，M0/M1 保持 Partial。下载后无需 Python/Node，首次接受随包运行条款后出现猫娘；云聊天需配置本项目模型，攻略需另配置 Tavily Key。
+
+## 2026-09-26 — 下一交付的视觉语音陪玩方案
+
+用户提出人格、桌面视觉、语音输入/输出，并明确“玩《王者万象棋》时语音问下一步，由猫娘根据当前画面语音建议”的使用场景。已写 [实施方案](docs/NEXT-GAME-COMPANION.md) 并同步PLAN/ARCHITECTURE：首个增量包含角色档案、当轮截图、ASR→同一LangGraph→按句TTS、真实播放取消与游戏质量验收；不等待完整长期记忆、多角色或主动搭话。用户模型服务及游戏画面来源仍待确定。
+
+本轮为规划与只读源码核对。参考人格预设/注入、选源/图片输入、麦克风采集、SentenceBuffer与播放清队列；未导入或运行原版，不读取其配置/数据/凭据。人格建议与按键说话是待落实设计，未冒称用户已选择音色或交互形式。M0/M1 Partial、M2–M6 Pending，新增视觉/语音真实调用及Windows运行均为0；文档通过不计为功能通过。
+
+用户随后明确网络查询拟用DeepSeek。已更新方案6.1及PLAN：官方deepseek-flash有视觉能力；原生搜索文档针对Anthropic/Claude Code路径，Responses明确忽略web_search；ASR/TTS公开入口本轮未确认。独立只读核对本工程当前仍只有普通Chat Completions、Tavily函数工具和文字输入，没有供应商原生来源/思考上下文适配。因此“供应商支持”不写成“本工程已支持”。DeepSeek真实请求0，渠道/具体模型与语音服务待定，未改产品代码或发布。
+
+用户进一步要求通用联网搜索，已修正前一方案的原生搜索优先方向：现有LangGraph共享工具与Tavily后端已实现模型/搜索配置分离；下一交付沿用此边界，搜索服务接入一次、跨兼容模型复用。原生搜索只是可选后端，模型协议兼容与搜索适配分别验收。不宣称所有模型已可用，未替换搜索服务或新增真实API验证。本次仅澄清规划。
+
+## 2026-09-26 — 五项能力本地实现
+
+按持续目标实施人格、桌面视觉、ASR/TTS、公共查询与长期记忆，保留YUI桌宠入口。用户再次强调参照N.E.K.O后，实际提取了分词、繁简转换、BM25纯函数，来源和许可见[复用记录](docs/MEMORY-REUSE.md)。人格、选源与语音生命周期参考原版机制接到本工程，未读取其凭据/运行数据或启动原版。
+
+Python全套457 passed/1 Windows凭据存储专属skip；最后增加每轮人格/记忆版本与图像元数据后，Runtime/协议/综合/边界62项再次通过。宿主28项、[实际Electron新增闭环](docs/evidence/companion/macos-companion.json)9项和[原桌宠基线](docs/evidence/companion/macos-baseline.json)9项通过。[实际截图](docs/evidence/companion/macos-companion.png)仍为用户确认的白裙猫娘。全程合成资料、无用户画面/麦克风/真实云调用。
+
+独立审查实际发现并修复：长消息被召回长度挡住、并发close重复关库、并发遗忘互斥、派生待提取原文遗留、Memory提交后日志清理前失败的恢复、吞取消图节点晚到入队、慢音频上传在取消/关闭后创建新供应商任务。相应回归已覆盖，不把“测试未报错”当作所有错误路径证明。
+
+新增实际音频回执独立于显示ACK；生成done不表示听完，隐藏聊天播放不虚增显示ACK。语音停止只有单次本机观测，20次p95、真实声音/游戏模型质量、Windows新包运行和Windows11真机仍Pending。完整目标仍进行中。CI已增加Windows包的新闭环门禁及提取组件许可打包，尚未以未执行的Windows步骤记PASS。

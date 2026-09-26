@@ -23,7 +23,10 @@ a = Analysis(
     [str(repo / "packaging" / "entry.py")],
     pathex=[str(repo / "src")],
     binaries=[],
-    datas=metadata + [(str(repo / "src" / "ai_neko" / "web"), "ai_neko/web")],
+    datas=metadata + [
+        (str(repo / "src" / "ai_neko" / "web"), "ai_neko/web"),
+        (str(repo / "src" / "ai_neko" / "memory" / "licenses"), "ai_neko/memory/licenses"),
+    ],
     hiddenimports=hidden,
     hookspath=[],
     hooksconfig={},
