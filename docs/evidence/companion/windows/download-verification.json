@@ -1,15 +1,15 @@
 {
   "status": "PASS",
-  "source_commit": "7bd14343178a5066182ac75007cf9137fafe6074",
-  "archive": "ai-neko-0.3.0-dev.7bd14343178a-windows-x64.zip",
-  "archive_bytes": 191838005,
-  "archive_sha256": "2f995145581ec22a59f1ba7de01a38832169214dea67c41c2c9871f9d33dd4e9",
+  "source_commit": "5871f2d94e2f176a863262ae12c86edf2e05066c",
+  "archive": "ai-neko-0.3.0-dev.5871f2d94e2f-windows-x64.zip",
+  "archive_bytes": 191849807,
+  "archive_sha256": "af1f20aecd0673421d35c914b3e240f3aeca7a36b9cadf068af610676a355015",
   "build_source_clean": true,
   "source_tests": [
     {
       "name": "Windows-smoke.json",
-      "sha256": "db539d4a1c9b47b8174a9b1fff5b9b25f7cc2a33f92a53df084046c4cfa221f4",
-      "passed": 469,
+      "sha256": "926ac5af8e7554fa1b48de24dd9849580a85b81b7449c9d9270c8d84a38f9030",
+      "passed": 545,
       "skipped": 0,
       "failed": 0,
       "errors": 0,
@@ -28,8 +28,8 @@
     },
     {
       "name": "Linux-smoke.json",
-      "sha256": "078db1a3b024dbe6378dc4ebd63ee2a5973e4d4a6fd65c9928073d31e4b44c3e",
-      "passed": 468,
+      "sha256": "27b55a1b4d7387b2cf051d739d29faca98aa2d14e7e891fc5ad47ab5ae769549",
+      "passed": 544,
       "skipped": 1,
       "failed": 0,
       "errors": 0,
@@ -53,7 +53,7 @@
       "machine": "AMD64"
     },
     "backend": {
-      "sha256": "f44888459f6058d8b35b5b40c041222139011bddf52df7010bdc9d52e759e6ae",
+      "sha256": "7df795293f1c3e10ca029c0fb8ee1d7ab524644103693747ac2509c119562858",
       "machine": "AMD64"
     }
   },
@@ -135,11 +135,46 @@
     ]
   },
   "desktop_cases_passed": 9,
-  "companion_cases_passed": 13,
+  "companion_cases_passed": 16,
   "real_model_calls": 0,
   "real_audio_service_calls": 0,
   "actual_desktop_captures": 0,
   "windows_11": "NOT_VERIFIED",
-  "screenshot_sha256": "b192b5322690a18d8ea5c1f689208046907c5889e79204de9bc86510b197955d",
-  "local_executable_run": false
+  "screenshot_sha256": "9b334175ebf7b82e36bc8b7b0916330253f1828e0ee43b54bf4ab30e877c88fc",
+  "local_executable_run": false,
+  "snapshot_screenshot_sha256": "57e43b1c39ae6e2b189e758c3a8e0cb98ccd2f35fe325e39829143c482bf5477",
+  "memory_snapshot_ui": {
+    "explicit_restore_confirmation": true,
+    "stale_revision_did_not_restore": true,
+    "restored_persona": true,
+    "correction_preserved": true,
+    "forgotten_fact_absent": true,
+    "explicit_delete_confirmation": true
+  },
+  "heard_context": {
+    "first_sentence": "第一句🐾已经听完。",
+    "second_sentence_absent": true,
+    "display_ack": 0,
+    "actual_playback": [
+      {
+        "segment_id": "410bb810fa3646c89fc1eecd819cc4b7",
+        "state": "completed",
+        "updated_at": 1790409628.583428,
+        "text_start": 0,
+        "text_end": 11
+      },
+      {
+        "segment_id": "de961eeba7ce483d96cfc92b5812e61e",
+        "state": "stopped",
+        "updated_at": 1790409628.687429,
+        "text_start": 11,
+        "text_end": 23
+      }
+    ]
+  },
+  "full_heard": {
+    "heard_text": "合成场景建议：先观察。再决定下一步。",
+    "display_ack": 0,
+    "completed_segments": 2
+  }
 }

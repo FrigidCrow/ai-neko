@@ -226,3 +226,12 @@ Mac全套544 passed / 1 Windows凭据专属skip；快照API25项、已听上下�
 
 
 第二轮[36227919089](https://github.com/FrigidCrow/ai-neko/actions/runs/36227919089)Windows544通过、1失败；上轮5项快照删除用例均通过。唯一失败为旧播放回执测试的列表排序断言。Root将测试时间戳固定相等、片段ID固定为逆序，在本机准确复现旧断言返回started/completed顺序；按稳定segment_id逐一检查完成/开始以及重启后完成/中断状态后通过，未改生产排序或添加sleep。同步更正包内说明为拖动角色、开启观察后核对预览。Windows最终效果仍以下轮CI为准。
+
+
+### 快照与已听上下文 Windows 交付通过
+
+最终产品源码 `5871f2d94e2f176a863262ae12c86edf2e05066c` 的 [CI 36228220001](https://github.com/FrigidCrow/ai-neko/actions/runs/36228220001) 必要 jobs 全部 SUCCESS，非 tag 发布正常跳过。Windows 545 passed/0 skip、Linux 544 passed/1 平台 skip；宿主 31 项，冻结后端 16/16、实际桌宠基线 9/9、新增陪伴闭环 16/16。前两轮快照文件句柄与同时间戳排序断言修正已在 Windows 实际通过。
+
+Root 用 gh run download 分别取得两平台源码、package-evidence 和 ai-neko-windows-x64；比对重复报告后，运行 `python3 artifacts/ci/verify-companion-download.py artifacts/ci/36228220001/verified 5871f2d94e2f176a863262ae12c86edf2e05066c` 为 PASS。核对 SHA256SUMS、clean 源 commit、ZIP 内外 build-info、GUI/后端 AMD64 PE、实际执行摘要、N.E.K.O 记忆通知、桌面模块与两张截图摘要；实际查看 Windows 快照界面。ZIP `ai-neko-0.3.0-dev.5871f2d94e2f-windows-x64.zip` 为 191,849,807 字节，SHA256 `af1f20aecd0673421d35c914b3e240f3aeca7a36b9cadf068af610676a355015`。
+
+[可下载开发包](https://github.com/FrigidCrow/ai-neko/actions/runs/36228220001/artifacts/10902330067)：展开 Actions 产物后完整解压内层 ZIP，运行 ai-neko.exe。证据更新至 docs/evidence/companion/windows；仓库 JSON 仅统一 LF 行尾，原始下载文件保留在 artifacts。该版含快照管理和隐藏面板已听前缀续聊，旧 v0.3.0-alpha.1 保持不变。合成调用 16 模型/3 ASR/9 TTS，单次停音 34ms，不是 p95；真实云服务、用户采集及 Windows 11 真机验收未进行，完整目标仍在进行中。

@@ -300,7 +300,7 @@ M0 已实现数据根、配置格式、后端实例锁与连接发现；网页�
 验收仍包括本页M2完整记忆标准及NEXT-GAME-COMPANION的角色、视觉、语音、取消、质量和平台标准。实现/确定性测试/本机实际桌宠运行/真实云服务/Windows CI/Windows11真机分别留证；缺凭据或真机不阻止实现和合成运行，但相应真实验收不得标完成。本轮先本地实现与验证，不因持续目标自动发布新版本或读取其他项目凭据。
 
 
-本轮实施结果：五项能力已进入`codex/companion-five-capabilities`，源码`7bd14343178a5066182ac75007cf9137fafe6074`的[Windows/Linux CI](https://github.com/FrigidCrow/ai-neko/actions/runs/36225891452)通过，Windows469项、Linux468项/1专属skip、冻结后端16项、实际桌宠9项与新增闭环13项。可下载开发包，未创建新版Release；使用及证据见[实施说明](COMPANION-IMPLEMENTATION.md)。真实云服务、Windows11游戏场景、质量与性能验收仍Pending，完整目标保持进行中。
+本轮实施结果：五项能力已进入`codex/companion-five-capabilities`，最新收尾源码`5871f2d94e2f176a863262ae12c86edf2e05066c`的[Windows/Linux CI](https://github.com/FrigidCrow/ai-neko/actions/runs/36228220001)通过，Windows545项、Linux544项/1专属skip、冻结后端16项、实际桌宠9项与新增闭环16项。可下载开发包，未创建新版Release；使用及证据见[实施说明](COMPANION-IMPLEMENTATION.md)。真实云服务、Windows11游戏场景、质量与性能验收仍Pending，完整目标保持进行中。
 
 ### 完成审计发现的闭环缺口（2026-09-26，补齐前登记）
 
@@ -309,4 +309,4 @@ M0 已实现数据根、配置格式、后端实例锁与连接发现；网页�
 - 上述产品入口和结算用实际桌宠/后端合成用例验证；不会把新增回归计入真实服务、真人听感或Windows11验收。
 
 
-收尾本地实施结果：快照UI/API/恢复清理、已听上下文已落地；544项Python、31项宿主、9项桌宠基线及16项陪伴闭环通过，非Windows凭据库1项skip单列。独立审查发现的手动事实恢复清理、失败期间旧事件读取及显示ACK截断URL三处缺陷已补测试修复。Windows包以本轮后续CI为准；实际服务与Windows11验收继续Pending。
+收尾本地实施结果：快照UI/API/恢复清理、已听上下文已落地；544项Python、31项宿主、9项桌宠基线及16项陪伴闭环通过，非Windows凭据库1项skip单列。独立审查发现的手动事实恢复清理、失败期间旧事件读取及显示ACK截断URL三处缺陷已补测试修复。本轮Windows包源码545项、后端16项、桌宠9项及新增闭环16项已通过；实际服务与Windows11验收继续Pending。

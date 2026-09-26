@@ -3,10 +3,10 @@
   "app_id": "ai-neko",
   "stage": "windows-portable-package",
   "status": "PASS",
-  "started_at_utc": "2026-09-26T07:13:40.805927+00:00",
-  "archive_sha256": "2f995145581ec22a59f1ba7de01a38832169214dea67c41c2c9871f9d33dd4e9",
-  "executable_sha256": "f44888459f6058d8b35b5b40c041222139011bddf52df7010bdc9d52e759e6ae",
-  "source_commit": "7bd14343178a5066182ac75007cf9137fafe6074",
+  "started_at_utc": "2026-09-26T07:59:13.230133+00:00",
+  "archive_sha256": "af1f20aecd0673421d35c914b3e240f3aeca7a36b9cadf068af610676a355015",
+  "executable_sha256": "7df795293f1c3e10ca029c0fb8ee1d7ab524644103693747ac2509c119562858",
+  "source_commit": "5871f2d94e2f176a863262ae12c86edf2e05066c",
   "environment": {
     "system": "Windows",
     "release": "10",
@@ -97,6 +97,6 @@
     "desktop_tray_audio": "NOT_TESTED",
     "real_model_search_and_chat": "NOT_TESTED"
   },
-  "duration_seconds": 20.75,
+  "duration_seconds": 19.953,
   "failure_detail_policy": "No raw stdout, stderr, logs, tokens, or tracebacks included."
 }

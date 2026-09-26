@@ -39,15 +39,15 @@
 
 所有本轮数据、图片、语音和HTTP服务均为合成资料；未读取用户桌面、真实麦克风或其他项目凭据。
 
-- 快照与已听上下文收尾：本机全套Python结果见REVIEW；Windows结果按对应commit独立记录。新增回归涵盖API确认与revision冲突、快照移除手动事实后的旧对话清理，以及清理失败时阻止读取旧事件、重启恢复。
+- 快照与已听上下文收尾：本机全套Python544项通过、1项Windows凭据库专属skip，详细结果见REVIEW；Windows结果按对应commit独立记录。新增回归涵盖API确认与revision冲突、快照移除手动事实后的旧对话清理，以及清理失败时阻止读取旧事件、重启恢复。
 - 宿主：31项通过。实际Electron原桌宠基线9项及新增闭环16项通过，报告和图片位于[证据目录](evidence/companion)。新增闭环核对人格、记忆CRUD/原文、快照恢复/删除/损坏与冲突、权限拒绝、所选合成窗口、fake麦克风、真实WebAudio MP3解码/播放、口型、停止和关闭观察。
 - 播放`started/completed/stopped`绑定原文Unicode码点范围；收起面板已听内容可进入下一轮，但未显示文字的ACK仍为0。已验证第一句听完、第二句停止后仅第一句进入模型上下文；URL/引用被文字ACK从中截断也不会误算成已读出。重启不重新合成或播放历史语音。单次停止观测不能冒充20次p95通过。
 - 遗忘验证包含来源关联闭包、派生待提取原文、会话/checkpoint清理、并发删除、过期写入拒绝，以及Memory事务已提交但会话清理前失败的断点重启恢复；只说明覆盖的故障断点，不声称所有故障均已穷举。
 - DeepSeek普通Chat Completions已补官方端点的`max_tokens`字段及工具往返的内部上下文传递，内部内容不显示、不读出、不写checkpoint。这基于[官方协议说明](https://api-docs.deepseek.com/quick_start/agent_integrations/oh_my_pi/)和[Thinking Mode](https://api-docs.deepseek.com/guides/thinking_mode/)，真实账户调用仍为0。
-- CI增加实际Windows ZIP的新增闭环门禁：`node desktop/tests/companion.smoke.cjs --archive <zip> --output <json>`，使用包内应用/后端和合成服务；最终[CI](https://github.com/FrigidCrow/ai-neko/actions/runs/36225891452)源码Windows469项/0跳过、Linux468项/1平台跳过；冻结后端16/16、桌宠基线9/9和新增闭环13/13通过。[Windows实际报告](evidence/companion/windows/companion-smoke.json)使用解压后应用及合成窗口/麦克风/模型/音频服务，单次停止70ms不等于20次p95。Windows Server运行不能替代Windows11真机。
+- CI增加实际Windows ZIP的新增闭环门禁：`node desktop/tests/companion.smoke.cjs --archive <zip> --output <json>`，使用包内应用/后端和合成服务；最终[CI](https://github.com/FrigidCrow/ai-neko/actions/runs/36228220001)源码Windows545项/0跳过、Linux544项/1平台跳过；冻结后端16/16、桌宠基线9/9和新增闭环16/16通过。[Windows实际报告](evidence/companion/windows/companion-smoke.json)使用解压后应用及合成窗口/麦克风/模型/音频服务，单次停止34ms不等于20次p95。Windows Server运行不能替代Windows11真机。
 
 本轮没有以静态检查、合成回复、文档通过或已有旧Release作为五项功能全部完成的证据。完整目标保持进行中。
 
-上轮开发包：登录GitHub后下载 [ai-neko-windows-x64](https://github.com/FrigidCrow/ai-neko/actions/runs/36225891452/artifacts/10901235961)，展开构建产物，再完整解压内层`ai-neko-0.3.0-dev.7bd14343178a-windows-x64.zip`并运行根目录`ai-neko.exe`。该包包含五项能力，但尚不包含本次快照UI与已听上下文收尾；新Windows构建结果待补。无需本机Python/Node；这是开发构建，未创建新版Release，产物保留14天。
+开发包：登录GitHub后下载 [ai-neko-windows-x64](https://github.com/FrigidCrow/ai-neko/actions/runs/36228220001/artifacts/10902330067)，展开构建产物，再完整解压内层`ai-neko-0.3.0-dev.5871f2d94e2f-windows-x64.zip`并运行根目录`ai-neko.exe`。该包包含五项能力、本次快照管理和已听上下文收尾。无需本机Python/Node；这是开发构建，未创建新版Release，产物保留14天。
 
-[下载核对记录](evidence/companion/windows/download-verification.json)已确认191,838,005字节ZIP与CI执行报告同一摘要、源码和程序；本机仅核对下载文件，没有将Mac运行当Windows证据。
+[下载核对记录](evidence/companion/windows/download-verification.json)确认ZIP为191,849,807字节，SHA256 `af1f20aecd0673421d35c914b3e240f3aeca7a36b9cadf068af610676a355015`；源码、程序、报告和两张截图摘要一致。本机只核对下载文件，未运行Windows程序。
