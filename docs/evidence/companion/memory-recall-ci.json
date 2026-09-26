@@ -1,0 +1,102 @@
+{
+  "kind": "ten_fact_new_session_request_injection_ci",
+  "ci_run": 36230897663,
+  "ci_url": "https://github.com/FrigidCrow/ai-neko/actions/runs/36230897663",
+  "status": "PASS",
+  "checks": [
+    {
+      "platform": "Windows",
+      "source_commit": "2a41fc0fe4da520d5fe36ae9f3a622c5f82bc29b",
+      "source_clean": true,
+      "source_unchanged_during_run": true,
+      "ci_gate": "PASS",
+      "passed": 576,
+      "skipped": 0,
+      "failed": 0,
+      "errors": 0,
+      "report_sha256": "b911231305b1d0a08a5bf13b0d27b9bb5de9cce15f6ae530e20f8a865d59a6fc",
+      "new_memory_case": {
+        "name": "test_ten_facts_recall_with_sources_and_reach_new_thread_requests_after_process_restart",
+        "class": "tests.test_memory_recall_acceptance",
+        "seconds": 2.992,
+        "outcome": "passed"
+      }
+    },
+    {
+      "platform": "Linux",
+      "source_commit": "2a41fc0fe4da520d5fe36ae9f3a622c5f82bc29b",
+      "source_clean": true,
+      "source_unchanged_during_run": true,
+      "ci_gate": "PASS",
+      "passed": 575,
+      "skipped": 1,
+      "failed": 0,
+      "errors": 0,
+      "report_sha256": "e2f1138ae6e965a174da48319e1dfbebac2088df45e1820d54d6f104182739b4",
+      "new_memory_case": {
+        "name": "test_ten_facts_recall_with_sources_and_reach_new_thread_requests_after_process_restart",
+        "class": "tests.test_memory_recall_acceptance",
+        "seconds": 1.434,
+        "outcome": "passed"
+      }
+    }
+  ],
+  "synthetic_facts": {
+    "preferences": 5,
+    "events": 5
+  },
+  "distinct_new_sessions": 10,
+  "process_restart": true,
+  "operating_system_reboot_verified": false,
+  "real_model_calls": 0,
+  "real_model_correctness_verified": false,
+  "workflow_conclusion": "success",
+  "jobs": [
+    {
+      "name": "Synthetic tests (ubuntu-24.04)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "name": "Synthetic tests (windows-2022)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "name": "Build and exercise Windows ZIP",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "name": "Publish tagged desktop catgirl preview",
+      "status": "completed",
+      "conclusion": "skipped"
+    }
+  ],
+  "windows_packaged_checks": [
+    {
+      "name": "package-smoke.json",
+      "status": "PASS",
+      "cases": 16,
+      "report_sha256": "0b9e62daa688fc6d4c8a9e30628ba7e2ffe2ea0f42b48df4b9a7fc7f7000a47a",
+      "archive_sha256": "5d2591a13a3e6b4198c42bbf724bec884255fc0212d763ceb466058d205f9e8b"
+    },
+    {
+      "name": "desktop-smoke.json",
+      "status": "PASS",
+      "cases": 9,
+      "report_sha256": "360e886fe3b77adba527f473a73d556cb160b9c74fa319c1f390a3cad6886e26",
+      "archive_sha256": "5d2591a13a3e6b4198c42bbf724bec884255fc0212d763ceb466058d205f9e8b"
+    },
+    {
+      "name": "companion-smoke.json",
+      "status": "PASS",
+      "cases": 18,
+      "report_sha256": "75e3558715fab7738660a8b2df1ad691bc4f1d45cc71c3a5a25c1f9bc1da47c1",
+      "archive_sha256": "5d2591a13a3e6b4198c42bbf724bec884255fc0212d763ceb466058d205f9e8b"
+    }
+  ],
+  "previous_verified_download_source": "669a8f181e45f838239bf7900bb20765588bbbd8",
+  "production_paths_unchanged_from_previous_download": true,
+  "new_zip_downloaded_locally": false
+}

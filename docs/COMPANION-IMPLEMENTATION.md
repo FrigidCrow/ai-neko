@@ -45,7 +45,7 @@
 - 宿主：58项通过。实际Electron原桌宠基线9项及新增闭环18项通过，报告和图片位于[证据目录](evidence/companion)。新增闭环核对人格、记忆CRUD/原文、快照恢复/删除/损坏与冲突、权限拒绝、所选合成窗口、fake麦克风、真实WebAudio MP3解码/播放、口型、停止和关闭观察。
 - 播放`started/completed/stopped`绑定原文Unicode码点范围；收起面板已听内容可进入下一轮，但未显示文字的ACK仍为0。已验证第一句听完、第二句停止后仅第一句进入模型上下文；URL/引用被文字ACK从中截断也不会误算成已读出。重启不重新合成或播放历史语音。单次停止观测不能冒充20次p95通过。
 - 遗忘验证包含来源关联闭包、派生待提取原文、会话/checkpoint清理、并发删除、过期写入拒绝，以及Memory事务已提交但会话清理前失败的断点重启恢复；只说明覆盖的故障断点，不声称所有故障均已穷举。
-- 十项记忆补证使用两个实际Python进程：重启后逐条检索5个偏好和5个事件，在10个新会话中核对来源及模型请求注入；相关37项本机测试通过。它证明检索/注入路径，不证明真实模型答对或Windows电脑重启。
+- 十项记忆补证使用两个实际Python进程：重启后逐条检索5个偏好和5个事件，在10个新会话中核对来源及模型请求注入；相关37项本机测试通过。[补证CI](evidence/companion/memory-recall-ci.json)在Windows576项/0skip、Linux575项/1平台skip中再次通过该回归。它证明检索/注入路径，不证明真实模型答对或Windows电脑重启。
 - DeepSeek普通Chat Completions已补官方端点的`max_tokens`字段及工具往返的内部上下文传递，内部内容不显示、不读出、不写checkpoint。这基于[官方协议说明](https://api-docs.deepseek.com/quick_start/agent_integrations/oh_my_pi/)和[Thinking Mode](https://api-docs.deepseek.com/guides/thinking_mode/)，真实账户调用仍为0。
 - 已用应用自己的`WebTools.read_web_page`真实读取Python、Git和LangGraph三份官方文档，核对正文片段、来源、读取时间与指纹；[读取证据](evidence/companion/public-page-reads.json)单独记录。该组件不需要搜索Key，成功读取公开页面不能证明Tavily搜索或模型带来源回答已经通过。
 - CI增加实际Windows ZIP的新增闭环门禁：`node desktop/tests/companion.smoke.cjs --archive <zip> --output <json>`，使用包内应用/后端和合成服务；最终[CI](https://github.com/FrigidCrow/ai-neko/actions/runs/36229884609)源码Windows575项/0跳过、Linux574项/1平台跳过；冻结后端16/16、桌宠基线9/9和新增闭环18/18通过。[Windows实际报告](evidence/companion/windows/companion-smoke.json)使用解压后应用及合成窗口/麦克风/模型/音频服务，单次停止40ms不等于20次p95。Windows Server运行不能替代Windows11真机。
