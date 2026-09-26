@@ -273,7 +273,7 @@ def install_api(app: FastAPI, connection, authorize, runtime, providers, bootstr
     @app.get("/api/memory/backups")
     async def memory_backups(request: Request):
         auth(request)
-        return runtime.memory_backups()
+        return await runtime.memory_backups()
 
     @app.post("/api/memory/backups", status_code=201)
     async def backup_memory(request: Request):

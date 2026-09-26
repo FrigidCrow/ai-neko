@@ -32,11 +32,11 @@ def endpoint(value, *, model=False):
     try:
         ipaddress.ip_address(url.host)
     except ValueError:
-        if url.host.lower() in {"localhost", "localhost.localdomain"} or url.host.lower().endswith(
-            (".localhost", ".local", ".internal")
-        ):
-            if not local:
-                raise ValueError("blocked_endpoint")
+        if (
+            url.host.lower() in {"localhost", "localhost.localdomain"}
+            or url.host.lower().endswith((".localhost", ".local", ".internal"))
+        ) and not local:
+            raise ValueError("blocked_endpoint") from None
     else:
         if not local and not network.public_ip(url.host):
             raise ValueError("blocked_endpoint")
@@ -122,7 +122,12 @@ class ProviderStore:
                 if clear or key:
                     secrets[kind] = None if clear else key
             # Failure is explicit; never silently fall back to plaintext credential storage.
-            previous = {kind: self._credentials.get(kind) for kind in secrets}
+            # Roll back to the previous *stored* state: when nothing was stored,
+            # delete instead of persisting an environment fallback into the vault.
+            previous = {
+                kind: (self._credentials.get(kind), self._credentials.has(kind))
+                for kind in secrets
+            }
             changed = []
             try:
                 for kind, secret in secrets.items():
@@ -131,7 +136,8 @@ class ProviderStore:
                 self._save(updated)
             except (OSError, ValueError):
                 for kind in reversed(changed):
-                    self._credentials.set(kind, previous[kind])
+                    value, was_stored = previous[kind]
+                    self._credentials.set(kind, value if was_stored else None)
                 raise
             self._config = updated
             return self.public_config()

@@ -109,10 +109,12 @@ def initialize_data_root(data_dir: str | Path | None = None) -> DataPaths:
         if not marker.exists():
             if any(root.iterdir()):
                 raise DataRootError("nonempty data root has no ai-neko ownership marker")
-            with marker.open("x", encoding="utf-8") as handle:
+            # Create with the final mode atomically; open("x") + chmod would
+            # leave a brief window at the umask default.
+            fd = os.open(marker, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+            with os.fdopen(fd, "w", encoding="utf-8") as handle:
                 json.dump({"app_id": APP_ID, "schema_version": 1}, handle)
                 handle.write("\n")
-            marker.chmod(0o600)
         owner = json.loads(marker.read_text(encoding="utf-8"))
         if (
             not isinstance(owner, dict)

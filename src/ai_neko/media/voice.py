@@ -192,7 +192,10 @@ class VoiceService:
                     raise ValueError("invalid_credential")
                 if clear or key:
                     secrets[kind] = None if clear else key
-            previous = {kind: self._credentials.get(kind) for kind in secrets}
+            previous = {
+                kind: (self._credentials.get(kind), self._credentials.has(kind))
+                for kind in secrets
+            }
             changed = []
             try:
                 for kind, secret in secrets.items():
@@ -201,7 +204,8 @@ class VoiceService:
                 self._save(updated)
             except (OSError, ValueError):
                 for kind in reversed(changed):
-                    self._credentials.set(kind, previous[kind])
+                    value, was_stored = previous[kind]
+                    self._credentials.set(kind, value if was_stored else None)
                 raise
             self._config = updated
             return self.public_config()
@@ -248,36 +252,35 @@ class VoiceService:
                 headers["Accept"] = ", ".join(expected_types)
                 if key:
                     headers["Authorization"] = "Bearer " + key
-                async with network.client() as client:
-                    async with client.stream(
-                        "POST", target, headers=headers, extensions=extensions, **kwargs
-                    ) as response:
-                        status = response.status_code
-                        if status in {401, 403}:
-                            raise VoiceError(
-                                kind + "_authentication_failed",
-                                "语音服务鉴权失败，请检查 API Key。",
-                            )
-                        if status == 429:
-                            raise VoiceError(
-                                kind + "_rate_limited", "语音服务请求受限，请稍后重试。"
-                            )
-                        if status != 200:
-                            raise VoiceError(
-                                kind + "_http_error", "语音服务返回错误，请检查配置后重试。"
-                            )
-                        mime = (
-                            response.headers.get("content-type", "")
-                            .split(";", 1)[0]
-                            .strip()
-                            .lower()
+                async with network.client() as client, client.stream(
+                    "POST", target, headers=headers, extensions=extensions, **kwargs
+                ) as response:
+                    status = response.status_code
+                    if status in {401, 403}:
+                        raise VoiceError(
+                            kind + "_authentication_failed",
+                            "语音服务鉴权失败，请检查 API Key。",
                         )
-                        if mime not in expected_types:
-                            raise VoiceError(kind + "_invalid_response", "语音服务返回格式不正确。")
-                        body = await network.bounded_body(response, limit=limit)
-                        if not body:
-                            raise VoiceError(kind + "_invalid_response", "语音服务返回了空内容。")
-                        return body
+                    if status == 429:
+                        raise VoiceError(
+                            kind + "_rate_limited", "语音服务请求受限，请稍后重试。"
+                        )
+                    if status != 200:
+                        raise VoiceError(
+                            kind + "_http_error", "语音服务返回错误，请检查配置后重试。"
+                        )
+                    mime = (
+                        response.headers.get("content-type", "")
+                        .split(";", 1)[0]
+                        .strip()
+                        .lower()
+                    )
+                    if mime not in expected_types:
+                        raise VoiceError(kind + "_invalid_response", "语音服务返回格式不正确。")
+                    body = await network.bounded_body(response, limit=limit)
+                    if not body:
+                        raise VoiceError(kind + "_invalid_response", "语音服务返回了空内容。")
+                    return body
         except VoiceError:
             raise
         except (TimeoutError, httpx.TimeoutException):

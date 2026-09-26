@@ -25,6 +25,8 @@ N.E.K.O 的 LLMSessionManager 混合了以上职责，提取时按接口拆开�
 
 ## 2. 对话图
 
+> **唯一对话图：`ai_neko.chat.graph`**（由 `SessionRuntime` 驱动）。`ai_neko.graph` 是 M0 合成原型，仅服务 `self-check`、`graph` CLI 与 Windows 打包冒烟的跨进程 checkpoint/scope 证据，不承载任何产品对话逻辑；新增能力一律进 `ai_neko.chat.graph`。
+
 拟定流程：
 
 ```mermaid

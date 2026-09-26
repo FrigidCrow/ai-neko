@@ -345,7 +345,7 @@ def test_restore_recovers_when_memory_commits_before_history_cleanup(tmp_path, m
             backup = await snapshot(client)
             sid, tid, fact_id = await recalled_manual_turn(client, runtime, "audio")
 
-            def crash_before_history_cleanup(_intent):
+            def crash_before_history_cleanup(_intent, *_args, **_kwargs):
                 raise RuntimeError("synthetic crash after Memory commit")
 
             monkeypatch.setattr(runtime, "_complete_erasure", crash_before_history_cleanup)

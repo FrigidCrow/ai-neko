@@ -58,6 +58,7 @@ def child_env():
     return {key: value for key, value in os.environ.items() if not key.startswith("AI_NEKO_")}
 
 
+@pytest.mark.usefixtures("sandbox_compatible")
 def test_paths_initialize_keeps_ownership_and_returns_desktop_root(tmp_path):
     root = tmp_path / "猫娘 data"
     result = subprocess.run(
@@ -197,7 +198,7 @@ def test_parent_handle_is_captured_once_and_failure_to_open_or_dead_parent_is_re
     from ai_neko.app import server
 
     for kernel in (FakeKernel32(opened=False), FakeKernel32(alive=False)):
-        monkeypatch.setattr(server, "_windows_kernel32", lambda: kernel)
+        monkeypatch.setattr(server, "_windows_kernel32", lambda kernel=kernel: kernel)
         with pytest.raises(ValueError, match="desktop parent process"):
             server.WindowsParentProcess(123)
         assert kernel.opens == [(0x00100000, False, 123)]

@@ -9,6 +9,8 @@ import os
 import subprocess
 import sys
 
+import pytest
+
 CASES = [
     ("喜欢无糖咖啡", "preference", "我的咖啡口味偏好是什么？"),
     ("喜欢猫咪", "preference", "我喜欢猫咪吗？"),
@@ -154,6 +156,7 @@ def run_process(code, data_root, payload):
     return json.loads(process.stdout)
 
 
+@pytest.mark.usefixtures("sandbox_compatible")
 def test_ten_facts_recall_with_sources_and_reach_new_thread_requests_after_process_restart(
     tmp_path,
 ):

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import json
 import os
 import secrets
@@ -129,8 +130,10 @@ class Connection:
 def write_private_json(path: Path, value: dict) -> None:
     temporary = safe_child(path.parent, f".{path.name}.{uuid.uuid4().hex}.tmp")
     try:
-        with temporary.open("x", encoding="utf-8") as handle:
-            temporary.chmod(0o600)
+        # The connection descriptor carries the bearer token: create with the
+        # final mode atomically instead of open-then-chmod.
+        fd = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+        with os.fdopen(fd, "w", encoding="utf-8") as handle:
             json.dump(value, handle)
             handle.write("\n")
         temporary.replace(path)
@@ -269,10 +272,9 @@ def serve(
                 loop = asyncio.get_running_loop()
 
                 def parent_ended():
-                    try:
+                    with contextlib.suppress(RuntimeError):
+                        # The service has already completed shutdown.
                         loop.call_soon_threadsafe(request_shutdown)
-                    except RuntimeError:
-                        pass  # The service has already completed shutdown.
 
                 def watch_parent():
                     try:

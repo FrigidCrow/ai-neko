@@ -211,6 +211,7 @@ def test_restore_rejects_stale_revision_then_accepts_current(memory):
     assert memory.list_facts() == []
 
 
+@pytest.mark.usefixtures("sandbox_compatible")
 def test_restore_commits_removed_source_tombstones_for_fresh_process_recovery(memory, paths):
     original = memory.remember("喜欢咖啡", source_id="original")
     snapshot = memory.backup()

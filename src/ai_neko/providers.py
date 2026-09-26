@@ -64,85 +64,84 @@ class ModelAdapter:
             if tools:
                 payload.update(tools=tools, tool_choice="auto", parallel_tool_calls=False)
             async with asyncio.timeout(self.TIMEOUT):
-                async with network.client() as client:
-                    async with client.stream(
-                        "POST", target, json=payload, headers=headers, extensions=extensions
-                    ) as response:
-                        if response.status_code != 200:
-                            raise http_error(response.status_code)
-                        if response.headers.get("content-encoding", "identity") not in {
-                            "",
-                            "identity",
-                        }:
-                            raise ProviderError("invalid_response", "模型流格式不受支持。")
-                        calls: dict[int, dict] = {}
-                        reasoning = ""
-                        total_text = 0
-                        finished = False
-                        async for data in self._events(response):
-                            if data == "[DONE]":
-                                finished = True
-                                break
-                            packet = json.loads(data)
-                            if not isinstance(packet, dict) or packet.get("error"):
+                async with network.client() as client, client.stream(
+                    "POST", target, json=payload, headers=headers, extensions=extensions
+                ) as response:
+                    if response.status_code != 200:
+                        raise http_error(response.status_code)
+                    if response.headers.get("content-encoding", "identity") not in {
+                        "",
+                        "identity",
+                    }:
+                        raise ProviderError("invalid_response", "模型流格式不受支持。")
+                    calls: dict[int, dict] = {}
+                    reasoning = ""
+                    total_text = 0
+                    finished = False
+                    async for data in self._events(response):
+                        if data == "[DONE]":
+                            finished = True
+                            break
+                        packet = json.loads(data)
+                        if not isinstance(packet, dict) or packet.get("error"):
+                            raise ValueError
+                        choices = packet.get("choices", [])
+                        if not choices:
+                            continue
+                        choice = choices[0]
+                        if choice.get("finish_reason") == "length":
+                            raise ProviderError(
+                                "output_limit", "模型输出达到长度上限，请缩小问题范围。"
+                            )
+                        delta = choice.get("delta", {})
+                        thought = delta.get("reasoning_content")
+                        if thought:
+                            if not isinstance(thought, str):
                                 raise ValueError
-                            choices = packet.get("choices", [])
-                            if not choices:
-                                continue
-                            choice = choices[0]
-                            if choice.get("finish_reason") == "length":
-                                raise ProviderError(
-                                    "output_limit", "模型输出达到长度上限，请缩小问题范围。"
-                                )
-                            delta = choice.get("delta", {})
-                            thought = delta.get("reasoning_content")
-                            if thought:
-                                if not isinstance(thought, str):
-                                    raise ValueError
-                                reasoning += thought
-                                if len(reasoning) > self.MAX_TEXT:
-                                    raise ProviderError("output_limit", "模型输出达到长度上限。")
-                            content = delta.get("content")
-                            if content:
-                                if not isinstance(content, str):
-                                    raise ValueError
-                                total_text += len(content)
-                                if total_text > self.MAX_TEXT:
-                                    raise ProviderError("output_limit", "模型输出达到长度上限。")
-                                yield {"type": "text", "text": content}
-                            for part in delta.get("tool_calls") or []:
-                                index = part["index"]
-                                if type(index) is not int or not 0 <= index < 8:
-                                    raise ValueError
-                                call = calls.setdefault(
-                                    index, {"id": "", "name": "", "arguments": ""}
-                                )
-                                function = part.get("function", {})
-                                for key, value in (
-                                    ("id", part.get("id", "")),
-                                    ("name", function.get("name", "")),
-                                    ("arguments", function.get("arguments", "")),
-                                ):
-                                    if not isinstance(value, str):
-                                        raise ValueError
-                                    call[key] += value
-                                    if len(call[key]) > (16_384 if key == "arguments" else 128):
-                                        raise ValueError
-                        if not finished:
-                            raise ProviderError("stream_interrupted", "模型连接中断，请重试。")
-                        if reasoning and calls:
-                            # Protocol-only context: graph keeps it in memory, never emits it.
-                            yield {"type": "assistant_context", "reasoning_content": reasoning}
-                        for index in sorted(calls):
-                            call = calls[index]
-                            arguments = json.loads(call["arguments"])
-                            if (
-                                not call["id"]
-                                or not call["name"]
-                                or not isinstance(arguments, dict)
+                            reasoning += thought
+                            if len(reasoning) > self.MAX_TEXT:
+                                raise ProviderError("output_limit", "模型输出达到长度上限。")
+                        content = delta.get("content")
+                        if content:
+                            if not isinstance(content, str):
+                                raise ValueError
+                            total_text += len(content)
+                            if total_text > self.MAX_TEXT:
+                                raise ProviderError("output_limit", "模型输出达到长度上限。")
+                            yield {"type": "text", "text": content}
+                        for part in delta.get("tool_calls") or []:
+                            index = part["index"]
+                            if type(index) is not int or not 0 <= index < 8:
+                                raise ValueError
+                            call = calls.setdefault(
+                                index, {"id": "", "name": "", "arguments": ""}
+                            )
+                            function = part.get("function", {})
+                            for key, value in (
+                                ("id", part.get("id", "")),
+                                ("name", function.get("name", "")),
+                                ("arguments", function.get("arguments", "")),
                             ):
-                                raise ValueError
-                            yield {"type": "tool_call", **call, "arguments": arguments}
+                                if not isinstance(value, str):
+                                    raise ValueError
+                                call[key] += value
+                                if len(call[key]) > (16_384 if key == "arguments" else 128):
+                                    raise ValueError
+                    if not finished:
+                        raise ProviderError("stream_interrupted", "模型连接中断，请重试。")
+                    if reasoning and calls:
+                        # Protocol-only context: graph keeps it in memory, never emits it.
+                        yield {"type": "assistant_context", "reasoning_content": reasoning}
+                    for index in sorted(calls):
+                        call = calls[index]
+                        arguments = json.loads(call["arguments"])
+                        if (
+                            not call["id"]
+                            or not call["name"]
+                            or not isinstance(arguments, dict)
+                        ):
+                            raise ValueError
+                        yield {"type": "tool_call", **call, "arguments": arguments}
         except ProviderError:
             raise
         except (TimeoutError, httpx.TimeoutException):

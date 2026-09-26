@@ -8,6 +8,8 @@ marks sent sequences; only explicit acknowledgements mark visible sequences.
 from __future__ import annotations
 
 import asyncio
+import functools
+import hashlib
 import json
 import re
 import sqlite3
@@ -67,6 +69,12 @@ class SessionRuntime:
         self.voice_cancelled: dict[str, float] = {}
         self._memory_mutating = False
         self._erasure_failed = False
+        # Streamed text events accumulate briefly so one answer does not cost one
+        # committed transaction per token; non-text events, turn settlement and a
+        # short timer flush them. Sequence/ACK semantics are unchanged because UI
+        # polling and settlement always observe the flushed state.
+        self._event_buffers: dict[str, list[dict[str, Any]]] = {}
+        self._flush_handles: dict[str, asyncio.TimerHandle] = {}
         for folder, name in (
             (paths.memory, "conversation.sqlite"),
             (paths.checkpoints, "chat-graph.sqlite"),
@@ -110,6 +118,8 @@ class SessionRuntime:
                 );
                 CREATE UNIQUE INDEX IF NOT EXISTS one_active_turn
                     ON turns(session_id) WHERE status IN ('accepted', 'running');
+                CREATE INDEX IF NOT EXISTS turns_session_created
+                    ON turns(session_id, created_at);
                 CREATE TABLE IF NOT EXISTS turn_memory (
                     turn_id TEXT NOT NULL, fact_id TEXT NOT NULL,
                     PRIMARY KEY(turn_id, fact_id)
@@ -157,6 +167,15 @@ class SessionRuntime:
         if self._closed:
             raise RuntimeConflictError("会话服务已关闭。")
 
+    def _log_event(self, name: str, **fields: Any):
+        """Bounded local operational log; never contains user content or secrets."""
+        try:
+            record = {"event": name, "ts": round(time.time(), 3), **fields}
+            with (self.paths.logs / "runtime.jsonl").open("a", encoding="utf-8") as handle:
+                handle.write(json.dumps(record, ensure_ascii=False) + "\n")
+        except OSError:
+            pass
+
     def _session(self, session_id: str):
         self._check_open()
         if self._erasure_failed:
@@ -189,6 +208,27 @@ class SessionRuntime:
         )
         self._db.execute("UPDATE turns SET next_seq=next_seq+1 WHERE id=?", (turn_id,))
 
+    def _flush_events(self, turn_id: str):
+        """Persist buffered text events in one transaction; caller holds _guard."""
+        handle = self._flush_handles.pop(turn_id, None)
+        if handle is not None:
+            handle.cancel()
+        buffer = self._event_buffers.pop(turn_id, None)
+        if not buffer:
+            return
+        row = self._db.execute("SELECT status FROM turns WHERE id=?", (turn_id,)).fetchone()
+        if row is None or row[0] not in ACTIVE:
+            return  # Settlement already froze the delivery boundary; drop the tail.
+        with self._db:
+            for event in buffer:
+                self._insert_event(turn_id, event)
+
+    def _flush_timer(self, turn_id: str):
+        self._flush_handles.pop(turn_id, None)
+        with self._guard:
+            if not self._closed:
+                self._flush_events(turn_id)
+
     def _emit(self, session_id: str, turn_id: str, event: dict[str, Any]):
         with self._guard:
             if self._closed:
@@ -196,6 +236,22 @@ class SessionRuntime:
             row = self._turn(session_id, turn_id)
             if row["status"] not in ACTIVE:
                 return  # Invalidate old generation before task cancellation is delivered.
+            if event.get("type") == "text":
+                buffer = self._event_buffers.setdefault(turn_id, [])
+                buffer.append(event)
+                if len(buffer) >= 16:
+                    self._flush_events(turn_id)
+                elif turn_id not in self._flush_handles:
+                    try:
+                        loop = asyncio.get_running_loop()
+                    except RuntimeError:
+                        self._flush_events(turn_id)
+                    else:
+                        self._flush_handles[turn_id] = loop.call_later(
+                            0.05, self._flush_timer, turn_id
+                        )
+                return
+            self._flush_events(turn_id)
             with self._db:
                 self._insert_event(turn_id, event)
 
@@ -205,7 +261,14 @@ class SessionRuntime:
         with self._guard:
             row = self._turn(session_id, turn_id)
             if row["status"] in TERMINAL:
+                self._event_buffers.pop(turn_id, None)
+                handle = self._flush_handles.pop(turn_id, None)
+                if handle is not None:
+                    handle.cancel()
                 return self._turn_summary(row)
+            # Flush pending text before freezing the boundary: generated but
+            # untransmitted content is deleted below for non-completed outcomes.
+            self._flush_events(turn_id)
             with self._db:
                 if status != "completed":
                     # Generated but never transmitted content is not a delivered
@@ -234,6 +297,12 @@ class SessionRuntime:
             self._settle(row["session_id"], row["id"], "interrupted", "process_interrupted")
         with self._db:
             self._db.execute("UPDATE audio_playback SET state='interrupted' WHERE state='started'")
+            # Request revocations only need to outlive delayed retries; keep the
+            # table bounded without weakening in-flight protection.
+            self._db.execute(
+                "DELETE FROM cancelled_requests WHERE cancelled_at<?",
+                (time.time() - 30 * 86400,),
+            )
 
     def create_session(self) -> dict[str, Any]:
         with self._guard:
@@ -395,9 +464,20 @@ class SessionRuntime:
             image = validate_image(image, check_age=False)
         except ValueError as exc:
             raise RuntimeInputError(str(exc)) from None
-        import hashlib
-
-        image_fingerprint = hashlib.sha256(json.dumps(image, sort_keys=True).encode()).hexdigest()
+        if image is None:
+            image_fingerprint = hashlib.sha256(b"null").hexdigest()
+        else:
+            # Fingerprint metadata plus the image digest; hashing the full JSON
+            # would re-serialize megabytes of base64 on every retry.
+            metadata = json.dumps(
+                {key: value for key, value in image.items() if key != "data_url"},
+                sort_keys=True,
+            )
+            image_fingerprint = hashlib.sha256(
+                metadata.encode()
+                + b"\0"
+                + hashlib.sha256(image["data_url"].encode()).digest()
+            ).hexdigest()
         with self._guard:
             if self._memory_mutating or self._closing:
                 raise RuntimeConflictError("记忆正在更新，请稍后再试。")
@@ -432,7 +512,11 @@ class SessionRuntime:
             if active:
                 raise RuntimeConflictError("这个会话仍在回复，请等待或先停止。")
             turn_id = uuid4().hex
-            facts = self.memory.recall(text[:2000], limit=10)
+            # Memory recall is pure-SQLite work; keep it off the event loop so a
+            # growing corpus cannot freeze streaming or cancellation.
+            facts = await asyncio.to_thread(
+                functools.partial(self.memory.recall, text[:2000], limit=10)
+            )
             profile = self.memory.get_persona()
             context = (
                 persona_prompt(profile)
@@ -480,17 +564,15 @@ class SessionRuntime:
                         ),
                     ),
                 )
-                used = {fact["id"] for fact in facts}
-                # Propagate dependencies through historical answers for later forgetting.
-                used.update(
-                    row[0]
-                    for row in self._db.execute(
-                        "SELECT DISTINCT m.fact_id FROM turn_memory m JOIN turns t ON t.id=m.turn_id WHERE t.session_id=?",
-                        (session_id,),
-                    )
-                )
+                # Record only the facts actually injected into THIS turn. A later
+                # turn that uses a fact re-recalls it into its own row; an answer
+                # quoting erased text without re-recalling it is caught by the
+                # evidence scan in _complete_erasure. The previous session-wide
+                # dependency union made one forgotten fact erase the whole
+                # conversation tail.
                 self._db.executemany(
-                    "INSERT INTO turn_memory VALUES (?,?)", [(turn_id, key) for key in used]
+                    "INSERT INTO turn_memory VALUES (?,?)",
+                    [(turn_id, fact["id"]) for fact in facts],
                 )
             messages = self._history(session_id, turn_id) + [{"role": "user", "content": text}]
             self._tasks[turn_id] = asyncio.create_task(
@@ -635,6 +717,11 @@ class SessionRuntime:
             raise RuntimeInputError("事件序号无效。")
         with self._guard:
             row = self._turn(session_id, turn_id)
+            # Delivery-accounting contract (covered by tests): the events cursor
+            # must come from a previous events() response, not from get_session's
+            # last_seq (= next_seq-1, which may exceed sent_seq). Skipping
+            # unsent events is rejected so sent_seq never outruns what the UI
+            # actually received.
             if after > row["next_seq"] - 1:
                 raise RuntimeInputError("事件序号超出范围。")
             if after > row["sent_seq"]:
@@ -767,6 +854,10 @@ class SessionRuntime:
             # obey cancellation and have bounded HTTP deadlines.
             for task in pending:
                 task.cancel()
+        for handle in self._flush_handles.values():
+            handle.cancel()
+        self._flush_handles.clear()
+        self._event_buffers.clear()
         with self._guard:
             self._closed = True
             self.memory.close()
@@ -790,12 +881,12 @@ class SessionRuntime:
 
     async def _process_memories(self):
         # Durable leases survive a process crash; no chat or audio is replayed.
+        # SQLite job-queue operations run off the event loop.
         attempted = set()
         while True:
+            jobs = await asyncio.to_thread(self.memory.pending_jobs)
             candidates = [
-                job
-                for job in self.memory.pending_jobs()
-                if job["id"] not in attempted and job["attempts"] < 3
+                job for job in jobs if job["id"] not in attempted and job["attempts"] < 3
             ]
             if not candidates:
                 return
@@ -807,22 +898,39 @@ class SessionRuntime:
                 or not self.memory_preferences.value["auto_extract"]
             ):
                 return
-            claimed = self.memory.claim_extraction(job["id"], lease_seconds=180)
+            claimed = await asyncio.to_thread(
+                functools.partial(self.memory.claim_extraction, job["id"], lease_seconds=180)
+            )
             if claimed is None:
                 continue
             try:
                 facts = await extract_facts(self.providers.model(), claimed["source_text"])
-                self.memory.complete_extraction(
-                    job["id"], facts, lease_token=claimed["lease_token"]
+                await asyncio.to_thread(
+                    functools.partial(
+                        self.memory.complete_extraction,
+                        job["id"],
+                        facts,
+                        lease_token=claimed["lease_token"],
+                    )
                 )
             except asyncio.CancelledError:
-                self.memory.fail_extraction(
-                    job["id"], lease_token=claimed["lease_token"], retry=True
+                await asyncio.to_thread(
+                    functools.partial(
+                        self.memory.fail_extraction,
+                        job["id"],
+                        lease_token=claimed["lease_token"],
+                        retry=True,
+                    )
                 )
                 raise
             except Exception:
-                self.memory.fail_extraction(
-                    job["id"], lease_token=claimed["lease_token"], retry=True
+                await asyncio.to_thread(
+                    functools.partial(
+                        self.memory.fail_extraction,
+                        job["id"],
+                        lease_token=claimed["lease_token"],
+                        retry=True,
+                    )
                 )
 
     async def update_memory_preferences(self, value):
@@ -838,25 +946,32 @@ class SessionRuntime:
         if self._closing or self._memory_mutating or self._erasure_failed:
             raise RuntimeConflictError("记忆当前不可更新。")
 
-    def memory_backups(self):
-        with self._guard:
+    async def memory_backups(self):
+        async with self._mutation_lock:
             self._check_memory_available()
-            return {"backups": self.memory.list_backups(), "revision": self.memory.revision()}
+            return {
+                "backups": await asyncio.to_thread(self.memory.list_backups),
+                "revision": await asyncio.to_thread(self.memory.revision),
+            }
 
     async def backup_memory(self):
         async with self._mutation_lock:
             self._check_memory_available()
-            return self.memory.backup()
+            # The online backup copies the whole memory database; keep it off the
+            # event loop so snapshots never freeze streaming or cancellation.
+            return await asyncio.to_thread(self.memory.backup)
 
     async def delete_memory_backup(self, backup_id: str):
         async with self._mutation_lock:
             self._check_memory_available()
-            return self.memory.delete_backup(backup_id)
+            return await asyncio.to_thread(self.memory.delete_backup, backup_id)
 
     async def restore_memory(self, backup_id: str, expected_revision: int):
         async with self._mutation_lock:
             self._check_memory_available()
-            if type(expected_revision) is not int or expected_revision != self.memory.revision():
+            if type(expected_revision) is not int or expected_revision != (
+                await asyncio.to_thread(self.memory.revision)
+            ):
                 raise MemoryConflictError("memory_revision_changed")
             self._memory_mutating = True
             try:
@@ -871,17 +986,35 @@ class SessionRuntime:
                         (json.dumps(intent),),
                     )
                 try:
-                    result = self.memory.restore(backup_id, expected_revision=expected_revision)
+                    result = await asyncio.to_thread(
+                        functools.partial(
+                            self.memory.restore,
+                            backup_id,
+                            expected_revision=expected_revision,
+                            with_evidence=True,
+                        )
+                    )
                 except BaseException:
                     # A rejected snapshot leaves Memory unchanged. Finish any
                     # pre-existing deletion intent without pretending it restored.
-                    self._complete_erasure(intent)
+                    await asyncio.to_thread(self._complete_erasure, intent)
                     raise
-                return self._complete_erasure(result)
+                result = await asyncio.to_thread(
+                    self._complete_erasure,
+                    result,
+                    {
+                        *result.get("fact_contents", ()),
+                        *result.get("source_bodies", ()),
+                    },
+                )
+                self._log_event("memory_erasure_completed", kind="restore")
+                return result
             except BaseException:
                 self._erasure_failed = bool(
                     self._db.execute("SELECT 1 FROM memory_erasure").fetchone()
                 )
+                if self._erasure_failed:
+                    self._log_event("memory_erasure_failed", kind="restore")
                 raise
             finally:
                 self._memory_mutating = self._erasure_failed
@@ -895,8 +1028,13 @@ class SessionRuntime:
                 raise RuntimeConflictError("会话服务正在关闭。")
             pending = self._db.execute("SELECT payload FROM memory_erasure WHERE id=1").fetchone()
             if pending:
-                result = self._complete_erasure(json.loads(pending[0]))
+                # Retry path for an earlier interrupted cleanup; startup recovery
+                # and this path use the ID cascade (evidence text is gone).
+                result = await asyncio.to_thread(
+                    self._complete_erasure, json.loads(pending[0])
+                )
                 self._erasure_failed = self._memory_mutating = False
+                self._log_event("memory_erasure_completed", kind="retry")
                 return result
             return await self._forget_memory(fact_id)
 
@@ -938,6 +1076,7 @@ class SessionRuntime:
             # Commit an ID-only erasure intent before touching either database.
             # Startup completes it if power is lost between the two stores.
             sources = self.memory.sources(fact_id)
+            fact = next((item for item in self.memory.list_facts() if item["id"] == fact_id), None)
             result = {
                 "fact_ids": [fact_id],
                 "source_ids": [source["source_id"] for source in sources],
@@ -946,15 +1085,28 @@ class SessionRuntime:
                 self._db.execute(
                     "INSERT OR REPLACE INTO memory_erasure VALUES (1,?)", (json.dumps(result),)
                 )
-            return self._complete_erasure(result)
+            # Evidence text travels only in memory: turns that quote the erased
+            # content are part of the cleanup, but the durable intent never
+            # contains the erased text itself.
+            needles = {source["source_text"] for source in sources}
+            if fact is not None:
+                needles.add(fact["content"])
+            result = await asyncio.to_thread(self._complete_erasure, result, needles)
+            self._log_event("memory_erasure_completed", kind="forget")
+            return result
         except BaseException:
             self._erasure_failed = bool(self._db.execute("SELECT 1 FROM memory_erasure").fetchone())
+            if self._erasure_failed:
+                self._log_event("memory_erasure_failed", kind="forget")
             raise
         finally:
             self._memory_mutating = self._erasure_failed
 
-    def _complete_erasure(self, intent):
+    def _complete_erasure(self, intent, needles: set[str] | None = None):
         facts, sources = set(intent["fact_ids"]), set(intent["source_ids"])
+        # Evidence needles are ephemeral and live-path only: the persisted intent
+        # stays identifier-only, and startup recovery falls back to the ID cascade.
+        needles = {n for n in (needles or set()) if isinstance(n, str) and 4 <= len(n) <= 2000}
         deleted = self.memory.erasure_state()
         facts.update(deleted["fact_ids"])
         sources.update(deleted["source_ids"])
@@ -962,9 +1114,14 @@ class SessionRuntime:
         while True:
             sizes = len(facts), len(sources), len(affected)
             for source_id in sources - erased_sources:
-                result = self.memory.forget_source(source_id)
+                result = self.memory.forget_source(source_id, with_evidence=True)
                 facts.update(result["fact_ids"])
                 sources.update(result["source_ids"])
+                needles.update(
+                    n
+                    for n in (*result.get("fact_contents", ()), *result.get("source_bodies", ()))
+                    if 4 <= len(n) <= 2000
+                )
                 erased_sources.add(source_id)
             affected.update(source[5:] for source in sources if source.startswith("turn:"))
             for fact_id in facts:
@@ -974,17 +1131,14 @@ class SessionRuntime:
                         "SELECT turn_id FROM turn_memory WHERE fact_id=?", (fact_id,)
                     )
                 )
-            for identifier in list(affected):
-                row = self._db.execute(
-                    "SELECT session_id,created_at FROM turns WHERE id=?", (identifier,)
-                ).fetchone()
-                if row:
-                    affected.update(
-                        item[0]
-                        for item in self._db.execute(
-                            "SELECT id FROM turns WHERE session_id=? AND created_at>=?", tuple(row)
-                        )
-                    )
+            # Evidence scan: an answer that still quotes erased text depended on
+            # it even without a turn_memory row (e.g. it saw the fact through
+            # chat history). One pass over events keeps this proportional to the
+            # journal size, not to the needle count.
+            if needles:
+                for row in self._db.execute("SELECT turn_id,payload FROM events"):
+                    if any(needle in row[1] for needle in needles):
+                        affected.add(row[0])
             sources.update("turn:" + identifier for identifier in affected)
             # Persist the expanded closure before deleting evidence needed to derive it.
             with self._db:
@@ -1013,6 +1167,21 @@ class SessionRuntime:
             )
         checkpoint = self.paths.checkpoints / "chat-graph.sqlite"
         if checkpoint.exists():
+            # Delete only the erased turns' execution records. Other sessions'
+            # checkpoints are independent namespaces and must survive; the old
+            # whole-database DELETE + VACUUM erased unrelated sessions and
+            # rewrote the entire file on every single erasure.
+            threads = []
+            if affected:
+                marks = ",".join("?" for _ in affected)
+                threads = [
+                    f"{row[0]}:{row[1]}"
+                    for row in self._db.execute(
+                        "SELECT s.internal_id,t.id FROM turns t JOIN sessions s "
+                        f"ON s.id=t.session_id WHERE t.id IN ({marks})",
+                        tuple(sorted(affected)),
+                    )
+                ]
             with sqlite3.connect(checkpoint) as database:
                 database.execute("PRAGMA secure_delete=ON")
                 tables = {
@@ -1020,11 +1189,13 @@ class SessionRuntime:
                     for row in database.execute("SELECT name FROM sqlite_master WHERE type='table'")
                 }
                 for table in ("checkpoints", "writes"):
-                    if table in tables:
-                        database.execute(f"DELETE FROM {table}")
+                    if table in tables and threads:
+                        database.executemany(
+                            f"DELETE FROM {table} WHERE thread_id=?",
+                            [(thread,) for thread in threads],
+                        )
                 database.commit()
                 database.execute("PRAGMA wal_checkpoint(TRUNCATE)")
-                database.execute("VACUUM")
         with self._db:
             self._db.execute("DELETE FROM memory_erasure WHERE id=1")
         self._db.execute("PRAGMA wal_checkpoint(TRUNCATE)")

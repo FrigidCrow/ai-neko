@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import contextlib
 import hashlib
 import json
 import math
@@ -337,10 +338,8 @@ def terminate_test_tree(process: subprocess.Popen) -> None:
             check=False,
         )
     else:
-        try:
+        with contextlib.suppress(ProcessLookupError):
             os.killpg(process.pid, signal.SIGKILL)
-        except ProcessLookupError:
-            pass
     process.wait(timeout=5)
 
 

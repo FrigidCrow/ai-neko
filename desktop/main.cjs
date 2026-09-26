@@ -134,7 +134,12 @@ function installIPC() {
     requireSender(event);
     globalShortcut.unregister('CommandOrControl+Shift+Space');
     if (enabled !== true) return false;
-    return globalShortcut.register('CommandOrControl+Shift+Space', () => send('ai-neko:action', 'voice-toggle'));
+    const registered = globalShortcut.register('CommandOrControl+Shift+Space', () => send('ai-neko:action', 'voice-toggle'));
+    if (!registered) {
+      // A conflicting app owns the accelerator; say so instead of failing silently.
+      setStatus({ ...status, message: '语音快捷键被其他应用占用，请更换占用方快捷键后重试。' });
+    }
+    return registered;
   });
   ipcMain.handle('ai-neko:status', (event) => { requireSender(event); return status; });
   ipcMain.handle('ai-neko:get-preferences', (event) => { requireSender(event); return publicPreferences(); });

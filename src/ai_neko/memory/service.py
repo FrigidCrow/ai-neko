@@ -23,7 +23,7 @@ from uuid import uuid4
 
 from ai_neko.config.paths import DataPaths, DataRootError, safe_child
 
-from .recall import bm25_rank
+from .recall import bm25_rank, tokenize
 from .script_fold import fold_script
 
 
@@ -119,6 +119,9 @@ class MemoryService:
         )
         self._guard = RLock()
         self._closed = False
+        # fact_id -> (updated_at, stop_names_key, precomputed tokens). Tokenization is
+        # pure; caching it avoids re-tokenizing the whole corpus on every recall.
+        self._term_cache: dict[str, tuple[float, tuple[str, str], list[str]]] = {}
         for suffix in ("", "-wal", "-shm", "-journal"):
             path = safe_child(paths.memory, "long-term.sqlite" + suffix)
             if path.exists() and not path.is_file():
@@ -295,7 +298,7 @@ class MemoryService:
             "ORDER BY source_id",
             (self.scope, fact_id),
         ).fetchall()
-        return {key: row[key] for key in row.keys() if key != "scope"} | {
+        return {key: row[key] for key in row.keys() if key != "scope"} | {  # noqa: SIM118 (Row.keys)
             "source_ids": [source[0] for source in sources]
         }
 
@@ -397,7 +400,14 @@ class MemoryService:
             (self.scope, kind, token, revision),
         )
 
-    def _erase(self, fact_ids: set[str], source_ids: set[str], revision: int) -> dict:
+    def _erase(
+        self,
+        fact_ids: set[str],
+        source_ids: set[str],
+        revision: int,
+        *,
+        with_evidence: bool = False,
+    ) -> dict:
         # Shared raw evidence can include several facts. Erase the whole provenance
         # component rather than retaining a hidden copy of an erased fact in it.
         changed = True
@@ -410,6 +420,17 @@ class MemoryService:
                     fact_ids.add(row[0])
                     source_ids.add(row[1])
             changed = old_sizes != (len(fact_ids), len(source_ids))
+        # Contents are returned only when the caller opts in (the runtime's live
+        # history cleanup), and are never persisted. Tombstones and erasure
+        # intents remain identifier-only.
+        evidence = (
+            {
+                "fact_contents": self._contents("memory_facts", "content", fact_ids),
+                "source_bodies": self._contents("memory_sources", "body", source_ids),
+            }
+            if with_evidence
+            else {}
+        )
         for fact_id in fact_ids:
             self._tombstone("fact", fact_id, revision)
             self._db.execute(
@@ -429,19 +450,40 @@ class MemoryService:
             "revision": revision,
             "fact_ids": sorted(fact_ids),
             "source_ids": sorted(source_ids),
+            **evidence,
         }
 
-    def forget(self, fact_id: str, *, expected_revision: int | None = None) -> dict:
+    def _contents(self, table: str, column: str, ids: set[str]) -> list[str]:
+        if not ids:
+            return []
+        marks = ",".join("?" for _ in ids)
+        return [
+            row[0]
+            for row in self._db.execute(
+                f"SELECT {column} FROM {table} WHERE scope=? AND id IN ({marks})",
+                (self.scope, *sorted(ids)),
+            )
+        ]
+
+    def forget(
+        self, fact_id: str, *, expected_revision: int | None = None, with_evidence: bool = False
+    ) -> dict:
         with self._transaction():
             self._check_revision(expected_revision)
             self._fact(fact_id)
-            return self._erase({fact_id}, set(), self._bump(invalidate=True))
+            return self._erase(
+                {fact_id}, set(), self._bump(invalidate=True), with_evidence=with_evidence
+            )
 
-    def forget_source(self, source_id: str, *, expected_revision: int | None = None) -> dict:
+    def forget_source(
+        self, source_id: str, *, expected_revision: int | None = None, with_evidence: bool = False
+    ) -> dict:
         source_id = _text(source_id, 200, "source_id")
         with self._transaction():
             self._check_revision(expected_revision)
-            return self._erase(set(), {source_id}, self._bump(invalidate=True))
+            return self._erase(
+                set(), {source_id}, self._bump(invalidate=True), with_evidence=with_evidence
+            )
 
     def erasure_state(self) -> dict:
         """Replayable cleanup evidence for separately stored journals/checkpoints.
@@ -462,13 +504,25 @@ class MemoryService:
 
     def list_facts(self) -> list[dict]:
         with self._transaction():
-            return [
-                self._fact(row[0])
-                for row in self._db.execute(
-                    "SELECT id FROM memory_facts WHERE scope=? ORDER BY updated_at DESC,id",
-                    (self.scope,),
-                ).fetchall()
-            ]
+            rows = self._db.execute(
+                "SELECT f.*,s.source_id AS link_source_id FROM memory_facts f "
+                "LEFT JOIN memory_fact_sources s ON f.scope=s.scope AND f.id=s.fact_id "
+                "WHERE f.scope=? ORDER BY f.updated_at DESC,f.id,s.source_id",
+                (self.scope,),
+            ).fetchall()
+            facts: list[dict] = []
+            current: dict | None = None
+            for row in rows:
+                if current is None or current["id"] != row["id"]:
+                    current = {
+                        key: row[key]
+                        for key in row.keys()  # noqa: SIM118 (sqlite3.Row columns)
+                        if key not in ("scope", "link_source_id")
+                    } | {"source_ids": []}
+                    facts.append(current)
+                if row["link_source_id"] is not None:
+                    current["source_ids"].append(row["link_source_id"])
+            return facts
 
     def recall(self, query: str = "", *, limit: int = 10) -> list[dict]:
         query = fold_script(_text(query, 2000, "query", empty=True)).casefold()
@@ -537,15 +591,25 @@ class MemoryService:
             }
         )
         profile = self.get_persona()
-        rows = [
-            {
-                "text": fact["content"]
-                + " "
-                + (fact["fact_key"] if not re.fullmatch(r"[a-f0-9]{64}", fact["fact_key"]) else ""),
-                "fact": fact,
-            }
-            for fact in facts
-        ]
+        stop_names = (profile["name"], profile["user_name"])
+        live = {fact["id"] for fact in facts}
+        for cached_id in list(self._term_cache):
+            if cached_id not in live:
+                del self._term_cache[cached_id]
+        rows = []
+        for fact in facts:
+            text = fact["content"] + " " + (
+                fact["fact_key"] if not re.fullmatch(r"[a-f0-9]{64}", fact["fact_key"]) else ""
+            )
+            cached = self._term_cache.get(fact["id"])
+            if cached is None or cached[0] != fact["updated_at"] or cached[1] != stop_names:
+                cached = (
+                    fact["updated_at"],
+                    stop_names,
+                    tokenize(text, stop_names, stop_terms=stop_terms),
+                )
+                self._term_cache[fact["id"]] = cached
+            rows.append({"text": text, "_terms": cached[2], "fact": fact})
         ranked = bm25_rank(
             query, rows, stop_terms=stop_terms, stop_names=[profile["name"], profile["user_name"]]
         )
@@ -606,7 +670,7 @@ class MemoryService:
         ).fetchone()
         if row is None:
             raise MemoryAccessError("memory_job_not_found")
-        return {key: row[key] for key in row.keys() if key != "scope"}
+        return {key: row[key] for key in row.keys() if key != "scope"}  # noqa: SIM118 (Row)
 
     def pending_jobs(self) -> list[dict]:
         with self._transaction():
@@ -761,8 +825,8 @@ class MemoryService:
         except sqlite3.DatabaseError as exc:
             raise MemoryInputError("invalid_memory_backup") from exc
 
-    def _read_backup(self, source: sqlite3.Connection) -> dict:
-        if source.execute("PRAGMA integrity_check").fetchone()[0] != "ok":
+    def _read_backup(self, source: sqlite3.Connection, *, verify: bool = True) -> dict:
+        if verify and source.execute("PRAGMA integrity_check").fetchone()[0] != "ok":
             raise MemoryInputError("invalid_memory_backup")
         tables = {}
         for table in _BACKUP_TABLES:
@@ -831,7 +895,10 @@ class MemoryService:
                     with self._open_backup(path) as source:
                         metadata = self._backup_owner(source, path)
                         try:
-                            tables = self._read_backup(source)
+                            # Listing validates schema and row content but skips
+                            # the full-B-tree integrity scan; that deeper check
+                            # runs on the explicit restore path instead.
+                            tables = self._read_backup(source, verify=False)
                         except (MemoryInputError, MemoryAccessError, sqlite3.DatabaseError):
                             metadata.update(restorable=False, error="invalid_memory_backup")
                         else:
@@ -893,7 +960,9 @@ class MemoryService:
                 raise
             return {"id": backup_id, "created_at": created_at, "revision": revision}
 
-    def restore(self, backup_id: str, *, expected_revision: int | None = None) -> dict:
+    def restore(
+        self, backup_id: str, *, expected_revision: int | None = None, with_evidence: bool = False
+    ) -> dict:
         with self._transaction():
             self._check_revision(expected_revision)
             path = self._backup_path(backup_id)
@@ -906,12 +975,13 @@ class MemoryService:
             persona_version = (
                 max(current_persona_version, tables["memory_scopes"][0]["persona_version"]) + 1
             )
-            old_sources = {
-                row[0]
+            old_source_bodies = {
+                row[0]: row[1]
                 for row in self._db.execute(
-                    "SELECT id FROM memory_sources WHERE scope=?", (self.scope,)
+                    "SELECT id,body FROM memory_sources WHERE scope=?", (self.scope,)
                 )
             }
+            old_sources = set(old_source_bodies)
             # Keep current correction values: an explicit old backup must never
             # override a more recent correction or revive an erased fact/source.
             current_facts = {
@@ -957,13 +1027,20 @@ class MemoryService:
                 "memory_scopes",
             ):
                 self._db.execute(f"DELETE FROM {table} WHERE scope=?", (self.scope,))
+            # Restore with the *current* schema's explicit column order; snapshot
+            # row dicts are only a value source. The single tolerated legacy gap
+            # (memory_scopes without invalidation_revision) gets its default.
+            schema_columns = {
+                table: [row[1] for row in self._db.execute(f"PRAGMA table_info({table})")]
+                for table in _BACKUP_TABLES
+            }
             for table, rows in tables.items():
+                columns = schema_columns[table]
+                placeholders = ",".join("?" for _ in columns)
                 for row in rows:
-                    columns = list(row)
                     self._db.execute(
-                        f"INSERT INTO {table} ({','.join(columns)}) VALUES "
-                        f"({','.join('?' for _ in columns)})",
-                        tuple(row.values()),
+                        f"INSERT INTO {table} ({','.join(columns)}) VALUES ({placeholders})",
+                        tuple(row.get(column, 0) for column in columns),
                     )
             for fact_id in corrected:
                 if fact_id in current_facts:
@@ -997,6 +1074,7 @@ class MemoryService:
                 {row[1] for row in all_tombstones if row[0] == "fact"},
                 {row[1] for row in all_tombstones if row[0] == "source"},
                 revision,
+                with_evidence=with_evidence,
             )
             remaining_facts = {
                 row["id"]: dict(row)
@@ -1017,6 +1095,10 @@ class MemoryService:
             for fact_id in removed_facts:
                 self._tombstone("fact", fact_id, revision)
             erased["fact_ids"] = sorted(set(erased["fact_ids"]) | removed_facts)
+            if with_evidence:
+                erased["fact_contents"] = erased.get("fact_contents", []) + [
+                    current_facts[fact_id]["content"] for fact_id in removed_facts
+                ]
             self._db.execute(
                 "UPDATE memory_scopes SET revision=?,invalidation_revision=?,persona_version=? "
                 "WHERE scope=?",
@@ -1037,6 +1119,12 @@ class MemoryService:
             for source_id in removed_sources:
                 self._tombstone("source", source_id, revision)
             erased["source_ids"] = sorted(set(erased["source_ids"]) | removed_sources)
+            if with_evidence:
+                erased["source_bodies"] = erased.get("source_bodies", []) + [
+                    old_source_bodies[source_id]
+                    for source_id in removed_sources
+                    if source_id in old_source_bodies
+                ]
             return erased
 
     def close(self):

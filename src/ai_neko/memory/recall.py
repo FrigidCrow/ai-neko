@@ -103,8 +103,13 @@ def bm25_rank(
     query_terms = tokenize(query, stop_names, stop_terms=stop_terms)
     if not query_terms:
         return []
+    # Callers may pass precomputed ``_terms`` to avoid re-tokenizing unchanged
+    # documents on every query; tokenization itself is unchanged.
     doc_terms_list = [
-        tokenize(doc.get("text", "") or "", stop_names, stop_terms=stop_terms) for doc in pool
+        doc["_terms"]
+        if "_terms" in doc
+        else tokenize(doc.get("text", "") or "", stop_names, stop_terms=stop_terms)
+        for doc in pool
     ]
     n_docs = len(pool)
     total_len = sum(len(terms) for terms in doc_terms_list)
@@ -126,7 +131,7 @@ def bm25_rank(
         for term in tf_map:
             df[term] += 1
     scored: list[tuple[dict, float]] = []
-    for doc, doc_terms, doc_tf in zip(pool, doc_terms_list, doc_tf_list):
+    for doc, doc_terms, doc_tf in zip(pool, doc_terms_list, doc_tf_list, strict=True):
         if not doc_terms:
             continue
         dl = len(doc_terms)

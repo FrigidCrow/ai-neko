@@ -24,6 +24,7 @@ def memory(paths):
         yield service
 
 
+@pytest.mark.usefixtures("sandbox_compatible")
 def test_ten_facts_survive_fresh_process_with_sources(paths):
     preferences = ["喜欢无糖咖啡", "喜欢猫咪", "偏爱蓝色", "常玩策略游戏", "喜欢简短回答"]
     events = ["九月学习游泳", "上周去过京都", "昨天买了键盘", "周五看了电影", "今天完成项目"]
@@ -195,6 +196,7 @@ def test_job_idempotency_atomic_commit_and_duplicate_completion(memory):
     assert memory.pending_jobs() == []
 
 
+@pytest.mark.usefixtures("sandbox_compatible")
 def test_job_recovery_after_real_process_kill(paths):
     code = """
 import json,sys,time

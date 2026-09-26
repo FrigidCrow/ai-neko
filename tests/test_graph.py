@@ -154,6 +154,7 @@ def _cli(root: Path, command: list[str], *, handle=None, user=OWNER.user_id):
     return json.loads(result.stdout)
 
 
+@pytest.mark.usefixtures("sandbox_compatible")
 def test_fresh_process_recovers_paused_graph_and_scope_mapping(tmp_path):
     # Each subprocess starts a fresh Python interpreter, not just a new object.
     root = tmp_path / "isolated-data"
@@ -242,9 +243,8 @@ def test_graph_rejects_redirected_database_and_lock_paths(tmp_path, name):
         (checkpoints / name).symlink_to(target)
     except OSError:
         pytest.skip("Host cannot create symlinks; execute this check with Windows Developer Mode")
-    with pytest.raises(ValueError, match="symlink|reparse"):
-        with GraphService(checkpoints):
-            pass
+    with pytest.raises(ValueError, match="symlink|reparse"), GraphService(checkpoints):
+        pass
     assert target.read_text(encoding="utf-8") == "unchanged"
 
 
@@ -267,9 +267,8 @@ def test_graph_rejects_hardlinked_files_before_any_write(tmp_path, name):
         (checkpoints / name).hardlink_to(target)
     except OSError:
         pytest.skip("Host filesystem cannot create hardlinks; record this check as skipped")
-    with pytest.raises(ValueError, match="hardlink|hard.link"):
-        with GraphService(checkpoints):
-            pass
+    with pytest.raises(ValueError, match="hardlink|hard.link"), GraphService(checkpoints):
+        pass
     assert target.read_bytes() == original
     # Preflight must reject before creating the lock or either SQLite database.
     assert [path.name for path in checkpoints.iterdir()] == [name]
@@ -283,9 +282,8 @@ def test_graph_rejects_redirected_checkpoint_directory(tmp_path):
         checkpoints.symlink_to(target, target_is_directory=True)
     except OSError:
         pytest.skip("Host cannot create directory symlinks; record this check as skipped")
-    with pytest.raises(ValueError, match="checkpoint directory"):
-        with GraphService(checkpoints):
-            pass
+    with pytest.raises(ValueError, match="checkpoint directory"), GraphService(checkpoints):
+        pass
     assert list(target.iterdir()) == []
 
 
@@ -297,8 +295,7 @@ def test_missing_or_closed_service_and_invalid_scope_are_rejected(tmp_path):
     graph = GraphService(tmp_path)
     with pytest.raises(GraphStateError, match="with block"):
         graph.open_thread(OWNER)
-    with graph:
-        with pytest.raises(ScopeAccessError):
-            graph.open_thread(OWNER, create=False)
+    with graph, pytest.raises(ScopeAccessError):
+        graph.open_thread(OWNER, create=False)
     with pytest.raises(GraphStateError, match="with block"):
         graph.open_thread(OWNER)

@@ -274,6 +274,7 @@ def test_exclusive_runtime_lock_and_invalid_input(tmp_path):
     asyncio.run(run())
 
 
+@pytest.mark.usefixtures("sandbox_compatible")
 def test_real_process_crash_preserves_input_and_confirmed_prefix_without_network_replay(tmp_path):
     data_dir = tmp_path / "crash 中文"
     program = r"""

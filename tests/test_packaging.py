@@ -97,7 +97,7 @@ def test_license_collection_handles_windows_wheel_record_paths(tmp_path, monkeyp
     manifest = builder.copy_licenses(tmp_path / "notices", {"ormsgpack": dist})
     entry = next(entry for entry in manifest["dependencies"] if entry["name"] == "ormsgpack")
     assert len(entry["files"]) == 2
-    for item, name in zip(entry["files"], names):
+    for item, name in zip(entry["files"], names, strict=True):
         saved = tmp_path / "notices" / item["path"]
         assert saved.read_text() == f"synthetic {name} notice"
         assert "\\" not in item["path"]

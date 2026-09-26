@@ -25,3 +25,4 @@ coverage/
 artifacts/
 # Cubism Core is fetched with a pinned source/hash for the complete desktop app.
 desktop/vendor/live2dcubismcore.min.js
+.workbuddy/

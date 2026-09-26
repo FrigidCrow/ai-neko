@@ -257,8 +257,8 @@ def build_info(release_version: str, base: str, dependencies: dict[str, Distribu
             "pyinstaller": version("pyinstaller"),
             "pyinstaller_hooks_contrib": version("pyinstaller-hooks-contrib"),
             "runner_os": os.environ.get("RUNNER_OS"),
-            "runner_image": os.environ.get("ImageOS"),
-            "runner_image_version": os.environ.get("ImageVersion"),
+            "runner_image": os.environ.get("ImageOS"),  # noqa: SIM112 (GitHub runner casing)
+            "runner_image_version": os.environ.get("ImageVersion"),  # noqa: SIM112 (GitHub runner casing)
             "github_run_id": os.environ.get("GITHUB_RUN_ID"),
             "github_run_attempt": os.environ.get("GITHUB_RUN_ATTEMPT"),
         },

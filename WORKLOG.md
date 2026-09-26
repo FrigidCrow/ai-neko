@@ -408,3 +408,9 @@ GitHub Release 397176556于2026-09-26T09:41:25Z发布为prerelease，15个附件
 独立计划审查补充“控制操作成功提示绑定新修订”及“旧攻略派生建议不能经聊天历史回流”两项契约，已更新第7/8节和A06。首次`python3 docs/diagrams/tools/validate-docs.py > artifacts/planning/guide-companion-docs.json`返回PASS，`git diff --check`通过；修订后再次执行最终文档校验。
 
 最终校验`python3 docs/diagrams/tools/validate-docs.py > artifacts/planning/guide-companion-docs.json`为PASS：25份Markdown、386个本地链接、206个参考文件，issues为空且只读参考指纹未变；`git diff --check`通过。仅文档变更，没有执行产品测试；已将计划保存到本工作区。
+
+## 2026-09-26 — MVP2 前评审问题修复
+
+依据 docs/MVP2-READINESS-REVIEW.md 逐项修复：遗忘级联改为本回合真实引用+证据扫描；checkpoint 按 thread 精确清理；recall/快照/备份/恢复/遗忘/记忆提取移出事件循环；流式事件缓冲刷盘；list_facts 去 N+1、分词缓存；restore 显式列回灌；快照列表去全树 integrity 扫描；凭据回滚保留未存储语义；turns 索引与 cancelled_requests 清理；0600 创建即终态；视觉黑屏检测稀疏采样；快捷键占用提示；M0 demo 图显式标记；ruff 扩 B/SIM 并修复全部 47 处（含 validate-docs.py 21 处）；11 个环境敏感子进程用例接 sandbox_compatible 探测（查明根因为宿主沙箱对二次 mkdir(exist_ok=True) 抛 EEXIST）。
+
+实际命令：`uv run pytest tests/ -q`、`npm --prefix desktop test`、`uv run ruff check .`；新增回归用例 test_forgetting_one_fact_preserves_unrelated_turns_in_same_session。结果与未完成项见 REVIEW.md 本轮记录。

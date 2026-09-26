@@ -28,8 +28,11 @@ class VisionCapture {
     const source = sources.find((item) => item.id === selected.id && item.name.slice(0, 240) === selected.name);
     if (!source || source.thumbnail.isEmpty()) { this.disable(); throw new Error('所选窗口已关闭、改名或无法采集；请重新选择，不会切换到其他画面。'); }
     const pixels = source.thumbnail.toBitmap();
+    // Black-screen detection needs only one visible pixel; sample a sparse grid
+    // instead of walking every pixel synchronously in the main process.
+    const stride = pixels.length > 262144 ? 64 : 4;
     let visible = false;
-    for (let offset = 0; offset + 3 < pixels.length; offset += 4) {
+    for (let offset = 0; offset + 3 < pixels.length; offset += stride) {
       if (pixels[offset + 3] > 0 && (pixels[offset] > 3 || pixels[offset + 1] > 3 || pixels[offset + 2] > 3)) { visible = true; break; }
     }
     if (!visible) throw new Error('所选来源是黑屏或透明画面，请恢复窗口后重试。');

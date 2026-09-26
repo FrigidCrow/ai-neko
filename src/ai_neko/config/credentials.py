@@ -120,6 +120,16 @@ class Credentials:
                 return stored
         return os.environ.get(f"AI_NEKO_{kind.upper()}_API_KEY") or None
 
+    def has(self, kind: str) -> bool:
+        """True only when a value is actually stored (env fallbacks excluded)."""
+        self._kind(kind)
+        key = (self.namespace, kind)
+        if key in _MEMORY:
+            return _MEMORY[key] is not None
+        if self.vault:
+            return self.vault.get(self.namespace + "/" + kind) is not None
+        return False
+
     def set(self, kind: str, value: str | None):
         self._kind(kind)
         if self.vault:

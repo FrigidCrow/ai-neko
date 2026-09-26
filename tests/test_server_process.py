@@ -249,9 +249,11 @@ def test_websocket_auth_and_ping(server_factory: Any) -> None:
 @pytest.mark.parametrize("origin", [None, "https://synthetic-untrusted.invalid"])
 def test_websocket_rejects_missing_or_wrong_origin(server_factory: Any, origin: str | None) -> None:
     server = server_factory()
-    with pytest.raises(InvalidStatus) as error:
-        with connect(server.connection["ws_url"], origin=origin, open_timeout=3, proxy=None):
-            pytest.fail("Untrusted WebSocket origin was accepted")
+    with (
+        pytest.raises(InvalidStatus) as error,
+        connect(server.connection["ws_url"], origin=origin, open_timeout=3, proxy=None),
+    ):
+        pytest.fail("Untrusted WebSocket origin was accepted")
     assert error.value.response.status_code == 403
 
 
@@ -289,14 +291,13 @@ def test_websocket_requires_auth_before_ping(server_factory: Any) -> None:
 
 def test_websocket_rejects_token_in_query_string(server_factory: Any) -> None:
     server = server_factory()
-    with pytest.raises(InvalidStatus) as error:
-        with connect(
-            server.connection["ws_url"] + "?token=synthetic-query-token",
-            origin=server.connection["allowed_origin"],
-            open_timeout=3,
-            proxy=None,
-        ):
-            pytest.fail("WebSocket token query was accepted")
+    with pytest.raises(InvalidStatus) as error, connect(
+        server.connection["ws_url"] + "?token=synthetic-query-token",
+        origin=server.connection["allowed_origin"],
+        open_timeout=3,
+        proxy=None,
+    ):
+        pytest.fail("WebSocket token query was accepted")
     assert error.value.response.status_code == 403
 
 
@@ -366,6 +367,7 @@ def test_occupied_explicit_port_is_rejected(tmp_path: Path) -> None:
         assert not (root / "runtime" / "connection.json").exists()
 
 
+@pytest.mark.usefixtures("sandbox_compatible")
 def test_second_instance_cannot_replace_running_descriptor(server_factory: Any) -> None:
     server = server_factory()
     before = server.descriptor.read_bytes()
@@ -392,6 +394,7 @@ def test_two_data_roots_coexist_and_cleanup_independently(server_factory: Any) -
     assert second.request("GET", "/health", headers=second.auth).status_code == 200
 
 
+@pytest.mark.usefixtures("sandbox_compatible")
 def test_crash_restart_replaces_stale_descriptor_and_token(server_factory: Any) -> None:
     first = server_factory()
     old_token = first.connection["token"]

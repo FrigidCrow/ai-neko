@@ -286,3 +286,11 @@ G1–G6、A01–A11及新性能目标均Pending。本轮只修改计划、说明
 独立只读评审发现两项契约缺口并已修订：语音切换/新局后成功提示由新修订的控制响应承载，避免撤销自身回合；保存并传播turn到guide/revision依赖，切换/删除后旧建议排除当前决策上下文，A06检查下一轮真实模型请求。评审未发现TTL、采用关系与旧快照语义的其他执行冲突；这属于规划审查，不是实现测试。
 
 最终文档校验PASS：25份Markdown、386个本地链接、206个参考文件，参考仓库状态/差异指纹未变；git diff --check通过。新增计划共214行，所有新实现/运行验收仍Pending，本轮未运行产品测试。
+
+## 2026-09-26 — MVP2 前评审问题修复与回归
+
+依据 docs/MVP2-READINESS-REVIEW.md 完成逐项处理（清单见该文附录二）。两个红色项已修：遗忘级联不再清空会话尾部（turn_memory 只记本回合真实引用 + 内容证据扫描），checkpoint 改为按 thread 精确清理并去掉整库 VACUUM；新增同一 session 三回合回归用例证明无关回合与其 checkpoint 存活。性能项完成 recall/快照/备份/恢复/遗忘/提取的 to_thread 迁移与流式事件缓冲刷盘（16 条或 50ms 刷盘，settle 强刷）。
+
+结果：`uv run pytest tests/` 564 passed / 12 skipped；`npm --prefix desktop test` 58/58；`uv run ruff check .`（含新增 B/SIM）0 错误。12 个 skipped 中 11 个为环境敏感子进程用例——已查明统一根因为宿主沙箱对同一路径第二次 mkdir(exist_ok=True) 抛 EEXIST，新增 tests/conftest.py 的 sandbox_compatible 探测使其显式 skip 而非误报失败；另 1 个为 Windows 凭据专属。真实云模型/搜索/ASR/TTS 调用仍为 0，Windows11 真机与 p95 验收保持 Pending，本轮不改动这些验收状态。
+
+延期项与理由已写入 docs/MVP2-READINESS-REVIEW.md 附录二：迁移框架（随 G1）、FTS5（待 MVP2 标注集验证）、攻略独立库决策（G1 前定稿）、demo 图删除（承载 Windows 打包冒烟证据，已显式标记）、轻量读路径异步化（随迁移框架系统化）等。

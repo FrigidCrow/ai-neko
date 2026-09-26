@@ -60,9 +60,11 @@ def test_image_disk_scan_detects_leaks_even_in_locked_files(tmp_path, filename, 
     path = tmp_path / filename
     # Use the public borrowed-descriptor hook: the owning handle can write a
     # synthetic leak after acquisition on both Windows and POSIX.
-    with FileLock(path, on_acquired=lambda fd: os.write(fd, payload)):
-        with pytest.raises(AssertionError, match="Image bytes persisted"):
-            assert_no_image_bytes_on_disk(tmp_path, (payload,), active=True)
+    with (
+        FileLock(path, on_acquired=lambda fd: os.write(fd, payload)),
+        pytest.raises(AssertionError, match="Image bytes persisted"),
+    ):
+        assert_no_image_bytes_on_disk(tmp_path, (payload,), active=True)
 
 
 @pytest.mark.parametrize("length", [2001, 8000])

@@ -20,6 +20,7 @@ from ai_neko.config.paths import (
 from ai_neko.config.settings import DEFAULT_CONFIG, Settings, initialize_config
 
 
+@pytest.mark.usefixtures("sandbox_compatible")
 def test_isolated_layout_reopens_without_touching_sibling(tmp_path):
     unrelated = tmp_path / "N.E.K.O"
     unrelated.mkdir()

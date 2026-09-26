@@ -7,6 +7,7 @@ import json
 import time
 from pathlib import Path
 
+import pytest
 import test_server_process
 
 server_factory = test_server_process.server_factory
@@ -68,6 +69,7 @@ def test_ui_assets_and_api_security(server_factory):
     assert server.request("GET", "/api/sessions/invalid", headers=server.auth).status_code == 404
 
 
+@pytest.mark.usefixtures("sandbox_compatible")
 def test_real_process_stream_cancel_and_restart(server_factory):
     server = server_factory()
     with MODEL.SyntheticModel() as model:

@@ -167,3 +167,47 @@ def test_durable_automatic_extraction_resumes_in_new_runtime(tmp_path):
         await reopened.close()
 
     asyncio.run(run())
+
+
+def test_forgetting_one_fact_preserves_unrelated_turns_in_same_session(tmp_path):
+    """Regression: one forgotten fact must not erase the whole conversation tail."""
+    paths = initialize_data_root(tmp_path / "forget-scoped")
+    secret = "只喜欢柚子汽水SCOPED_ERASURE_MARKER"
+
+    async def run():
+        runtime = SessionRuntime(paths, Store(Model(["好的，我记住了。"])))
+        sid = runtime.create_session()["id"]
+        turn_before = (await runtime.start_turn(sid, "我喜欢喝什么"))["id"]
+        await settled(runtime, sid, turn_before)
+        fact = runtime.memory.remember(
+            secret, source_id="manual:scoped", source_text=secret, kind="preference"
+        )
+        # This turn actually recalls the fact into its context.
+        turn_recalls = (await runtime.start_turn(sid, "我的偏好是什么"))["id"]
+        await settled(runtime, sid, turn_recalls)
+        # This turn neither recalls the fact nor quotes it.
+        turn_unrelated = (await runtime.start_turn(sid, "太阳系有几大行星"))["id"]
+        await settled(runtime, sid, turn_unrelated)
+        runtime.events(sid, turn_recalls)
+        runtime.events(sid, turn_unrelated)
+        unrelated_text = runtime.get_session(sid)["turns"][2]["delivered_text"]
+        assert unrelated_text and secret not in unrelated_text
+        await runtime.forget_memory(fact["id"])
+        turns = runtime.get_session(sid)["turns"]
+        # Turns that referenced the fact are erased; the unrelated turn survives.
+        assert turns[0]["input"] == "我喜欢喝什么"  # before the fact existed
+        assert turns[1]["input"] == "[已遗忘的对话]"
+        assert turns[2]["input"] == "太阳系有几大行星"
+        assert turns[2]["delivered_text"] == unrelated_text
+        assert secret not in json.dumps(turns[1], ensure_ascii=False)
+        # Per-thread checkpoint cleanup: only the erased turn's record is gone.
+        internal = runtime._db.execute(
+            "SELECT internal_id FROM sessions WHERE id=?", (sid,)
+        ).fetchone()[0]
+        with sqlite3.connect(paths.checkpoints / "chat-graph.sqlite") as db:
+            threads = {row[0] for row in db.execute("SELECT DISTINCT thread_id FROM checkpoints")}
+        assert f"{internal}:{turn_recalls}" not in threads
+        assert f"{internal}:{turn_unrelated}" in threads
+        await runtime.close()
+
+    asyncio.run(run())
