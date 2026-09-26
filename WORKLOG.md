@@ -397,3 +397,14 @@ GitHub Release 397176556于2026-09-26T09:41:25Z发布为prerelease，15个附件
 `gh release download v0.4.0-alpha.1 --repo FrigidCrow/ai-neko --dir artifacts/releases/v0.4.0-alpha.1/download`已完成；运行`python3 artifacts/releases/v0.4.0-alpha.1/verify-release.py`为PASS。脚本调用既有下载验证器并追加GitHub全部15个asset digest/字节数、tag CI源码、基础/发布/Electron版本及ZIP CRC核对。应用ZIP为191,844,465字节，SHA256 `0e133684466e13d481f7de7988f5c23cef240291740cf362640c7b280f7ac3f6`。精选结果归档至docs/evidence/companion/release-v0.4.0-alpha.1-verification.json，原始下载与API/CI记录保留artifacts。合成模型17/ASR3/TTS9；单次停音110ms不是p95；真实模型/语音/用户采集0，Windows11仍待验收。发布证据与说明另提交，源tag和二进制不变。
 
 发布后`python3 docs/diagrams/tools/validate-docs.py > artifacts/releases/v0.4.0-alpha.1/docs-final.json`返回PASS且issues为空，`git diff --check`通过；历史v0.3试用页已明确标注历史属性，新入口指向0.4发布与五项能力说明。
+
+
+## 2026-09-26 — 下一阶段优化plan
+
+用户要求基于上轮最佳实践写下一阶段计划。只读核对当前PLAN/架构/陪玩方案、Memory Service及Runtime/网页裁剪/来源路径，读取记忆中的本地持久化和单一权威约束。沿用2026-09-26已查官方LangGraph记忆/RAG、LlamaIndex文档处理和DeepSeek缓存说明；本轮未新增外部服务请求或产品依赖。
+
+先更新PLAN第17节，再写docs/NEXT-GUIDE-COMPANION.md，登记G1–G6顺序、数据/版本/对局契约、11类自动化验收、标注集、分段时延和真实Windows场景。独立只读审查指出正文裁剪、旧回合来源编号、跨局历史污染和生命周期回写边界，已写入计划。同步README、架构和原陪玩方案入口，纠正当前状态文字并保留历史记录；没有开始实施或推送发布。
+
+独立计划审查补充“控制操作成功提示绑定新修订”及“旧攻略派生建议不能经聊天历史回流”两项契约，已更新第7/8节和A06。首次`python3 docs/diagrams/tools/validate-docs.py > artifacts/planning/guide-companion-docs.json`返回PASS，`git diff --check`通过；修订后再次执行最终文档校验。
+
+最终校验`python3 docs/diagrams/tools/validate-docs.py > artifacts/planning/guide-companion-docs.json`为PASS：25份Markdown、386个本地链接、206个参考文件，issues为空且只读参考指纹未变；`git diff --check`通过。仅文档变更，没有执行产品测试；已将计划保存到本工作区。
