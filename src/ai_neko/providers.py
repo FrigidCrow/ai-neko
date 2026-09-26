@@ -64,9 +64,12 @@ class ModelAdapter:
             if tools:
                 payload.update(tools=tools, tool_choice="auto", parallel_tool_calls=False)
             async with asyncio.timeout(self.TIMEOUT):
-                async with network.client() as client, client.stream(
-                    "POST", target, json=payload, headers=headers, extensions=extensions
-                ) as response:
+                async with (
+                    network.client() as client,
+                    client.stream(
+                        "POST", target, json=payload, headers=headers, extensions=extensions
+                    ) as response,
+                ):
                     if response.status_code != 200:
                         raise http_error(response.status_code)
                     if response.headers.get("content-encoding", "identity") not in {
@@ -113,9 +116,7 @@ class ModelAdapter:
                             index = part["index"]
                             if type(index) is not int or not 0 <= index < 8:
                                 raise ValueError
-                            call = calls.setdefault(
-                                index, {"id": "", "name": "", "arguments": ""}
-                            )
+                            call = calls.setdefault(index, {"id": "", "name": "", "arguments": ""})
                             function = part.get("function", {})
                             for key, value in (
                                 ("id", part.get("id", "")),
@@ -135,11 +136,7 @@ class ModelAdapter:
                     for index in sorted(calls):
                         call = calls[index]
                         arguments = json.loads(call["arguments"])
-                        if (
-                            not call["id"]
-                            or not call["name"]
-                            or not isinstance(arguments, dict)
-                        ):
+                        if not call["id"] or not call["name"] or not isinstance(arguments, dict):
                             raise ValueError
                         yield {"type": "tool_call", **call, "arguments": arguments}
         except ProviderError:

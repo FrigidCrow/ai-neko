@@ -193,8 +193,7 @@ class VoiceService:
                 if clear or key:
                     secrets[kind] = None if clear else key
             previous = {
-                kind: (self._credentials.get(kind), self._credentials.has(kind))
-                for kind in secrets
+                kind: (self._credentials.get(kind), self._credentials.has(kind)) for kind in secrets
             }
             changed = []
             try:
@@ -252,9 +251,12 @@ class VoiceService:
                 headers["Accept"] = ", ".join(expected_types)
                 if key:
                     headers["Authorization"] = "Bearer " + key
-                async with network.client() as client, client.stream(
-                    "POST", target, headers=headers, extensions=extensions, **kwargs
-                ) as response:
+                async with (
+                    network.client() as client,
+                    client.stream(
+                        "POST", target, headers=headers, extensions=extensions, **kwargs
+                    ) as response,
+                ):
                     status = response.status_code
                     if status in {401, 403}:
                         raise VoiceError(
@@ -262,19 +264,12 @@ class VoiceService:
                             "语音服务鉴权失败，请检查 API Key。",
                         )
                     if status == 429:
-                        raise VoiceError(
-                            kind + "_rate_limited", "语音服务请求受限，请稍后重试。"
-                        )
+                        raise VoiceError(kind + "_rate_limited", "语音服务请求受限，请稍后重试。")
                     if status != 200:
                         raise VoiceError(
                             kind + "_http_error", "语音服务返回错误，请检查配置后重试。"
                         )
-                    mime = (
-                        response.headers.get("content-type", "")
-                        .split(";", 1)[0]
-                        .strip()
-                        .lower()
-                    )
+                    mime = response.headers.get("content-type", "").split(";", 1)[0].strip().lower()
                     if mime not in expected_types:
                         raise VoiceError(kind + "_invalid_response", "语音服务返回格式不正确。")
                     body = await network.bounded_body(response, limit=limit)

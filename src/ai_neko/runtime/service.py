@@ -474,9 +474,7 @@ class SessionRuntime:
                 sort_keys=True,
             )
             image_fingerprint = hashlib.sha256(
-                metadata.encode()
-                + b"\0"
-                + hashlib.sha256(image["data_url"].encode()).digest()
+                metadata.encode() + b"\0" + hashlib.sha256(image["data_url"].encode()).digest()
             ).hexdigest()
         with self._guard:
             if self._memory_mutating or self._closing:
@@ -885,9 +883,7 @@ class SessionRuntime:
         attempted = set()
         while True:
             jobs = await asyncio.to_thread(self.memory.pending_jobs)
-            candidates = [
-                job for job in jobs if job["id"] not in attempted and job["attempts"] < 3
-            ]
+            candidates = [job for job in jobs if job["id"] not in attempted and job["attempts"] < 3]
             if not candidates:
                 return
             job = candidates[0]
@@ -1030,9 +1026,7 @@ class SessionRuntime:
             if pending:
                 # Retry path for an earlier interrupted cleanup; startup recovery
                 # and this path use the ID cascade (evidence text is gone).
-                result = await asyncio.to_thread(
-                    self._complete_erasure, json.loads(pending[0])
-                )
+                result = await asyncio.to_thread(self._complete_erasure, json.loads(pending[0]))
                 self._erasure_failed = self._memory_mutating = False
                 self._log_event("memory_erasure_completed", kind="retry")
                 return result

@@ -100,14 +100,18 @@ class PageText(HTMLParser):
             self.depth += 1
         if tag == "title":
             self.title_depth += 1
-        if tag == "meta" and not self.date and (
-            (attrs.get("property") or attrs.get("name") or attrs.get("itemprop"))
-            in {
-                "article:published_time",
-                "datePublished",
-                "date",
-                "pubdate",
-            }
+        if (
+            tag == "meta"
+            and not self.date
+            and (
+                (attrs.get("property") or attrs.get("name") or attrs.get("itemprop"))
+                in {
+                    "article:published_time",
+                    "datePublished",
+                    "date",
+                    "pubdate",
+                }
+            )
         ):
             self.date = content_date(attrs.get("content"))
         if tag in {"p", "div", "li", "br", "h1", "h2", "h3", "tr"}:
@@ -181,20 +185,23 @@ class WebTools:
         )
         target, headers, extensions = await network.pin_url(str(base).rstrip("/") + "/search")
         headers.update(Authorization="Bearer " + self._key, Accept="application/json")
-        async with network.client() as client, client.stream(
-            "POST",
-            target,
-            headers=headers,
-            extensions=extensions,
-            json={
-                "query": query,
-                "max_results": 5,
-                "search_depth": "basic",
-                "include_answer": False,
-                "include_raw_content": False,
-                "include_images": False,
-            },
-        ) as response:
+        async with (
+            network.client() as client,
+            client.stream(
+                "POST",
+                target,
+                headers=headers,
+                extensions=extensions,
+                json={
+                    "query": query,
+                    "max_results": 5,
+                    "search_depth": "basic",
+                    "include_answer": False,
+                    "include_raw_content": False,
+                    "include_images": False,
+                },
+            ) as response,
+        ):
             if response.status_code != 200:
                 raise http_error(response.status_code)
             payload = json.loads(await network.bounded_body(response))
@@ -235,9 +242,12 @@ class WebTools:
             for hop in range(5):
                 target, headers, extensions = await network.pin_url(url)
                 headers["Accept"] = "text/html,text/plain,application/xhtml+xml"
-                async with network.client() as client, client.stream(
-                    "GET", target, headers=headers, extensions=extensions
-                ) as response:
+                async with (
+                    network.client() as client,
+                    client.stream(
+                        "GET", target, headers=headers, extensions=extensions
+                    ) as response,
+                ):
                     if response.status_code in {301, 302, 303, 307, 308}:
                         location = response.headers.get("location")
                         if not location or hop == 4:
@@ -251,10 +261,7 @@ class WebTools:
                             else "page_http_error"
                         )
                     media = (
-                        response.headers.get("content-type", "")
-                        .split(";", 1)[0]
-                        .strip()
-                        .lower()
+                        response.headers.get("content-type", "").split(";", 1)[0].strip().lower()
                     )
                     if media not in {"text/html", "text/plain", "application/xhtml+xml"}:
                         raise network.NetworkPolicyError("unsupported_content_type")

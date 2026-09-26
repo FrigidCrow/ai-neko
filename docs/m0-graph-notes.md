@@ -23,7 +23,9 @@ with GraphService(paths.checkpoints) as service:
     handle = service.open_thread(scope)
     paused = service.run(scope, handle, "synthetic input", pause=True)
     resumed = service.resume(
-        scope, handle, "synthetic confirmation",
+        scope,
+        handle,
+        "synthetic confirmation",
         checkpoint_id=paused["checkpoint_id"],
     )
 ```

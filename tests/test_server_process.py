@@ -291,11 +291,14 @@ def test_websocket_requires_auth_before_ping(server_factory: Any) -> None:
 
 def test_websocket_rejects_token_in_query_string(server_factory: Any) -> None:
     server = server_factory()
-    with pytest.raises(InvalidStatus) as error, connect(
-        server.connection["ws_url"] + "?token=synthetic-query-token",
-        origin=server.connection["allowed_origin"],
-        open_timeout=3,
-        proxy=None,
+    with (
+        pytest.raises(InvalidStatus) as error,
+        connect(
+            server.connection["ws_url"] + "?token=synthetic-query-token",
+            origin=server.connection["allowed_origin"],
+            open_timeout=3,
+            proxy=None,
+        ),
     ):
         pytest.fail("WebSocket token query was accepted")
     assert error.value.response.status_code == 403

@@ -125,8 +125,7 @@ class ProviderStore:
             # Roll back to the previous *stored* state: when nothing was stored,
             # delete instead of persisting an environment fallback into the vault.
             previous = {
-                kind: (self._credentials.get(kind), self._credentials.has(kind))
-                for kind in secrets
+                kind: (self._credentials.get(kind), self._credentials.has(kind)) for kind in secrets
             }
             changed = []
             try:

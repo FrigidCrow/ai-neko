@@ -18,10 +18,13 @@
 
 ```python
 used = {fact["id"] for fact in facts}
-used.update(                                  # ← 把本会话历史出现过的全部 fact 并入新回合
-    row[0] for row in self._db.execute(
+used.update(  # ← 把本会话历史出现过的全部 fact 并入新回合
+    row[0]
+    for row in self._db.execute(
         "SELECT DISTINCT m.fact_id FROM turn_memory m JOIN turns t ... WHERE t.session_id=?",
-        (session_id,)))
+        (session_id,),
+    )
+)
 ```
 
 配合 `_complete_erasure` 的扩张规则：
@@ -46,9 +49,9 @@ for identifier in list(affected):             # affected 已含第 1..N 回合
 ```python
 for table in ("checkpoints", "writes"):
     if table in tables:
-        database.execute(f"DELETE FROM {table}")     # ← 无 thread_id / turn_id 过滤
+        database.execute(f"DELETE FROM {table}")  # ← 无 thread_id / turn_id 过滤
 database.execute("PRAGMA wal_checkpoint(TRUNCATE)")
-database.execute("VACUUM")                            # ← 同步全库重写
+database.execute("VACUUM")  # ← 同步全库重写
 ```
 
 测试 `tests/test_memory_backup_api.py:121-123` 直接断言 `COUNT(*) == 0`，说明是**刻意行为**。但这意味着：忘记一条偏好 ⇒ 所有会话的 LangGraph 执行记录全丢。MVP2 每轮会绑定 `match_id + guide_revision`，需要按 `thread_id`（现为 `{internal_id}:{turn_id}`）精确清理，否则无法区分「清理被删攻略的执行记录」和「误删无关会话」。

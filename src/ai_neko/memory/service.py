@@ -598,8 +598,10 @@ class MemoryService:
                 del self._term_cache[cached_id]
         rows = []
         for fact in facts:
-            text = fact["content"] + " " + (
-                fact["fact_key"] if not re.fullmatch(r"[a-f0-9]{64}", fact["fact_key"]) else ""
+            text = (
+                fact["content"]
+                + " "
+                + (fact["fact_key"] if not re.fullmatch(r"[a-f0-9]{64}", fact["fact_key"]) else "")
             )
             cached = self._term_cache.get(fact["id"])
             if cached is None or cached[0] != fact["updated_at"] or cached[1] != stop_names:
