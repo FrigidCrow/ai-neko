@@ -202,3 +202,12 @@ Python全套457 passed/1 Windows凭据存储专属skip；最后增加每轮人�
 第二轮[36225439869](https://github.com/FrigidCrow/ai-neko/actions/runs/36225439869)证实Windows源码468项全部通过、无跳过；Linux467项/1平台skip。首轮失败修正已在Windows实际通过。ZIP构建成功，但冻结后端聊天检查8/16失败，未进入桌面/新功能包测试；当前仍不能写Windows包验收通过。
 
 冻结后端旧探针失败已由真实源码服务准确复现，修正后同探针通过。现在要求4次模型请求与最终两工具失败完整传递；新增31项定向回归通过，等待第三轮Windows冻结包验收。
+
+
+### Windows开发包验收通过
+
+最终源码`7bd14343178a5066182ac75007cf9137fafe6074`的[CI 36225891452](https://github.com/FrigidCrow/ai-neko/actions/runs/36225891452)通过。Windows469/0skip、Linux468/1平台skip；[冻结后端](docs/evidence/companion/windows/package-smoke.json)16/16、[实际桌宠](docs/evidence/companion/windows/desktop-smoke.json)9/9、[新增陪伴闭环](docs/evidence/companion/windows/companion-smoke.json)13/13。Root实际查看[Windows截图](docs/evidence/companion/windows/companion-smoke.png)。使用解压包中的Electron/后端，不依赖用户Python/Node；视觉和语音来自合成窗口/fake麦克风/合成服务，未读取用户桌面或麦克风。单次停播70ms，不是p95。
+
+已上传[Windows开发构建](https://github.com/FrigidCrow/ai-neko/actions/runs/36225891452/artifacts/10901235961)，未创建新tag或Release，旧版保持不变。真实云模型/搜索/ASR/TTS调用0，Windows11真机、真实游戏决策质量及性能仍Pending；完整目标继续进行中。
+
+最终开发包已实际下载，191,838,005字节，SHA256 `2f995145581ec22a59f1ba7de01a38832169214dea67c41c2c9871f9d33dd4e9`。核对SHA256SUMS、两平台同一clean源码、包内外build-info、GUI/后端AMD64 PE与执行报告摘要、记忆组件通知、桌面新模块及截图摘要通过；Mac未运行Windows exe。下载核对见 [Windows下载核对](docs/evidence/companion/windows/download-verification.json)。

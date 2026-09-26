@@ -1,0 +1,145 @@
+{
+  "status": "PASS",
+  "source_commit": "7bd14343178a5066182ac75007cf9137fafe6074",
+  "archive": "ai-neko-0.3.0-dev.7bd14343178a-windows-x64.zip",
+  "archive_bytes": 191838005,
+  "archive_sha256": "2f995145581ec22a59f1ba7de01a38832169214dea67c41c2c9871f9d33dd4e9",
+  "build_source_clean": true,
+  "source_tests": [
+    {
+      "name": "Windows-smoke.json",
+      "sha256": "db539d4a1c9b47b8174a9b1fff5b9b25f7cc2a33f92a53df084046c4cfa221f4",
+      "passed": 469,
+      "skipped": 0,
+      "failed": 0,
+      "errors": 0,
+      "ci_gate": "PASS",
+      "environment": {
+        "system": "Windows",
+        "release": "10",
+        "version": "10.0.20348",
+        "machine": "AMD64",
+        "python": "3.11.15",
+        "python_implementation": "CPython",
+        "python_pointer_bits": 64,
+        "pinned_python": "3.11.15",
+        "python_matches_pin": true
+      }
+    },
+    {
+      "name": "Linux-smoke.json",
+      "sha256": "078db1a3b024dbe6378dc4ebd63ee2a5973e4d4a6fd65c9928073d31e4b44c3e",
+      "passed": 468,
+      "skipped": 1,
+      "failed": 0,
+      "errors": 0,
+      "ci_gate": "PASS",
+      "environment": {
+        "system": "Linux",
+        "release": "6.17.0-1022-azure",
+        "version": "#22-Ubuntu SMP Mon Jul 27 17:24:03 UTC 2026",
+        "machine": "x86_64",
+        "python": "3.11.15",
+        "python_implementation": "CPython",
+        "python_pointer_bits": 64,
+        "pinned_python": "3.11.15",
+        "python_matches_pin": true
+      }
+    }
+  ],
+  "executables": {
+    "desktop": {
+      "sha256": "bd14928e0728366fd3f41499cb398ff3f4304dab259a3e605077899a6f8c748e",
+      "machine": "AMD64"
+    },
+    "backend": {
+      "sha256": "f44888459f6058d8b35b5b40c041222139011bddf52df7010bdc9d52e759e6ae",
+      "machine": "AMD64"
+    }
+  },
+  "memory_reuse": {
+    "source_commit": "90ccf79c95e80f899b9bf3395fa8cd9a9bfe29be",
+    "notices": {
+      "NEKO-LICENSE.txt": "0d99b64baf1323c3a7f70a28075b14d573df6d773aa2d33d827053cc775062d8",
+      "NEKO-NOTICE.txt": "96199da23327c5086c4f562e4c1a05685e18643ab32ce896f13934b15b4a8aca"
+    }
+  },
+  "package_tests": {
+    "kind": "synthetic_deterministic_packaged_executable",
+    "real_model_tests": 0,
+    "cases": [
+      {
+        "name": "archive_layout_and_safe_extraction",
+        "outcome": "PASS"
+      },
+      {
+        "name": "windows_x64_execution_environment",
+        "outcome": "PASS"
+      },
+      {
+        "name": "paths_in_chinese_directory",
+        "outcome": "PASS"
+      },
+      {
+        "name": "executable_self_check",
+        "outcome": "PASS"
+      },
+      {
+        "name": "authenticated_health_and_descriptor",
+        "outcome": "PASS"
+      },
+      {
+        "name": "http_rejects_missing_and_wrong_token",
+        "outcome": "PASS"
+      },
+      {
+        "name": "websocket_origin_auth_and_ping",
+        "outcome": "PASS"
+      },
+      {
+        "name": "packaged_web_assets_and_api_auth",
+        "outcome": "PASS"
+      },
+      {
+        "name": "packaged_chat_stream_ack_and_cancel",
+        "outcome": "PASS"
+      },
+      {
+        "name": "packaged_session_restart_recovery",
+        "outcome": "PASS"
+      },
+      {
+        "name": "second_instance_preserves_descriptor",
+        "outcome": "PASS"
+      },
+      {
+        "name": "occupied_explicit_port_is_rejected",
+        "outcome": "PASS"
+      },
+      {
+        "name": "graceful_stop_removes_descriptor",
+        "outcome": "PASS"
+      },
+      {
+        "name": "graph_pause_fresh_process_get_resume_get",
+        "outcome": "PASS"
+      },
+      {
+        "name": "graph_user_and_character_scope_separation",
+        "outcome": "PASS"
+      },
+      {
+        "name": "archive_unchanged_after_validation",
+        "outcome": "PASS"
+      }
+    ]
+  },
+  "desktop_cases_passed": 9,
+  "companion_cases_passed": 13,
+  "real_model_calls": 0,
+  "real_audio_service_calls": 0,
+  "actual_desktop_captures": 0,
+  "windows_11": "NOT_VERIFIED",
+  "screenshot_sha256": "b192b5322690a18d8ea5c1f689208046907c5889e79204de9bc86510b197955d",
+  "local_executable_run": false
+}

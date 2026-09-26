@@ -318,3 +318,8 @@ gh run download 36175618386 --name package-evidence --dir artifacts/mvp1/tag-evi
 第二轮源码 `7c408b99f791abc5d67e1855a8e0576de8fdaf5d` 已推送，[CI 36225439869](https://github.com/FrigidCrow/ai-neko/actions/runs/36225439869) Windows468 passed/0skip、Linux467 passed/1平台skip。已下载两份evidence核对同一clean源码、PASS gate，上一轮截图/许可两项及真实Windows symlink检查均通过。Windows ZIP构建成功，但冻结后端探针只通过8/16，停在packaged_chat_stream_ack_and_cancel；桌面两套检查尚未运行，未上传已验证包/发布。已下载package-evidence并发现旧探针仍要求缺凭据后额外规划一次，正在用本地真实服务复现定位。
 
 新增`test_chat_probe_against_real_source_service`实际启动源码后端并执行同一`Probe.check_chat()`：旧断言准确复现失败于`len(model.requests)==5`，此前流式/ACK/取消/两工具错误检查已通过；改后1 passed。修正为4次精确协议断言（2普通chat、1带工具规划、1无工具回答），检查最终输入包含两项实际工具错误、私网来源不可读/正文空。`tests/test_package_smoke.py tests/test_companion_protocol.py tests/test_m1_api.py`31 passed，Ruff/格式/diff通过；未修改产品代码或删除旧ACK/SSRF检查。
+
+
+第三轮`7bd14343178a5066182ac75007cf9137fafe6074`推送后，[36225891452](https://github.com/FrigidCrow/ai-neko/actions/runs/36225891452)必要jobs全部SUCCESS：Windows469 passed/0skip、Linux468 passed/1平台skip、冻结后端16/16、实际桌宠9/9、新增陪伴闭环13/13。发布job因非tag正常skipped。`gh run download`取得两平台源码证据和package-evidence，逐项核对同一源码及报告PASS；Root目视Windows新功能截图，白裙YUI和按需联网显示正确。合成模型12、ASR3、TTS5，单次停止70ms，不称p95；真实服务/用户采集0。Windows Server2022不等于Windows11真机。
+
+最终开发包已实际下载，191,838,005字节，SHA256 `2f995145581ec22a59f1ba7de01a38832169214dea67c41c2c9871f9d33dd4e9`。核对SHA256SUMS、两平台同一clean源码、包内外build-info、GUI/后端AMD64 PE与执行报告摘要、记忆组件通知、桌面新模块及截图摘要通过；Mac未运行Windows exe。下载核对见 `docs/evidence/companion/windows/download-verification.json`。
