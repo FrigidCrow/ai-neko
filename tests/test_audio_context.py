@@ -152,6 +152,10 @@ def test_previous_audio_schema_migrates_without_fabricating_heard_ranges(tmp_pat
         with closing(sqlite3.connect(paths.memory / "conversation.sqlite")) as db, db:
             db.execute("ALTER TABLE audio_playback DROP COLUMN text_start")
             db.execute("ALTER TABLE audio_playback DROP COLUMN text_end")
+            # The migration ledger must regress with the columns: user_version=0
+            # marks a pre-framework database, which is the shape this upgrade
+            # path actually exists for.
+            db.execute("PRAGMA user_version=0")
         reopened = SessionRuntime(paths, Store())
         try:
             row = reopened.get_session(sid)["turns"][0]

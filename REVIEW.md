@@ -294,3 +294,9 @@ G1–G6、A01–A11及新性能目标均Pending。本轮只修改计划、说明
 结果：`uv run pytest tests/` 564 passed / 12 skipped；`npm --prefix desktop test` 58/58；`uv run ruff check .`（含新增 B/SIM）0 错误。12 个 skipped 中 11 个为环境敏感子进程用例——已查明统一根因为宿主沙箱对同一路径第二次 mkdir(exist_ok=True) 抛 EEXIST，新增 tests/conftest.py 的 sandbox_compatible 探测使其显式 skip 而非误报失败；另 1 个为 Windows 凭据专属。真实云模型/搜索/ASR/TTS 调用仍为 0，Windows11 真机与 p95 验收保持 Pending，本轮不改动这些验收状态。
 
 延期项与理由已写入 docs/MVP2-READINESS-REVIEW.md 附录二：迁移框架（随 G1）、FTS5（待 MVP2 标注集验证）、攻略独立库决策（G1 前定稿）、demo 图删除（承载 Windows 打包冒烟证据，已显式标记）、轻量读路径异步化（随迁移框架系统化）等。
+
+## 2026-09-27 — 修复批次 Windows 验证通过；G1 准备批次完成
+
+修复批次 CI [36258099207](https://github.com/FrigidCrow/ai-neko/actions/runs/36258099207) 全绿：Windows 577 passed/0 skipped（本地跳过的 11 个子进程用例与 Windows 凭据用例全部真跑通过）、Linux 测试、Lint/Format、冻结后端与桌宠/陪伴闭环冒烟。擦除事务、checkpoint 清理、凭据回滚三块改动获得目标平台证据。
+
+PLAN §17.1 准备批次四项完成：guides.sqlite 独立落位（含数据根 guides/ 目录）、迁移框架（两库台账已盖章 v2，旧 schema 升级路径有单测含失败回滚与续跑）、埋点基建（四项指标落 logs/metrics.jsonl，无用户内容）、Retriever 接口（Citation/协议/记忆适配）。全量 584 passed/12 skipped；desktop 58/58；ruff 全绿。以上是 G1 的地基，不代表 G1 开始；G1 攻略表设计仍按 NEXT-GUIDE-COMPANION 第 8 节验收。真实服务与 Windows11 真机验收状态不变。

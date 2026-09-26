@@ -12,7 +12,16 @@ from pathlib import Path
 from ai_neko import APP_ID
 
 MARKER = ".ai-neko.json"
-SUBDIRECTORIES = ("config", "memory", "checkpoints", "logs", "backups", "runtime", "assets")
+SUBDIRECTORIES = (
+    "config",
+    "memory",
+    "checkpoints",
+    "logs",
+    "backups",
+    "runtime",
+    "assets",
+    "guides",
+)
 
 
 class DataRootError(ValueError):
@@ -29,6 +38,7 @@ class DataPaths:
     backups: Path
     runtime: Path
     assets: Path
+    guides: Path
 
 
 def default_data_root() -> Path:

@@ -22,9 +22,22 @@ from typing import Any
 from uuid import uuid4
 
 from ai_neko.config.paths import DataPaths, DataRootError, safe_child
+from ai_neko.config.schema import apply_migrations
 
 from .recall import bm25_rank, tokenize
 from .script_fold import fold_script
+
+
+def _long_term_v2(db) -> None:
+    """memory_scopes learned the erasure-barrier revision; guarded re-run."""
+    columns = {row[1] for row in db.execute("PRAGMA table_info(memory_scopes)")}
+    if "invalidation_revision" not in columns:
+        db.execute(
+            "ALTER TABLE memory_scopes ADD COLUMN invalidation_revision INTEGER NOT NULL DEFAULT 0"
+        )
+
+
+_MIGRATIONS = [(2, _long_term_v2)]
 
 
 class MemoryInputError(ValueError):
@@ -178,13 +191,12 @@ class MemoryService:
                     created_at REAL NOT NULL, PRIMARY KEY(scope,id), UNIQUE(scope,source_id)
                 );
             """)
+            apply_migrations(
+                self._db,
+                steps=_MIGRATIONS,
+                backup_path=safe_child(paths.backups, "long-term-pre-migration-v2.sqlite"),
+            )
             with self._transaction():
-                columns = {row[1] for row in self._db.execute("PRAGMA table_info(memory_scopes)")}
-                if "invalidation_revision" not in columns:
-                    self._db.execute(
-                        "ALTER TABLE memory_scopes ADD COLUMN "
-                        "invalidation_revision INTEGER NOT NULL DEFAULT 0"
-                    )
                 self._db.execute(
                     "INSERT OR IGNORE INTO memory_scopes "
                     "(scope,revision,persona,persona_version) VALUES (?,0,?,1)",

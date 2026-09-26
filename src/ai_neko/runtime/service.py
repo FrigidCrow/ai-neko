@@ -27,10 +27,23 @@ from ai_neko.chat.extraction import extract_facts
 from ai_neko.chat.vision import validate_image
 from ai_neko.config.memory import MemoryPreferences
 from ai_neko.config.paths import DataPaths, safe_child
+from ai_neko.config.schema import apply_migrations
+from ai_neko.config.telemetry import Metrics
 from ai_neko.memory import MemoryConflictError, MemoryService, persona_prompt
 
 TERMINAL = {"completed", "cancelled", "error", "interrupted"}
 ACTIVE = {"accepted", "running"}
+
+
+def _conversation_v2(db) -> None:
+    """audio_playback learned text ranges; guarded so re-runs are no-ops."""
+    columns = {row[1] for row in db.execute("PRAGMA table_info(audio_playback)")}
+    for column in ("text_start", "text_end"):
+        if column not in columns:
+            db.execute(f"ALTER TABLE audio_playback ADD COLUMN {column} INTEGER")
+
+
+_MIGRATIONS = [(2, _conversation_v2)]
 
 
 class RuntimeAccessError(LookupError):
@@ -69,6 +82,10 @@ class SessionRuntime:
         self.voice_cancelled: dict[str, float] = {}
         self._memory_mutating = False
         self._erasure_failed = False
+        # Operational metrics for the MVP2 G6 report; no user content.
+        self.metrics = Metrics(paths.logs / "metrics.jsonl")
+        self._turn_started: dict[str, float] = {}
+        self._first_text_pending: set[str] = set()
         # Streamed text events accumulate briefly so one answer does not cost one
         # committed transaction per token; non-text events, turn settlement and a
         # short timer flush them. Sequence/ACK semantics are unchanged because UI
@@ -144,13 +161,11 @@ class SessionRuntime:
                     PRIMARY KEY(session_id,request_id)
                 );
             """)
-            audio_columns = {
-                row[1] for row in self._db.execute("PRAGMA table_info(audio_playback)")
-            }
-            with self._db:
-                for column in ("text_start", "text_end"):
-                    if column not in audio_columns:
-                        self._db.execute(f"ALTER TABLE audio_playback ADD COLUMN {column} INTEGER")
+            apply_migrations(
+                self._db,
+                steps=_MIGRATIONS,
+                backup_path=safe_child(self.paths.backups, "conversation-pre-migration-v2.sqlite"),
+            )
             self.memory = MemoryService(paths)
             self.memory_preferences = MemoryPreferences(paths)
             self._recover()
@@ -237,6 +252,13 @@ class SessionRuntime:
             if row["status"] not in ACTIVE:
                 return  # Invalidate old generation before task cancellation is delivered.
             if event.get("type") == "text":
+                if turn_id in self._first_text_pending:
+                    self._first_text_pending.discard(turn_id)
+                    started = self._turn_started.get(turn_id)
+                    if started is not None:
+                        self.metrics.record(
+                            "first_text_ms", (time.monotonic() - started) * 1000, scope="turn"
+                        )
                 buffer = self._event_buffers.setdefault(turn_id, [])
                 buffer.append(event)
                 if len(buffer) >= 16:
@@ -260,6 +282,12 @@ class SessionRuntime:
             raise ValueError("invalid terminal status")
         with self._guard:
             row = self._turn(session_id, turn_id)
+            started = self._turn_started.pop(turn_id, None)
+            self._first_text_pending.discard(turn_id)
+            if started is not None:
+                self.metrics.record(
+                    "turn_total_ms", (time.monotonic() - started) * 1000, status=status
+                )
             if row["status"] in TERMINAL:
                 self._event_buffers.pop(turn_id, None)
                 handle = self._flush_handles.pop(turn_id, None)
@@ -512,8 +540,12 @@ class SessionRuntime:
             turn_id = uuid4().hex
             # Memory recall is pure-SQLite work; keep it off the event loop so a
             # growing corpus cannot freeze streaming or cancellation.
+            recall_started = time.monotonic()
             facts = await asyncio.to_thread(
                 functools.partial(self.memory.recall, text[:2000], limit=10)
+            )
+            self.metrics.record(
+                "memory_recall_ms", (time.monotonic() - recall_started) * 1000, scope="personal"
             )
             profile = self.memory.get_persona()
             context = (
@@ -573,6 +605,8 @@ class SessionRuntime:
                     [(turn_id, fact["id"]) for fact in facts],
                 )
             messages = self._history(session_id, turn_id) + [{"role": "user", "content": text}]
+            self._turn_started[turn_id] = time.monotonic()
+            self._first_text_pending.add(turn_id)
             self._tasks[turn_id] = asyncio.create_task(
                 self._run(
                     session_id,
@@ -856,6 +890,9 @@ class SessionRuntime:
             handle.cancel()
         self._flush_handles.clear()
         self._event_buffers.clear()
+        self._turn_started.clear()
+        self._first_text_pending.clear()
+        self.metrics.flush()
         with self._guard:
             self._closed = True
             self.memory.close()
@@ -900,7 +937,11 @@ class SessionRuntime:
             if claimed is None:
                 continue
             try:
+                extraction_started = time.monotonic()
                 facts = await extract_facts(self.providers.model(), claimed["source_text"])
+                self.metrics.record(
+                    "memory_extraction_ms", (time.monotonic() - extraction_started) * 1000
+                )
                 await asyncio.to_thread(
                     functools.partial(
                         self.memory.complete_extraction,

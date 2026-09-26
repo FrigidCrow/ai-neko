@@ -414,3 +414,11 @@ GitHub Release 397176556于2026-09-26T09:41:25Z发布为prerelease，15个附件
 依据 docs/MVP2-READINESS-REVIEW.md 逐项修复：遗忘级联改为本回合真实引用+证据扫描；checkpoint 按 thread 精确清理；recall/快照/备份/恢复/遗忘/记忆提取移出事件循环；流式事件缓冲刷盘；list_facts 去 N+1、分词缓存；restore 显式列回灌；快照列表去全树 integrity 扫描；凭据回滚保留未存储语义；turns 索引与 cancelled_requests 清理；0600 创建即终态；视觉黑屏检测稀疏采样；快捷键占用提示；M0 demo 图显式标记；ruff 扩 B/SIM 并修复全部 47 处（含 validate-docs.py 21 处）；11 个环境敏感子进程用例接 sandbox_compatible 探测（查明根因为宿主沙箱对二次 mkdir(exist_ok=True) 抛 EEXIST）。
 
 实际命令：`uv run pytest tests/ -q`、`npm --prefix desktop test`、`uv run ruff check .`；新增回归用例 test_forgetting_one_fact_preserves_unrelated_turns_in_same_session。结果与未完成项见 REVIEW.md 本轮记录。
+
+## 2026-09-27 — 修复批次 Windows CI 验证 + G1 前准备批次
+
+修复批次（235342d/7ff0117）推送触发 [Windows CI 36258099207](https://github.com/FrigidCrow/ai-neko/actions/runs/36258099207)：Ubuntu/Linux 测试、Windows 577 passed/0 skipped、打包与三项冒烟全部通过。
+
+按 PLAN §17.1 执行 G1 前准备批次：P-1 攻略库落位独立 guides.sqlite（数据根新增 guides/ 目录，NEXT-GUIDE-COMPANION §4/§7 修订）；P-2 迁移框架 `config/schema.py`（user_version 台账/幂等步骤/迁移前备份/失败回滚/中断续跑），收编 conversation 与 long-term 两处内联 ALTER；P-3 埋点 `config/telemetry.py`（内存缓冲+定量刷盘 logs/metrics.jsonl+分位数），埋 memory_recall_ms/first_text_ms/turn_total_ms/memory_extraction_ms；P-4 `retrieval.py`（Citation/Retriever 协议 + MemoryRetriever 适配）。
+
+实际命令：`uv run pytest tests/ -q`（584 passed/12 skipped）、`npm --prefix desktop test`（58/58）、`uv run ruff check .` 与 `ruff format --check`（0）。新增 test_schema_migration/test_telemetry/test_retrieval 共 19 项；test_audio_context 旧 schema 用例改为连同 user_version 一起回退以模拟无台账旧库。
