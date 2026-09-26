@@ -361,7 +361,32 @@ class Probe:
                 time.sleep(0.04)
             else:
                 raise TimeoutError("Synthetic packaged guide timed out")
-            require(len(model.requests) == 5)
+            # Two ordinary replies, one tool-planning request, then one answer.
+            # Missing search configuration must not trigger another futile plan.
+            require(len(model.requests) == 4)
+            require(all(not request.get("tools") for request in model.requests[:2]))
+            planned, answered = model.requests[2:]
+            require(
+                {tool["function"]["name"] for tool in planned.get("tools", [])}
+                == {"search_web", "read_web_page"}
+            )
+            require(not answered.get("tools"))
+            final_message = answered["messages"][-1]
+            require(final_message["role"] == "user")
+            evidence = json.loads(final_message["content"].partition("\n")[2])
+            failures = [json.loads(item) for item in evidence["tool_status"]]
+            require(len(failures) == 2)
+            require(all(item["status"] == "error" and item["untrusted_data"] for item in failures))
+            require(
+                {item["error"] for item in failures} == {"search_key_missing", "blocked_address"}
+            )
+            require(
+                len(evidence["sources"]) == 1
+                and evidence["sources"][0]["status"] == "unreadable"
+                and evidence["sources"][0]["error"] == "blocked_address"
+                and evidence["sources"][0]["url"] == "http://127.0.0.1/private"
+                and evidence["sources"][0]["text"] == ""
+            )
 
     def check_chat_recovery(self, data):
         self.stop_server(data)

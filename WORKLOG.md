@@ -313,3 +313,8 @@ gh run download 36175618386 --name package-evidence --dir artifacts/mvp1/tag-evi
 最终本地全套`.venv/bin/python -m pytest -q`：467 passed、1项Windows凭据库专属skip，37.82s。Ruff检查/格式和diff检查通过；真实云调用仍为0。
 
 `node desktop/tests/companion.smoke.cjs --output artifacts/mvp1/companion-on-demand-smoke.json`最终13/13 PASS；`node scripts/desktop_smoke.cjs --output artifacts/mvp1/desktop-on-demand-baseline.json`9/9 PASS，宿主28/28。新增默认语音/图片按需工具、无Key普通聊天、打开历史/失败重试遵循当前模式；重试用真实合成HTTP503触发，随后仅聊天只发1次不带tools的模型请求。报告和截图更新至docs/evidence/companion；合成模型12、ASR3、TTS5，实际用户采集及云服务调用0。
+
+
+第二轮源码 `7c408b99f791abc5d67e1855a8e0576de8fdaf5d` 已推送，[CI 36225439869](https://github.com/FrigidCrow/ai-neko/actions/runs/36225439869) Windows468 passed/0skip、Linux467 passed/1平台skip。已下载两份evidence核对同一clean源码、PASS gate，上一轮截图/许可两项及真实Windows symlink检查均通过。Windows ZIP构建成功，但冻结后端探针只通过8/16，停在packaged_chat_stream_ack_and_cancel；桌面两套检查尚未运行，未上传已验证包/发布。已下载package-evidence并发现旧探针仍要求缺凭据后额外规划一次，正在用本地真实服务复现定位。
+
+新增`test_chat_probe_against_real_source_service`实际启动源码后端并执行同一`Probe.check_chat()`：旧断言准确复现失败于`len(model.requests)==5`，此前流式/ACK/取消/两工具错误检查已通过；改后1 passed。修正为4次精确协议断言（2普通chat、1带工具规划、1无工具回答），检查最终输入包含两项实际工具错误、私网来源不可读/正文空。`tests/test_package_smoke.py tests/test_companion_protocol.py tests/test_m1_api.py`31 passed，Ruff/格式/diff通过；未修改产品代码或删除旧ACK/SSRF检查。

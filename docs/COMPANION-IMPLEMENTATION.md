@@ -41,6 +41,6 @@
 - 播放`started/completed/stopped`单独登记；收起面板仍可播放，但未显示文字的ACK为0。重启不重新合成或播放历史语音。单次停止观测不能冒充20次p95通过。
 - 遗忘验证包含来源关联闭包、派生待提取原文、会话/checkpoint清理、并发删除、过期写入拒绝，以及Memory事务已提交但会话清理前失败的断点重启恢复；只说明覆盖的故障断点，不声称所有故障均已穷举。
 - DeepSeek普通Chat Completions已补官方端点的`max_tokens`字段及工具往返的内部上下文传递，内部内容不显示、不读出、不写checkpoint。这基于[官方协议说明](https://api-docs.deepseek.com/quick_start/agent_integrations/oh_my_pi/)和[Thinking Mode](https://api-docs.deepseek.com/guides/thinking_mode/)，真实账户调用仍为0。
-- CI增加实际Windows ZIP的新增闭环门禁：`node desktop/tests/companion.smoke.cjs --archive <zip> --output <json>`，使用包内应用/后端和合成服务；本轮Windows执行结果仍为Pending。Mac源码运行不能替代该门禁，更不能替代Windows11真机。
+- CI增加实际Windows ZIP的新增闭环门禁：`node desktop/tests/companion.smoke.cjs --archive <zip> --output <json>`，使用包内应用/后端和合成服务；源码CI已通过Windows468项/0跳过、Linux467项/1平台跳过；Windows包已构建，但冻结后端聊天探针因旧工具往返断言失败，新桌面闭环尚未执行，结果待复验。Mac源码运行不能替代该门禁，更不能替代Windows11真机。
 
 本轮没有以静态检查、合成回复、文档通过或已有旧Release作为五项功能全部完成的证据。完整目标保持进行中。

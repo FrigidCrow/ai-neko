@@ -10,6 +10,9 @@ import zipfile
 from pathlib import Path
 
 import pytest
+import test_server_process
+
+server_factory = test_server_process.server_factory
 
 SCRIPT = Path(__file__).resolve().parents[1] / "scripts" / "package_smoke.py"
 SPEC = importlib.util.spec_from_file_location("package_smoke", SCRIPT)
@@ -114,6 +117,23 @@ def test_failure_records_only_case_result() -> None:
         probe.case("check", failure)
     assert evidence == {"tests": {"cases": [{"name": "check", "outcome": "FAILED"}]}}
     assert probe.current_stage == "check"
+
+
+def test_chat_probe_against_real_source_service(server_factory, monkeypatch) -> None:
+    """Exercise the shipped probe's protocol assertions before the Windows build."""
+    monkeypatch.syspath_prepend(str(SCRIPT.parent))
+    server = server_factory()
+    probe = smoke.Probe(Path("unused-synthetic.zip"), {})
+    probe.connection = dict(server.connection)
+    probe.check_chat()
+    session = probe.api("GET", f"/api/sessions/{probe.recovery_session_id}")
+    assert [turn["status"] for turn in session["turns"]] == [
+        "cancelled",
+        "completed",
+        "completed",
+    ]
+    assert session["turns"][0]["confirmed_text"] == probe.recovery_text
+    assert session["turns"][-1]["confirmed_text"]
 
 
 def test_packaged_process_has_a_disposable_windows_home(tmp_path, monkeypatch) -> None:
