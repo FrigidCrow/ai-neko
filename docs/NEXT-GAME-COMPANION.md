@@ -97,7 +97,7 @@ flowchart LR
 
 官方来源：[模型能力表](https://api-docs.deepseek.com/quick_start/pricing/)、[图片输入](https://api-docs.deepseek.com/guides/vision/)、[Claude Code搜索说明](https://api-docs.deepseek.com/quick_start/agent_integrations/claude_code/)、[Anthropic兼容表](https://api-docs.deepseek.com/guides/anthropic_api/)、[Responses兼容表](https://api-docs.deepseek.com/guides/responses_api/)、[思考工具上下文](https://api-docs.deepseek.com/guides/thinking_mode/)。其中Anthropic全文直接打开曾超时，已通过搜索返回的官方页面正文核对，不用超时页面作为成功读取证据。
 
-代码缺口已只读确认：`src/ai_neko/providers.py` 固定Chat Completions、只消费content/tool_calls；`chat/graph.py` 重组函数调用且不保留供应商思考块，来源只消费本地工具结果；`app/api.py` 只接收文字。对话/视觉接入需要明确供应商能力、协议上下文及图像输入；原生搜索来源事件映射只在选择该搜索后端时增加。保留LangGraph统一调度与现有共享工具，不把供应商兼容地址误写成应用已完成适配。
+规划时的只读核查发现：`src/ai_neko/providers.py` 仅消费普通Chat Completions内容与工具调用，图重组工具时没有保留供应商上下文，API仅接收文字。五项能力实施已补上当轮图像输入、DeepSeek工具往返内部上下文和`max_tokens`字段，当前证据见[实施及验收](COMPANION-IMPLEMENTATION.md)；真实账户调用仍未验证。来源仍由共享搜索和网页工具提供，供应商原生搜索尚未接入。
 
 验收先后：无凭据的模型协议与共享工具fixture/错误路径 → 本项目显式凭据下的图像理解及所选搜索服务真实探针 → 游戏界面正确性与来源质量 → 语音闭环。搜索层需验证不同兼容模型复用同一搜索配置、来源格式、正文读取与取消路径；原生搜索探针仅在采用该后端时执行。实际调用前不以官网能力表代替账户支持、运行结果或游戏效果；失败时显示具体缺口，不能静默改用其他服务。
 

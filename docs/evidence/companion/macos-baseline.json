@@ -7,7 +7,7 @@
     "arch": "arm64",
     "node": "v25.9.0"
   },
-  "source_commit": "5c568a03f65baf3a77ea23aa76e1d929378fc173",
+  "source_commit": "4b7ff757aa229e28f22ba9cca04df23bb6bd1ed2",
   "source_dirty": true,
   "harness_sha256": "3d1e684cba4a199b34fe5e7771768f576055ea40b9cd505eeb83ea695a17eec8",
   "real_model_calls": 0,
@@ -17,7 +17,7 @@
     {
       "name": "consent_real_catgirl_and_owned_backend",
       "status": "PASS",
-      "elapsed_ms": 2026
+      "elapsed_ms": 2449
     },
     {
       "name": "renderer_sandbox_and_ipc_boundaries",
@@ -27,64 +27,64 @@
     {
       "name": "settings_keep_catgirl_visible_and_configure_synthetic_model",
       "status": "PASS",
-      "elapsed_ms": 169
+      "elapsed_ms": 159
     },
     {
       "name": "incremental_reply_cancel_and_old_delta_rejection",
       "status": "PASS",
-      "elapsed_ms": 1219
+      "elapsed_ms": 1230
     },
     {
       "name": "normal_reply_after_cancel_and_guide_error_feedback",
       "status": "PASS",
-      "elapsed_ms": 859
+      "elapsed_ms": 889
     },
     {
       "name": "fold_keeps_pet_and_preferences_persist",
       "status": "PASS",
-      "elapsed_ms": 33
+      "elapsed_ms": 34
     },
     {
       "name": "second_launch_reuses_single_instance",
       "status": "PASS",
-      "elapsed_ms": 304
+      "elapsed_ms": 305
     },
     {
       "name": "quit_cleans_backend_and_restart_recovers_history",
       "status": "PASS",
-      "elapsed_ms": 1893
+      "elapsed_ms": 1797
     },
     {
       "name": "actual_host_crash_reaps_owned_backend_and_does_not_replay",
       "status": "PASS",
-      "elapsed_ms": 2825
+      "elapsed_ms": 2770
     }
   ],
   "screenshots": [
     {
       "file": "desktop-catgirl.png",
-      "sha256": "1776ae1b9c2008dbb81862571bd47f4e132b5a30c16b9dfcc723a83f330af5cb"
+      "sha256": "e1c74daaa7730ed0e8c0ee929f644aaaf0c00ce80adce19a6f0837e85f7dbd67"
     },
     {
       "file": "desktop-settings.png",
-      "sha256": "8444f9a1f7fd75a5bbd6cd26a89ee2a0957a33d9ea15de7ef66b411a7fa7f400"
+      "sha256": "213cbd7d22d838cc9b4dbd5b4e9e0760b3e4225f455d6ffde1378b923434d42c"
     },
     {
       "file": "desktop-streaming.png",
-      "sha256": "11a60a8e89209b119b1d8303ada0b1880612bff7b098839238be6b42518a4808"
+      "sha256": "06ab1788b718a8a465adb6d14ee3de3b5eb691da276a1c69735367499292bc21"
     },
     {
       "file": "desktop-guide.png",
-      "sha256": "a17c9a974d276e1f49609cae7f6d60e0ccc8a99f54b0485b0833cfe8b5bb63d8"
+      "sha256": "31d6a0ab0e5d2a3282bc7c79d0a72e921ba7a3aef57288273bc7d917f5a6ad2d"
     },
     {
       "file": "desktop-restored.png",
-      "sha256": "8a068d53b6068b5e3c7947eb277d9e3d73fdae564a1b8f7e2ffe6a4f37531e5b"
+      "sha256": "0b4521c034fe5b5dbee73e4a6d9763792f60e302274c68578edf01d6f74a8b7d"
     }
   ],
   "executable_sha256": "e06891704834df56f24489e1f971428161ae17312143624af13736255cc0ab34",
   "character_pixels": {
-    "visible": 229651,
+    "visible": 233475,
     "total": 844800
   },
   "host_crash": {
@@ -102,5 +102,5 @@
     "backend_exit_confirmed": true
   },
   "synthetic_model_requests": 5,
-  "finished_utc": "2026-09-26T07:39:08.297Z"
+  "finished_utc": "2026-09-26T08:23:06.322Z"
 }

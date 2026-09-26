@@ -128,6 +128,11 @@ class SessionRuntime:
                     state TEXT NOT NULL, updated_at REAL NOT NULL,
                     PRIMARY KEY(turn_id,segment_id)
                 );
+                CREATE TABLE IF NOT EXISTS cancelled_requests (
+                    session_id TEXT NOT NULL REFERENCES sessions(id),
+                    request_id TEXT NOT NULL, cancelled_at REAL NOT NULL,
+                    PRIMARY KEY(session_id,request_id)
+                );
             """)
             audio_columns = {
                 row[1] for row in self._db.execute("PRAGMA table_info(audio_playback)")
@@ -385,7 +390,9 @@ class SessionRuntime:
                 raise RuntimeInputError("请求编号无效。") from exc
         text = text.strip()
         try:
-            image = validate_image(image)
+            # A retried accepted request may arrive after its screenshot ages.
+            # Validate exact content first; only new requests need fresh age.
+            image = validate_image(image, check_age=False)
         except ValueError as exc:
             raise RuntimeInputError(str(exc)) from None
         import hashlib
@@ -396,6 +403,11 @@ class SessionRuntime:
                 raise RuntimeConflictError("记忆正在更新，请稍后再试。")
             session = self._session(session_id)
             if request_id:
+                if self._db.execute(
+                    "SELECT 1 FROM cancelled_requests WHERE session_id=? AND request_id=?",
+                    (session_id, request_id),
+                ).fetchone():
+                    raise RuntimeConflictError("本次请求已取消，请重新提问。")
                 previous = self._db.execute(
                     "SELECT * FROM turns WHERE session_id=? AND request_id=?",
                     (session_id, request_id),
@@ -409,6 +421,10 @@ class SessionRuntime:
                     if saved_image and saved_image[0] != image_fingerprint:
                         raise RuntimeConflictError("重试图片与已接受请求不一致。")
                     return self._turn_summary(previous)
+            try:
+                validate_image(image)
+            except ValueError as exc:
+                raise RuntimeInputError(str(exc)) from None
             active = self._db.execute(
                 "SELECT 1 FROM turns WHERE session_id=? AND status IN ('accepted','running')",
                 (session_id,),
@@ -578,6 +594,33 @@ class SessionRuntime:
                 self._settle(session_id, turn_id, "error", safe)
         finally:
             self._tasks.pop(turn_id, None)
+
+    async def cancel_request(self, session_id: str, request_id: str) -> dict[str, Any]:
+        """Revoke an input even when its acceptance response never reached the UI.
+
+        Persist the cancellation before looking up an accepted turn. Whichever
+        request arrives first, a delayed POST cannot launch a revoked image turn.
+        """
+        _identifier(request_id)
+        with self._guard, self._db:
+            self._check_open()
+            # Revocation must survive a concurrent restore/forget operation:
+            # its delayed input may arrive after that mutation has finished.
+            if self._closing:
+                raise RuntimeConflictError("当前任务正在停止，请稍后重试。")
+            self._session(session_id)
+            self._db.execute(
+                "INSERT OR IGNORE INTO cancelled_requests VALUES (?,?,?)",
+                (session_id, request_id, time.time()),
+            )
+            row = self._db.execute(
+                "SELECT id FROM turns WHERE session_id=? AND request_id=?",
+                (session_id, request_id),
+            ).fetchone()
+        if row:
+            result = await self.cancel_turn(session_id, row["id"])
+            return {"request_id": request_id, "turn_id": row["id"], "status": result["status"]}
+        return {"request_id": request_id, "status": "cancelled"}
 
     async def cancel_turn(self, session_id: str, turn_id: str) -> dict[str, Any]:
         # Settlement is not part of the cancellable graph task. Invalidate first.
@@ -1023,6 +1066,7 @@ def _error_message(code: str) -> str:
         "model_key_missing": "请先配置模型 API Key。",
         "search_key_missing": "请先配置搜索 API Key。",
         "model_not_configured": "请先配置模型服务与 API Key。",
+        "stale_image": "这张画面已过期，请重新提问以获取当前画面。",
         "authentication_failed": "服务鉴权失败，请检查 API Key。",
         "rate_limited": "服务请求受限，请稍后重试。",
         "timeout": "服务请求超时，请重试。",

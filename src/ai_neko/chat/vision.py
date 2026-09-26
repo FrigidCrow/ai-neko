@@ -8,9 +8,39 @@ import math
 import time
 
 MAX_IMAGE_BYTES = 3 * 1024 * 1024
+MAX_IMAGE_AGE_SECONDS = 120
 
 
-def validate_image(value: dict | None) -> dict | None:
+class StaleImageError(ValueError):
+    """The caller must ask again to supply a new, explicitly selected frame."""
+
+    code = "stale_image"
+
+    def __init__(self):
+        super().__init__(self.code)
+
+
+def _capture_timestamp(value) -> float:
+    if not isinstance(value, (int, float)) or isinstance(value, bool):
+        raise ValueError("invalid_image_time")
+    try:
+        captured = float(value)
+    except (ValueError, OverflowError):
+        raise ValueError("invalid_image_time") from None
+    if not math.isfinite(captured):
+        raise ValueError("invalid_image_time")
+    # Desktop Date.now() is milliseconds; the wire contract also accepts seconds.
+    return value / 1000 if value > 100_000_000_000 else value
+
+
+def ensure_image_fresh(image: dict | None) -> None:
+    if image is not None:
+        captured = _capture_timestamp(image["captured_at"])
+        if not -5 <= time.time() - captured <= MAX_IMAGE_AGE_SECONDS:
+            raise StaleImageError()
+
+
+def validate_image(value: dict | None, *, check_age: bool = True) -> dict | None:
     if value is None:
         return None
     required = {"frame_id", "source_id", "source_name", "captured_at", "data_url"}
@@ -22,14 +52,9 @@ def validate_image(value: dict | None) -> dict | None:
             raise ValueError("invalid_image_source")
         if any(ord(c) < 32 for c in item):
             raise ValueError("invalid_image_source")
-    captured = value["captured_at"]
-    # Desktop Date.now() is milliseconds; the wire contract also accepts seconds.
-    if isinstance(captured, (int, float)) and not isinstance(captured, bool):
-        captured = captured / 1000 if captured > 100_000_000_000 else captured
-    else:
-        raise ValueError("invalid_image_time")
-    if not math.isfinite(captured) or not -5 <= time.time() - captured <= 120:
-        raise ValueError("stale_image")
+    captured = _capture_timestamp(value["captured_at"])
+    if check_age:
+        ensure_image_fresh(value)
     url = value["data_url"]
     if not isinstance(url, str) or len(url) > MAX_IMAGE_BYTES * 4 // 3 + 100:
         raise ValueError("image_too_large")
@@ -48,6 +73,7 @@ def validate_image(value: dict | None) -> dict | None:
 
 def attach_image(messages: list[dict], image: dict | None) -> list[dict]:
     """Image bytes exist only in the live request, never the graph/checkpoint state."""
+    ensure_image_fresh(image)
     copied = [dict(message) for message in messages]
     if image is not None:
         for message in reversed(copied):

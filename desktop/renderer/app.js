@@ -19,7 +19,8 @@
   const state = {
     connected: false, stopped: false, initializing: true, loadingSession: false, historyError: false, config: {}, sessions: [],
     sessionId: null, guide: true, generation: 0, active: null, submitting: false,
-    pollController: null, noticeAction: null, pendingRequest: null,
+    pollController: null, noticeAction: null, pendingRequest: null, submission: null,
+    visionGeneration: 0, visualTurn: null, visionRevocations: new Map(),
   };
 
   function node(tag, className, text) {
@@ -516,7 +517,7 @@
     state.pollController?.abort();
     const controller = new AbortController();
     state.pollController = controller;
-    const active = { sessionId: id, turnId, view, cancelling: false };
+    const active = { sessionId: id, turnId, view, cancelling: false, hasImage: Boolean(view.hasImage) };
     state.active = active;
     view.output.classList.add("is-streaming");
     elements.status.textContent = "正在想…";
@@ -588,8 +589,73 @@
     }
   }
 
-  async function sendMessage(event) {
+  function requireCurrentSubmission({ signal, isCurrent } = {}) {
+    if (signal?.aborted || (isCurrent && !isCurrent())) throw new DOMException("Cancelled", "AbortError");
+  }
+
+  function currentAttempt(attempt) {
+    return state.submission === attempt && !attempt.revoked && attempt.generation === state.generation;
+  }
+
+  async function cancelAcceptedTurn(id, turnId) {
+    await api(`/api/sessions/${encodeURIComponent(id)}/turns/${encodeURIComponent(turnId)}/cancel`, { method: "POST", body: {} });
+  }
+
+  async function retireVisionRequest(request) {
+    request.revoked = true;
+    request.capture = null;
+    if (state.pendingRequest === request) state.pendingRequest = null;
+    const key = `${request.sessionId}/${request.requestId}`;
+    const identity = { sessionId: request.sessionId, requestId: request.requestId };
+    state.visionRevocations.set(key, identity);
+    await api(`/api/sessions/${encodeURIComponent(identity.sessionId)}/requests/${encodeURIComponent(identity.requestId)}/cancel`, { method: "POST", body: {} });
+    if (state.visionRevocations.get(key) === identity) state.visionRevocations.delete(key);
+  }
+
+  async function revokeVision() {
+    // Everything before the first await invalidates local work immediately. A
+    // request tombstone also covers a POST whose acceptance response was lost.
+    state.visionGeneration += 1;
+    const requests = new Set(state.visionRevocations.values());
+    const attempt = state.submission;
+    if (attempt && (attempt.capturePending || attempt.capture?.frame || attempt.request?.hasImage)) {
+      attempt.revoked = true;
+      attempt.capture = null;
+      if (attempt.request?.hasImage) requests.add(attempt.request);
+      state.submission = null;
+      state.submitting = false;
+    }
+    if (state.pendingRequest?.hasImage) requests.add(state.pendingRequest);
+    const visual = state.visualTurn;
+    if (visual?.requestId) requests.add(visual);
+    for (const request of requests) {
+      request.revoked = true;
+      request.capture = null;
+      if (state.pendingRequest === request) state.pendingRequest = null;
+    }
+    state.visualTurn = null;
+    if (visual) {
+      window.aiNekoCompanion?.stopSpeech();
+      if (state.active?.turnId === visual.turnId && state.active.sessionId === visual.sessionId) {
+        state.pollController?.abort();
+        state.pollController = null;
+        state.active.view.liveTurnId = null;
+        state.active.view.output.classList.remove("is-streaming");
+        state.active = null;
+      }
+    }
+    updateComposer();
+    const results = await Promise.allSettled([
+      ...[...requests].map(retireVisionRequest),
+      ...(visual && !visual.requestId ? [cancelAcceptedTurn(visual.sessionId, visual.turnId)] : []),
+    ]);
+    const failed = results.find((result) => result.status === "rejected");
+    if (failed) throw failed.reason;
+  }
+
+  async function sendMessage(event, owner = {}) {
     event.preventDefault();
+    requireCurrentSubmission(owner);
     const text = elements.input.value.trim();
     if (!text) return;
     if (!chatReady()) {
@@ -605,50 +671,78 @@
     }
     const generation = state.generation;
     const guide = state.guide;
-    window.aiNekoCompanion?.stopSpeech();
-    window.aiNekoCompanion?.stopRecording(true);
+    requireCurrentSubmission(owner);
+    const attempt = { generation, visionGeneration: state.visionGeneration, capturePending: true, capture: null, request: null, revoked: false };
+    state.submission = attempt;
     state.submitting = true;
+    window.aiNekoCompanion?.stopSpeech();
+    // Submission now owns this text. Stopping its recorder deliberately aborts
+    // that recorder's signal; only this attempt's lifecycle applies from here.
+    window.aiNekoCompanion?.stopRecording(true, { quiet: true });
     elements.status.textContent = "正在发送…";
     updateComposer();
     try {
       await window.aiNekoCompanion?.flushPlayback();
-      if (generation !== state.generation) return;
-      const capture = await window.aiNekoCompanion?.captureForTurn();
-      if (generation !== state.generation) return;
-      if (!state.sessionId) {
-        const response = await api("/api/sessions", { method: "POST", body: {} });
-        state.sessionId = sessionId(response.session || response);
-        if (!state.sessionId) throw new Error("Missing session identifier");
-        rememberSession(state.sessionId);
-      }
-      if (generation !== state.generation) return;
-      const id = state.sessionId;
+      if (!currentAttempt(attempt)) return;
       const prior = state.pendingRequest;
-      if (!prior || prior.sessionId !== id || prior.text !== text || prior.guide !== guide) {
-        state.pendingRequest = { sessionId: id, text, guide, requestId: crypto.randomUUID().replaceAll("-", "") };
+      let request;
+      if (prior && !prior.revoked && prior.sessionId === state.sessionId && prior.text === text && prior.guide === guide) {
+        request = prior;
+        attempt.capturePending = false;
+      } else {
+        if (prior?.hasImage) await retireVisionRequest(prior);
+        if (!currentAttempt(attempt)) return;
+        attempt.capture = await window.aiNekoCompanion?.captureForTurn();
+        attempt.capturePending = false;
+        if (!currentAttempt(attempt)) return;
+        if (!state.sessionId) {
+          const response = await api("/api/sessions", { method: "POST", body: {} });
+          if (!currentAttempt(attempt)) return;
+          state.sessionId = sessionId(response.session || response);
+          if (!state.sessionId) throw new Error("Missing session identifier");
+          rememberSession(state.sessionId);
+        }
+        request = { sessionId: state.sessionId, text, guide, requestId: crypto.randomUUID().replaceAll("-", ""), capture: attempt.capture, hasImage: Boolean(attempt.capture?.frame), revoked: false };
+        state.pendingRequest = request;
       }
-      if (!window.aiNekoCompanion?.frameStillAllowed(capture)) throw Object.assign(new Error("Vision revoked"), { code: "vision_revoked" });
-      const response = await api(`/api/sessions/${encodeURIComponent(id)}/turns`, { method: "POST", body: { text, guide, request_id: state.pendingRequest.requestId, ...(capture?.frame ? { image: capture.frame } : {}) } });
+      attempt.request = request;
+      const id = request.sessionId;
+      if ((request.hasImage && attempt.visionGeneration !== state.visionGeneration) || window.aiNekoCompanion?.frameStillAllowed(request.capture) === false) {
+        await revokeVision();
+        throw Object.assign(new Error("Vision revoked"), { code: "vision_revoked" });
+      }
+      if (!currentAttempt(attempt)) return;
+      const response = await api(`/api/sessions/${encodeURIComponent(id)}/turns`, { method: "POST", body: { text, guide, request_id: request.requestId, ...(request.capture?.frame ? { image: request.capture.frame } : {}) } });
       const turn = response.turn || response;
       const turnId = turn.turn_id || turn.id;
       if (!turnId) throw new Error("Missing turn identifier");
-      if (generation !== state.generation) return;
-      state.pendingRequest = null;
+      if (!currentAttempt(attempt) || request.revoked) {
+        if (request.hasImage) await cancelAcceptedTurn(id, turnId);
+        return;
+      }
+      if (state.pendingRequest === request) state.pendingRequest = null;
+      state.visualTurn = request.hasImage ? { sessionId: id, turnId: String(turnId), requestId: request.requestId } : null;
+      request.capture = null;
       showNotice("");
       elements.input.value = "";
       resizeInput();
       const view = createTurnView({ ...turn, text, input: text });
+      view.hasImage = request.hasImage;
       view.liveTurnId = String(turnId);
       window.aiNekoCompanion?.beginTurn(view.liveTurnId, id);
       scrollBottom(true);
       startPolling(id, String(turnId), view, Number(turn.sent_seq || 0), generation);
       refreshSessions().catch(() => {});
     } catch (error) {
-      if (generation !== state.generation) return;
+      if (!currentAttempt(attempt)) return;
       elements.status.textContent = "未能确认发送结果，输入内容已保留；重试可恢复本次回答。";
       showNotice(friendlyError(error), { error: true, label: "检查设置", action: openSettings });
     } finally {
-      if (generation === state.generation) state.submitting = false;
+      attempt.capture = null;
+      if (state.submission === attempt) {
+        state.submission = null;
+        state.submitting = false;
+      }
       updateComposer();
     }
   }
@@ -855,8 +949,9 @@
   });
   window.addEventListener("pagehide", () => { clearKeyInputs(); state.pollController?.abort(); });
   window.addEventListener("ai-neko-persona", (event) => { state.personaName = event.detail.name; });
-  window.aiNekoChat = Object.freeze({ api, friendlyError, cancelTurn,
+  window.aiNekoChat = Object.freeze({ api, friendlyError, cancelTurn, revokeVision,
     invalidatePending: () => {
+      revokeVision().catch((error) => showNotice(friendlyError(error), { error: true }));
       state.generation += 1; state.pendingRequest = null; state.submitting = false;
       state.pollController?.abort();
     },
@@ -865,12 +960,20 @@
       await refreshSessions(); showPanel("settings");
     },
     canRecord: () => chatReady() && modelReady() && !state.submitting,
-    submitText: async (text) => {
-      elements.input.value = text; resizeInput();
+    submitText: async (text, owner = {}) => {
+      requireCurrentSubmission(owner);
       const deadline = Date.now() + 15000;
-      while (state.active && Date.now() < deadline) await new Promise((resolve) => setTimeout(resolve, 100));
+      while (state.active && Date.now() < deadline) {
+        requireCurrentSubmission(owner);
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      }
+      requireCurrentSubmission(owner);
       if (state.active) throw Object.assign(new Error("Previous turn active"), { code: "turn_active" });
-      await sendMessage({ preventDefault() {} });
+      if (state.submitting || !chatReady()) return;
+      requireCurrentSubmission(owner);
+      elements.input.value = text; resizeInput();
+      requireCurrentSubmission(owner);
+      await sendMessage({ preventDefault() {} }, owner);
     },
   });
   setGuide(state.guide);

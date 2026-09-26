@@ -13,7 +13,7 @@ from typing import Any, TypedDict
 
 from langgraph.graph import END, START, StateGraph
 
-from ai_neko.chat.vision import attach_image
+from ai_neko.chat.vision import attach_image, ensure_image_fresh
 
 PERSONA = """你是 ai-neko 桌宠中的猫娘 AI 伴侣，默认名为“小猫”；若提供角色档案，以档案为准。
 你以角色身旁的文字与用户交流，直接回应并保持上下文，不要每句话机械添加口癖。
@@ -128,6 +128,23 @@ def build_chat_graph(
     reasoning_by_round: dict[int, str] = {}
     planning_content: dict[int, str] = {}
 
+    async def checked_stream(messages, *, tools):
+        # Recheck before every model request, after slow tools, and before
+        # accepting every streamed event. A frame already sent while fresh
+        # cannot be recalled from the provider; expiry stops further output
+        # and further requests instead of treating an old board as current.
+        ensure_image_fresh(image)
+        stream = model.stream(messages, tools=tools)
+        try:
+            async for event in stream:
+                ensure_image_fresh(image)
+                yield event
+            ensure_image_fresh(image)
+        finally:
+            close = getattr(stream, "aclose", None)
+            if close is not None:
+                await close()
+
     def planning_messages(state):
         # Historical assistant messages lack their original provider reasoning blocks.
         # Use user questions as context and only this execution's complete tool exchange.
@@ -148,7 +165,7 @@ def build_chat_graph(
     async def plan(state: ChatState) -> dict[str, Any]:
         emit({"type": "status", "status": "planning", "round": state["rounds"] + 1})
         calls = []
-        async for event in model.stream(
+        async for event in checked_stream(
             planning_messages(state),
             tools=TOOL_SCHEMAS,
         ):
@@ -280,7 +297,7 @@ def build_chat_graph(
             )
         citation_filter = CitationFilter({s["id"] for s in state["sources"]})
         output = ""
-        async for event in model.stream(messages, tools=None):
+        async for event in checked_stream(messages, tools=None):
             if event.get("type") != "text" or not isinstance(event.get("text"), str):
                 continue
             fragment = citation_filter.push(event["text"])

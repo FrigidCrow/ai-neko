@@ -351,3 +351,15 @@ Root 用 gh run download 分别取得两平台源码、package-evidence 和 ai-n
 [可下载开发包](https://github.com/FrigidCrow/ai-neko/actions/runs/36228220001/artifacts/10902330067)：展开 Actions 产物后完整解压内层 ZIP，运行 ai-neko.exe。证据更新至 docs/evidence/companion/windows；仓库 JSON 仅统一 LF 行尾，原始下载文件保留在 artifacts。该版含快照管理和隐藏面板已听前缀续聊，旧 v0.3.0-alpha.1 保持不变。合成调用 16 模型/3 ASR/9 TTS，单次停音 34ms，不是 p95；真实云服务、用户采集及 Windows 11 真机验收未进行，完整目标仍在进行中。
 
 Final documentation check: python3 docs/diagrams/tools/validate-docs.py > artifacts/mvp1/snapshot-heard-final-docs.json returned PASS (24 documents, 360 local links, 20 diagrams, 206 unchanged reference files). Archived JSON content matches downloaded originals after LF normalization. git diff --check passed.
+
+## 2026-09-26 — 录音生命周期与视觉撤销
+
+完成核查发现真实前端竞态后，先更新PLAN再修复。继续参考N.E.K.O的采集代次与尝试内流归属，未启动原版或读取配置。录音在取消旧回合前登记归属，旧ASR在等待提交期间仍可撤销；视觉同请求重试复用原图，关闭或换源通过持久请求编号取消未知接受结果和活动回合；每次模型请求及流式事件复核图片时效。
+
+独立审查用慢HTTP图片上传和真实记忆恢复等待边界复现：旧取消条件在恢复期间返回409，迟到图片被202接受并调用模型1次。取消编号现在允许在恢复期间写入，回归为取消200、迟到图片409、模型0次；旧条件只在独立测试进程内还原，没有改回产品文件。`.venv/bin/pytest -q tests/test_request_cancellation.py`最终6项通过，视觉生命周期及相关定向53项通过。
+
+实际Electron首跑发现开启观察立即取消勾选，已补准备状态与取消选源的回归；第二次语音闭环已经产生合成ASR/模型/TTS，但识别结果提示被内部交接的“停止录音”覆盖，已区分内部静默交接和用户停止。失败原始报告留在artifacts，不记通过。
+
+初次源码全套573项通过/1平台skip；新增恢复回归后574项通过/1skip，但扫描期间前端仍被修改，m0_smoke正确拒绝CI门禁，不能记为最终通过。待源码停止变化后再执行完整门禁。`node scripts/desktop_smoke.cjs --output artifacts/mvp1/desktop-lifecycle-baseline.json`实际桌面基线9/9通过，最终前端闭环和Windows包以下方证据补记。真实云服务与用户采集均0。
+
+最终`.venv/bin/python scripts/m0_smoke.py --output artifacts/mvp1/companion-lifecycle-source.json`：574 passed、1 Windows凭据专属skip、0失败/错误，source_unchanged_during_run=true、ci_gate=PASS，报告如实保留PARTIAL。`node --test desktop/tests/*.test.cjs`：58/58；`node desktop/tests/companion.smoke.cjs --output artifacts/mvp1/companion-lifecycle-ui.json`：18/18，新增实际IPC撤销后延迟图片请求409及中途关闭观察取消活动模型、无晚到文字。实际查看白裙YUI截图，报告与截图归档至docs/evidence/companion。合成17模型/3ASR/9TTS，单次停音15ms非p95；Ruff检查/格式与diff检查通过。提交并推送既有开发分支运行Windows CI，不创建tag。

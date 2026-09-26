@@ -2,9 +2,9 @@
   "status": "PASS",
   "platform": "darwin",
   "node": "v25.9.0",
-  "source_commit": "5c568a03f65baf3a77ea23aa76e1d929378fc173",
+  "source_commit": "4b7ff757aa229e28f22ba9cca04df23bb6bd1ed2",
   "source_dirty": true,
-  "harness_sha256": "2cb052b1ea8729e8af93d975cc88950b146bcda259bb064a2c30e392273c073b",
+  "harness_sha256": "ec171d488cdd39fd1a6c9738d238fdb26ab02f10af865fcf10849f5892cb5083",
   "real_model_calls": 0,
   "real_audio_service_calls": 0,
   "actual_user_microphone_captures": 0,
@@ -72,6 +72,14 @@
       "status": "PASS"
     },
     {
+      "name": "request_cancellation_through_real_bridge_rejects_late_image_acceptance",
+      "status": "PASS"
+    },
+    {
+      "name": "closing_observation_cancels_inflight_visual_turn_and_late_output",
+      "status": "PASS"
+    },
+    {
       "name": "vision_off_revokes_capture_and_does_not_fallback",
       "status": "PASS"
     }
@@ -118,14 +126,14 @@
     "forgotten_fact_absent": true,
     "explicit_delete_confirmation": true
   },
-  "snapshot_screenshot": "companion-snapshot-heard-smoke-snapshots.png",
-  "snapshot_screenshot_sha256": "38ccccbd0801abc845e2189f96b018093147cb8f0c70a5f7b85286071106b091",
+  "snapshot_screenshot": "companion-lifecycle-ui-snapshots.png",
+  "snapshot_screenshot_sha256": "4b3cda3394ff135419f287c09d3dd14cf92fe13426376f6c36b9af72af8d4552",
   "on_demand_plain_question": {
     "tool_schemas_available": true,
     "search_calls": 0,
     "missing_search_key_did_not_block": true
   },
-  "stop_observed_ms": 16,
+  "stop_observed_ms": 15,
   "voice_search": {
     "default_mode": "on_demand",
     "image_and_tool_schemas": true,
@@ -137,9 +145,9 @@
     "tool_schemas_sent": false
   },
   "partial_heard_observation": {
-    "id": "e4a597212b3847bea29b83f620d452c6",
-    "turn_id": "e4a597212b3847bea29b83f620d452c6",
-    "session_id": "65a2a2168f9c449da9cd136c02361585",
+    "id": "5874ede3c9cc4435ab7c32ac3dd18af8",
+    "turn_id": "5874ede3c9cc4435ab7c32ac3dd18af8",
+    "session_id": "9c6d61864d3440ee999c76441e70a75d",
     "input": "合成实际听到测试",
     "text": "合成实际听到测试",
     "guide": true,
@@ -147,14 +155,14 @@
       "persona_version": 4,
       "memory_revision": 15,
       "image": {
-        "frame_id": "234ce838-6a85-410e-aa6d-dbf97ad05dc7",
+        "frame_id": "b79979bb-7c86-4123-a73f-4f87dffdff67",
         "source_id": "window:98765:0",
-        "captured_at": 1790408265.908
+        "captured_at": 1790411205.529
       }
     },
     "status": "completed",
-    "created_at": 1790408265.9110348,
-    "settled_at": 1790408266.665906,
+    "created_at": 1790411205.535657,
+    "settled_at": 1790411206.290378,
     "delivered_text": "**第一句🐾已经听完。**\n第二句还没有听完。",
     "assistant_text": "**第一句🐾已经听完。**\n第二句还没有听完。",
     "output": "**第一句🐾已经听完。**\n第二句还没有听完。",
@@ -164,16 +172,16 @@
     "confirmed_characters": 11,
     "audio_playback": [
       {
-        "segment_id": "b2601a62ad7e4c16a321ba638d0b9796",
+        "segment_id": "493fb55f794943dbae00d748837eec79",
         "state": "completed",
-        "updated_at": 1790408270.629889,
+        "updated_at": 1790411210.21178,
         "text_start": 0,
         "text_end": 11
       },
       {
-        "segment_id": "c8eaf9e71d154f48a12df245d46e9148",
+        "segment_id": "4a0d69e496414ef2afee98491ab24220",
         "state": "stopped",
-        "updated_at": 1790408270.663702,
+        "updated_at": 1790411210.286737,
         "text_start": 11,
         "text_end": 23
       }
@@ -191,16 +199,16 @@
     "display_ack": 0,
     "actual_playback": [
       {
-        "segment_id": "b2601a62ad7e4c16a321ba638d0b9796",
+        "segment_id": "493fb55f794943dbae00d748837eec79",
         "state": "completed",
-        "updated_at": 1790408270.629889,
+        "updated_at": 1790411210.21178,
         "text_start": 0,
         "text_end": 11
       },
       {
-        "segment_id": "c8eaf9e71d154f48a12df245d46e9148",
+        "segment_id": "4a0d69e496414ef2afee98491ab24220",
         "state": "stopped",
-        "updated_at": 1790408270.663702,
+        "updated_at": 1790411210.286737,
         "text_start": 11,
         "text_end": 23
       }
@@ -211,10 +219,20 @@
     "display_ack": 0,
     "completed_segments": 2
   },
-  "screenshot": "companion-snapshot-heard-smoke.png",
-  "screenshot_sha256": "534e627c5ced027b8405f4c6bf7e97bb0ba5ba2104635c76b824c06b8bc7529a",
+  "request_revocation": {
+    "actual_bridge": true,
+    "delayed_image_rejected": true,
+    "no_new_turn": true
+  },
+  "active_vision_revocation": {
+    "cancelled": true,
+    "model_requests": 1,
+    "late_text_absent": true
+  },
+  "screenshot": "companion-lifecycle-ui.png",
+  "screenshot_sha256": "6e1288935d16a3a3a278114204874771fe99ef67b5b2187921aef752b1a9725d",
   "synthetic_calls": {
-    "model": 16,
+    "model": 17,
     "asr": 3,
     "tts": 9
   },

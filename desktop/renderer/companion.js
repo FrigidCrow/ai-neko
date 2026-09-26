@@ -74,76 +74,91 @@
   });
   function stopSpeech() { state.speechTurn = null; speech.stop(); window.aiNekoPet?.setSpeechLevel(0); }
   function clearKeys() { for (const kind of ['asr', 'tts']) el(`${kind}-api-key`).value = ''; }
-  function stopRecording(discard = false) {
-    const capture = state.recording;
+  function currentCapture(capture) {
+    return state.recording === capture && capture.epoch === state.recordingEpoch && !capture.discard && !capture.controller.signal.aborted;
+  }
+  function stopCapture(capture, discard = false, { quiet = false } = {}) {
     if (!capture) return;
-    if (discard) { capture.discard = true; capture.controller.abort(); state.recordingEpoch += 1; }
+    const owned = state.recording === capture;
+    if (discard) {
+      capture.discard = true; capture.controller.abort(); capture.chunks = [];
+      if (owned) { state.recordingEpoch += 1; state.recording = null; }
+    }
     clearTimeout(capture.timer);
     if (capture.recorder?.state === 'recording') capture.recorder.stop();
     capture.stream?.getTracks().forEach((track) => track.stop());
-    void bridge.microphone(false);
-    el('record-voice').textContent = '● 说话'; el('record-voice').setAttribute('aria-pressed', 'false');
-    document.body.dataset.recording = 'false';
-    if (discard) { state.recording = null; status('已停止录音。'); }
+    if (owned) {
+      void bridge.microphone(false).catch(() => {});
+      el('record-voice').textContent = '● 说话'; el('record-voice').setAttribute('aria-pressed', 'false');
+      document.body.dataset.recording = 'false';
+      if (discard && !quiet) status('已停止录音。');
+    }
   }
+  function stopRecording(discard = false, options) { stopCapture(state.recording, discard, options); }
   // N.E.K.O app-audio-capture.js uses attempt-local streams and a start generation.
-  // Keep that cancellation boundary without importing its global capture runtime.
+  // Register ownership before cancellation or permission waits. Late callbacks
+  // may release their own stream but must never stop a newer recording.
   async function toggleRecording() {
     if (state.recording?.recorder?.state === 'recording') { stopRecording(); return; }
     if (state.recording) stopRecording(true);
     if (!chat.canRecord()) { status('对话尚未准备好，请先连接模型。'); return; }
-    stopSpeech();
-    await chat.cancelTurn();
-    const epoch = ++state.recordingEpoch;
-    const capture = { controller: new AbortController(), discard: false, stream: null, recorder: null, chunks: [], timer: null };
+    const capture = { epoch: ++state.recordingEpoch, controller: new AbortController(), discard: false, stream: null, recorder: null, chunks: [], timer: null };
     state.recording = capture;
-    status('正在打开麦克风…');
+    stopSpeech();
+    status('正在准备录音…');
     try {
+      await chat.cancelTurn();
+      if (!currentCapture(capture)) return;
+      status('正在打开麦克风…');
       await bridge.microphone(true);
+      if (!currentCapture(capture)) return;
       const device = el('microphone-device').value;
       capture.stream = await navigator.mediaDevices.getUserMedia({ video: false, audio: { echoCancellation: true, noiseSuppression: true, channelCount: 1, ...(device ? { deviceId: { exact: device } } : {}) } });
-      if (capture.discard || epoch !== state.recordingEpoch) { capture.stream.getTracks().forEach((track) => track.stop()); return; }
+      if (!currentCapture(capture)) { stopCapture(capture, true); return; }
       const mime = ['audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus'].find((item) => MediaRecorder.isTypeSupported(item));
       capture.recorder = new MediaRecorder(capture.stream, mime ? { mimeType: mime } : undefined);
       let size = 0;
       capture.recorder.ondataavailable = (event) => {
+        if (!currentCapture(capture)) return;
         size += event.data.size;
-        if (size > 8 * 1024 * 1024) { stopRecording(true); status('录音超过8MB，已丢弃，请缩短问题。'); }
+        if (size > 8 * 1024 * 1024) { stopCapture(capture, true); status('录音超过8MB，已丢弃，请缩短问题。'); }
         else if (event.data.size) capture.chunks.push(event.data);
       };
       capture.recorder.onstop = async () => {
         capture.stream.getTracks().forEach((track) => track.stop());
-        if (capture.discard || epoch !== state.recordingEpoch) return;
+        if (!currentCapture(capture)) return;
         try {
           status('正在识别你的话…');
           const blob = new Blob(capture.chunks, { type: capture.recorder.mimeType });
           const dataURL = await new Promise((resolve, reject) => { const reader = new FileReader(); reader.onerror = reject; reader.onload = () => resolve(reader.result); reader.readAsDataURL(blob); });
-          if (capture.discard || epoch !== state.recordingEpoch) return;
+          if (!currentCapture(capture)) return;
           const result = await voiceRequest('/api/voice/transcribe', { audio_base64: String(dataURL).split(',')[1], mime_type: blob.type }, capture.controller.signal);
-          if (capture.discard || epoch !== state.recordingEpoch) return;
+          if (!currentCapture(capture)) return;
           const text = result.text?.trim();
           if (!text) { status('没有识别到文字，请再说一次。'); return; }
-          if (state.recording === capture) state.recording = null;
           status(`听到：${text}`);
           el('speak-replies').checked = true;
-          await chat.submitText(text);
-        } catch (error) { if (!capture.controller.signal.aborted) status(`语音识别未完成：${errorText(error)}`); }
+          await chat.submitText(text, { signal: capture.controller.signal, isCurrent: () => currentCapture(capture) });
+        } catch (error) { if (currentCapture(capture)) status(`语音识别未完成：${errorText(error)}`); }
         finally { capture.chunks = []; if (state.recording === capture) state.recording = null; }
       };
-      capture.recorder.onerror = () => { stopRecording(true); status('录音设备发生错误，请重新选择麦克风。'); };
+      capture.recorder.onerror = () => {
+        const owned = currentCapture(capture); stopCapture(capture, true);
+        if (owned) status('录音设备发生错误，请重新选择麦克风。');
+      };
       for (const track of capture.stream.getAudioTracks()) track.addEventListener('ended', () => {
-        if (state.recording === capture && capture.recorder.state === 'recording') { stopRecording(true); status('麦克风已断开，请重新选择设备。'); }
+        if (currentCapture(capture) && capture.recorder.state === 'recording') { stopCapture(capture, true); status('麦克风已断开，请重新选择设备。'); }
       }, { once: true });
       capture.recorder.start(250);
-      capture.timer = setTimeout(() => stopRecording(), 60000);
+      capture.timer = setTimeout(() => { if (currentCapture(capture)) stopCapture(capture); }, 60000);
       el('record-voice').textContent = '■ 结束并发送'; el('record-voice').setAttribute('aria-pressed', 'true');
       document.body.dataset.recording = 'true';
       el('pet-caption').textContent = '正在听你说话';
       status('正在听你说话，再点一次结束并发送。');
       await context();
     } catch (error) {
-      stopRecording(true);
-      status(`无法开始录音：${error.name === 'NotAllowedError' ? '请在系统隐私设置中允许麦克风。' : errorText(error)}`);
+      const owned = currentCapture(capture); stopCapture(capture, true);
+      if (owned) status(`无法开始录音：${error.name === 'NotAllowedError' ? '请在系统隐私设置中允许麦克风。' : errorText(error)}`);
     }
   }
   async function disableVision() {
@@ -151,14 +166,23 @@
     el('vision-enabled').checked = false;
     el('vision-preview').removeAttribute('src'); el('vision-preview').hidden = true;
     el('vision-status').textContent = '观察已关闭'; el('vision-badge').textContent = '观察已关闭';
-    await bridge.stopVision();
+    const results = await Promise.allSettled([chat.revokeVision(), bridge.stopVision()]);
+    const failed = results.find((item) => item.status === 'rejected');
+    if (failed) throw failed.reason;
   }
   async function captureForTurn() {
     if (!state.vision) return null;
     const epoch = state.visionEpoch;
     let frame;
     try { frame = await bridge.captureVision(); }
-    catch (error) { await disableVision(); status(`无法取得画面：${errorText(error)}`); throw error; }
+    catch (error) {
+      if (epoch === state.visionEpoch) {
+        const stopped = disableVision(); const disabledEpoch = state.visionEpoch;
+        await stopped;
+        if (disabledEpoch === state.visionEpoch) status(`无法取得画面：${errorText(error)}`);
+      }
+      throw error;
+    }
     if (!state.vision || epoch !== state.visionEpoch) throw Object.assign(new Error('观察已关闭，本次问题没有发送；请重新提问。'), { code: 'vision_revoked' });
     el('vision-preview').src = frame.data_url; el('vision-preview').hidden = false;
     el('vision-status').textContent = `${frame.source_name} · ${new Date(frame.captured_at).toLocaleTimeString()} · 本轮新截图`;
@@ -321,16 +345,34 @@
   el('vision-source').onchange = () => disableVision().catch(() => {});
   el('vision-enabled').onchange = async (event) => {
     if (!event.target.checked) { await disableVision(); return; }
-    const epoch = ++state.visionEpoch;
+    const source = el('vision-source').value;
+    const stopped = disableVision();
+    const epoch = state.visionEpoch;
+    // Preserve the checked user intent while cancellation and selection wait.
+    // Actual capture stays disabled until this generation receives its preview.
+    el('vision-enabled').checked = true;
+    el('vision-status').textContent = '正在选择画面，请稍候…';
+    el('vision-badge').textContent = '观察准备中';
     try {
-      const frame = await bridge.selectVision(el('vision-source').value);
+      await stopped;
       if (epoch !== state.visionEpoch) return;
-      state.vision = true; el('vision-preview').src = frame.data_url; el('vision-preview').hidden = false;
+      const frame = await bridge.selectVision(source);
+      if (epoch !== state.visionEpoch) return;
+      state.vision = true; el('vision-enabled').checked = true; el('vision-preview').src = frame.data_url; el('vision-preview').hidden = false;
       el('vision-status').textContent = `已选：${frame.source_name}。每次提问取新图。`;
       el('vision-badge').textContent = `观察：${frame.source_name}`;
-    } catch (error) { await disableVision(); el('vision-status').textContent = errorText(error); }
+    } catch (error) {
+      if (epoch !== state.visionEpoch) return;
+      const stopped = disableVision(); const disabledEpoch = state.visionEpoch;
+      await stopped.catch(() => {});
+      if (disabledEpoch === state.visionEpoch) el('vision-status').textContent = errorText(error);
+    }
+  };
+  el('microphone-device').onchange = () => {
+    if (state.recording) { stopRecording(true); status('已切换麦克风并取消本轮，请重新说话。'); }
   };
   el('refresh-audio-devices').onclick = async () => {
+    stopRecording(true);
     try {
       await bridge.microphone(true);
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
@@ -358,7 +400,7 @@
   };
   window.addEventListener('ai-neko-settings', loadSettings);
   window.addEventListener('ai-neko-connected', loadSettings);
-  window.addEventListener('pagehide', () => { stopRecording(true); stopSpeech(); void disableVision(); clearKeys(); });
+  window.addEventListener('pagehide', () => { stopRecording(true); stopSpeech(); void disableVision().catch(() => {}); clearKeys(); });
   bridge?.onAction((action) => { if (action === 'voice-toggle') void toggleRecording(); });
   window.aiNekoCompanion = Object.freeze({
     captureForTurn, frameStillAllowed, stopSpeech, stopRecording, clearKeys, flushPlayback,

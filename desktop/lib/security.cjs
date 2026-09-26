@@ -34,6 +34,7 @@ function validateRequest(value) {
     PUT: [ /^\/api\/(?:config|persona|memory\/config|voice\/config)$/, new RegExp(`^/api/memories/${id}$`) ],
     DELETE: [ new RegExp(`^/api/memories/${id}$`), new RegExp(`^/api/memory/backups/${backupId}$`) ],
     POST: [ /^\/api\/memories$/, /^\/api\/memory\/backups$/, new RegExp(`^/api/memory/backups/${backupId}/restore$`), /^\/api\/voice\/(?:transcribe|synthesize|cancel)$/, /^\/api\/sessions$/, new RegExp(`^/api/sessions/${id}/turns$`),
+      new RegExp(`^/api/sessions/${id}/requests/[a-f0-9]{32}/cancel$`),
       new RegExp(`^/api/sessions/${id}/turns/${id}/(?:ack|cancel|audio)$`) ],
   };
   if (!routes[method].some((matcher) => matcher.test(route))) throw new Error('Route not allowed');

@@ -235,3 +235,13 @@ Mac全套544 passed / 1 Windows凭据专属skip；快照API25项、已听上下�
 Root 用 gh run download 分别取得两平台源码、package-evidence 和 ai-neko-windows-x64；比对重复报告后，运行 `python3 artifacts/ci/verify-companion-download.py artifacts/ci/36228220001/verified 5871f2d94e2f176a863262ae12c86edf2e05066c` 为 PASS。核对 SHA256SUMS、clean 源 commit、ZIP 内外 build-info、GUI/后端 AMD64 PE、实际执行摘要、N.E.K.O 记忆通知、桌面模块与两张截图摘要；实际查看 Windows 快照界面。ZIP `ai-neko-0.3.0-dev.5871f2d94e2f-windows-x64.zip` 为 191,849,807 字节，SHA256 `af1f20aecd0673421d35c914b3e240f3aeca7a36b9cadf068af610676a355015`。
 
 [可下载开发包](https://github.com/FrigidCrow/ai-neko/actions/runs/36228220001/artifacts/10902330067)：展开 Actions 产物后完整解压内层 ZIP，运行 ai-neko.exe。证据更新至 docs/evidence/companion/windows；仓库 JSON 仅统一 LF 行尾，原始下载文件保留在 artifacts。该版含快照管理和隐藏面板已听前缀续聊，旧 v0.3.0-alpha.1 保持不变。合成调用 16 模型/3 ASR/9 TTS，单次停音 34ms，不是 p95；真实云服务、用户采集及 Windows 11 真机验收未进行，完整目标仍在进行中。
+
+## 2026-09-26 — 录音与视觉生命周期审查
+
+修复了录音准备时停止仍打开麦克风、快速重复启动遗留流、旧ASR等待回合结束后提交并取消新录音、切设备后仍用旧麦克风等实际源码竞态。视觉重试保留同一帧与请求编号，避免响应丢失后重新截图导致幂等冲突；撤销编号持久化，覆盖POST仍在上传、已接受但响应丢失、活动图请求、取消失败后的重试以及记忆恢复期间取消。
+
+模型每次附图及流式事件均检查120秒时效，过期中止并提示重新提问。已发送给配置服务的图片和此前已经显示的有效回答无法撤回。图片仍不写入checkpoint/数据库；撤销表只存本工程会话、请求编号和时间。
+
+新增回归执行真实前端代码；独立审查复现恢复期间拒绝取消的缺陷，修复后迟到上传409、模型调用0。实际Electron联调另发现勾选意图与语音识别提示回归，已纳入修复，最终结果待下方补记。真实音色/术语识别/游戏判断、真实云服务、Windows11与取消p95仍未验收，未创建新版Release。
+
+本轮最终Mac源码574项通过、1平台skip且源码扫描未变化；宿主58/58、实际Electron基线9/9、陪伴闭环18/18。最终闭环包含真实IPC请求取消、迟到图片409以及模型响应中关闭观察后无晚到输出，见[Mac报告](docs/evidence/companion/macos-companion.json)。前述勾选和识别状态回归均在实际桌面通过；合成17模型/3ASR/9TTS，用户采集和真实服务0。当前Windows旧开发包仍为5871f2d，新的Windows验收结果随后单列。

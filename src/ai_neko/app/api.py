@@ -173,6 +173,13 @@ def install_api(app: FastAPI, connection, authorize, runtime, providers, bootstr
             raise HTTPException(400, "invalid event cursor")
         return runtime.events(session_id, turn_id, int(raw))
 
+    @app.post("/api/sessions/{session_id}/requests/{request_id}/cancel")
+    async def cancel_request(request: Request, session_id: str, request_id: str):
+        auth(request)
+        if await body(request):
+            raise HTTPException(400, "unknown request cancellation fields")
+        return await runtime.cancel_request(session_id, request_id)
+
     @app.post("/api/sessions/{session_id}/turns/{turn_id}/ack")
     async def ack(request: Request, session_id: str, turn_id: str):
         auth(request)

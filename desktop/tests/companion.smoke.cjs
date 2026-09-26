@@ -25,6 +25,7 @@ const pause = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const calls = { models: [], asr: 0, tts: 0 };
 let asrText = '合成语音问题，请看当前棋盘。';
 let failHistoricalQuestion = false;
+let releaseVisualResponse;
 const mp3 = fs.readFileSync(path.join(__dirname, 'fixtures/synthetic-tone.mp3'));
 const server = http.createServer((req, res) => {
   const chunks = []; req.on('data', (chunk) => chunks.push(chunk)); req.on('end', async () => {
@@ -34,6 +35,10 @@ const server = http.createServer((req, res) => {
     const body = JSON.parse(Buffer.concat(chunks)); calls.models.push(body);
     const lastUser = body.messages.findLast((message) => message.role === 'user')?.content;
     const userText = Array.isArray(lastUser) ? lastUser.filter((part) => part.type === 'text').map((part) => part.text).join(' ') : lastUser || '';
+    if (userText.includes('合成观察中途关闭')) {
+      await new Promise((resolve) => { releaseVisualResponse = resolve; });
+      if (res.destroyed) return;
+    }
     if (failHistoricalQuestion && userText.includes('合成失败历史重试问题')) {
       failHistoricalQuestion = false; res.writeHead(503, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ error: { message: 'Synthetic provider failure' } })); return;
@@ -365,6 +370,42 @@ report.executable_sha256 = crypto.createHash('sha256').update(fs.readFileSync(ex
     assert.equal(turn.ack_seq, 0); assert.equal(turn.heard_text, '合成场景建议：先观察。再决定下一步。');
     report.full_heard = { heard_text: turn.heard_text, display_ack: turn.ack_seq, completed_segments: turn.audio_playback.length };
     await page.locator('#show-chat').click();
+  });
+  await check('request_cancellation_through_real_bridge_rejects_late_image_acceptance', async () => {
+    await page.waitForFunction(() => document.querySelector('#cancel-turn').hidden);
+    const result = await page.evaluate(async () => {
+      const id = localStorage.getItem('ai-neko.desktop.last-session');
+      const requestId = crypto.randomUUID().replaceAll('-', '');
+      const before = (await window.aiNekoChat.api(`/api/sessions/${id}`)).turns.length;
+      const capture = await window.aiNekoCompanion.captureForTurn();
+      const cancelled = await window.aiNekoChat.api(`/api/sessions/${id}/requests/${requestId}/cancel`, { method: 'POST', body: {} });
+      let rejection;
+      try { await window.aiNekoChat.api(`/api/sessions/${id}/turns`, { method: 'POST', body: { text: '合成已撤销的延迟请求', guide: true, request_id: requestId, image: capture.frame } }); }
+      catch (error) { rejection = error.status; }
+      return { before, after: (await window.aiNekoChat.api(`/api/sessions/${id}`)).turns.length, status: cancelled.status, rejection };
+    });
+    assert.equal(result.rejection, 409); assert.equal(result.status, 'cancelled'); assert.equal(result.after, result.before);
+    report.request_revocation = { actual_bridge: true, delayed_image_rejected: true, no_new_turn: true };
+  });
+  await check('closing_observation_cancels_inflight_visual_turn_and_late_output', async () => {
+    await page.locator('#speak-replies').uncheck();
+    const before = calls.models.length;
+    await page.locator('#message-input').fill('合成观察中途关闭'); await page.locator('#message-form').evaluate((form) => form.requestSubmit());
+    try {
+      for (let attempt = 0; attempt < 200 && !releaseVisualResponse; attempt++) await pause(50);
+      assert.equal(typeof releaseVisualResponse, 'function');
+      await page.locator('#open-settings').click(); await page.locator('#vision-enabled').uncheck();
+      await page.waitForSelector('#vision-preview', { state: 'hidden' });
+      await waitForBackend(async () => { const id = localStorage.getItem('ai-neko.desktop.last-session'); return (await window.aiNekoChat.api(`/api/sessions/${id}`)).turns.at(-1).status === 'cancelled'; });
+      releaseVisualResponse(); releaseVisualResponse = null;
+      await pause(500);
+      const turn = await page.evaluate(async () => { const id = localStorage.getItem('ai-neko.desktop.last-session'); return (await window.aiNekoChat.api(`/api/sessions/${id}`)).turns.at(-1); });
+      assert.equal(turn.status, 'cancelled'); assert.equal(turn.delivered_text, '');
+      assert.equal(calls.models.length, before + 1);
+      assert.equal(await page.locator('#cancel-turn').isHidden(), true);
+      await page.locator('#close-settings').click();
+      report.active_vision_revocation = { cancelled: true, model_requests: 1, late_text_absent: true };
+    } finally { releaseVisualResponse?.(); releaseVisualResponse = null; }
   });
   await check('vision_off_revokes_capture_and_does_not_fallback', async () => {
     await page.waitForFunction(() => document.querySelector('#cancel-turn').hidden);
