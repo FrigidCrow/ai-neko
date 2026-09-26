@@ -1,13 +1,13 @@
 # Windows 下载与 GitHub CI/CD
 
-本次发布目标为 [v0.4.0-alpha.1](https://github.com/FrigidCrow/ai-neko/releases/tag/v0.4.0-alpha.1)，提供可见白裙YUI猫娘、流式聊天、可编辑人格、当轮桌面视觉、按键语音输入/输出、共享联网查询与本地长期记忆。发布须通过版本tag对应的全部必需CI检查；真实服务和Windows11游戏真机验收单独记录。
+已发布 [v0.4.0-alpha.1](https://github.com/FrigidCrow/ai-neko/releases/tag/v0.4.0-alpha.1)，提供可见白裙YUI猫娘、流式聊天、可编辑人格、当轮桌面视觉、按键语音输入/输出、共享联网查询与本地长期记忆。版本tag对应的全部必需CI检查已经通过；真实服务和Windows11游戏真机验收单独记录。
 
 ## 下载和运行
 
 - 在版本页选择 **`ai-neko-0.4.0-alpha.1-windows-x64.zip`**。GitHub自动生成的Source code是源码，不是应用。
 - 完整解压到独立程序文件夹，保留根目录`ai-neko.exe`、`resources`和其他文件。包内含Electron、Python、猫娘及运行依赖，无需另装Python、Node或uv。
 - 双击根目录`ai-neko.exe`或`Start ai-neko.cmd`。首次阅读并选择是否接受Live2D条款；接受后显示猫娘，点击她打开聊天。在猫娘设置中配置模型、搜索与ASR/TTS。观察画面需要支持图片的模型。
-- 先选择具体窗口或屏幕，再启用观察并核对预览。每个新问题取新图；点击“说话”开始录音，再点一次提交。默认按需联网，兼容模型共用一份搜索配置；无搜索Key仍可普通聊天。
+- 先选择具体窗口或屏幕，再启用观察并核对预览。每个新问题取新图；点击“说话”开始录音，再点一次提交，勾选“朗读回复”启用语音输出。默认按需联网，兼容模型共用一份搜索配置；无搜索Key仍可普通聊天。
 - 长期记忆可以明确保存、查看依据、纠正、遗忘及管理快照。自动整理默认关闭，开启后使用所配置模型，可能产生服务费用；快照不包含服务凭据或全部应用数据。
 - 收起聊天面板保留桌宠；托盘可找回、恢复到主屏和退出。退出会结束自己的后端。`Check foundation.cmd`只运行合成基础自检；服务启动/停止脚本仅供诊断，不要对同一数据根同时运行多个入口。
 - 默认数据根为`%LOCALAPPDATA%\ai-neko`，可通过`AI_NEKO_DATA_DIR`设置独立绝对路径。程序目录和数据根分开；不读取或迁移原N.E.K.O.配置、数据、凭据。更新时退出旧程序，将新版解压到新文件夹，保留现有数据根；不要把程序解压到数据根内。
@@ -37,6 +37,8 @@ Get-FileHash .\ai-neko-0.4.0-alpha.1-windows-x64.zip -Algorithm SHA256
 
 ## 验证记录
 
-发布前五项能力CI [36230897663](https://github.com/FrigidCrow/ai-neko/actions/runs/36230897663)已通过：Windows576项/0跳过、Linux575项/1平台跳过，宿主58项、冻结后端16项、实际桌宠9项、陪伴闭环18项。此记录是发布前基线；本次0.4.0版本tag构建与Release下载核对完成后追加对应证据。
+[发布CI 36233199073](https://github.com/FrigidCrow/ai-neko/actions/runs/36233199073)全部通过，源码为`f359826bd60139a6a9efcef8d959f56c385228ba`，版本为`v0.4.0-alpha.1`。Windows576项/0跳过、Linux575项/1平台跳过，宿主58项、冻结后端16项、实际桌宠9项、陪伴闭环18项；额外Windows桌面启动诊断也通过。Release于2026-09-26发布，含15个附件。
+
+[Release下载核对](evidence/companion/release-v0.4.0-alpha.1-verification.json)为PASS：实际下载ZIP为191,844,465字节，SHA256为`0e133684466e13d481f7de7988f5c23cef240291740cf362640c7b280f7ac3f6`。15个附件与GitHub资产摘要一致；ZIP CRC、包内外build-info、Electron应用0.4.0、完整release版本、源码commit、AMD64程序及实际执行报告匹配。Mac只核对文件，未运行Windows程序。
 
 Windows Server CI不等于Windows11用户真机。真实人格/游戏建议质量、实际游戏截图识别、麦克风/音色、三次完整联网问答、记忆模型正确使用及20次取消p95仍待验收。免按键、多角色、主动陪伴与长期运行不是本次发布的已完成能力。各阶段保持[PLAN](PLAN.md)所列状态，实际命令与结果见[WORKLOG](../WORKLOG.md)及[REVIEW](../REVIEW.md)。

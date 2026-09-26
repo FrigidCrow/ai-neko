@@ -1,0 +1,321 @@
+{
+  "status": "PASS",
+  "source_commit": "f359826bd60139a6a9efcef8d959f56c385228ba",
+  "archive": "ai-neko-0.4.0-alpha.1-windows-x64.zip",
+  "archive_bytes": 191844465,
+  "archive_sha256": "0e133684466e13d481f7de7988f5c23cef240291740cf362640c7b280f7ac3f6",
+  "build_source_clean": true,
+  "source_tests": [
+    {
+      "name": "Windows-smoke.json",
+      "sha256": "cd32fee453b854103b358a57c57ff4384b8b750e026c741f229409baf62b65db",
+      "passed": 576,
+      "skipped": 0,
+      "failed": 0,
+      "errors": 0,
+      "ci_gate": "PASS",
+      "environment": {
+        "system": "Windows",
+        "release": "10",
+        "version": "10.0.20348",
+        "machine": "AMD64",
+        "python": "3.11.15",
+        "python_implementation": "CPython",
+        "python_pointer_bits": 64,
+        "pinned_python": "3.11.15",
+        "python_matches_pin": true
+      }
+    },
+    {
+      "name": "Linux-smoke.json",
+      "sha256": "ce6744b087cbd107ba3b056ca667ad25e42960c9f7c20a038500c54a4e78f763",
+      "passed": 575,
+      "skipped": 1,
+      "failed": 0,
+      "errors": 0,
+      "ci_gate": "PASS",
+      "environment": {
+        "system": "Linux",
+        "release": "6.17.0-1022-azure",
+        "version": "#22-Ubuntu SMP Mon Jul 27 17:24:03 UTC 2026",
+        "machine": "x86_64",
+        "python": "3.11.15",
+        "python_implementation": "CPython",
+        "python_pointer_bits": 64,
+        "pinned_python": "3.11.15",
+        "python_matches_pin": true
+      }
+    }
+  ],
+  "executables": {
+    "desktop": {
+      "sha256": "bd14928e0728366fd3f41499cb398ff3f4304dab259a3e605077899a6f8c748e",
+      "machine": "AMD64"
+    },
+    "backend": {
+      "sha256": "272603ff2848eb8cadd66896716b8b5e8a35eb963182260a5eb2b90b29408fdd",
+      "machine": "AMD64"
+    }
+  },
+  "memory_reuse": {
+    "source_commit": "90ccf79c95e80f899b9bf3395fa8cd9a9bfe29be",
+    "notices": {
+      "NEKO-LICENSE.txt": "0d99b64baf1323c3a7f70a28075b14d573df6d773aa2d33d827053cc775062d8",
+      "NEKO-NOTICE.txt": "96199da23327c5086c4f562e4c1a05685e18643ab32ce896f13934b15b4a8aca"
+    }
+  },
+  "package_tests": {
+    "kind": "synthetic_deterministic_packaged_executable",
+    "real_model_tests": 0,
+    "cases": [
+      {
+        "name": "archive_layout_and_safe_extraction",
+        "outcome": "PASS"
+      },
+      {
+        "name": "windows_x64_execution_environment",
+        "outcome": "PASS"
+      },
+      {
+        "name": "paths_in_chinese_directory",
+        "outcome": "PASS"
+      },
+      {
+        "name": "executable_self_check",
+        "outcome": "PASS"
+      },
+      {
+        "name": "authenticated_health_and_descriptor",
+        "outcome": "PASS"
+      },
+      {
+        "name": "http_rejects_missing_and_wrong_token",
+        "outcome": "PASS"
+      },
+      {
+        "name": "websocket_origin_auth_and_ping",
+        "outcome": "PASS"
+      },
+      {
+        "name": "packaged_web_assets_and_api_auth",
+        "outcome": "PASS"
+      },
+      {
+        "name": "packaged_chat_stream_ack_and_cancel",
+        "outcome": "PASS"
+      },
+      {
+        "name": "packaged_session_restart_recovery",
+        "outcome": "PASS"
+      },
+      {
+        "name": "second_instance_preserves_descriptor",
+        "outcome": "PASS"
+      },
+      {
+        "name": "occupied_explicit_port_is_rejected",
+        "outcome": "PASS"
+      },
+      {
+        "name": "graceful_stop_removes_descriptor",
+        "outcome": "PASS"
+      },
+      {
+        "name": "graph_pause_fresh_process_get_resume_get",
+        "outcome": "PASS"
+      },
+      {
+        "name": "graph_user_and_character_scope_separation",
+        "outcome": "PASS"
+      },
+      {
+        "name": "archive_unchanged_after_validation",
+        "outcome": "PASS"
+      }
+    ]
+  },
+  "desktop_cases_passed": 9,
+  "companion_cases_passed": 18,
+  "real_model_calls": 0,
+  "real_audio_service_calls": 0,
+  "actual_desktop_captures": 0,
+  "windows_11": "NOT_VERIFIED",
+  "screenshot_sha256": "c133b0e38fd566e6b0cf4f8accd905c808febbcc9892cb7c5f87eeebe544eea8",
+  "local_executable_run": false,
+  "snapshot_screenshot_sha256": "1ae3610fde0447d40dd72aa1d86f81143853bd6be9091c696843b693b0d131f0",
+  "memory_snapshot_ui": {
+    "explicit_restore_confirmation": true,
+    "stale_revision_did_not_restore": true,
+    "restored_persona": true,
+    "correction_preserved": true,
+    "forgotten_fact_absent": true,
+    "explicit_delete_confirmation": true
+  },
+  "heard_context": {
+    "first_sentence": "第一句🐾已经听完。",
+    "second_sentence_absent": true,
+    "display_ack": 0,
+    "actual_playback": [
+      {
+        "segment_id": "ba60a10c9b5a4f79bbc5dce93790aa09",
+        "state": "completed",
+        "updated_at": 1790415640.9840758,
+        "text_start": 0,
+        "text_end": 11
+      },
+      {
+        "segment_id": "0a2666075c214545916fca7ea9051c2c",
+        "state": "stopped",
+        "updated_at": 1790415641.1583447,
+        "text_start": 11,
+        "text_end": 23
+      }
+    ]
+  },
+  "full_heard": {
+    "heard_text": "合成场景建议：先观察。再决定下一步。",
+    "display_ack": 0,
+    "completed_segments": 2
+  },
+  "request_revocation": {
+    "actual_bridge": true,
+    "delayed_image_rejected": true,
+    "no_new_turn": true
+  },
+  "active_vision_revocation": {
+    "cancelled": true,
+    "model_requests": 1,
+    "late_text_absent": true
+  },
+  "release_id": 397176556,
+  "tag": "v0.4.0-alpha.1",
+  "release_url": "https://github.com/FrigidCrow/ai-neko/releases/tag/v0.4.0-alpha.1",
+  "published_at": "2026-09-26T09:41:25Z",
+  "prerelease": true,
+  "ci_url": "https://github.com/FrigidCrow/ai-neko/actions/runs/36233199073",
+  "ci_conclusion": "success",
+  "jobs": [
+    {
+      "name": "Synthetic tests (ubuntu-24.04)",
+      "conclusion": "success"
+    },
+    {
+      "name": "Synthetic tests (windows-2022)",
+      "conclusion": "success"
+    },
+    {
+      "name": "Build and exercise Windows ZIP",
+      "conclusion": "success"
+    },
+    {
+      "name": "Publish tagged desktop catgirl preview",
+      "conclusion": "success"
+    }
+  ],
+  "app_version": "0.4.0",
+  "release_version": "0.4.0-alpha.1",
+  "assets": [
+    {
+      "name": "ai-neko-0.4.0-alpha.1-windows-x64.zip",
+      "bytes": 191844465,
+      "sha256": "0e133684466e13d481f7de7988f5c23cef240291740cf362640c7b280f7ac3f6",
+      "url": "https://github.com/FrigidCrow/ai-neko/releases/download/v0.4.0-alpha.1/ai-neko-0.4.0-alpha.1-windows-x64.zip"
+    },
+    {
+      "name": "build-info.json",
+      "bytes": 24396,
+      "sha256": "f5a69ac80e3cd6acf22ce614aa38ff58ec1e4d648caf15e07aa6659f954059b6",
+      "url": "https://github.com/FrigidCrow/ai-neko/releases/download/v0.4.0-alpha.1/build-info.json"
+    },
+    {
+      "name": "companion-smoke-snapshots.png",
+      "bytes": 197576,
+      "sha256": "1ae3610fde0447d40dd72aa1d86f81143853bd6be9091c696843b693b0d131f0",
+      "url": "https://github.com/FrigidCrow/ai-neko/releases/download/v0.4.0-alpha.1/companion-smoke-snapshots.png"
+    },
+    {
+      "name": "companion-smoke.json",
+      "bytes": 31599,
+      "sha256": "ae09e18bc512e2fb993b779ec7ce6933e1089372eb810b0f7bb157f6f1de6b4e",
+      "url": "https://github.com/FrigidCrow/ai-neko/releases/download/v0.4.0-alpha.1/companion-smoke.json"
+    },
+    {
+      "name": "companion-smoke.png",
+      "bytes": 196281,
+      "sha256": "c133b0e38fd566e6b0cf4f8accd905c808febbcc9892cb7c5f87eeebe544eea8",
+      "url": "https://github.com/FrigidCrow/ai-neko/releases/download/v0.4.0-alpha.1/companion-smoke.png"
+    },
+    {
+      "name": "desktop-catgirl.png",
+      "bytes": 191656,
+      "sha256": "2882a9a394c90d54f0b643e51bd413e969c030912a5694befe3f05b56fec83aa",
+      "url": "https://github.com/FrigidCrow/ai-neko/releases/download/v0.4.0-alpha.1/desktop-catgirl.png"
+    },
+    {
+      "name": "desktop-guide.png",
+      "bytes": 193545,
+      "sha256": "fceb122eb4d9bac2aa4e8395bef425fc043c6b07e465d6483587e22f42bf9ad3",
+      "url": "https://github.com/FrigidCrow/ai-neko/releases/download/v0.4.0-alpha.1/desktop-guide.png"
+    },
+    {
+      "name": "desktop-restored.png",
+      "bytes": 164341,
+      "sha256": "4bab2eb40988cbe03f2941971e1d1e4cfdf8fdd2c3bb5c515320217807d15f83",
+      "url": "https://github.com/FrigidCrow/ai-neko/releases/download/v0.4.0-alpha.1/desktop-restored.png"
+    },
+    {
+      "name": "desktop-settings.png",
+      "bytes": 191416,
+      "sha256": "562c4e52bf24e735ab75ff634753a69559b1474574b4af81144cbe6af5f3144a",
+      "url": "https://github.com/FrigidCrow/ai-neko/releases/download/v0.4.0-alpha.1/desktop-settings.png"
+    },
+    {
+      "name": "desktop-smoke.json",
+      "bytes": 27570,
+      "sha256": "d5696ce94c3c2a9a34c51b0a241e0c12b5a2e6f3594861d49e601b9d4f94aca4",
+      "url": "https://github.com/FrigidCrow/ai-neko/releases/download/v0.4.0-alpha.1/desktop-smoke.json"
+    },
+    {
+      "name": "desktop-streaming.png",
+      "bytes": 184502,
+      "sha256": "8477a1642621855924ac17dd78f9cce563b14c46f042d9892df530e639a30602",
+      "url": "https://github.com/FrigidCrow/ai-neko/releases/download/v0.4.0-alpha.1/desktop-streaming.png"
+    },
+    {
+      "name": "Linux-smoke.json",
+      "bytes": 1113315,
+      "sha256": "ce6744b087cbd107ba3b056ca667ad25e42960c9f7c20a038500c54a4e78f763",
+      "url": "https://github.com/FrigidCrow/ai-neko/releases/download/v0.4.0-alpha.1/Linux-smoke.json"
+    },
+    {
+      "name": "package-smoke.json",
+      "bytes": 3000,
+      "sha256": "1d3c973f2acbe0bc48c1ff61e24c840c14eb89ca13eea182522bf43aba16f758",
+      "url": "https://github.com/FrigidCrow/ai-neko/releases/download/v0.4.0-alpha.1/package-smoke.json"
+    },
+    {
+      "name": "SHA256SUMS.txt",
+      "bytes": 186,
+      "sha256": "16914c6fba0f8fbaf0a45ea01480a65d42252331edb91f00580c68ff4b52e252",
+      "url": "https://github.com/FrigidCrow/ai-neko/releases/download/v0.4.0-alpha.1/SHA256SUMS.txt"
+    },
+    {
+      "name": "Windows-smoke.json",
+      "bytes": 1148738,
+      "sha256": "cd32fee453b854103b358a57c57ff4384b8b750e026c741f229409baf62b65db",
+      "url": "https://github.com/FrigidCrow/ai-neko/releases/download/v0.4.0-alpha.1/Windows-smoke.json"
+    }
+  ],
+  "all_github_asset_digests_match": true,
+  "zip_crc_check": "PASS",
+  "version_declarations_match": true,
+  "synthetic_calls": {
+    "model": 17,
+    "asr": 3,
+    "tts": 9
+  },
+  "single_stop_observed_ms": 110,
+  "p95_verified": false,
+  "user_microphone_captures": 0,
+  "host_unit_cases_passed": 58
+}

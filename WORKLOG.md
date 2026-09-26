@@ -389,3 +389,11 @@ Final documentation check: python3 docs/diagrams/tools/validate-docs.py > artifa
 实际执行`uv lock --offline`、`npm --prefix desktop version 0.4.0 --no-git-tag-version --ignore-scripts`与`uv sync --locked --offline`成功；六处版本声明和构建器alpha标签校验一致。`.venv/bin/pytest -q tests/test_packaging.py tests/test_package_smoke.py tests/test_provider_config.py`为67 passed / 1 Windows凭据专属skip。此时尚未创建标签、运行本次tag CI或发布；后续按实际结果补记。真实服务和Windows11验收继续单列。
 
 发布前Ruff检查与63个文件格式检查通过；桌面宿主58/58通过；文档校验PASS、无issues，git diff --check通过。
+
+发布准备提交`f359826bd60139a6a9efcef8d959f56c385228ba`，创建并推送注释标签`v0.4.0-alpha.1`，未覆盖旧版本。[发布CI36233199073](https://github.com/FrigidCrow/ai-neko/actions/runs/36233199073)双平台测试、Windows打包和发布全部SUCCESS；附加桌面启动诊断36233199048也SUCCESS。Windows576/0skip、Linux575/1平台skip、宿主58、冻结后端16/16、桌宠9/9、陪伴闭环18/18。
+
+GitHub Release 397176556于2026-09-26T09:41:25Z发布为prerelease，15个附件包含应用ZIP、摘要、构建信息、5份报告及7张桌面截图。实际读取Release API、核对远端tag解引用commit、下载附件并查看本次白裙YUI截图；大ZIP下载核对仍在进行，最终结果随后补记。发布说明补充勾选“朗读回复”这一操作步骤；未改tag或二进制。
+
+`gh release download v0.4.0-alpha.1 --repo FrigidCrow/ai-neko --dir artifacts/releases/v0.4.0-alpha.1/download`已完成；运行`python3 artifacts/releases/v0.4.0-alpha.1/verify-release.py`为PASS。脚本调用既有下载验证器并追加GitHub全部15个asset digest/字节数、tag CI源码、基础/发布/Electron版本及ZIP CRC核对。应用ZIP为191,844,465字节，SHA256 `0e133684466e13d481f7de7988f5c23cef240291740cf362640c7b280f7ac3f6`。精选结果归档至docs/evidence/companion/release-v0.4.0-alpha.1-verification.json，原始下载与API/CI记录保留artifacts。合成模型17/ASR3/TTS9；单次停音110ms不是p95；真实模型/语音/用户采集0，Windows11仍待验收。发布证据与说明另提交，源tag和二进制不变。
+
+发布后`python3 docs/diagrams/tools/validate-docs.py > artifacts/releases/v0.4.0-alpha.1/docs-final.json`返回PASS且issues为空，`git diff --check`通过；历史v0.3试用页已明确标注历史属性，新入口指向0.4发布与五项能力说明。

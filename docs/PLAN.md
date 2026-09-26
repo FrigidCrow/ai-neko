@@ -334,3 +334,5 @@ M0 已实现数据根、配置格式、后端实例锁与连接发现；网页�
 用户已明确要求发布新的Release。本次将人格、桌面视觉、语音输入/输出、共享查询与本地长期记忆发布为`v0.4.0-alpha.1`预览版：统一Python/Electron及锁文件的基础版本，保留依赖版本；新tag触发现有两平台测试、Windows构建、冻结后端、桌宠基线及陪伴闭环，全部通过后自动发布prerelease。
 
 发布页提供独立Windows ZIP、构建/测试报告、摘要与桌面截图；随后从Release实际下载核对tag、源码、程序版本、SHA256和报告。旧版本保留，真实API/Windows11游戏质量仍明确Pending，不借发布将完整五项目标标完成。
+
+发布结果：`v0.4.0-alpha.1`已发布，源码f359826b；CI36233199073四个jobs全部SUCCESS，Windows576/0skip、Linux575/1平台skip、宿主58、冻结后端16、桌宠9、陪伴闭环18通过。实际从Release下载15个附件，全部GitHub SHA256及ZIP CRC、程序/版本/源码/报告一致，见[Release下载核对](evidence/companion/release-v0.4.0-alpha.1-verification.json)。本次发布任务完成，真实API和Windows11质量验收仍保留原状态。

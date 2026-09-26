@@ -1,4 +1,6 @@
-# MVP1 桌宠工程预览试用
+# MVP1 桌宠工程预览试用（历史 v0.3）
+
+新版的下载、配置和五项能力操作请查看[Windows下载与CI/CD](CI-RELEASES.md)及[五项能力使用说明](COMPANION-IMPLEMENTATION.md)。下面保留v0.3的历史步骤和验收，不能作为新版功能列表。
 
 本页对应已发布的 [v0.3.0-alpha.1](https://github.com/FrigidCrow/ai-neko/releases/tag/v0.3.0-alpha.1) 和 [MVP1 桌宠目标](MVP1-DESKTOP-PET.md)：白裙 YUI Lolita 猫娘在桌面显示，输入、流式回复和攻略来源出现在她身旁。Electron 宿主管理窗口、托盘和自己的本地后端。**Windows 构建、打包桌面检查和发布 CI 已通过**；下面是此版本的 Windows 试用步骤。历史 `v0.2.0-alpha.1` 仍是网页预览，不包含桌宠。
 

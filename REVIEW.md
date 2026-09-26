@@ -265,3 +265,11 @@ Root 用 gh run download 分别取得两平台源码、package-evidence 和 ai-n
 ## 2026-09-26 — v0.4.0-alpha.1 发布准备
 
 用户已要求发布新的Release，版本统一为0.4.0，计划通过v0.4.0-alpha.1标签触发既有CI/CD。打包/配置定向检查67 passed、1平台skip；依赖版本未变。发布说明包含人格、视觉、按键语音、共享查询和本地长期记忆，仍为预览版。tag对应构建、Release创建及实际下载核对尚未执行，不能用前次开发包结果替代本次发布证据。
+
+### v0.4.0-alpha.1 已发布并核对下载
+
+[Release](https://github.com/FrigidCrow/ai-neko/releases/tag/v0.4.0-alpha.1)已发布为prerelease，源码`f359826bd60139a6a9efcef8d959f56c385228ba`；[tag流水线](https://github.com/FrigidCrow/ai-neko/actions/runs/36233199073)测试、Windows打包与发布全部SUCCESS。Windows576/0skip、Linux575/1平台skip、宿主58、冻结后端16/16、实际桌宠9/9、陪伴闭环18/18，额外桌面启动诊断也通过。
+
+[Release实际下载核对](docs/evidence/companion/release-v0.4.0-alpha.1-verification.json)PASS：15个附件的GitHub摘要匹配，191,844,465字节ZIP的SHA256为`0e133684466e13d481f7de7988f5c23cef240291740cf362640c7b280f7ac3f6`；源码、版本、内外build-info、AMD64程序执行摘要、许可与截图一致，ZIP CRC通过。实际查看本次Windows白裙YUI截图；未在Mac运行Windows程序。Release中语音使用说明明确勾选朗读回复，未改tag和二进制。
+
+发布任务完成；真实云服务、Windows11游戏窗口/麦克风/音色/建议质量以及20次取消p95仍Pending，不将本次合成17模型/3ASR/9TTS调用和单次110ms停音当作真实质量验收。五项功能的完整验收状态不因此变更。
