@@ -192,9 +192,10 @@
     document.body.dataset.sessionLoading = String(state.initializing || state.loadingSession);
     const busy = Boolean(state.active || state.submitting);
     elements.send.disabled = !ready || busy || !elements.input.value.trim();
-    elements.send.hidden = Boolean(state.active);
-    elements.cancel.hidden = !state.active;
-    elements.cancel.disabled = !state.active || Boolean(state.active?.cancelling);
+    const cancellable = busy || Boolean(state.pendingRequest) || state.visionRevocations.size > 0;
+    elements.send.hidden = cancellable;
+    elements.cancel.hidden = !cancellable;
+    elements.cancel.disabled = !cancellable || Boolean(state.active?.cancelling);
     elements.messages.setAttribute("aria-busy", String(busy || state.initializing || state.loadingSession));
     elements.input.disabled = !ready || state.submitting;
     byId("new-session").disabled = !state.connected || state.initializing || state.submitting || state.stopped;
@@ -531,10 +532,12 @@
     try {
       while (!controller.signal.aborted && generation === state.generation) {
         try {
+          if (active.cancelling) { await pause(50, controller.signal); continue; }
           // Do not claim unseen content was displayed while the companion panel is tucked away.
           if (!viewVisible() && !active.cancelling && !window.aiNekoCompanion?.speakingTurn(view.liveTurnId)) { await pause(150, controller.signal); continue; }
           const response = await api(`${path}/events?after=${sequence}`, { signal: controller.signal });
           if (generation !== state.generation || controller.signal.aborted) return;
+          if (active.cancelling) { await pause(50, controller.signal); continue; }
           if (!viewVisible() && !active.cancelling && !window.aiNekoCompanion?.speakingTurn(view.liveTurnId)) { await pause(150, controller.signal); continue; }
           if (errors) elements.status.textContent = "连接已恢复，正在接收回答…";
           const follow = nearBottom();
@@ -717,7 +720,7 @@
       const turnId = turn.turn_id || turn.id;
       if (!turnId) throw new Error("Missing turn identifier");
       if (!currentAttempt(attempt) || request.revoked) {
-        if (request.hasImage) await cancelAcceptedTurn(id, turnId);
+        await cancelAcceptedTurn(id, turnId);
         return;
       }
       if (state.pendingRequest === request) state.pendingRequest = null;
@@ -749,20 +752,48 @@
 
   async function cancelTurn() {
     window.aiNekoCompanion?.stopSpeech();
+    if (state.submission || state.pendingRequest || state.visionRevocations.size) {
+      try { await invalidatePending(); }
+      catch (error) { showNotice(friendlyError(error), { error: true }); throw error; }
+    }
     const active = state.active;
-    if (!active || active.cancelling) return;
+    if (!active) { elements.status.textContent = "已停止回复。"; updateComposer(); return; }
+    if (active.cancelling) return;
     active.cancelling = true;
     updateComposer();
     elements.status.textContent = "正在停止生成…";
     try {
       await api(`/api/sessions/${encodeURIComponent(active.sessionId)}/turns/${encodeURIComponent(active.turnId)}/cancel`, { method: "POST", body: {} });
-      // Keep polling until the server confirms cancellation and delivers its last events.
+      if (state.active !== active) return;
+      state.pollController?.abort(); state.pollController = null;
+      active.view.liveTurnId = null;
+      finishView(active.view, "cancelled");
+      state.active = null;
+      elements.status.textContent = "已停止回复。";
+      setPetState("idle"); updateComposer();
     } catch (error) {
       if (state.active !== active) return;
       active.cancelling = false;
       updateComposer();
       showNotice(friendlyError(error), { error: true });
+      throw error;
     }
+  }
+
+  async function invalidatePending() {
+    const pending = state.pendingRequest || state.submission?.request;
+    if (state.submission) { state.submission.revoked = true; state.submission.capture = null; }
+    state.submission = null; state.pendingRequest = null; state.submitting = false;
+    state.generation += 1;
+    state.pollController?.abort();
+    // Request tombstones cover both text and image POSTs, including a response
+    // lost after acceptance. Retain failed revocations for an explicit retry.
+    const results = await Promise.allSettled([
+      revokeVision(), ...(pending ? [retireVisionRequest(pending)] : []),
+    ]);
+    updateComposer();
+    const failed = results.find((result) => result.status === "rejected");
+    if (failed) throw failed.reason;
   }
 
   function keyState(kind, configured) {
@@ -911,7 +942,7 @@
   byId("mode-guide").addEventListener("click", () => setGuide(true));
   byId("mode-chat").addEventListener("click", () => setGuide(false));
   byId("new-session").addEventListener("click", newConversation);
-  elements.cancel.addEventListener("click", cancelTurn);
+  elements.cancel.addEventListener("click", () => cancelTurn().catch(() => {}));
   elements.noticeAction.addEventListener("click", () => state.noticeAction?.());
   byId("open-settings").addEventListener("click", openSettings);
   byId("welcome-settings").addEventListener("click", openSettings);
@@ -949,12 +980,7 @@
   });
   window.addEventListener("pagehide", () => { clearKeyInputs(); state.pollController?.abort(); });
   window.addEventListener("ai-neko-persona", (event) => { state.personaName = event.detail.name; });
-  window.aiNekoChat = Object.freeze({ api, friendlyError, cancelTurn, revokeVision,
-    invalidatePending: () => {
-      revokeVision().catch((error) => showNotice(friendlyError(error), { error: true }));
-      state.generation += 1; state.pendingRequest = null; state.submitting = false;
-      state.pollController?.abort();
-    },
+  window.aiNekoChat = Object.freeze({ api, friendlyError, cancelTurn, revokeVision, invalidatePending,
     refreshAfterForget: async () => {
       if (state.sessionId) await openSession(state.sessionId);
       await refreshSessions(); showPanel("settings");

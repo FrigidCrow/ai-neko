@@ -10,8 +10,9 @@ safe to re-run.
 
 Before the first pending step runs, a caller-supplied backup path receives a
 SQLite online backup. The backup survives a failed migration for manual
-recovery; successful migrations leave it in place (it is tiny and one-time
-per database generation).
+recovery. After successful service initialization, the caller removes its fixed
+automatic migration backup, including older generations. These temporary files
+must not become hidden permanent copies of conversations or forgotten facts.
 """
 
 from __future__ import annotations
@@ -19,6 +20,7 @@ from __future__ import annotations
 import os
 import sqlite3
 import tempfile
+from contextlib import closing
 from pathlib import Path
 from typing import Callable
 
@@ -33,12 +35,22 @@ def schema_version(db: sqlite3.Connection) -> int:
     return db.execute("PRAGMA user_version").fetchone()[0]
 
 
+def ensure_supported_schema(db: sqlite3.Connection, latest_version: int) -> int:
+    """Reject a future database before callers change pragmas or create tables."""
+    current = schema_version(db)
+    if current > latest_version:
+        raise MigrationError(f"schema_version_{current}_newer_than_supported_{latest_version}")
+    return current
+
+
 def _write_backup(db: sqlite3.Connection, destination: Path) -> None:
     # Online backup into a fresh 0600 file, then atomically move it into place.
     fd, temporary = tempfile.mkstemp(prefix=".migration-", suffix=".sqlite", dir=destination.parent)
     os.close(fd)
     try:
-        with sqlite3.connect(temporary) as target:
+        # sqlite3's transaction context does not close the connection. Close it
+        # before replacing the file, which Windows refuses while it is open.
+        with closing(sqlite3.connect(temporary)) as target:
             db.backup(target)
         os.replace(temporary, destination)
     finally:
@@ -54,23 +66,27 @@ def apply_migrations(
     """Apply pending steps and return the resulting schema version.
 
     ``steps`` is ordered ``(version, callable)``; version N upgrades an N-1
-    database to N. Versions must be strictly increasing and start above the
+    database to N. Versions must be consecutive and start above the
     baseline (1). A failed step rolls back its transaction only, so already
     committed steps stay applied and the next open resumes from there.
     """
     if not steps:
         raise MigrationError("migration_steps_empty")
     versions = [version for version, _ in steps]
-    if versions != sorted(set(versions)) or versions[0] <= 1:
+    if (
+        any(type(version) is not int for version in versions)
+        or versions != list(range(2, versions[-1] + 1))
+        or any(not callable(step) for _, step in steps)
+    ):
         raise MigrationError("migration_steps_invalid")
-    current = schema_version(db)
     latest = versions[-1]
+    current = ensure_supported_schema(db, latest)
     if current == 0:
         # 0 means "no ledger": either a pre-framework install or a fresh
         # database whose CREATE TABLE script already produced the latest
         # shape. Idempotent steps make both safe.
         current = 1
-    if current >= latest:
+    if current == latest:
         return current
     if backup_path is not None:
         backup_path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)

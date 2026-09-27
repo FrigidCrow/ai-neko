@@ -4,23 +4,14 @@
 
 ## 1. 当前状态快照
 
-- 分支 `workbuddy/codex-companion-five-capabilities-18174213`，本地领先远程 1 个提交：
-  - `e53b529` G1 前准备批次（**尚未推送**）
-  - `7ff0117` / `235342d` 已推送，CI [36258099207](https://github.com/FrigidCrow/ai-neko/actions/runs/36258099207) 全绿（Windows 577 passed / 0 skipped + 打包冒烟）
-- 测试基线：本地 pytest **584 passed / 12 skipped / 0 failed**；desktop `npm test` 58/58；`ruff check` + `ruff format --check` 全绿
-- 上一阶段（评审→修复→核验→提交）完整记录见 `docs/MVP2-READINESS-REVIEW.md`（附录二为修复清单）；工程记录在 `REVIEW.md` / `WORKLOG.md` 末尾
+- 唯一后续开发目录：`/Users/frigidcrow/Dev/ai-neko`，分支 `codex/companion-five-capabilities`。WorkBuddy提交已合入，保留原工作区供回溯，不再从旧副本继续开发。
+- 用户已授权MVP1问题收尾及CI/CD，然后进入MVP2准备。最新收尾结论、源码/CI及下载核对见 [MVP1收尾报告](MVP1-CLOSEOUT.md)，不要用历史CI或旧测试数量替代它。
+- G1前准备批次已具备；G1–G6功能和验收仍Pending。历史评审见 [MVP2就绪评审](MVP2-READINESS-REVIEW.md)，实际命令和证据见WORKLOG/REVIEW文末。
+- 原MVP2桌面WIP已另存于 `artifacts/mvp2-deferred/desktop-guides-wip.patch`，合并前保护stash为 `3e77be31a370800c2759dac10f6ce6b6ddcbbbda`。它是未完成的界面草稿，不能直接套用到收尾后的取消流程。
 
 ## 2. 立即事项（开工 G1 之前）
 
-**推送 `e53b529` 触发 CI 验证准备批次**（用户此前已同意推送触发 CI 的模式，但按 `AGENTS.md` 规则推送前仍需用户确认）：
-
-```bash
-git push                                    # 分支已设 upstream
-gh run list --branch workbuddy/codex-companion-five-capabilities-18174213 --limit 1
-gh run watch <run-id> --exit-status
-```
-
-预期：Windows/Linux 测试全绿（本地 12 个 skip 里 11 个是本机沙箱问题，CI 上应全部通过；1 个 Windows 凭据专属只在 Windows 跑）。CI 全绿后 G1 才算站在已验证的地基上。
+先确认收尾报告中当前提交的CI与Windows下载核对通过，再登记G1任务并实施公开文字攻略的入库纵切。不要再次推送旧的WorkBuddy分支来验证已经合入的准备批次。真实服务和Windows11体验项按报告的实际状态保留，不冒称已验收。
 
 ## 3. G1 工作单：攻略入库
 
@@ -31,9 +22,9 @@ gh run watch <run-id> --exit-status
 | 地基 | 位置 | 用法 |
 | --- | --- | --- |
 | 攻略库落位决策 | 独立 `guides.sqlite`，目录 `paths.guides`（数据根 `guides/`，已创建） | 新库从迁移框架起步 |
-| 迁移框架 | `src/ai_neko/config/schema.py` | 新表定义 v2 步骤（guides 库从 baseline 1 开始；`steps=[(2, 建表)]`）。**语义**：user_version 是台账，信任它；模拟旧库测试必须连同 `PRAGMA user_version=0` 一起回退（见 `tests/test_audio_context.py:152-158` 的写法） |
+| 迁移框架 | `src/ai_neko/config/schema.py` | guides新库从baseline 1、建表v2开始；迁移步骤连续，拒绝未来库。conversation已为v3、个人记忆为v2。服务初始化成功后删除固定名自动迁移备份，失败保留；不能制造不可管理的长期正文副本 |
 | 埋点 | `src/ai_neko/config/telemetry.py`（`runtime.metrics`） | G1 的入库/检索耗时建议 `record("guide_ingest_ms", ...)` / `guide_retrieve_ms`（命名规则：小写+下划线，≤64 字符） |
-| 检索接口 | `src/ai_neko/retrieval.py` | G3 才接图；G1 的段落检索实现先落库层 |
+| 检索接口 | `src/ai_neko/retrieval.py` | 当前仅骨架；G1需补正文、游戏/版本筛选及字符预算契约，G3才接对话图 |
 
 ### 3.2 G1 表设计要点（从规划 §4 提炼，字段名可按既有风格调整）
 
@@ -54,13 +45,13 @@ gh run watch <run-id> --exit-status
 
 ## 4. 本机环境与流程注意事项（不在任何仓库文档里）
 
-1. **macOS BSD grep 不支持 `\|` 交替**——用 `grep -E` 或 Grep 工具，否则静默返回空，极易误判「代码不存在」。
-2. **沙箱会拦截子进程与二次 mkdir**：同一路径第二次 `mkdir(exist_ok=True)` 抛 EEXIST。相关测试已接 `sandbox_compatible` fixture（`tests/conftest.py`），失败原因会显示为 skip。**CI 上这些用例正常跑**。
+1. 文件与文本检索优先用 `rg` / `rg --files`；不要因一次检索为空就断言代码不存在。
+2. 旧WorkBuddy沙箱曾拦截子进程和二次mkdir；当前本机这些用例可以运行。`sandbox_compatible`只跳过已知EEXIST故障，其他错误会失败；CI拒绝非预期skip。
 3. **pytest 长时间运行要用独立 basetemp**：`--basetemp=/tmp/<唯一名>`，否则与残留会话冲突出现批量 EEXIST 假失败。
 4. **CI 有 format 门禁**：`ruff format --check src tests scripts packaging`。提交前必须本地跑 `uv run ruff format src tests scripts packaging`；ruff 新版会顺带格式化 markdown 内嵌 Python 代码块，属预期。
 5. **大文件读取会被截断持久化且无法回读**：读 `runtime/service.py`（约 1200 行）这类文件必须分段 Read；**绝不能凭部分内容写 file:line 引用**（历史教训见 `docs/MVP2-READINESS-REVIEW.md` 附录一）。
-6. `runtime/service.py` 现有机制速查：流式 text 事件内存缓冲（16 条/50ms 刷盘，settle 强刷）；遗忘走「turn_memory 本回合真实引用 + 内容证据扫描」（needles 只在内存，持久意图纯 ID）；checkpoint 按 `internal_id:turn_id` 精确清理。
-7. 推送=外部动作，先问用户；tag 推送会走发布路径，别误触。
+6. Runtime的取消/关闭/记忆变更必须结算真正的线程操作，不能把取消await当作SQLite线程已经停止。遗忘结合本轮事实与实际传入的历史依赖，内容证据不持久化；checkpoint按 `internal_id:turn_id` 清理。后续回合即使换话题也可能携旧历史，需要保守清理，不能承诺同会话后续总会保留。
+7. 推送和发布遵循当前用户授权；本次收尾已授权CI/CD。tag会触发发布路径，不能把未授权的新版本发布视为普通本地操作。
 
 ## 5. 文件索引
 

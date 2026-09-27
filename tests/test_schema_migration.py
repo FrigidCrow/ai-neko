@@ -4,7 +4,12 @@ import sqlite3
 
 import pytest
 
-from ai_neko.config.schema import MigrationError, apply_migrations, schema_version
+from ai_neko.config.schema import (
+    MigrationError,
+    apply_migrations,
+    ensure_supported_schema,
+    schema_version,
+)
 
 
 def _add_note(db) -> None:
@@ -53,6 +58,48 @@ def test_already_migrated_database_never_rewrites_or_backs_up(tmp_path):
     result = apply_migrations(db, steps=[(2, _add_note)], backup_path=backup)
     assert result == 2
     assert not backup.exists()
+
+
+def test_future_schema_is_rejected_without_modifying_database_or_backup(tmp_path):
+    path = tmp_path / "future.sqlite"
+    backup = tmp_path / "previous-backup.sqlite"
+    backup.write_bytes(b"preserve existing recovery file")
+    with sqlite3.connect(path) as db:
+        db.execute("CREATE TABLE future_data (secret TEXT)")
+        db.execute("INSERT INTO future_data VALUES ('must survive downgrade')")
+        db.execute("PRAGMA user_version=99")
+    before = path.read_bytes()
+    with sqlite3.connect(path) as db:
+        with pytest.raises(MigrationError, match="newer_than_supported"):
+            ensure_supported_schema(db, 2)
+        with pytest.raises(MigrationError, match="newer_than_supported"):
+            apply_migrations(db, steps=[(2, _add_note)], backup_path=backup)
+        assert schema_version(db) == 99
+    assert path.read_bytes() == before
+    assert backup.read_bytes() == b"preserve existing recovery file"
+
+
+def test_backup_connection_is_closed_before_windows_file_replace(tmp_path, monkeypatch):
+    from ai_neko.config import schema
+
+    db = _database(latest_shape=False)
+    connect, replace = sqlite3.connect, schema.os.replace
+    opened = []
+
+    def track_connect(*args, **kwargs):
+        target = connect(*args, **kwargs)
+        opened.append(target)
+        return target
+
+    def replace_after_close(source, destination):
+        assert len(opened) == 1
+        with pytest.raises(sqlite3.ProgrammingError, match="closed"):
+            opened[0].execute("SELECT 1")
+        replace(source, destination)
+
+    monkeypatch.setattr(schema.sqlite3, "connect", track_connect)
+    monkeypatch.setattr(schema.os, "replace", replace_after_close)
+    apply_migrations(db, steps=[(2, _add_note)], backup_path=tmp_path / "backup.sqlite")
 
 
 def test_failed_step_rolls_back_version_and_keeps_backup(tmp_path):
@@ -112,6 +159,9 @@ def test_autocommit_connection_also_rolls_back(tmp_path):
         [(1, _add_note)],
         [(2, _add_note), (2, _add_note)],
         [(3, _add_note), (2, _add_rank)],
+        [(3, _add_rank)],
+        [(2, _add_note), (4, _add_rank)],
+        [(2.0, _add_note)],
     ],
 )
 def test_invalid_step_lists_are_rejected(steps):
@@ -136,7 +186,7 @@ def test_conversation_and_memory_services_stamp_their_ledgers(tmp_path):
     with MemoryService(paths) as memory:
         assert schema_version(memory._db) == 2
     runtime = SessionRuntime(paths, Store())
-    assert schema_version(runtime._db) == 2
+    assert schema_version(runtime._db) == 3
     assert (paths.root / "guides").is_dir()
 
     import asyncio

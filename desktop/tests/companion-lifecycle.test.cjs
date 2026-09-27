@@ -13,7 +13,7 @@ const deferred = () => { let resolve, reject; const promise = new Promise((yes, 
 // is synthetic; these tests never request an operating-system media permission.
 function fixture(overrides = {}) {
   const nodes = new Map(), streams = [], recorders = [], timers = new Map(), listeners = new Map();
-  const calls = { cancel: 0, asr: 0, submitted: [], microphone: [], vision: [] };
+  const calls = { cancel: 0, asr: 0, submitted: [], microphone: [], vision: [], api: [] };
   const el = (id) => {
     if (!nodes.has(id)) nodes.set(id, { value: '', checked: false, hidden: false, textContent: '', attributes: {},
       setAttribute(key, value) { this.attributes[key] = value; }, removeAttribute(key) { delete this[key]; }, replaceChildren() {}, focus() {}, add() {} });
@@ -34,7 +34,9 @@ function fixture(overrides = {}) {
   const chat = {
     canRecord: () => true,
     cancelTurn: async () => { calls.cancel++; if (overrides.cancel) await overrides.cancel(calls.cancel); },
-    api: async (route, options) => { if (route === '/api/voice/transcribe') { calls.asr++; return overrides.transcribe ? overrides.transcribe(options) : { text: '合成问题' }; } return {}; },
+    api: async (route, options) => { calls.api.push({ route, options }); if (route === '/api/voice/transcribe') { calls.asr++; return overrides.transcribe ? overrides.transcribe(options) : { text: '合成问题' }; } return {}; },
+    invalidatePending: async () => overrides.invalidate?.(),
+    refreshAfterForget: async () => {},
     submitText: async (text, options) => { calls.submitted.push({ text, options }); if (overrides.submit) await overrides.submit(text, options); },
     revokeVision: async () => { calls.vision.push('revoke'); if (overrides.revoke) await overrides.revoke(); },
     friendlyError: (error) => error.message,
@@ -207,4 +209,14 @@ test('late failed source selection and capture cannot disable a newer chosen sou
   await f.enable('window:C'); image.reject(new Error('old frame revoked'));
   await assert.rejects(pending, /old frame revoked/);
   assert.equal(f.el('vision-enabled').checked, true); assert.match(f.el('vision-status').textContent, /window:C/);
+});
+
+test('memory snapshot waits for pending request revocation and never mutates after cancellation failure', async () => {
+  const pending = deferred(); const f = fixture({ invalidate: () => pending.promise });
+  const saving = f.el('create-memory-backup').onclick(); await tick();
+  assert.equal(f.calls.api.some((item) => item.route === '/api/memory/backups' && item.options?.method === 'POST'), false);
+  pending.reject(new Error('synthetic durable revocation failed'));
+  await saving;
+  assert.equal(f.calls.api.some((item) => item.options?.method === 'POST'), false);
+  assert.match(f.el('memory-backup-status').textContent, /synthetic durable revocation failed/);
 });

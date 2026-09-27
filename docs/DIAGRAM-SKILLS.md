@@ -21,7 +21,7 @@ Mermaid 的文本定义与渲染方式见 [Mermaid 官方介绍](https://mermaid
 
 | Skill 与来源 | 阅读和安装状态 | 擅长的图或工作 | 本次选择及原因 |
 |---|---|---|---|
-| [visualize](/Users/frigidcrow/.codex/plugins/cache/openai-bundled/visualize/1.0.39/skills/visualize/SKILL.md) | 本地已有；全文阅读 | 静态关系用 Mermaid；有必要时用交互图解释变化 | **采用选图与可读性原则**。本次交付是项目文档图册，按独立项目文件组织；不把它误当作聊天内的 HTML 片段 |
+| [visualize](/Users/frigidcrow/.codex/plugins/cache/openai-bundled/visualize/1.0.41/skills/visualize/SKILL.md) | 调研时全文阅读1.0.39；链接于2026-09-27更新为本机已安装的1.0.41 | 静态关系用 Mermaid；有必要时用交互图解释变化 | **采用选图与可读性原则**。本次交付是项目文档图册，按独立项目文件组织；不把它误当作聊天内的 HTML 片段 |
 | [engineering-software-architect](/Users/frigidcrow/.codex/skills/engineering-software-architect/SKILL.md) | 本地已有；全文阅读 | 模块边界、依赖方向、C4 分层与架构取舍 | **采用架构组织方法**。帮助区分桌面宿主、对话决策、实时任务和长期记忆各自负责什么；它不是专用渲染器 |
 | [insert-mermaid-diagrams](https://github.com/Kracozebr/agent-skill-mermaid-diagrams/blob/main/skills/insert-mermaid-diagrams/SKILL.md) | 外部来源；全文阅读；未安装、未运行脚本 | 从需求或现有图整理流程、时序、状态、ER 图，写入 Markdown 或 `.mmd` | **作为调研参考**。强调按事实画图、把大图拆小，与本次需要匹配；已有工具足够，无需再安装一套相似工作流 |
 | [Excalidraw Diagram Skill](https://github.com/iizcm/excalidraw-skill/blob/main/SKILL.md) | 外部来源；全文阅读；未安装、未运行脚本 | 用 JSON 生成手绘风格的架构图、流程图、序列图和概念图 | **本轮不采用，保留备选**。将来要自己拖动方框、现场讨论布局时有价值；这次优先让图源与计划一起维护 |

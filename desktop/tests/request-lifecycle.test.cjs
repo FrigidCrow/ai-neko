@@ -86,7 +86,7 @@ async function harness({ request, capture, flush, stopRecording, plain = false }
   await drain();
   assert.equal(document.body.dataset.chatReady, 'true');
   const chat = window.aiNekoChat;
-  return { chat, requests, calls, storage, byId, async dispose() { chat.invalidatePending(); await drain(); } };
+  return { chat, requests, calls, storage, byId, async dispose() { await chat.invalidatePending(); await drain(); } };
 }
 
 const turnPosts = (app) => app.requests.filter((item) => item.method === 'POST' && /\/turns$/.test(item.path));
@@ -319,4 +319,90 @@ test('request cancellation bridge accepts only scoped opaque request IDs', () =>
     assert.throws(() => validateRequest({ method: 'POST', path: `/api/sessions/${SID}/requests/${requestId}/cancel`, body: {} }));
   }
   assert.throws(() => validateRequest({ method: 'GET', path: `/api/sessions/${SID}/requests/${'c'.repeat(32)}/cancel` }));
+});
+
+test('stop is available during a pending plain-text POST and tombstones it before late acceptance', async () => {
+  const accepted = deferred();
+  const app = await harness({ plain: true, request: (payload) => /\/turns$/.test(payload.path) ? accepted.promise : undefined });
+  try {
+    const sending = app.chat.submitText('尚未确认的文字问题'); await drain();
+    const posted = turnPosts(app)[0];
+    assert.equal(app.byId('cancel-turn').hidden, false);
+    await app.chat.cancelTurn();
+    assert.equal(requestCancels(app).length, 1);
+    assert.ok(requestCancels(app)[0].path.includes(posted.body.request_id));
+    app.byId('message-input').value = '新的草稿';
+    accepted.resolve({ status: 202, body: { id: TID } }); await sending; await drain();
+    assert.ok(app.requests.some((item) => item.path === `/api/sessions/${SID}/turns/${TID}/cancel`));
+    assert.equal(app.calls.begin.length, 0);
+    assert.equal(app.requests.some((item) => item.path.includes('/events')), false);
+    assert.equal(app.byId('message-input').value, '新的草稿');
+  } finally { await app.dispose(); }
+});
+
+test('a plain-text response loss remains cancellable and memory invalidation awaits a durable request tombstone', async () => {
+  const revoked = deferred();
+  const app = await harness({ plain: true, request: (payload) => {
+    if (/\/turns$/.test(payload.path)) throw new Error('synthetic lost acceptance');
+    if (payload.path.includes('/requests/')) return revoked.promise;
+  } });
+  try {
+    await app.chat.submitText('已接受但丢失响应');
+    assert.equal(app.byId('cancel-turn').hidden, false);
+    let completed = false;
+    const invalidating = app.chat.invalidatePending().then(() => { completed = true; }); await drain();
+    assert.equal(requestCancels(app).length, 1); assert.equal(completed, false);
+    revoked.resolve({ status: 200, body: { status: 'cancelled' } }); await invalidating;
+    assert.equal(completed, true); assert.equal(app.calls.begin.length, 0);
+  } finally { await app.dispose(); }
+});
+
+test('a failed plain-text request cancellation stays retryable without allowing stale acceptance', async () => {
+  const accepted = deferred(); let attempts = 0;
+  const app = await harness({ plain: true, request: (payload) => {
+    if (/\/turns$/.test(payload.path)) return accepted.promise;
+    if (payload.path.includes('/requests/') && ++attempts === 1) throw new Error('synthetic cancellation failure');
+  } });
+  try {
+    const sending = app.chat.submitText('取消失败需要重试'); await drain();
+    await assert.rejects(app.chat.cancelTurn(), /synthetic cancellation failure/);
+    assert.equal(app.byId('cancel-turn').hidden, false);
+    await app.chat.cancelTurn();
+    assert.equal(requestCancels(app).length, 2);
+    assert.equal(requestCancels(app)[0].path, requestCancels(app)[1].path);
+    accepted.resolve({ status: 202, body: { id: TID } }); await sending; await drain();
+    assert.equal(app.calls.begin.length, 0);
+  } finally { await app.dispose(); }
+});
+
+test('stop during an in-flight text event batch suppresses its late text and delivery acknowledgement', async () => {
+  const events = deferred(), cancelled = deferred();
+  const app = await harness({ plain: true, request: (payload) => {
+    if (payload.path.includes('/events')) return events.promise;
+    if (payload.path === `/api/sessions/${SID}/turns/${TID}/cancel`) return cancelled.promise;
+  } });
+  try {
+    await app.chat.submitText('已经开始的文字回复'); await drain();
+    const stopping = app.chat.cancelTurn();
+    events.resolve({ status: 200, body: { events: [{ seq: 1, type: 'text', text: '取消之后迟到的内容' }], status: 'running', last_seq: 1 } }); await drain();
+    assert.equal(app.calls.text.length, 0);
+    assert.equal(app.requests.some((item) => item.path.endsWith('/ack')), false);
+    cancelled.resolve({ status: 200, body: { status: 'cancelled' } }); await stopping; await drain();
+    assert.equal(app.byId('cancel-turn').hidden, true);
+    assert.equal(app.byId('turn-status').textContent, '已停止回复。');
+  } finally { await app.dispose(); }
+});
+
+test('stop during asynchronous capture ends submission before it can create a session', async () => {
+  const captured = deferred();
+  const app = await harness({ capture: () => captured.promise });
+  try {
+    const sending = app.chat.submitText('还在取图'); await drain();
+    assert.equal(app.byId('cancel-turn').hidden, false);
+    await app.chat.cancelTurn();
+    captured.resolve({ epoch: 0, frame: { frame_id: 'obsolete' } }); await sending; await drain();
+    assert.equal(turnPosts(app).length, 0);
+    assert.equal(app.requests.some((item) => item.path === '/api/sessions' && item.method === 'POST'), false);
+    assert.equal(app.calls.begin.length, 0);
+  } finally { await app.dispose(); }
 });

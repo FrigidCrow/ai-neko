@@ -422,3 +422,29 @@ GitHub Release 397176556于2026-09-26T09:41:25Z发布为prerelease，15个附件
 按 PLAN §17.1 执行 G1 前准备批次：P-1 攻略库落位独立 guides.sqlite（数据根新增 guides/ 目录，NEXT-GUIDE-COMPANION §4/§7 修订）；P-2 迁移框架 `config/schema.py`（user_version 台账/幂等步骤/迁移前备份/失败回滚/中断续跑），收编 conversation 与 long-term 两处内联 ALTER；P-3 埋点 `config/telemetry.py`（内存缓冲+定量刷盘 logs/metrics.jsonl+分位数），埋 memory_recall_ms/first_text_ms/turn_total_ms/memory_extraction_ms；P-4 `retrieval.py`（Citation/Retriever 协议 + MemoryRetriever 适配）。
 
 实际命令：`uv run pytest tests/ -q`（584 passed/12 skipped）、`npm --prefix desktop test`（58/58）、`uv run ruff check .` 与 `ruff format --check`（0）。新增 test_schema_migration/test_telemetry/test_retrieval 共 19 项；test_audio_context 旧 schema 用例改为连同 user_version 一起回退以模拟无台账旧库。
+
+## 2026-09-27 — WorkBuddy 最新提交合并回原项目目录
+
+用户要求把WorkBuddy最新代码合并回 `/Users/frigidcrow/Dev/ai-neko`。先更新PLAN合并任务，核实WorkBuddy工作树干净且HEAD为 `fd95b0a55f51471853223f36d21ae3f31d2cf3a0`；原目录三个未提交文件用 `git stash push -m 'ai-neko local edits before WorkBuddy integration 2026-09-27' -- desktop/renderer/app.js docs/NEXT-GUIDE-COMPANION.md docs/PLAN.md` 保存，备份对象 `3e77be31a370800c2759dac10f6ce6b6ddcbbbda` 保留。
+
+执行 `git merge --ff-only fd95b0a`，再用 `git stash apply 3e77be31a370800c2759dac10f6ce6b6ddcbbbda` 恢复本地修改，无冲突。`git diff --exit-code 3e77be31a370800c2759dac10f6ce6b6ddcbbbda -- desktop/renderer/app.js` 通过，证实原桌面WIP完整保留；`git merge-base --is-ancestor fd95b0a HEAD` 通过。同步PLAN/NEXT/HANDOFF当前状态，保留独立guides.sqlite及快照决策。未修改WorkBuddy目录、未推送或发布。
+
+原目录执行 `PYTHONPATH=src .venv/bin/python -m pytest -q --basetemp="$(mktemp -d /tmp/ai-neko-merged-tests.XXXXXX)"`：595 passed、1 Windows专属skip，44.27秒；在desktop运行 `npm test`：58通过；`.venv/bin/ruff check src tests scripts packaging` 与 `.venv/bin/ruff format --check src tests scripts packaging` 均通过。环境Darwin arm64、Python3.11.15、ruff0.16.9、Node25.9.0，依赖锁文件未改。
+
+文档检查 `.venv/bin/python docs/diagrams/tools/validate-docs.py` 首次发现历史visualize1.0.39本机链接失效；将链接更新到已确认存在的1.0.41，并保留历史阅读版本说明，随后复验。既有取消竞态登记为下一项修复，未在本次合并顺带实施。
+
+最终文档复验PASS：27份Markdown、391个本地链接、206个参考文件，issues为空，参考源码指纹保持不变；报告由校验器更新到 `docs/validation.json`，`git diff --check`通过。
+
+## 2026-09-27 — MVP1 缺陷收束与CI/CD（执行中）
+
+用户授权取消修复、问题收束、CI/CD与MVP1工程结束后准备MVP2。先登记PLAN第18节，分别处理Runtime/API、Memory Service、桌面生命周期和迁移框架，并做独立只读审查。没有启动G1–G6，没有读取参考工程配置/凭据或修改参考工程。
+
+修复范围：异步recall返回后取消/关闭/并发/记忆修订校验，跟踪实际SQLite worker而非只取消await；人格/记忆API避免主循环等待记忆锁；同时间戳更正后的索引缓存失效及遗忘/恢复/关闭清理；原始用户历史与实际注入助手文本的依赖分开持久化；已遗忘占位不污染新历史；未来schema拒绝、连续迁移检查、备份与清理连接显式关闭；成功初始化清理固定名自动迁移备份，失败保留。桌面统一取消纯文字和视觉的未确认请求，停止后不展示/ACK迟到事件，记忆操作等待持久撤销。MVP2未完成UI补丁另存，原保护stash保留。
+
+首轮全量 `PYTHONPATH=src .venv/bin/python -m pytest -q --basetemp="$(mktemp -d /tmp/ai-neko-closeout.XXXXXX)"` 为630通过/1失败/1平台skip：实际注入仅含无关用户问题时被错误挂上后台召回依赖。保留日志 `artifacts/mvp1/closeout-python-first-failed.txt`，未修改原测试预期；精细化用户与助手依赖后该测试和新增转述/重启/重复遗忘用例均通过，随后重跑全量。
+
+专项：memory与迁移131项、Runtime/API最后目标116项通过；桌面 `npm --prefix desktop test` 64通过。`node desktop/tests/companion.smoke.cjs --output artifacts/mvp1/companion-closeout-final.json` 实际Electron20项通过，合成18模型/3ASR/29TTS，真实服务及用户采集均0，renderer errors为空；20次点击到WebAudio stop返回p95约0.10ms，不是声学/端到端或Windows11延迟。此前一次harness加载require错误保留失败报告并已修复复跑，不计入产品缺陷。
+
+环境Darwin arm64、Python3.11.15、Node25.9.0/Electron44.4.5，锁版本LangGraph1.2.12/checkpoint-sqlite3.1.1/FastAPI0.141.1/httpx0.28.1/pytest9.1.1/ruff0.16.9未升级。`.venv/bin/ruff check src tests scripts packaging`、`ruff format --check src tests scripts packaging`与`git diff --check`通过；全量最终及Windows CI结果后续补记。用户授权本轮提交推送，未变更GitHub默认分支。
+
+最终复核又补共享来源的真实原话分类：删除前持久化原话依赖，Memory返回真实存在的source IDs，避免把合成清理标记当原文，同时覆盖长文本、无ACK和跨库提交后崩溃恢复。最后执行 `PYTHONPATH=src .venv/bin/python -m pytest -q --basetemp="$(mktemp -d /tmp/ai-neko-closeout-release.XXXXXX)"`，结果640 passed、1 Windows凭据专属skip，40.74秒，日志 `artifacts/mvp1/closeout-python-final.txt`；ruff检查、72文件格式检查及diff检查通过。`node scripts/desktop_smoke.cjs --output artifacts/mvp1/closeout-desktop-baseline.json` 的实际Electron基线9项通过。接着执行文档验证，提交修复并推送当前分支触发CI。

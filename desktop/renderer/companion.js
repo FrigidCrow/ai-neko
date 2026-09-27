@@ -213,7 +213,7 @@
       const save = document.createElement('button'); save.type = 'button'; save.className = 'soft-button'; save.textContent = '保存修改';
       const remove = document.createElement('button'); remove.type = 'button'; remove.className = 'text-button'; remove.textContent = '遗忘';
       save.onclick = async () => { stopSpeech(); await chat.cancelTurn(); try { await chat.api(`/api/memories/${encodeURIComponent(item.id)}`, { method: 'PUT', body: { content: text.value } }); await loadMemories(); el('memory-status').textContent = '记忆已纠正。'; } catch (error) { el('memory-status').textContent = errorText(error); } };
-      remove.onclick = async () => { stopSpeech(); stopRecording(true); chat.invalidatePending(); await chat.cancelTurn(); try { await chat.api(`/api/memories/${encodeURIComponent(item.id)}`, { method: 'DELETE' }); await chat.refreshAfterForget(); await loadMemories(); el('memory-status').textContent = '已遗忘这条记忆，并刷新相关历史。'; } catch (error) { await chat.refreshAfterForget().catch(() => {}); el('memory-status').textContent = errorText(error); } };
+      remove.onclick = async () => { stopSpeech(); stopRecording(true); try { await chat.invalidatePending(); await chat.cancelTurn(); await chat.api(`/api/memories/${encodeURIComponent(item.id)}`, { method: 'DELETE' }); await chat.refreshAfterForget(); await loadMemories(); el('memory-status').textContent = '已遗忘这条记忆，并刷新相关历史。'; } catch (error) { await chat.refreshAfterForget().catch(() => {}); el('memory-status').textContent = errorText(error); } };
       const evidence = document.createElement('button'); evidence.type = 'button'; evidence.className = 'text-button'; evidence.textContent = '查看依据';
       const evidenceBox = document.createElement('div'); evidenceBox.className = 'memory-evidence'; evidenceBox.hidden = true;
       evidence.onclick = async () => {
@@ -281,7 +281,7 @@
     if (!el('memory-backup-list').children.length) el('memory-backup-list').textContent = '还没有记忆快照。';
   }
   async function prepareMemoryAction() {
-    stopSpeech(); stopRecording(true); chat.invalidatePending();
+    stopSpeech(); stopRecording(true); await chat.invalidatePending();
     await chat.cancelTurn(); await flushPlayback();
   }
   el('create-memory-backup').onclick = async () => {

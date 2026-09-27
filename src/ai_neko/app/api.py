@@ -220,19 +220,23 @@ def install_api(app: FastAPI, connection, authorize, runtime, providers, bootstr
     @app.get("/api/persona")
     async def persona(request: Request):
         auth(request)
-        return runtime.memory.get_persona()
+        return await runtime.memory_api(runtime.memory.get_persona)
 
     @app.put("/api/persona")
     async def update_persona(request: Request):
         auth(request)
         value = await body(request)
         expected = value.pop("version", None)
-        return runtime.memory.update_persona(value, expected_version=expected)
+        return await runtime.memory_api(
+            runtime.memory.update_persona, value, expected_version=expected, mutation=True
+        )
 
     @app.get("/api/memories")
     async def memories(request: Request):
         auth(request)
-        return {"memories": runtime.memory.list_facts(), "revision": runtime.memory.revision()}
+        return await runtime.memory_api(
+            lambda: {"memories": runtime.memory.list_facts(), "revision": runtime.memory.revision()}
+        )
 
     @app.post("/api/memories", status_code=201)
     async def remember(request: Request):
@@ -240,8 +244,10 @@ def install_api(app: FastAPI, connection, authorize, runtime, providers, bootstr
         value = await body(request)
         if set(value) - {"content", "kind"}:
             raise HTTPException(400, "unknown memory fields")
-        return runtime.memory.remember(
+        return await runtime.memory_api(
+            runtime.memory.remember,
             value.get("content"),
+            mutation=True,
             source_id="manual:" + uuid4().hex,
             source_text=value.get("content"),
             kind=value.get("kind", "fact"),
@@ -250,7 +256,7 @@ def install_api(app: FastAPI, connection, authorize, runtime, providers, bootstr
     @app.get("/api/memories/{fact_id}/sources")
     async def memory_sources(request: Request, fact_id: str):
         auth(request)
-        return {"sources": runtime.memory.sources(fact_id)}
+        return {"sources": await runtime.memory_api(runtime.memory.sources, fact_id)}
 
     @app.put("/api/memories/{fact_id}")
     async def correct(request: Request, fact_id: str):

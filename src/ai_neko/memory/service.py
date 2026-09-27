@@ -22,7 +22,7 @@ from typing import Any
 from uuid import uuid4
 
 from ai_neko.config.paths import DataPaths, DataRootError, safe_child
-from ai_neko.config.schema import apply_migrations
+from ai_neko.config.schema import apply_migrations, ensure_supported_schema
 
 from .recall import bm25_rank, tokenize
 from .script_fold import fold_script
@@ -132,9 +132,10 @@ class MemoryService:
         )
         self._guard = RLock()
         self._closed = False
-        # fact_id -> (updated_at, stop_names_key, precomputed tokens). Tokenization is
+        self._published_revision = 0
+        # fact_id -> (exact index text, stop_names_key, precomputed tokens). Tokenization is
         # pure; caching it avoids re-tokenizing the whole corpus on every recall.
-        self._term_cache: dict[str, tuple[float, tuple[str, str], list[str]]] = {}
+        self._term_cache: dict[str, tuple[str, tuple[str, str], list[str]]] = {}
         for suffix in ("", "-wal", "-shm", "-journal"):
             path = safe_child(paths.memory, "long-term.sqlite" + suffix)
             if path.exists() and not path.is_file():
@@ -147,6 +148,7 @@ class MemoryService:
         )
         self._db.row_factory = sqlite3.Row
         try:
+            ensure_supported_schema(self._db, _MIGRATIONS[-1][0])
             self._db.execute("PRAGMA foreign_keys=ON")
             self._db.execute("PRAGMA secure_delete=ON")
             self._db.execute("PRAGMA journal_mode=DELETE")
@@ -202,6 +204,10 @@ class MemoryService:
                     "(scope,revision,persona,persona_version) VALUES (?,0,?,1)",
                     (self.scope, json.dumps(DEFAULT_PERSONA, ensure_ascii=False)),
                 )
+            # Automatic migration copies are failure-recovery files, not user
+            # snapshots. Release them only after migration and scope setup both
+            # succeed, including leftovers from an earlier successful upgrade.
+            safe_child(paths.backups, "long-term-pre-migration-v2.sqlite").unlink(missing_ok=True)
         except BaseException:
             self._db.close()
             raise
@@ -214,11 +220,24 @@ class MemoryService:
             self._db.execute("BEGIN IMMEDIATE")
             try:
                 yield
+                revision = self._revision()
+                self._db.commit()
             except BaseException:
                 self._db.rollback()
                 raise
             else:
-                self._db.commit()
+                self._published_revision = revision
+
+    @property
+    def published_revision(self) -> int:
+        """Last commit observed by this instance, without waiting for its reader lock.
+
+        Runtime uses this only as an in-process invalidation check after a worker
+        returns. SQLite remains authoritative: other processes/connections may
+        have committed unseen changes, so API reads must still use revision() or
+        recall_context() through their normal worker path.
+        """
+        return self._published_revision
 
     def _revision(self) -> int:
         return self._db.execute(
@@ -255,10 +274,13 @@ class MemoryService:
 
     def get_persona(self) -> dict:
         with self._transaction():
-            row = self._db.execute(
-                "SELECT persona,persona_version FROM memory_scopes WHERE scope=?", (self.scope,)
-            ).fetchone()
-            return {**json.loads(row[0]), "version": row[1]}
+            return self._persona()
+
+    def _persona(self) -> dict:
+        row = self._db.execute(
+            "SELECT persona,persona_version FROM memory_scopes WHERE scope=?", (self.scope,)
+        ).fetchone()
+        return {**json.loads(row[0]), "version": row[1]}
 
     def update_persona(self, changes: dict, *, expected_version: int | None = None) -> dict:
         with self._transaction():
@@ -402,6 +424,7 @@ class MemoryService:
             )
             # An older backup must not restore the superseded value of this fact.
             self._tombstone("superseded", fact_id, revision)
+            self._term_cache.pop(fact_id, None)
             return self._fact(fact_id)
 
     def _tombstone(self, kind: str, token: str, revision: int):
@@ -439,11 +462,15 @@ class MemoryService:
             {
                 "fact_contents": self._contents("memory_facts", "content", fact_ids),
                 "source_bodies": self._contents("memory_sources", "body", source_ids),
+                # Distinguish real raw-source rows from ID-only cleanup markers
+                # supplied by Runtime for a derived assistant answer.
+                "existing_source_ids": sorted(self._contents("memory_sources", "id", source_ids)),
             }
             if with_evidence
             else {}
         )
         for fact_id in fact_ids:
+            self._term_cache.pop(fact_id, None)
             self._tombstone("fact", fact_id, revision)
             self._db.execute(
                 "DELETE FROM memory_facts WHERE scope=? AND id=?", (self.scope, fact_id)
@@ -516,30 +543,51 @@ class MemoryService:
 
     def list_facts(self) -> list[dict]:
         with self._transaction():
-            rows = self._db.execute(
-                "SELECT f.*,s.source_id AS link_source_id FROM memory_facts f "
-                "LEFT JOIN memory_fact_sources s ON f.scope=s.scope AND f.id=s.fact_id "
-                "WHERE f.scope=? ORDER BY f.updated_at DESC,f.id,s.source_id",
-                (self.scope,),
-            ).fetchall()
-            facts: list[dict] = []
-            current: dict | None = None
-            for row in rows:
-                if current is None or current["id"] != row["id"]:
-                    current = {
-                        key: row[key]
-                        for key in row.keys()  # noqa: SIM118 (sqlite3.Row columns)
-                        if key not in ("scope", "link_source_id")
-                    } | {"source_ids": []}
-                    facts.append(current)
-                if row["link_source_id"] is not None:
-                    current["source_ids"].append(row["link_source_id"])
-            return facts
+            return self._list_facts()
+
+    def _list_facts(self) -> list[dict]:
+        rows = self._db.execute(
+            "SELECT f.*,s.source_id AS link_source_id FROM memory_facts f "
+            "LEFT JOIN memory_fact_sources s ON f.scope=s.scope AND f.id=s.fact_id "
+            "WHERE f.scope=? ORDER BY f.updated_at DESC,f.id,s.source_id",
+            (self.scope,),
+        ).fetchall()
+        facts: list[dict] = []
+        current: dict | None = None
+        for row in rows:
+            if current is None or current["id"] != row["id"]:
+                current = {
+                    key: row[key]
+                    for key in row.keys()  # noqa: SIM118 (sqlite3.Row columns)
+                    if key not in ("scope", "link_source_id")
+                } | {"source_ids": []}
+                facts.append(current)
+            if row["link_source_id"] is not None:
+                current["source_ids"].append(row["link_source_id"])
+        return facts
+
+    def recall_context(self, query: str = "", *, limit: int = 10) -> dict:
+        """One database revision for facts, persona and the runtime validity barrier.
+
+        The transaction also protects the token cache and serializes close with
+        worker-thread reads; a second connection cannot change the same scope
+        between retrieval and its revision stamp.
+        """
+        with self._transaction():
+            return {
+                "facts": self._recall(query, limit=limit),
+                "persona": self._persona(),
+                "revision": self._revision(),
+            }
 
     def recall(self, query: str = "", *, limit: int = 10) -> list[dict]:
+        with self._transaction():
+            return self._recall(query, limit=limit)
+
+    def _recall(self, query: str, *, limit: int) -> list[dict]:
         query = fold_script(_text(query, 2000, "query", empty=True)).casefold()
         _integer(limit, 1, 50, "limit")
-        facts = self.list_facts()
+        facts = self._list_facts()
         if not query:
             return facts[:limit]
         clauses = [re.sub(r"\s", "", clause) for clause in re.split(r"[，。！？,.!?;；\n]", query)]
@@ -602,7 +650,7 @@ class MemoryService:
                 "有什么",
             }
         )
-        profile = self.get_persona()
+        profile = self._persona()
         stop_names = (profile["name"], profile["user_name"])
         live = {fact["id"] for fact in facts}
         for cached_id in list(self._term_cache):
@@ -616,9 +664,9 @@ class MemoryService:
                 + (fact["fact_key"] if not re.fullmatch(r"[a-f0-9]{64}", fact["fact_key"]) else "")
             )
             cached = self._term_cache.get(fact["id"])
-            if cached is None or cached[0] != fact["updated_at"] or cached[1] != stop_names:
+            if cached is None or cached[0] != text or cached[1] != stop_names:
                 cached = (
-                    fact["updated_at"],
+                    text,
                     stop_names,
                     tokenize(text, stop_names, stop_terms=stop_terms),
                 )
@@ -1139,12 +1187,14 @@ class MemoryService:
                     for source_id in removed_sources
                     if source_id in old_source_bodies
                 ]
+            self._term_cache.clear()
             return erased
 
     def close(self):
         with self._guard:
             if not self._closed:
                 self._db.close()
+                self._term_cache.clear()
                 self._closed = True
 
     def __enter__(self):

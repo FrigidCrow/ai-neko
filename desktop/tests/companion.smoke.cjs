@@ -26,6 +26,7 @@ const calls = { models: [], asr: 0, tts: 0 };
 let asrText = '合成语音问题，请看当前棋盘。';
 let failHistoricalQuestion = false;
 let releaseVisualResponse;
+let releaseTextResponse;
 const mp3 = fs.readFileSync(path.join(__dirname, 'fixtures/synthetic-tone.mp3'));
 const server = http.createServer((req, res) => {
   const chunks = []; req.on('data', (chunk) => chunks.push(chunk)); req.on('end', async () => {
@@ -37,6 +38,10 @@ const server = http.createServer((req, res) => {
     const userText = Array.isArray(lastUser) ? lastUser.filter((part) => part.type === 'text').map((part) => part.text).join(' ') : lastUser || '';
     if (userText.includes('合成观察中途关闭')) {
       await new Promise((resolve) => { releaseVisualResponse = resolve; });
+      if (res.destroyed) return;
+    }
+    if (userText.includes('合成文字响应延迟取消')) {
+      await new Promise((resolve) => { releaseTextResponse = resolve; });
       if (res.destroyed) return;
     }
     if (failHistoricalQuestion && userText.includes('合成失败历史重试问题')) {
@@ -420,6 +425,82 @@ report.executable_sha256 = crypto.createHash('sha256').update(fs.readFileSync(ex
     const last = calls.models.at(-1).messages.findLast((item) => item.role === 'user').content;
     assert.equal(typeof last, 'string');
     await page.screenshot({ path: screenshotPath, omitBackground: true });
+  });
+  await check('plain_text_unconfirmed_acceptance_cancel_uses_actual_ipc_tombstone', async () => {
+    await application.evaluate(({ app }) => {
+      const load = process.getBuiltinModule('module').createRequire(process.getBuiltinModule('path').join(app.getAppPath(), 'main.cjs'));
+      const { OwnedBackend } = load('./lib/backend.cjs');
+      const original = OwnedBackend.prototype.request;
+      globalThis.restoreSyntheticRequest = () => { OwnedBackend.prototype.request = original; };
+      OwnedBackend.prototype.request = async function (request) {
+        const response = await original.call(this, request);
+        if (request.method === 'POST' && /\/turns$/.test(request.path) && request.encoded.includes('合成文字响应延迟取消')) {
+          globalThis.syntheticHeldAcceptance = { request: JSON.parse(request.encoded), response };
+          await new Promise((resolve) => { globalThis.releaseSyntheticAcceptance = resolve; });
+        }
+        return response;
+      };
+    });
+    const before = calls.models.length;
+    try {
+      await page.locator('#message-input').fill('合成文字响应延迟取消');
+      await page.locator('#message-form').evaluate((form) => form.requestSubmit());
+      for (let attempt = 0; attempt < 200 && !await application.evaluate(() => Boolean(globalThis.syntheticHeldAcceptance)); attempt++) await pause(50);
+      const held = await application.evaluate(() => globalThis.syntheticHeldAcceptance);
+      assert.ok(held); assert.equal(held.request.image, undefined);
+      await page.locator('#cancel-turn').click();
+      await waitForBackend(async () => { const id = localStorage.getItem('ai-neko.desktop.last-session'); return (await window.aiNekoChat.api(`/api/sessions/${id}`)).turns.at(-1).status === 'cancelled'; });
+      await page.locator('#message-input').fill('保留我的新草稿');
+      await application.evaluate(() => globalThis.releaseSyntheticAcceptance());
+      releaseTextResponse?.(); releaseTextResponse = null;
+      await pause(500);
+      const turn = await page.evaluate(async () => { const id = localStorage.getItem('ai-neko.desktop.last-session'); return (await window.aiNekoChat.api(`/api/sessions/${id}`)).turns.at(-1); });
+      assert.equal(turn.status, 'cancelled'); assert.equal(turn.delivered_text, '');
+      assert.equal(await page.locator('#message-input').inputValue(), '保留我的新草稿');
+      assert.equal(await page.locator('#cancel-turn').isHidden(), true);
+      assert.ok(calls.models.length <= before + 1);
+      report.plain_request_revocation = { actual_bridge: true, held_after_backend_acceptance: true, cancelled: true, late_text_absent: true, draft_preserved: true };
+      await page.locator('#message-input').fill('');
+    } finally {
+      await application.evaluate(() => { globalThis.releaseSyntheticAcceptance?.(); globalThis.restoreSyntheticRequest?.(); });
+      releaseTextResponse?.(); releaseTextResponse = null;
+    }
+  });
+  await check('twenty_actual_web_audio_stop_samples', async () => {
+    await page.locator('#open-settings').click();
+    await page.evaluate(() => {
+      window.syntheticStopTimes = [];
+      const original = AudioBufferSourceNode.prototype.stop;
+      window.restoreSyntheticAudioStop = () => { AudioBufferSourceNode.prototype.stop = original; };
+      AudioBufferSourceNode.prototype.stop = function (...args) {
+        const result = original.apply(this, args);
+        window.syntheticStopTimes.push(performance.now());
+        return result;
+      };
+    });
+    const samples = [];
+    try {
+      for (let index = 0; index < 20; index++) {
+        await page.locator('#test-voice').click();
+        await page.waitForFunction(() => document.body.dataset.speaking === 'true');
+        const sample = await page.evaluate(() => {
+          const count = window.syntheticStopTimes.length;
+          const start = performance.now();
+          document.getElementById('stop-audio').click();
+          return { milliseconds: window.syntheticStopTimes.at(-1) - start,
+            stopped_sources: window.syntheticStopTimes.length - count,
+            queue_inactive: document.body.dataset.speaking === 'false' };
+        });
+        assert.equal(sample.stopped_sources, 1); assert.equal(sample.queue_inactive, true);
+        assert.ok(sample.milliseconds >= 0); samples.push(sample.milliseconds);
+      }
+      const ordered = [...samples].sort((a, b) => a - b);
+      report.audio_stop_benchmark = { samples: 20, measured_boundary: 'renderer_stop_click_to_actual_AudioBufferSourceNode_stop_return',
+        actual_web_audio: true, synthetic_tts: true, hardware_acoustic_measurement: false,
+        milliseconds: samples, p95_ms: ordered[Math.ceil(ordered.length * 0.95) - 1], max_ms: ordered.at(-1), target_ms: 300 };
+      assert.ok(report.audio_stop_benchmark.p95_ms <= 300);
+    } finally { await page.evaluate(() => window.restoreSyntheticAudioStop()); }
+    await page.locator('#close-settings').click();
   });
   assert.deepEqual(errors, []); report.status = 'PASS';
 })().catch(async (error) => { report.status = 'FAIL'; report.error = error.stack; if (page && !page.isClosed()) { report.ui_state = await page.evaluate(() => Object.fromEntries(['memory-status', 'persona-status', 'voice-config-status', 'media-status', 'notice-text'].map((id) => [id, document.getElementById(id)?.textContent]))).catch(() => ({})); } process.exitCode = 1; console.error(error.stack); }).finally(async () => {
