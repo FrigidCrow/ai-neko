@@ -448,3 +448,13 @@ GitHub Release 397176556于2026-09-26T09:41:25Z发布为prerelease，15个附件
 环境Darwin arm64、Python3.11.15、Node25.9.0/Electron44.4.5，锁版本LangGraph1.2.12/checkpoint-sqlite3.1.1/FastAPI0.141.1/httpx0.28.1/pytest9.1.1/ruff0.16.9未升级。`.venv/bin/ruff check src tests scripts packaging`、`ruff format --check src tests scripts packaging`与`git diff --check`通过；全量最终及Windows CI结果后续补记。用户授权本轮提交推送，未变更GitHub默认分支。
 
 最终复核又补共享来源的真实原话分类：删除前持久化原话依赖，Memory返回真实存在的source IDs，避免把合成清理标记当原文，同时覆盖长文本、无ACK和跨库提交后崩溃恢复。最后执行 `PYTHONPATH=src .venv/bin/python -m pytest -q --basetemp="$(mktemp -d /tmp/ai-neko-closeout-release.XXXXXX)"`，结果640 passed、1 Windows凭据专属skip，40.74秒，日志 `artifacts/mvp1/closeout-python-final.txt`；ruff检查、72文件格式检查及diff检查通过。`node scripts/desktop_smoke.cjs --output artifacts/mvp1/closeout-desktop-baseline.json` 的实际Electron基线9项通过。接着执行文档验证，提交修复并推送当前分支触发CI。
+
+### MVP1 CI/CD 与下载核对完成
+
+文档验证PASS（28份Markdown、400个本地链接、206个参考文件，参考工程状态/差异指纹未变）后，执行 `git commit -m 'Fix MVP1 cancellation, memory erasure and upgrade lifecycle'` 得到 `748bab5164882c044b4108d41a7fa8df82a99a32`，`git push origin codex/companion-five-capabilities` 成功。`gh run list`按完整SHA定位运行36316166347，`gh run watch 36316166347 --repo FrigidCrow/ai-neko --exit-status --interval 15`返回0。Windows641/0skip、Linux640/1平台skip、宿主64、冻结后端16、桌宠9、陪伴20通过。
+
+执行 `gh run download 36316166347 --repo FrigidCrow/ai-neko -n <产物名> -D artifacts/mvp1/closeout-ci-36316166347/<产物名>`，四份产物分别为evidence-Linux、evidence-Windows、package-evidence、ai-neko-windows-x64；同时用 `gh run view --json`、`gh api .../actions/runs/36316166347/artifacts` 和 `gh run view --log` 保存状态、产物元数据和日志。`artifacts/mvp1/verify_closeout_download.py`核对实际ZIP及源码、锁文件、build-info、PE架构/摘要、许可、报告和截图；首次LF/CRLF原始摘要比较失败，确认仅Windows Git换行转换后逐文件重建检出字节核对，最终PASS，证据写入 `docs/evidence/companion/mvp1-closeout-verification.json`。
+
+ZIP版本0.4.0-dev.748bab516488、191,878,279字节、SHA256 `53eb5bfad5187094558dbfcd2ee814ceb4ceea8310aa638da7d0c1b32c8db65f`。源报告/截图另存 `docs/evidence/companion/mvp1-closeout-windows/`；独立目视复核白裙YUI、按需联网与记忆界面正常。本次Windows20次WebAudio停止p95约0.20ms，边界仅点击到实际stop返回；真实服务、用户采集与Windows11体验未执行。更新README、PLAN、HANDOFF、MVP2基线和收尾状态；没有实现G1–G6，没有改默认分支或创建tag，旧Release保留。最后仅提交文档与证据，使用[skip ci]避免对相同产品源码重复构建。
+
+最终文档复验PASS：28份Markdown、414个本地链接、206个参考文件，issues为空，参考工程指纹未变；`git diff --check`通过。GitHub完整日志再次确认两平台测试job及Windows打包job的桌面单测均64通过/0失败，已纳入下载核对记录。产品代码保持CI验证的748bab5不变，最终提交仅文档、摘要和合成截图证据。

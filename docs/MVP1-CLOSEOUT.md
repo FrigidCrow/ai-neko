@@ -1,6 +1,6 @@
 # MVP1 工程收尾与 MVP2 入口
 
-日期：2026-09-27。状态：**收尾执行中，CI与下载核验尚未完成**。本页汇总现有桌宠版本的缺陷处理与交付证据；不将准备代码或合成测试当作MVP2功能、真实服务质量或Windows11真机验收。
+日期：2026-09-27。状态：**MVP1工程收尾完成，CI与Windows下载核验通过，可进入MVP2 G1**。本页汇总现有桌宠版本的缺陷处理与交付证据；不将准备代码或合成测试当作MVP2功能、真实服务质量或Windows11真机验收。
 
 ## 本批次范围
 
@@ -35,7 +35,23 @@
 
 ## 验证与交付
 
-本轮全量源码、实际Electron、Windows CI、下载核对证据将在完成后登记于本页。原v0.4发布报告不能代替新提交的检查；真实云服务测试与合成测试分开计数。
+修复提交为 `748bab5164882c044b4108d41a7fa8df82a99a32`。[CI 36316166347](https://github.com/FrigidCrow/ai-neko/actions/runs/36316166347)全部必需jobs通过；本次为分支构建，发布job按设计跳过，没有创建新Release或更改默认分支。
+
+| 验证 | 实际结果 |
+| --- | --- |
+| 本机Python / 格式 | 640通过、1 Windows凭据专属skip；ruff及72文件格式检查通过 |
+| Linux CI | 640通过、1 Windows凭据专属skip；ci_gate PASS |
+| Windows Server 2022 CI | 641通过、0skip；PASS |
+| 桌面宿主单元测试 | 两平台及打包job均64/64 |
+| 同一ZIP实际运行 | 冻结后端16/16、桌宠基线9/9、陪伴闭环20/20 |
+| 取消实测 | 20次实际WebAudio停止；Windows p95约0.20ms，仅点击到stop()返回，非声学或完整端到端延迟 |
+| 真实服务 / 用户采集 | 云模型、搜索、ASR/TTS及用户屏幕/麦克风采集均0；另行验收 |
+
+下载[最新Windows修复包（Actions产物）](https://github.com/FrigidCrow/ai-neko/actions/runs/36316166347/artifacts/10931091498)，通常需登录GitHub，保留至2026-10-11 11:42 UTC。下载的是产物容器，解开后再完整解压其中的 `ai-neko-0.4.0-dev.748bab516488-windows-x64.zip`，双击根目录 `ai-neko.exe`。这是可运行桌面版，不是Source code。旧 `v0.4.0-alpha.1` Release保留且不包含本次修复。
+
+[下载核对记录](evidence/companion/mvp1-closeout-verification.json)为PASS：ZIP为191,878,279字节，SHA256 `53eb5bfad5187094558dbfcd2ee814ceb4ceea8310aa638da7d0c1b32c8db65f`；CRC、包内外build-info、两套AMD64程序、执行报告及许可摘要一致。Windows文本按Git CRLF检出，逐文件重建检出字节核对通过，不能与Mac LF锁文件直接比原始摘要。Mac只验证文件，未运行Windows exe。
+
+归档证据：[构建信息](evidence/companion/mvp1-closeout-windows/build-info.json)、[冻结后端](evidence/companion/mvp1-closeout-windows/package-smoke.json)、[桌宠基线](evidence/companion/mvp1-closeout-windows/desktop-smoke.json)、[陪伴闭环](evidence/companion/mvp1-closeout-windows/companion-smoke.json)、[Windows白裙YUI截图](evidence/companion/mvp1-closeout-windows/companion-smoke.png)、[记忆快照界面](evidence/companion/mvp1-closeout-windows/companion-smoke-snapshots.png)。已目视核对，未出现未实现的MVP2攻略库入口。
 
 Windows11用户真机、真实云模型/搜索/ASR/TTS的游戏建议与听感仍需独立体验证据。工程收尾和CI完成不代表这些体验项已通过，也不将M0–M6历史总表全部改为PASS。
 

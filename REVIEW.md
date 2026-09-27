@@ -318,3 +318,11 @@ PLAN §17.1 准备批次四项完成：guides.sqlite 独立落位（含数据根
 遗忘范围经过失败回归修正：用户原话和已注入助手文本分别记录来源；保留原有“后台召回但没有投递，不应污染后续无关回合”的测试。真实原话及派生回答继续级联，已遗忘占位排除；共享来源关系在删除前展开并持久化原话角色，覆盖长文本和Memory先提交后的重启恢复。v2旧库缺少投递记录，迁移时保守回填历史候选，可能多清理；新回合按实际输入记录。
 
 桌面单元64项、实际Electron陪伴闭环20项、桌宠基线9项通过。20次点击到WebAudio停止调用返回p95约0.10ms，只证明本机渲染器取消路径；真实云服务、用户采集和Windows11测试数仍为0。全量与新提交的Windows CI/下载核对将在完成后追加，不能用旧版Release替代。本轮问题分类见[MVP1收尾](docs/MVP1-CLOSEOUT.md)，G1–G6继续Pending。
+
+### MVP1 工程收尾完成；MVP2 G1 可接手
+
+最终本机Python640通过、1 Windows凭据专属skip；ruff检查与72文件格式检查通过，实际Electron基线9/陪伴20、桌面单元64通过。修复已提交并推送为 `748bab5164882c044b4108d41a7fa8df82a99a32`；[CI36316166347](https://github.com/FrigidCrow/ai-neko/actions/runs/36316166347)全部必需jobs SUCCESS：Windows641/0skip、Linux640/1平台skip，三处宿主测试均64/64、同一Windows ZIP冻结后端16/16、桌宠9/9、陪伴20/20。分支构建按设计跳过发布job，本次没有创建新Release。
+
+实际从GitHub下载[开发包](https://github.com/FrigidCrow/ai-neko/actions/runs/36316166347/artifacts/10931091498)并核对：版本 `0.4.0-dev.748bab516488`，ZIP 191,878,279字节，SHA256 `53eb5bfad5187094558dbfcd2ee814ceb4ceea8310aa638da7d0c1b32c8db65f`。CRC、内外build-info、干净源码提交、AMD64桌面/后端程序、许可和执行报告一致。第一轮直接比较Mac LF与Windows CRLF锁文件摘要失败，经逐文件重建Windows检出字节后全部匹配，未改依赖或放宽内容校验。详见[核对记录](docs/evidence/companion/mvp1-closeout-verification.json)及[收尾报告](docs/MVP1-CLOSEOUT.md)。
+
+已目视核对本次Windows白裙YUI和记忆快照截图。纯文字迟到接受后的取消、保留新草稿及不展示旧内容通过；20次实际WebAudio停止p95约0.20ms，仅从渲染器点击到stop返回，非声学/完整端到端指标。合成18模型/3ASR/29TTS，真实服务和用户采集均0，Windows11真实游戏体验仍Pending。MVP1已确认工程缺陷收束，G1交接更新；MVP2攻略入库/采用/检索/对局连续性等G1–G6未在本轮实施。

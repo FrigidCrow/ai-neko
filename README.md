@@ -2,11 +2,13 @@
 
 独立的个人 AI 伴侣项目：主体是 Windows 11 x64 桌面上的可见猫娘桌宠，文字聊天、流式回复和查攻略围绕她展开。LangGraph 负责对话编排，会话保存在本机，允许调用自己配置的云模型。
 
-**五项能力桌宠预览 `v0.4.0-alpha.1` 已发布。** 保留参考 N.E.K.O. 的白裙 **YUI Lolita 猫娘**和本项目 Electron 宿主，提供透明角色、待机、拖动/缩放/置顶、伴随聊天、托盘找回和退出。未配置模型时也能显示猫娘，收起聊天后她仍留在桌面。
+**MVP1工程收尾完成，最新Windows修复包为 `0.4.0-dev.748bab516488`。** 保留参考 N.E.K.O. 的白裙 **YUI Lolita 猫娘**和本项目 Electron 宿主，提供透明角色、待机、拖动/缩放/置顶、伴随聊天、托盘找回和退出。未配置模型时也能显示猫娘，收起聊天后她仍留在桌面。
 
 本版加入可编辑人格、选定窗口的当轮视觉、按键语音输入与按句朗读、跨兼容模型共享的按需搜索，以及本地长期记忆的保存、召回、依据、纠正、遗忘和快照管理。已完整听完的句子可进入后续上下文。N.E.K.O. 分词/BM25组件的来源和许可已保留，使用与验收见[五项能力说明](docs/COMPANION-IMPLEMENTATION.md)。
 
-前往 [v0.4.0-alpha.1 下载页](https://github.com/FrigidCrow/ai-neko/releases/tag/v0.4.0-alpha.1)，下载 **`ai-neko-0.4.0-alpha.1-windows-x64.zip`，完整解压并双击根目录 `ai-neko.exe`**。[发布CI](https://github.com/FrigidCrow/ai-neko/actions/runs/36233199073)已全部通过：Windows576项、Linux575项及1项平台跳过、宿主58项、冻结后端16项、桌宠基线9项、陪伴闭环18项；详见[发布记录](docs/CI-RELEASES.md)。包内包含Electron、Python、猫娘和运行依赖，无需另装Python、Node或uv。首次接受Live2D条款后加载角色；在猫娘设置中配置模型、搜索和ASR/TTS，看图需使用支持图片输入的模型。
+下载[最新Windows桌面修复包（Actions产物）](https://github.com/FrigidCrow/ai-neko/actions/runs/36316166347/artifacts/10931091498)，解开产物容器，再完整解压其中的 **`ai-neko-0.4.0-dev.748bab516488-windows-x64.zip`，双击根目录 `ai-neko.exe`**。通常需登录GitHub，产物保留至2026-10-11。[本次CI](https://github.com/FrigidCrow/ai-neko/actions/runs/36316166347)已通过：Windows641项、Linux640项及1项平台跳过、宿主64项、冻结后端16项、桌宠9项、陪伴20项；实际下载摘要核对也通过，详见[MVP1收尾报告](docs/MVP1-CLOSEOUT.md)。包内包含Electron、Python、猫娘和运行依赖，无需另装Python、Node或uv。首次接受Live2D条款后加载角色；在猫娘设置中配置模型、搜索和ASR/TTS，看图需使用支持图片输入的模型。
+
+已有[v0.4.0-alpha.1 Release](https://github.com/FrigidCrow/ai-neko/releases/tag/v0.4.0-alpha.1)继续保留，**不包含本次取消、遗忘与升级修复**。本轮交付分支开发包，没有创建新Release；历史发布与校验见[CI/CD记录](docs/CI-RELEASES.md)。
 
 **真实云模型/搜索/语音质量、Windows11游戏真机及p95性能仍待验收。** CI使用合成窗口、麦克风和服务；应用的公开网页读取已另行实测。M0/M1等阶段的完整验收不因发布而转为完成，最新证据见[REVIEW](REVIEW.md)。免按键语音、角色扩展和主动陪伴仍属后续范围，当前不做键鼠代操作。
 
@@ -27,7 +29,7 @@
 
 ## MVP1 与后续路线
 
-当前正在进行[MVP1工程收尾](docs/MVP1-CLOSEOUT.md)：收束取消、遗忘、升级和桌面生命周期问题，并验证对应提交的Windows构建与下载产物。最新交付状态以收尾报告为准；上方v0.4.0-alpha.1仍是已有Release，不包含本次尚待CI验证的修复。
+[MVP1工程收尾](docs/MVP1-CLOSEOUT.md)已完成：取消、遗忘、升级和桌面生命周期问题已修复，对应提交的Windows构建与下载产物已验证。真实云服务和Windows11体验仍按实际证据单独验收。
 
 下一阶段已获授权并写入[指定攻略、本地攻略库与连续陪玩计划](docs/NEXT-GUIDE-COMPANION.md)：采用一份攻略后优先复用本地正文，保存对局边界，避免新局沿用旧局势。仅准备框架已具备，G1–G6功能与验收仍Pending；入口见[G1交接单](docs/HANDOFF-G1.md)。
 

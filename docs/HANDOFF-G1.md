@@ -5,13 +5,13 @@
 ## 1. 当前状态快照
 
 - 唯一后续开发目录：`/Users/frigidcrow/Dev/ai-neko`，分支 `codex/companion-five-capabilities`。WorkBuddy提交已合入，保留原工作区供回溯，不再从旧副本继续开发。
-- 用户已授权MVP1问题收尾及CI/CD，然后进入MVP2准备。最新收尾结论、源码/CI及下载核对见 [MVP1收尾报告](MVP1-CLOSEOUT.md)，不要用历史CI或旧测试数量替代它。
+- MVP1工程收尾已完成：修复提交 `748bab5164882c044b4108d41a7fa8df82a99a32` 的CI36316166347及Windows下载核对通过，已有Release保持不变。源码、开发包及完整边界见 [MVP1收尾报告](MVP1-CLOSEOUT.md)，不要用历史CI或旧测试数量替代它。
 - G1前准备批次已具备；G1–G6功能和验收仍Pending。历史评审见 [MVP2就绪评审](MVP2-READINESS-REVIEW.md)，实际命令和证据见WORKLOG/REVIEW文末。
-- 原MVP2桌面WIP已另存于 `artifacts/mvp2-deferred/desktop-guides-wip.patch`，合并前保护stash为 `3e77be31a370800c2759dac10f6ce6b6ddcbbbda`。它是未完成的界面草稿，不能直接套用到收尾后的取消流程。
+- 原MVP2桌面WIP已另存于 `artifacts/mvp2-deferred/desktop-guides-wip.patch`，合并前保护stash为 `3e77be31a370800c2759dac10f6ce6b6ddcbbbda`。两者仅当前本机保留，GitHub新克隆不包含。它是未完成的界面草稿，不能直接套用到收尾后的取消流程。
 
 ## 2. 立即事项（开工 G1 之前）
 
-先确认收尾报告中当前提交的CI与Windows下载核对通过，再登记G1任务并实施公开文字攻略的入库纵切。不要再次推送旧的WorkBuddy分支来验证已经合入的准备批次。真实服务和Windows11体验项按报告的实际状态保留，不冒称已验收。
+收尾基线已验证，下一步先在PLAN登记G1任务与验收，再实施公开文字攻略的入库纵切。不要再次推送旧的WorkBuddy分支来验证已经合入的准备批次。真实服务和Windows11体验项按报告的实际状态保留，不冒称已验收。
 
 ## 3. G1 工作单：攻略入库
 
@@ -65,4 +65,4 @@
 
 ## 6. G1 之后的顺序（仅供参考，勿提前实施）
 
-G2 采用与管理 → G3 本地优先检索（接 `retrieval.py` 到 `chat/graph.py`，含 FTS5 切换评估——需 MVP2 标注集验证排名）→ G4 对局连续性 → G5 桌宠/语音入口 → G6 评测交付（消费 `logs/metrics.jsonl` 出 p95 报告）。
+G2 采用与管理 → G3 本地优先检索（接 `retrieval.py` 到 `chat/graph.py`，含 FTS5 切换评估——需 MVP2 标注集验证排名）→ G4 对局连续性 → G5 桌宠/语音入口 → G6 评测交付。`logs/metrics.jsonl`只提供后端阶段耗时；完整文字/语音延迟与冷暖对照另行采样，不能由后端p95代替。

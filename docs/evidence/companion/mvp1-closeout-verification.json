@@ -1,0 +1,293 @@
+{
+  "status": "PASS",
+  "verified_utc": "2026-09-27T11:47:25.938898+00:00",
+  "source_commit": "748bab5164882c044b4108d41a7fa8df82a99a32",
+  "source_clean": true,
+  "ci_run": 36316166347,
+  "ci_url": "https://github.com/FrigidCrow/ai-neko/actions/runs/36316166347",
+  "workflow_conclusion": "success",
+  "jobs": [
+    {
+      "name": "Synthetic tests (windows-2022)",
+      "conclusion": "success"
+    },
+    {
+      "name": "Synthetic tests (ubuntu-24.04)",
+      "conclusion": "success"
+    },
+    {
+      "name": "Build and exercise Windows ZIP",
+      "conclusion": "success"
+    },
+    {
+      "name": "Publish tagged desktop catgirl preview",
+      "conclusion": "skipped"
+    }
+  ],
+  "download_kind": "GitHub Actions artifact; existing v0.4.0-alpha.1 Release is unchanged",
+  "artifact": {
+    "id": 10931091498,
+    "url": "https://github.com/FrigidCrow/ai-neko/actions/runs/36316166347/artifacts/10931091498",
+    "expires_at": "2026-10-11T11:42:59Z",
+    "requires_github_login": true
+  },
+  "version": "0.4.0-dev.748bab516488",
+  "archive": "ai-neko-0.4.0-dev.748bab516488-windows-x64.zip",
+  "archive_bytes": 191878279,
+  "archive_sha256": "53eb5bfad5187094558dbfcd2ee814ceb4ceea8310aa638da7d0c1b32c8db65f",
+  "zip_crc": "PASS",
+  "inner_outer_build_info_match": true,
+  "source_inputs_verified_with_windows_checkout_line_endings": true,
+  "windows_crlf_inputs": [
+    ".gitattributes",
+    ".github/workflows/desktop-diagnostics.yml",
+    ".github/workflows/windows-preview.yml",
+    ".python-version",
+    "desktop/consent/app.js",
+    "desktop/consent/index.html",
+    "desktop/consent/preload.cjs",
+    "desktop/consent/style.css",
+    "desktop/lib/backend.cjs",
+    "desktop/lib/consent.cjs",
+    "desktop/lib/preferences.cjs",
+    "desktop/lib/security.cjs",
+    "desktop/lib/tray-icon.cjs",
+    "desktop/lib/vision.cjs",
+    "desktop/main.cjs",
+    "desktop/package-lock.json",
+    "desktop/package.json",
+    "desktop/preload.cjs",
+    "desktop/renderer/app.js",
+    "desktop/renderer/companion.js",
+    "desktop/renderer/index.html",
+    "desktop/renderer/media.js",
+    "desktop/renderer/pet.js",
+    "desktop/renderer/style.css",
+    "desktop/tests/backend.test.cjs",
+    "desktop/tests/companion-lifecycle.test.cjs",
+    "desktop/tests/companion.smoke.cjs",
+    "desktop/tests/companion.test.cjs",
+    "desktop/tests/fixtures/README.md",
+    "desktop/tests/preferences.test.cjs",
+    "desktop/tests/request-lifecycle.test.cjs",
+    "desktop/tests/security.test.cjs",
+    "packaging/Check foundation.cmd",
+    "packaging/README-WINDOWS.txt",
+    "packaging/Start ai-neko.cmd",
+    "packaging/Start service.cmd",
+    "packaging/Stop service.cmd",
+    "packaging/ai-neko.spec",
+    "packaging/entry.py",
+    "pyproject.toml",
+    "scripts/build_windows.py",
+    "scripts/desktop_smoke.cjs",
+    "scripts/electron_boot_probe.cjs",
+    "scripts/m0_smoke.py",
+    "scripts/m1_live.py",
+    "scripts/package_smoke.py",
+    "scripts/synthetic_model.py",
+    "scripts/windows-m0.ps1",
+    "src/ai_neko/__init__.py",
+    "src/ai_neko/__main__.py",
+    "src/ai_neko/app/__init__.py",
+    "src/ai_neko/app/api.py",
+    "src/ai_neko/app/server.py",
+    "src/ai_neko/chat/__init__.py",
+    "src/ai_neko/chat/extraction.py",
+    "src/ai_neko/chat/graph.py",
+    "src/ai_neko/chat/vision.py",
+    "src/ai_neko/config/__init__.py",
+    "src/ai_neko/config/credentials.py",
+    "src/ai_neko/config/memory.py",
+    "src/ai_neko/config/paths.py",
+    "src/ai_neko/config/providers.py",
+    "src/ai_neko/config/schema.py",
+    "src/ai_neko/config/settings.py",
+    "src/ai_neko/config/telemetry.py",
+    "src/ai_neko/diagnostics.py",
+    "src/ai_neko/graph/__init__.py",
+    "src/ai_neko/graph/__main__.py",
+    "src/ai_neko/graph/service.py",
+    "src/ai_neko/media/__init__.py",
+    "src/ai_neko/media/voice.py",
+    "src/ai_neko/memory/__init__.py",
+    "src/ai_neko/memory/recall.py",
+    "src/ai_neko/memory/script_fold.py",
+    "src/ai_neko/memory/service.py",
+    "src/ai_neko/providers.py",
+    "src/ai_neko/retrieval.py",
+    "src/ai_neko/runtime/__init__.py",
+    "src/ai_neko/runtime/service.py",
+    "src/ai_neko/tools/__init__.py",
+    "src/ai_neko/tools/network.py",
+    "src/ai_neko/tools/web.py",
+    "src/ai_neko/web/app.js",
+    "src/ai_neko/web/index.html",
+    "src/ai_neko/web/style.css",
+    "uv.lock"
+  ],
+  "lockfiles": {
+    "uv.lock": "c2fdc00e96b933310cd08a9651e0c900d37d23664073b7eaf9c352a1b3108787",
+    "desktop/package-lock.json": "fa9c1afc228fba4855df49fba2b84286f3aad5ee775e21c94d1f5520239b3629"
+  },
+  "build_environment": {
+    "created_utc": "2026-09-27T11:40:29.640948+00:00",
+    "platform": "Windows-10-10.0.20348-SP0",
+    "architecture": "AMD64",
+    "python": "3.11.15",
+    "pyinstaller": "6.22.3",
+    "pyinstaller_hooks_contrib": "2026.7",
+    "runner_os": "Windows",
+    "runner_image": "win22",
+    "runner_image_version": "20260920.314.1",
+    "github_run_id": "36316166347",
+    "github_run_attempt": "1"
+  },
+  "source_tests": [
+    {
+      "name": "Windows-smoke.json",
+      "sha256": "1c863a48715dc138e1b2421578af328a6fa164b0034a0c8036067dd164431ccc",
+      "passed": 641,
+      "skipped": 0,
+      "ci_gate": "PASS",
+      "status": "PASS",
+      "environment": {
+        "system": "Windows",
+        "release": "10",
+        "version": "10.0.20348",
+        "machine": "AMD64",
+        "python": "3.11.15",
+        "python_implementation": "CPython",
+        "python_pointer_bits": 64,
+        "pinned_python": "3.11.15",
+        "python_matches_pin": true
+      }
+    },
+    {
+      "name": "Linux-smoke.json",
+      "sha256": "c83808d422f1ad62926c8b17a0a66e5215388e937f6511a2c9f70470385009da",
+      "passed": 640,
+      "skipped": 1,
+      "ci_gate": "PASS",
+      "status": "PARTIAL",
+      "environment": {
+        "system": "Linux",
+        "release": "6.17.0-1022-azure",
+        "version": "#22-Ubuntu SMP Mon Jul 27 17:24:03 UTC 2026",
+        "machine": "x86_64",
+        "python": "3.11.15",
+        "python_implementation": "CPython",
+        "python_pointer_bits": 64,
+        "pinned_python": "3.11.15",
+        "python_matches_pin": true
+      }
+    }
+  ],
+  "desktop_unit_passed": 64,
+  "packaged_reports": {
+    "package-smoke.json": {
+      "sha256": "dc3c109663cd2096daf421d95adf60fe420728afeb0b6b13f14d299a49ba94af",
+      "passed": 16
+    },
+    "desktop-smoke.json": {
+      "sha256": "8cf95d35be18017e561d1b2274486f8dc77ba6ff97d539f4741675a8707610b7",
+      "passed": 9
+    },
+    "companion-smoke.json": {
+      "sha256": "058e5f828c8ca36edf70ad466753fe89e29b1bb01dc50515d22c508498bb94b2",
+      "passed": 20
+    }
+  },
+  "executables": {
+    "desktop": {
+      "sha256": "bd14928e0728366fd3f41499cb398ff3f4304dab259a3e605077899a6f8c748e",
+      "machine": "AMD64"
+    },
+    "backend": {
+      "sha256": "ac422cb9aa38d4af7ba89e7f332a717d6e2b93e83cd2ed345701522b86213217",
+      "machine": "AMD64"
+    }
+  },
+  "memory_reuse": {
+    "source_commit": "90ccf79c95e80f899b9bf3395fa8cd9a9bfe29be",
+    "notices": {
+      "NEKO-LICENSE.txt": "0d99b64baf1323c3a7f70a28075b14d573df6d773aa2d33d827053cc775062d8",
+      "NEKO-NOTICE.txt": "96199da23327c5086c4f562e4c1a05685e18643ab32ce896f13934b15b4a8aca"
+    }
+  },
+  "screenshots": {
+    "companion-smoke.png": "04c18d2b7483f53725349c097f580ce47ce4bec0c4942966b090808de28d659c",
+    "companion-smoke-snapshots.png": "c5e3bc9c60b1ef9c39a2d5757cd3c8bec035875ff2f0e0cbedb459e1ca159d40"
+  },
+  "plain_request_revocation": {
+    "actual_bridge": true,
+    "held_after_backend_acceptance": true,
+    "cancelled": true,
+    "late_text_absent": true,
+    "draft_preserved": true
+  },
+  "audio_stop_benchmark": {
+    "samples": 20,
+    "measured_boundary": "renderer_stop_click_to_actual_AudioBufferSourceNode_stop_return",
+    "actual_web_audio": true,
+    "synthetic_tts": true,
+    "hardware_acoustic_measurement": false,
+    "milliseconds": [
+      0.20000000001164153,
+      0,
+      0.09999999997671694,
+      0.09999999997671694,
+      0.1000000000349246,
+      0.09999999997671694,
+      0.09999999997671694,
+      0,
+      0.09999999997671694,
+      0.1000000000349246,
+      0.1000000000349246,
+      0,
+      0,
+      0,
+      0.19999999995343387,
+      0,
+      0,
+      0,
+      0.1000000000349246,
+      0.1000000000349246
+    ],
+    "p95_ms": 0.19999999995343387,
+    "max_ms": 0.20000000001164153,
+    "target_ms": 300
+  },
+  "synthetic_calls": {
+    "model": 18,
+    "asr": 3,
+    "tts": 29
+  },
+  "real_cloud_service_calls": 0,
+  "actual_user_microphone_captures": 0,
+  "actual_desktop_captures": 0,
+  "windows_11": "NOT_VERIFIED",
+  "local_windows_executable_run": false,
+  "mvp2_g1_g6": "NOT_IMPLEMENTED",
+  "desktop_unit_jobs": [
+    {
+      "name": "Synthetic tests (windows-2022)",
+      "tests": 64,
+      "passed": 64,
+      "failed": 0
+    },
+    {
+      "name": "Synthetic tests (ubuntu-24.04)",
+      "tests": 64,
+      "passed": 64,
+      "failed": 0
+    },
+    {
+      "name": "Build and exercise Windows ZIP",
+      "tests": 64,
+      "passed": 64,
+      "failed": 0
+    }
+  ],
+  "screenshot_visual_review": "PASS: YUI, on-demand search, voice and memory UI; no unimplemented guide library UI"
+}

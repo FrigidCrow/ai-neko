@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-09-27T11:33:57.629814+00:00",
+  "checkedAt": "2026-09-27T11:50:53.949657+00:00",
   "scope": "Rename, documentation, diagrams, reference integrity; no ai-neko product runtime or Windows validation",
   "environment": {
     "system": "Darwin",
@@ -25,7 +25,7 @@
     "docs/validation-initial.json"
   ],
   "markdownFiles": 28,
-  "localLinks": 400,
+  "localLinks": 414,
   "referenceFiles": 206,
   "courses": 24,
   "referenceGroups": 10,

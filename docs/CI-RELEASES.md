@@ -1,10 +1,10 @@
 # Windows 下载与 GitHub CI/CD
 
-已发布 [v0.4.0-alpha.1](https://github.com/FrigidCrow/ai-neko/releases/tag/v0.4.0-alpha.1)，提供可见白裙YUI猫娘、流式聊天、可编辑人格、当轮桌面视觉、按键语音输入/输出、共享联网查询与本地长期记忆。版本tag对应的全部必需CI检查已经通过；真实服务和Windows11游戏真机验收单独记录。
+最新[MVP1修复开发包](https://github.com/FrigidCrow/ai-neko/actions/runs/36316166347/artifacts/10931091498)为 `0.4.0-dev.748bab516488`，已通过本次CI及实际下载核对。提供可见白裙YUI猫娘、流式聊天、可编辑人格、当轮桌面视觉、按键语音输入/输出、共享联网查询与本地长期记忆，并修复取消、遗忘和升级边界。已有 [v0.4.0-alpha.1 Release](https://github.com/FrigidCrow/ai-neko/releases/tag/v0.4.0-alpha.1)保留，不包含本轮修复；真实服务和Windows11游戏真机验收单独记录。
 
 ## 下载和运行
 
-- 在版本页选择 **`ai-neko-0.4.0-alpha.1-windows-x64.zip`**。GitHub自动生成的Source code是源码，不是应用。
+- 最新修复版在上方Actions链接下载 `ai-neko-windows-x64` 产物；解开产物容器，取其中 **`ai-neko-0.4.0-dev.748bab516488-windows-x64.zip`**。通常需登录GitHub，产物保留至2026-10-11 11:42 UTC。旧Release仍可下载 `ai-neko-0.4.0-alpha.1-windows-x64.zip`，GitHub自动生成的Source code是源码，不是应用。
 - 完整解压到独立程序文件夹，保留根目录`ai-neko.exe`、`resources`和其他文件。包内含Electron、Python、猫娘及运行依赖，无需另装Python、Node或uv。
 - 双击根目录`ai-neko.exe`或`Start ai-neko.cmd`。首次阅读并选择是否接受Live2D条款；接受后显示猫娘，点击她打开聊天。在猫娘设置中配置模型、搜索与ASR/TTS。观察画面需要支持图片的模型。
 - 先选择具体窗口或屏幕，再启用观察并核对预览。每个新问题取新图；点击“说话”开始录音，再点一次提交，勾选“朗读回复”启用语音输出。默认按需联网，兼容模型共用一份搜索配置；无搜索Key仍可普通聊天。
@@ -16,10 +16,10 @@
 
 ## 文件与校验
 
-Release提供应用ZIP、`build-info.json`、`SHA256SUMS.txt`、`package-smoke.json`、`desktop-smoke.json`、`companion-smoke.json`、两平台源码报告和桌面截图。在PowerShell执行：
+Actions产物提供应用ZIP、`build-info.json`、`SHA256SUMS.txt`和三份运行报告；两平台源码报告、截图在同一次运行的evidence产物中。历史Release将这些附件集中在发布页。在PowerShell核对最新包：
 
 ```powershell
-Get-FileHash .\ai-neko-0.4.0-alpha.1-windows-x64.zip -Algorithm SHA256
+Get-FileHash .\ai-neko-0.4.0-dev.748bab516488-windows-x64.zip -Algorithm SHA256
 ```
 
 将结果与`SHA256SUMS.txt`比较。`build-info.json`记录源码commit、版本、锁文件、构建环境及许可摘要。YUI素材和N.E.K.O.记忆组件的许可、NOTICE及来源记录随包提供，详见[素材记录](MVP1-ASSETS.md)和[记忆复用](MEMORY-REUSE.md)。本版尚未签名。
@@ -33,9 +33,13 @@ Get-FileHash .\ai-neko-0.4.0-alpha.1-windows-x64.zip -Algorithm SHA256
 3. 对同一ZIP解压后的真实程序检查鉴权、中文路径、实例/端口、退出、图恢复和流式聊天；随后执行桌宠基线及人格/记忆/视觉/语音闭环。测试使用合成资料和服务，不读取用户麦克风、桌面或凭据。
 4. 普通构建上传带源码commit的Actions开发产物，保留14天，通常需登录GitHub。版本tag在所有必需检查通过后自动创建新的prerelease，附包、报告、截图和摘要。只有发布job具有`contents: write`权限。
 
-版本标签为`v<基础版本>-<预发布后缀>`，本次为`v0.4.0-alpha.1`。Python/Electron及锁文件基础版统一为0.4.0；构建版本保留完整alpha后缀。已发布版本不覆盖，后续修复使用新tag。稳定发布、签名、自动升级与完整迁移仍需后续验收。
+版本标签为`v<基础版本>-<预发布后缀>`，已有Release为`v0.4.0-alpha.1`。Python/Electron及锁文件基础版统一为0.4.0；分支包附带源码commit，tag包保留完整alpha后缀。已发布版本不覆盖，后续发布使用新tag；本次MVP1收尾未创建tag。稳定发布、签名、自动升级与完整迁移仍需后续验收。
 
 ## 验证记录
+
+2026-09-27，[MVP1收尾CI 36316166347](https://github.com/FrigidCrow/ai-neko/actions/runs/36316166347)全部必需jobs通过，修复源码 `748bab5164882c044b4108d41a7fa8df82a99a32`。Windows641/0skip、Linux640/1平台skip；宿主64、冻结后端16、桌宠9、陪伴闭环20通过，分支构建的发布job按设计跳过。[本轮下载核对](evidence/companion/mvp1-closeout-verification.json)PASS：191,878,279字节ZIP，SHA256 `53eb5bfad5187094558dbfcd2ee814ceb4ceea8310aa638da7d0c1b32c8db65f`；CRC、源码、内外构建信息和AMD64程序摘要匹配。文本按Windows CRLF检出字节校验，不将跨平台换行差异当作依赖漂移。完整说明见[MVP1收尾报告](MVP1-CLOSEOUT.md)。
+
+本次Windows20次WebAudio停止p95约0.20ms，测量点击到实际stop调用返回，使用合成音频，不代表声学或完整输入到输出延迟。真实云服务、用户屏幕/麦克风采集均0。
 
 [发布CI 36233199073](https://github.com/FrigidCrow/ai-neko/actions/runs/36233199073)全部通过，源码为`f359826bd60139a6a9efcef8d959f56c385228ba`，版本为`v0.4.0-alpha.1`。Windows576项/0跳过、Linux575项/1平台跳过，宿主58项、冻结后端16项、实际桌宠9项、陪伴闭环18项；额外Windows桌面启动诊断也通过。Release于2026-09-26发布，含15个附件。
 

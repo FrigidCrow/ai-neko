@@ -1,8 +1,8 @@
 # MVP2 实施计划：记住攻略，连续陪玩
 
-日期：2026-09-26；状态更新：2026-09-27。**用户已授权作为MVP2实施，G1前准备批次已落地，G1–G6功能实现与验收仍Pending。** 执行范围包含六项能力、自动化验收和Windows构建交付；真实服务与Windows11验收单独留证。本轮仅将WorkBuddy最新提交同步回原项目目录，不将准备工作计作G1完成。
+日期：2026-09-26；状态更新：2026-09-27。**用户已授权作为MVP2实施，G1前准备批次已落地，G1–G6功能实现与验收仍Pending。** 执行范围包含六项能力、自动化验收和Windows构建交付；真实服务与Windows11验收单独留证。WorkBuddy代码已合入原项目目录，随后完成MVP1缺陷修复；本轮不将准备工作计作G1完成。
 
-基线为已发布的[v0.4.0-alpha.1](https://github.com/FrigidCrow/ai-neko/releases/tag/v0.4.0-alpha.1)，产品源commit `f359826bd60139a6a9efcef8d959f56c385228ba`，当前文档基线commit `63a4adfa8391695c00df5c993cccc73c5f40c83d`。既有[发布核对](evidence/companion/release-v0.4.0-alpha.1-verification.json)证明Windows Server合成构建/运行，不代替本阶段或Windows11真实陪玩验收。
+接手基线为MVP1修复提交 `748bab5164882c044b4108d41a7fa8df82a99a32`，新提交的CI和下载核对以[MVP1收尾报告](MVP1-CLOSEOUT.md)为准。已有[v0.4.0-alpha.1 Release](https://github.com/FrigidCrow/ai-neko/releases/tag/v0.4.0-alpha.1)仍保留，源提交为`f359826bd60139a6a9efcef8d959f56c385228ba`，不包含本轮修复。Windows Server合成构建/运行不代替本阶段或Windows11真实陪玩验收。
 
 本增量连接M1查询、M2本地管理和M5视觉陪玩，不重编号M0–M6。候选交付版本为`v0.5.0-alpha.1`，正式版本号在实施收尾时确定。上阶段人格、语音及真实服务的未完成验收继续保留。
 
