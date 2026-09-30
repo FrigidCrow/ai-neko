@@ -71,6 +71,11 @@ async function waitForBackend(predicate, timeout = 20000) {
   }
   throw new Error(`Backend condition timed out: ${String(predicate)}`);
 }
+function personaSaveComplete({ version, name }) {
+  return document.querySelector('#persona-status').textContent === `当前人格版本 ${version} · 下一轮生效` &&
+    document.querySelector('#persona-name').value === name &&
+    document.querySelector('.identity strong').textContent === name;
+}
 const env = { ...process.env };
 for (const key of Object.keys(env)) if (/^(AI_NEKO_|ELECTRON_|LANGSMITH_)/.test(key) || ['PYTHONPATH', 'PYTHONHOME', 'NODE_OPTIONS'].includes(key)) delete env[key];
 env.AI_NEKO_DATA_DIR = path.join(temporary, 'synthetic'); env.PYTHONUTF8 = '1';
@@ -124,10 +129,12 @@ report.executable_sha256 = crypto.createHash('sha256').update(fs.readFileSync(ex
   await check('persona_edit_and_versioned_reload', async () => {
     await page.locator('#open-settings').click();
     await page.waitForFunction(() => document.querySelector('#persona-status').textContent.includes('版本'));
+    const before = await page.evaluate(() => window.aiNekoChat.api('/api/persona'));
     await page.locator('#persona-name').fill('合成小猫'); await page.locator('#persona-traits').fill('温柔、机灵');
     await page.locator('#persona-form').evaluate((form) => form.requestSubmit());
-    await page.waitForFunction(() => document.querySelector('#persona-status').textContent.includes('下一轮生效'));
-    assert.equal((await page.evaluate(() => window.aiNekoChat.api('/api/persona'))).name, '合成小猫');
+    await page.waitForFunction(personaSaveComplete, { version: before.version + 1, name: '合成小猫' });
+    const saved = await page.evaluate(() => window.aiNekoChat.api('/api/persona'));
+    assert.equal(saved.name, '合成小猫'); assert.equal(saved.version, before.version + 1);
   });
   await check('memory_save_correct_forget_and_auto_extract_setting', async () => {
     await page.locator('#memory-content').fill('合成测试偏好：先给结论。');
@@ -154,8 +161,62 @@ report.executable_sha256 = crypto.createHash('sha256').update(fs.readFileSync(ex
     await page.waitForFunction(() => document.querySelector('#memory-backup-status').textContent.includes('已创建'));
     const snapshotId = await page.locator('.backup-card').first().getAttribute('data-backup-id');
     assert.match(snapshotId, /^memory-[a-f0-9]{32}\.sqlite$/);
-    await page.locator('#persona-name').fill('快照之后的名字'); await page.locator('#persona-form').evaluate((form) => form.requestSubmit());
-    await page.waitForFunction(() => document.querySelector('#persona-status').textContent.includes('下一轮'));
+    const previousPersona = await page.evaluate(() => window.aiNekoChat.api('/api/persona'));
+    const expectedPersona = { version: previousPersona.version + 1, name: '快照之后的名字' };
+    // The renderer's chat API is frozen. Hold its real IPC backend request,
+    // preserving the form handler and the production memory mutation guard.
+    await application.evaluate(({ app }) => {
+      const load = process.getBuiltinModule('module').createRequire(process.getBuiltinModule('path').join(app.getAppPath(), 'main.cjs'));
+      const { OwnedBackend } = load('./lib/backend.cjs');
+      const original = OwnedBackend.prototype.request;
+      let entered; let release;
+      const gate = {
+        entered: new Promise((resolve) => { entered = resolve; }),
+        blocked: new Promise((resolve) => { release = resolve; }),
+        requests: 0, completed: false,
+        release: () => release(),
+        restore: () => { OwnedBackend.prototype.request = original; },
+      };
+      globalThis.syntheticPersonaSaveGate = gate;
+      OwnedBackend.prototype.request = async function (request) {
+        if (request.method !== 'PUT' || request.path !== '/api/persona') return original.call(this, request);
+        gate.requests++; entered();
+        await gate.blocked;
+        const response = await original.call(this, request);
+        gate.completed = true;
+        return response;
+      };
+    });
+    try {
+      await page.locator('#persona-name').fill(expectedPersona.name);
+      await page.locator('#persona-form').evaluate((form) => form.requestSubmit());
+      await application.evaluate(async () => {
+        let timer;
+        try {
+          await Promise.race([
+            globalThis.syntheticPersonaSaveGate.entered,
+            new Promise((_, reject) => { timer = setTimeout(() => reject(new Error('Synthetic persona PUT did not reach request gate')), 10000); }),
+          ]);
+        } finally { clearTimeout(timer); }
+      });
+      assert.equal(await page.evaluate(() => document.querySelector('#persona-status').textContent.includes('下一轮')), true);
+      assert.equal(await page.evaluate(personaSaveComplete, expectedPersona), false);
+      assert.deepEqual(await application.evaluate(() => ({ requests: globalThis.syntheticPersonaSaveGate.requests, completed: globalThis.syntheticPersonaSaveGate.completed })), { requests: 1, completed: false });
+      await application.evaluate(() => globalThis.syntheticPersonaSaveGate.release());
+      await page.waitForFunction(personaSaveComplete, expectedPersona);
+      const saved = await page.evaluate(() => window.aiNekoChat.api('/api/persona'));
+      assert.equal(saved.name, expectedPersona.name); assert.equal(saved.version, expectedPersona.version);
+      report.persona_save_wait = { explicit_promise_gate: true, actual_form_and_ipc: true,
+        previous_version: previousPersona.version, saved_version: saved.version,
+        stale_success_predicate_passed_while_put_blocked: true,
+        current_save_predicate_rejected_while_put_blocked: true, persisted_new_name_verified: true };
+    } finally {
+      await application.evaluate(() => {
+        globalThis.syntheticPersonaSaveGate.release();
+        globalThis.syntheticPersonaSaveGate.restore();
+        delete globalThis.syntheticPersonaSaveGate;
+      });
+    }
     // Locate by persisted content rather than relying on SQLite row order.
     const memoryRows = await page.evaluate(() => window.aiNekoChat.api('/api/memories'));
     const correctId = memoryRows.memories.find((item) => item.content.includes('快照偏好')).id;

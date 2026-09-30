@@ -1,0 +1,30 @@
+{
+  "status": "PASS",
+  "platform": "darwin",
+  "node": "v25.9.0",
+  "source_commit": "42c3aadf6eb67e58bdf11cfd919bd285aaf906c6",
+  "source_dirty": true,
+  "harness_sha256": "d6535a299ff44971f074217e94a428576d49011b398a5d17ef4f7ef769b9d630",
+  "persona_save_wait": {
+    "explicit_promise_gate": true,
+    "actual_form_and_ipc": true,
+    "previous_version": 2,
+    "saved_version": 3,
+    "stale_success_predicate_passed_while_put_blocked": true,
+    "current_save_predicate_rejected_while_put_blocked": true,
+    "persisted_new_name_verified": true
+  },
+  "synthetic_calls": {
+    "model": 18,
+    "asr": 3,
+    "tts": 29
+  },
+  "renderer_errors": [],
+  "real_model_calls": 0,
+  "real_audio_service_calls": 0,
+  "actual_user_microphone_captures": 0,
+  "actual_desktop_captures": 0,
+  "passed": 21,
+  "report_sha256": "98f14030604bc1cabfb16c2d16228b015e8d7fde396ca4b32d982e847cfdf788",
+  "scope": "Actual macOS Electron with synthetic data; Windows rerun pending"
+}

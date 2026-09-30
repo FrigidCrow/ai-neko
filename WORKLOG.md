@@ -700,3 +700,11 @@ CI36709092334完整Windows结果：1580 collected，1575 passed/5 failed，547.9
 更新PLAN后，以原200篇/5预热/100样本运行cProfile，105次retrieve累计4.513s，tokenize3.974s，全部SQLite commit0.204s，优先优化纯CPU。`recall.tokenize`仅在一次调用内复用规范化后重复seg的token列表，每次仍完整extend；stop_names前处理、stop_terms后过滤不动，无跨调用缓存。补明确多语言重复/顺序/停词/独立返回列表回归，88项memory+guide专项通过。与d60a旧纯函数以seed20260930比较600组token完整列表及600组BM25有序结果/精确分数，全部相同。
 
 同基准instrumented retrieve累计从4.513s到1.292s；正式未加profile的本机p95 8.789875ms，100样本无检索失败/0网络，冻结30题24+6全通过。重复文本收益不泛化到所有真实文档。`uv run --locked pytest -q --basetemp=/tmp/ai-neko-tokenizer-final-20260930 --junitxml=artifacts/mvp2/tokenizer-final-pytest.xml`1580 passed/1平台skip，60.79秒；Ruff/124文件格式通过。差分/profile/基准与源码摘要写`docs/evidence/mvp2/tokenizer-optimization.json`，复用说明同步记录。完整本机suite后仅重排工作流：短评测/基准前置，完整pytest与打包门槛全部保留，后续实际Windows再验。
+
+42c3aad/CI36713526928双平台源码门禁已通过：Windows1581/0skip，727.094秒，200篇p95 97.247ms；Linux1580/1skip，123.881秒，p95 22.110062ms；两平台冻结30题与宿主92通过，开始Windows包。原benchmark脚本与d60a逐字相同（SHA256 c4018a9624133496fab4cae9fbf1e689962a546a1c00de1f15bded09f0b7caae），没有改变语料、样本或阈值。
+
+构建期间复查本机空闲约32GiB，四类常用虚拟机仍未安装。拟清理本轮三个已结束的合成pytest临时根（合计约0.83GiB）时，PreToolUse安全钩子以shutil_rmtree批量目录删除规则拒绝执行；命令没有运行、没有重试或替代删除，临时根保留，未删除任何个人文件。此附带清理失败不影响CI/包验证。
+
+CI36713526928打包已构建成功，解压后端16/16与桌宠9/9通过；陪伴第4项在companion.smoke.cjs:160 GET /api/memories失败，未开始G6、没有上传Windows ZIP。失败时persona-status仍显示版本2的上次成功提示，第二次提交后等待“下一轮”可立即通过。runtime.memory_api对并发人格变更期间读取有409保护；CI日志未保留实际status，故409只作推断，不冒称已采集。先在PLAN登记，再修harness等待本次新版本，添加显式闸门证明旧提示的竞态，保留产品保护与所有原验收。
+
+`node --check desktop/tests/companion.smoke.cjs`通过；`node desktop/tests/companion.smoke.cjs --output artifacts/mvp2/persona-save-wait-companion-final.json > artifacts/mvp2/persona-save-wait-companion-final.txt 2>&1`实际Electron21/21 PASS、renderer_errors=[]，报告harness SHA与当前文件一致。闸门处于真实form→IPC→原OwnedBackend.request路径，旧提示谓词在PUT尚未执行时true，新版本完成谓词false；释放后新名字与version2→3持久化核对。entered等待有10秒失败保护、finally清timer并释放/恢复包装，无固定延时补丁。合成模型18/ASR3/TTS29，真实服务和用户采集0。独立复核没有删除/放宽21个原case；后端并发保护不改。摘要见docs/evidence/mvp2/persona-save-wait.json。文档39份/526链接检查PASS，206参考文件指纹未变；随后仅补待验证报告的最新失败状态，下一次CI重跑全套。

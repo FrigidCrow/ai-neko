@@ -35,7 +35,7 @@ Groq接入参数：模型与ASR基础地址均为`https://api.groq.com/openai/v1
 
 ## 本机虚拟机条件
 
-实查为Mac mini M4、10核、24GB内存、arm64；数据卷约36GiB空闲，未发现可用外置数据盘。应用目录、Spotlight及PATH没有Parallels/Fusion/UTM/VirtualBox或相应CLI，没有可直接启动的VM。
+实查为Mac mini M4、10核、24GB内存、arm64；数据卷初查约36GiB空闲，构建期间复查约32GiB，未发现可用外置数据盘。应用目录、Spotlight及PATH没有Parallels/Fusion/UTM/VirtualBox或相应CLI，没有可直接启动的VM。
 
 可以尝试Windows11 ARM运行x64应用的系统仿真；这属于ARM虚拟机证据，不能替代原生Windows11 x64的游戏、驱动与硬件音频验收。[Microsoft仿真说明](https://learn.microsoft.com/en-ca/windows/arm/apps-on-arm-x86-emulation)明确用户态x64应用可以仿真，驱动需要ARM64版本。
 
@@ -45,7 +45,7 @@ Groq接入参数：模型与ASR基础地址均为`https://api.groq.com/openai/v1
 | Parallels | 支持M4，14天试用，之后需购买 |
 | UTM | 官网/GitHub版免费，但Windows无3D加速，不适合据此判定游戏/Live2D最终性能 |
 
-建议资源为4核/8GB内存/至少64GB虚拟磁盘。Windows官方最低磁盘64GB；薄置备不意味着当前36GiB实际空闲足够安装、更新、ISO和产物。已向用户询问腾出空间或外置卷；未删除个人文件、下载大镜像、安装VM或接受许可。Windows许可不随免费虚拟机软件自动获得。
+建议资源为4核/8GB内存/至少64GB虚拟磁盘。Windows官方最低磁盘64GB；薄置备不意味着当前约32GiB实际空闲足够安装、更新、ISO和产物。已向用户询问腾出空间或外置卷；未删除个人文件、下载大镜像、安装VM或接受许可。Windows许可不随免费虚拟机软件自动获得。
 
 官方依据：[Fusion](https://www.vmware.com/products/desktop-hypervisor/workstation-and-fusion)、[下载流程](https://knowledge.broadcom.com/external/article/368667/download-and-license-vmware-desktop-hype.html)、[Parallels试用](https://www.parallels.com/products/desktop/download/)、[UTM限制](https://mac.getutm.app/)、[Windows规格](https://www.microsoft.com/en-us/windows/windows-11-specifications)、[Mac上的Windows许可说明](https://support.microsoft.com/en-us/windows/experience/platform-variants/options-for-using-windows-11-with-mac-computers-with-apple-m1-m2-and-m3-chips)。
 
