@@ -1,10 +1,12 @@
-ai-neko MVP1 desktop catgirl preview (Windows x64)
+ai-neko desktop catgirl and guide companion preview (Windows x64)
 
 1. Extract the ENTIRE ZIP to a separate folder. Keep resources and all runtime files.
 2. Double-click ai-neko.exe (or Start ai-neko.cmd). No Python/Node/uv installation is needed.
 3. On first launch, read the bundled Live2D terms and choose whether to accept.
 4. The catgirl appears on your desktop. Click her to open text chat; drag her to move.
-5. Open Settings beside the catgirl to configure your own model and Tavily search credentials.
+5. Open Settings beside the catgirl to configure your own model. For free search, select
+   AnySearch, verify https://api.anysearch.com/v1 and save; no search key is needed.
+   Tavily remains available with your own key. Anonymous search has provider rate limits.
 6. Replies stream beside her. Stop cancels a reply. On-demand search is enabled by default;
    the model chooses whether it needs public sources. Chat-only disables search tools.
 7. Close the chat panel to keep the catgirl on your desktop. Use the tray to find her or quit.
@@ -22,6 +24,10 @@ Companion settings:
   corrections and forgetting, and clears conversations affected by removed memories.
 - Spoken replies have separate playback receipts. The next question retains completed sentences
   even with the panel hidden; an interrupted sentence is not treated as fully heard.
+- Save and adopt public pages in the Guide library. Matching questions reuse the adopted local
+  version; missing evidence or an explicit latest request can use the configured web tools.
+- Manage the current match, goal and version. A new match separates old dynamic observations;
+  restarting keeps the adopted guide but waits for fresh observations. The user controls the game.
 
 Your own AI/search/audio services may charge for calls. No cloud keys are bundled.
 Data: %LOCALAPPDATA%\ai-neko (or explicit AI_NEKO_DATA_DIR); no original N.E.K.O data is read.

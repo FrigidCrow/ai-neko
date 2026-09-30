@@ -692,3 +692,5 @@ CI36709092334完整Windows结果：1580 collected，1575 passed/5 failed，547.9
 旧版三个路径在driver禁网钩子拦截Windows asyncio内部socketpair；candidate路径在Path.home因精简环境无USERPROFILE失败。保持冻结driver/source/database/manifest完全不动（fixture diff为空），当前测试bootstrap用runpy加载driver，只先创建Runner事件循环，再装原deny_network并用sys.audit确认三类事件拒绝，最后运行旧程序。运行代码仍须来自原source目录。两个子进程用测试目录中的isolated-home作HOME/USERPROFILE/LOCALAPPDATA，未继承实际用户配置；-I配显式-X utf8和UTF-8输出解码。
 
 `uv run --locked pytest tests/test_guides_integrated.py tests/test_search_cache.py tests/test_v04_upgrade.py -q --tb=short --junitxml=artifacts/mvp2/windows-fixture-fixes.xml`：39 passed/2.10秒，日志同名txt；Ruff/两文件格式及diff通过。完整suite由下一Windows/Linux CI重跑；不把Mac专项当Windows证明。
+
+独立只读审查确认bootstrap旧源码身份、原禁网边界和临时Windows用户目录保持，修复提交7e1cefc已推送。包内README仍是MVP1/Tavily单一路径，随本次构建同步更新为攻略陪玩预览，补AnySearch免Key步骤、额度边界和攻略/对局操作；只改包内说明，不改产品逻辑或验收标准。
