@@ -15,7 +15,7 @@
 """N.E.K.O. tokenizer and BM25, isolated from its production runtime.
 
 Modified for ai-neko: local pure dependencies, optional explicit stop terms,
-Unicode case folding, deterministic query-term iteration. Callers MUST scope
+Unicode case folding, per-call repeated-segment reuse, deterministic query-term iteration. Callers MUST scope
 the corpus before ranking. No model, filesystem, embedding or configuration IO.
 Provenance and upgrade instructions: docs/MEMORY-REUSE.md.
 """
@@ -67,19 +67,28 @@ def tokenize(
             raw_text, [fold_script(str(name)).casefold() for name in stop_names]
         )
     out: list[str] = []
+    # Repeated passages must retain every occurrence for BM25 term frequency.
+    # Reuse only within this invocation; no fact or guide survives in a cache.
+    segments: dict[str, list[str]] = {}
     for seg in _SPLIT_RE.split(raw_text):
         seg = seg.strip()
         if not seg:
             continue
+        if seg in segments:
+            out.extend(segments[seg])
+            continue
+        terms: list[str] = []
         cjk_count = sum(
             1 for ch in seg if "一" <= ch <= "鿿" or "぀" <= ch <= "ヿ" or "가" <= ch <= "힯"
         )
         if cjk_count > len(seg) // 2:
             for n in (2, 3):
                 for i in range(len(seg) - n + 1):
-                    out.append(seg[i : i + n])
+                    terms.append(seg[i : i + n])
         elif len(seg) >= 2:
-            out.append(seg)
+            terms.append(seg)
+        segments[seg] = terms
+        out.extend(terms)
     return [term for term in out if term not in stop_terms]
 
 

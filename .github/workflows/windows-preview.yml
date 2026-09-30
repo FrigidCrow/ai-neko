@@ -53,12 +53,12 @@ jobs:
       - name: Diagnose synthetic Windows compatibility regressions
         if: runner.os == 'Windows'
         run: uv run --locked pytest tests/test_guides_integrated.py tests/test_search_cache.py tests/test_v04_upgrade.py -q --tb=short --no-header
-      - name: Run synthetic acceptance and save redacted evidence
-        run: uv run --locked python scripts/m0_smoke.py --output artifacts/m0/${{ runner.os }}-smoke.json
       - name: Verify frozen guide retrieval and injection corpus
         run: uv run --locked python scripts/evaluate_guides.py --output artifacts/mvp2/${{ runner.os }}-guide-evaluation.json
       - name: Measure production guide retrieval with 200 synthetic documents
         run: uv run --locked python scripts/benchmark_guides.py --output artifacts/mvp2/${{ runner.os }}-guide-benchmark.json
+      - name: Run synthetic acceptance and save redacted evidence
+        run: uv run --locked python scripts/m0_smoke.py --output artifacts/m0/${{ runner.os }}-smoke.json
       - name: Preserve test evidence
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

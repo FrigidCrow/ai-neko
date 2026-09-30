@@ -1,0 +1,112 @@
+{
+  "status": "PASS",
+  "baseline_commit": "d60a8a87c1af36736aeb3444cc49e61e7411ebbf",
+  "seed": 20260930,
+  "token_list_pairs": 600,
+  "bm25_exact_order_and_score_pairs": 600,
+  "corpus_result_sha256": "1b7ea00d42fbef196f505621de999c2047f8d2969ced3de5e3a7f71bd52d299f",
+  "baseline_recall_sha256": "34bda368d6f109119bc92c720684cc36071e143170dc0142f1f08ceb088914e5",
+  "optimized_recall_sha256": "152dad565255ceddbdbf70cadece33b0654617ba6e6dc599eb053cba63aacad3",
+  "cross_call_cache": false,
+  "threshold_ms": 150,
+  "benchmark_source_unchanged": true,
+  "profiles": {
+    "before": {
+      "instrumented": true,
+      "functions": {
+        "bm25_rank": {
+          "calls": 105,
+          "cumulative_seconds": 2.1785682530000003
+        },
+        "retrieve": {
+          "calls": 105,
+          "cumulative_seconds": 4.513426877000001
+        },
+        "_covered_query": {
+          "calls": 105,
+          "cumulative_seconds": 2.1910569150000003
+        },
+        "tokenize": {
+          "calls": 5670,
+          "cumulative_seconds": 3.9737318370000003
+        }
+      }
+    },
+    "after": {
+      "instrumented": true,
+      "functions": {
+        "_covered_query": {
+          "calls": 105,
+          "cumulative_seconds": 0.561270088
+        },
+        "retrieve": {
+          "calls": 105,
+          "cumulative_seconds": 1.291555129
+        },
+        "bm25_rank": {
+          "calls": 105,
+          "cumulative_seconds": 0.61498492
+        },
+        "tokenize": {
+          "calls": 5670,
+          "cumulative_seconds": 0.827679668
+        }
+      }
+    }
+  },
+  "benchmark": {
+    "status": "PASS",
+    "p95_ms": 8.789875,
+    "p95_target_ms": 150,
+    "sample_count": 100,
+    "retrieval_verification_failures": [],
+    "source_files_unchanged": true,
+    "network_attempts": 0,
+    "temporary_data_removed": true,
+    "adopted_result": {
+      "guide_id": "guide-9fae87ff0ba34bfdb6e902a7bb688895",
+      "revision_id": "revision-8cbdc97357544ef080ab5efa5d56aeca",
+      "control_revision": 1,
+      "chunks_returned": 6,
+      "characters_returned": 5440,
+      "top3_starts": [
+        49400,
+        988,
+        1976
+      ]
+    }
+  },
+  "frozen_evaluation": {
+    "answerable_questions": 24,
+    "top3_evidence_hits": 24,
+    "absent_questions": 6,
+    "absent_rejections": 6,
+    "wrong_game_hits": 0,
+    "known_conflicting_version_hits": 0,
+    "prohibited_hits": 0,
+    "source_identity_errors": 0,
+    "ingestion_errors": 0,
+    "maximum_injected_count": 6,
+    "maximum_injected_characters": 5798,
+    "answerable_zero_network": 24,
+    "answerable_skipped_planning": 24,
+    "withheld_or_previous_match_leaks": 0,
+    "status": "PASS",
+    "plain_chat_checks_passed": true,
+    "source_files_unchanged": true
+  },
+  "scope": "Mac synthetic corpus with repeated text; Windows result pending. No claim of equal speedup for all real documents.",
+  "files": {
+    "src/ai_neko/memory/recall.py": "152dad565255ceddbdbf70cadece33b0654617ba6e6dc599eb053cba63aacad3",
+    "tests/test_memory_recall.py": "a3f7db0b3a2f21ea81b161b1caa97717b1cb13287f032ea554de3c8f27d5293d",
+    "scripts/benchmark_guides.py": "c4018a9624133496fab4cae9fbf1e689962a546a1c00de1f15bded09f0b7caae"
+  },
+  "local_tests": {
+    "passed": 1580,
+    "skipped": 1,
+    "skip_reason": "Windows Credential Manager requires Windows",
+    "seconds": 60.79,
+    "ruff": "PASS",
+    "format_files": 124
+  }
+}

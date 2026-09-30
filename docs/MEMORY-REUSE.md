@@ -21,6 +21,8 @@
 | `memory/script_fold.py` | [script_fold.py](../src/ai_neko/memory/script_fold.py) | 字符映射与折叠逻辑整体迁入，仅格式化和移除本项目不识别的自定义 noqa 注释。纯 Python 运行，不需要 OpenCC。 |
 | `LICENSE` / `NOTICE` | `src/ai_neko/memory/licenses/` | 原样复制。 |
 
+2026-09-30性能补充：`tokenize`在单次调用中复用相同规范化片段的词元，仍按每次出现顺序追加，重复词频不去重；停用名先处理、停用词后过滤。没有跨调用缓存，不改变存储原文、BM25公式/顺序、作用域或数据清理。用旧提交函数差分、多语言重复词及完整检索验收验证等价；源commit和许可未变。
+
 上游各完整文件的 SHA-256 记录如下；分段提取不能用整个源文件 hash 验证本地片段相同，应结合固定 commit 与修改说明审阅：
 
 ```text

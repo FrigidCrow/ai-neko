@@ -694,3 +694,9 @@ CI36709092334完整Windows结果：1580 collected，1575 passed/5 failed，547.9
 `uv run --locked pytest tests/test_guides_integrated.py tests/test_search_cache.py tests/test_v04_upgrade.py -q --tb=short --junitxml=artifacts/mvp2/windows-fixture-fixes.xml`：39 passed/2.10秒，日志同名txt；Ruff/两文件格式及diff通过。完整suite由下一Windows/Linux CI重跑；不把Mac专项当Windows证明。
 
 独立只读审查确认bootstrap旧源码身份、原禁网边界和临时Windows用户目录保持，修复提交7e1cefc已推送。包内README仍是MVP1/Tavily单一路径，随本次构建同步更新为攻略陪玩预览，补AnySearch免Key步骤、额度边界和攻略/对局操作；只改包内说明，不改产品逻辑或验收标准。
+
+最终构建候选d60a8a87c1af36736aeb3444cc49e61e7411ebbf/CI36710927613：Windows1580 passed/0skip，813.547秒；Linux1579/1skip，145.58秒；宿主92、冻结30题均通过。Windows基准p95 151.2265ms >150ms，因此整run失败、没有ZIP；Linux105.925789ms。未四舍五入为通过或调整门槛。
+
+更新PLAN后，以原200篇/5预热/100样本运行cProfile，105次retrieve累计4.513s，tokenize3.974s，全部SQLite commit0.204s，优先优化纯CPU。`recall.tokenize`仅在一次调用内复用规范化后重复seg的token列表，每次仍完整extend；stop_names前处理、stop_terms后过滤不动，无跨调用缓存。补明确多语言重复/顺序/停词/独立返回列表回归，88项memory+guide专项通过。与d60a旧纯函数以seed20260930比较600组token完整列表及600组BM25有序结果/精确分数，全部相同。
+
+同基准instrumented retrieve累计从4.513s到1.292s；正式未加profile的本机p95 8.789875ms，100样本无检索失败/0网络，冻结30题24+6全通过。重复文本收益不泛化到所有真实文档。`uv run --locked pytest -q --basetemp=/tmp/ai-neko-tokenizer-final-20260930 --junitxml=artifacts/mvp2/tokenizer-final-pytest.xml`1580 passed/1平台skip，60.79秒；Ruff/124文件格式通过。差分/profile/基准与源码摘要写`docs/evidence/mvp2/tokenizer-optimization.json`，复用说明同步记录。完整本机suite后仅重排工作流：短评测/基准前置，完整pytest与打包门槛全部保留，后续实际Windows再验。

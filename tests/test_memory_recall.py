@@ -40,6 +40,38 @@ def test_traditional_simplified_queries_match_without_rewriting_facts(tmp_path):
         assert memory.recall("我的喜好是什麼？")[0]["id"] == fact["id"]
 
 
+def test_repeated_segments_keep_order_frequency_and_independent_stop_rules():
+    text = "咖啡咖啡，COFFEE，ねこ好き，고양이，灯芯10，a，42，貓咪。" * 40
+    unit = [
+        "咖啡",
+        "啡咖",
+        "咖啡",
+        "咖啡咖",
+        "啡咖啡",
+        "coffee",
+        "ねこ",
+        "こ好",
+        "好き",
+        "ねこ好",
+        "こ好き",
+        "고양",
+        "양이",
+        "고양이",
+        "灯芯10",
+        "42",
+        "猫咪",
+    ]
+    assert tokenize(text) == unit * 40
+    assert (
+        tokenize(text, stop_terms=frozenset({"coffee", "咖啡"}))
+        == [term for term in unit if term not in {"coffee", "咖啡"}] * 40
+    )
+    assert tokenize(text, ["COFFEE"]) == [term for term in unit if term != "coffee"] * 40
+    previous = tokenize(text)
+    previous.clear()
+    assert tokenize(text) == unit * 40
+
+
 def test_tokenizer_supports_japanese_korean_and_whole_latin_words():
     assert "ねこ" in tokenize("ねこ好き")
     assert "고양" in tokenize("고양이가좋아요")
