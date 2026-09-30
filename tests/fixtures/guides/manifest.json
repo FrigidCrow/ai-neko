@@ -1,0 +1,292 @@
+{
+  "schema_version": 1,
+  "fixture_release": "mvp2-g6-v1",
+  "frozen_at": "2026-09-27",
+  "hash_algorithm": "sha256",
+  "text_encoding": "utf-8",
+  "span_unit": "unicode_code_points",
+  "files": {
+    "corpus.json": "f0f1336316d975aeff341525fefc93528931b7e0b9d47a441602361f6ef626dd",
+    "questions.json": "3a71788e0e9db1245cdc594412f8add1df8c3520a78b7e32123ecb36f0655c8a",
+    "fixture_loader.py": "ce13c2762c0f25538d546cad6c5978c145bd35ab0e03ac90ac93710c6a505673",
+    "README.md": "3e1c4bbf839fbfc1bd8ff539d2fc3fa30961c24a9eced2fb4c90cf09432d567f"
+  },
+  "expanded_guides": {
+    "G01": {
+      "body_characters": 400,
+      "body_sha256": "b5e941b506a8799e16ec9997d7bb10550ccc7851daf427e14979ef03fa52661e",
+      "html_sha256": "7b3ce35d72ee8e87b5544349d4c8fa8933d8deaa2e39de3c51904e01f2999e7a",
+      "retained_prefix_sha256": "b5e941b506a8799e16ec9997d7bb10550ccc7851daf427e14979ef03fa52661e",
+      "passages": {
+        "G01-P01": {
+          "start": 8,
+          "end": 69,
+          "exact_text": "本攻略适用于雾港棋局 2.4 的 PC 排位模式。灯芯指放在后排中央的潮灯守卫；灯芯负责给两侧护卫供能，不是商店中的装备。",
+          "text_sha256": "8115558571ff8a3417b58e7b5da64145ec5ddeb65b4f34574353dde52d1da283"
+        },
+        "G01-P02": {
+          "start": 78,
+          "end": 139,
+          "exact_text": "三灯阵也叫三灯、三盏灯或潮卫线：用一名潮灯守卫搭配两名雾盾护卫，三名棋子必须相邻站成一排。不要把三名潮灯守卫误当作三灯阵。",
+          "text_sha256": "dc1349513ba973b9824c4aca76c73e5b44e970040b7e4ce867e64e836091ac3a"
+        },
+        "G01-P03": {
+          "start": 150,
+          "end": 243,
+          "exact_text": "在 2.4 PC 排位的二阶段第 3 回合，金币达到 18 时先升至五人口，保留 8 金币再考虑刷新；金币不足 18 时维持四人口，不购买升级。此处的 18 金币门槛只适用于潮卫三灯阵。",
+          "text_sha256": "920d7a4d986ac86f4abbc9ac957f131810f1fe9a16c7ae075e98e05b9bb32ae5"
+        },
+        "G01-P04": {
+          "start": 255,
+          "end": 329,
+          "exact_text": "三灯阵已成形、当前四人口且拥有 18 金币时，下一步是升到五人口并补入一名岸哨侦察员；不要先刷新商店。上一条建议只是凑齐三灯，不能据此认定已经升级。",
+          "text_sha256": "a7ae2f9da0d6711cbe668fd62b1ec85f8a5ff250d2baf82a1e1b4ba573ca1296"
+        },
+        "G01-P05": {
+          "start": 337,
+          "end": 400,
+          "exact_text": "潮印是潮卫阵容的专属资源。攒到 4 枚潮印后，在备战阶段开启雾港锚点，让最左侧雾盾护卫获得一次护盾。这里的锚点不消耗能量晶石。",
+          "text_sha256": "51a37539fae54b39bb4831e4fc8172f922c6d9a6fe8e0d6cc2e13ba2a8c8ace9"
+        }
+      }
+    },
+    "G02": {
+      "body_characters": 160,
+      "body_sha256": "edf634960ae136fc2d5b0a90ae7daaecd8690e378b74258e052dd7b834adffca",
+      "html_sha256": "89a793e9e305f9395801fadf0bc5a81fe20446438aa1c821d50b1f4af15e65f9",
+      "retained_prefix_sha256": "edf634960ae136fc2d5b0a90ae7daaecd8690e378b74258e052dd7b834adffca",
+      "passages": {
+        "G02-P01": {
+          "start": 8,
+          "end": 95,
+          "exact_text": "本攻略只适用于雾港棋局 2.3 PC 排位。在二阶段第 3 回合，潮卫线需要 24 金币才升至五人口，并保留 10 金币；2.4 已修改此数值，不能按旧档指导 2.4 对局。",
+          "text_sha256": "3c28762ae9ec8e233dc988fcff654e4bbf878479828be28d97d9ce0ae3157e32"
+        },
+        "G02-P02": {
+          "start": 103,
+          "end": 160,
+          "exact_text": "2.3 的三灯阵，也称三灯或三盏灯，由两名潮灯守卫和一名雾盾护卫组成。2.4 的组合已经改变，本页不是新版本攻略。",
+          "text_sha256": "615c94f84178e49e0bd135e2a3f925db6231218685c650365dff3f62a75f033e"
+        }
+      }
+    },
+    "G03": {
+      "body_characters": 130,
+      "body_sha256": "a660dcc6ccc1cfa4cd440fd226f7a7cee8ff6453ab8c2b73a5c9fb792ba80402",
+      "html_sha256": "b0dea89da6d2b58731fe76da9f8a06343c3204db6484d2bdee2f98703d27bea3",
+      "retained_prefix_sha256": "a660dcc6ccc1cfa4cd440fd226f7a7cee8ff6453ab8c2b73a5c9fb792ba80402",
+      "passages": {
+        "G03-P01": {
+          "start": 5,
+          "end": 80,
+          "exact_text": "本页仅适用于雾港棋局 2.4 PC 休闲模式。速灯开局又叫快灯：第一回合直接购买两名潮灯守卫，然后花 6 金币刷新一次商店。排位模式不要照搬这一顺序。",
+          "text_sha256": "83cd50a30b47cebe915ff3892bf576ae20224e1c69bd308a212702a504eac997"
+        },
+        "G03-P02": {
+          "start": 87,
+          "end": 130,
+          "exact_text": "休闲模式的雾港锚点需要 2 枚潮印即可开启，目标是最右侧棋子；该规则不适用于排位模式。",
+          "text_sha256": "e293beedc9522e7402642b1e4eadfe9be05869d3f0d0e6245273596f163eb191"
+        }
+      }
+    },
+    "G04": {
+      "body_characters": 146,
+      "body_sha256": "eecf185b4b41b9085a0fd7ac6f338376724c32fb1286f830684f29e895eef842",
+      "html_sha256": "b260f75b2695b4f83de48768c0d993ba9a1848477ccc747aefabb1d8428158c4",
+      "retained_prefix_sha256": "eecf185b4b41b9085a0fd7ac6f338376724c32fb1286f830684f29e895eef842",
+      "passages": {
+        "G04-P01": {
+          "start": 7,
+          "end": 70,
+          "exact_text": "烬翼路线也叫火鸟线。开局保留两名烬翼游侠，把火羽使放在后排；二阶段第 3 回合先刷新寻找火羽使，不套用潮卫三灯阵的升人口顺序。",
+          "text_sha256": "d9c7431746b8535d1bd047420fa852b5e2ac14464900d2e3baf9cd1de9a14fd5"
+        },
+        "G04-P02": {
+          "start": 82,
+          "end": 146,
+          "exact_text": "火鸟线已有两名烬翼游侠和一名火羽使，且余烬达到 6 枚时，下一步将火羽使升为二星，再把烬翼游侠移到前排两侧；此时先不要升级人口。",
+          "text_sha256": "458fb9c5c86f38f9ec305d4d2f4b577709bcda993b88b329ed97ed578acbdfac"
+        }
+      }
+    },
+    "G05": {
+      "body_characters": 151,
+      "body_sha256": "20e58b0c282ee226ca46399eeb4b605c10e9ddb9c0c83b802457fa336da5bc8e",
+      "html_sha256": "4794dba47d58bb6a2cfba573b390ae14bd8744d8e9091642949d3a12cd07d174",
+      "retained_prefix_sha256": "20e58b0c282ee226ca46399eeb4b605c10e9ddb9c0c83b802457fa336da5bc8e",
+      "passages": {
+        "G05-P01": {
+          "start": 8,
+          "end": 86,
+          "exact_text": "雾港棋局 2.4 手机排位采用触屏简化经济。二阶段第 3 回合，潮卫线持有 16 金币即可升到五人口，并保留 6 金币；PC 排位的 18 金币门槛不适用。",
+          "text_sha256": "2c6e2091d98e03404e03d090dd7d2a2ee26d621470721b006dbcc1dc1fb890c2"
+        },
+        "G05-P02": {
+          "start": 93,
+          "end": 151,
+          "exact_text": "手机排位的锚点按钮俗称小船锚。拥有 4 枚潮印后长按小船锚一秒，再点选雾盾护卫确认；单击按钮只显示说明，不消耗潮印。",
+          "text_sha256": "3823686be738a629660e6de5c63c3af92b643a86b2290485feb4b9873e5dd692"
+        }
+      }
+    },
+    "G06": {
+      "body_characters": 22367,
+      "body_sha256": "1ff084310fc2ab47c6f0e475c7027667de1c3bd9fdf6361fb8df31721ca85444",
+      "html_sha256": "bde0b97a8bdbab3bf56a8a6791a98820d8078b7f3fe02127de466fd38ff071ce",
+      "retained_prefix_sha256": "1ff084310fc2ab47c6f0e475c7027667de1c3bd9fdf6361fb8df31721ca85444",
+      "passages": {
+        "G06-P01": {
+          "start": 7,
+          "end": 63,
+          "exact_text": "本篇适用于雾港棋局 2.4 PC 排位的风帆路线。长文后部列出风向旗、折返与浮桥调整的明确步骤，目录不替代正文。",
+          "text_sha256": "e8f3d24b5c7e94b7e325d44c75189923ed4e84c59ab27fd859455178ba2f6f9d"
+        },
+        "G06-P02": {
+          "start": 8532,
+          "end": 8582,
+          "exact_text": "风帆路线所称蓝旗，也叫逆风旗。只在旗面变为蓝色后把风帆领航员放到左侧浮桥，白旗期间让领航员留在后排。",
+          "text_sha256": "cf59a0011debc03805ccbe3d40963e19e57e5c77bcd38c1a5ae707282080f89e"
+        },
+        "G06-P03": {
+          "start": 22220,
+          "end": 22278,
+          "exact_text": "风帆路线的折返指主动撤回一名领航员到替补席，再花费 3 枚风向筹码重新放回左侧浮桥；折返不消耗潮印，也不是刷新商店。",
+          "text_sha256": "cf2d5b2989735a1390369d6515aa3f119fc33ba7b01d82151eb4a8ecfe3c4320"
+        },
+        "G06-P04": {
+          "start": 22289,
+          "end": 22367,
+          "exact_text": "当前已亮蓝色逆风旗、风帆领航员仍在后排且持有 3 枚风向筹码时，下一步把领航员直接移到左侧浮桥，保留筹码；只有领航员已经站上浮桥又需要重新部署时才执行折返。",
+          "text_sha256": "519413041ac9b6f769003268adf2a5202e59fd0ee32bc6c388c8fd5daecacf73"
+        }
+      }
+    },
+    "G07": {
+      "body_characters": 281,
+      "body_sha256": "a9fffe196a764b3fb443407ae478fce83202ce3d4a06216fa60788fcbf51ef9f",
+      "html_sha256": "d2c91a737f17ce6a8dba284e2eb7ebabb8d3fdffcf1b882c76134ab67fdd2416",
+      "retained_prefix_sha256": "a9fffe196a764b3fb443407ae478fce83202ce3d4a06216fa60788fcbf51ef9f",
+      "passages": {
+        "G07-P01": {
+          "start": 5,
+          "end": 76,
+          "exact_text": "星环远航 1.8 PC 远征中的星环锚点由 7 颗能量晶石启动，启动后固定旗舰朝向。星环锚点不使用雾港棋局的潮印，两个游戏的锚点没有通用规则。",
+          "text_sha256": "acbd39c4c37509781bb580b2cf857edb4aba3d5ee75b6c702922da30bb31925e"
+        },
+        "G07-P02": {
+          "start": 85,
+          "end": 134,
+          "exact_text": "回声环俗称小铃铛，是放在旗舰第二装备槽的导航器。小铃铛只缩短扫描间隔，不增加护盾容量，也不是武器。",
+          "text_sha256": "c40e8d0f2cbba366ee8f5466e521defffa147d9efb2a3af35a4d70d29bd86ddf"
+        },
+        "G07-P03": {
+          "start": 146,
+          "end": 220,
+          "exact_text": "采用护盾航线时，旗舰护盾已降到 30 点或以下、修复无人机仍可用，下一步先释放修复无人机并撤向蓝色补给灯塔。不要继续扫描矿带，也不要先启动星环锚点。",
+          "text_sha256": "d4f67b294367c1f64624eb106a7fc16beac9afe3cb37f5e229722cb66afac8f0"
+        },
+        "G07-P04": {
+          "start": 227,
+          "end": 281,
+          "exact_text": "远征模式采集霜脊冰矿的次序是先扫描裂缝，再派一架采样艇，最后回收样本箱。扫描前直接发射采样艇会丢失矿层定位。",
+          "text_sha256": "6e1c9b767aa03f741ae549aacd4ceb992887149fbf3d0c628ded55d4cd2b62dc"
+        }
+      }
+    },
+    "G08": {
+      "body_characters": 124,
+      "body_sha256": "9ba973c00fc3acb36d13ae9fe1f1b3ea2a830a8eb2f040b82b3d201e5673d1d2",
+      "html_sha256": "27bc3806411dd8e89c1e9135ea91eccc47083db446c5afe557c84372d8335e5d",
+      "retained_prefix_sha256": "9ba973c00fc3acb36d13ae9fe1f1b3ea2a830a8eb2f040b82b3d201e5673d1d2",
+      "passages": {
+        "G08-P01": {
+          "start": 7,
+          "end": 70,
+          "exact_text": "星环远航 1.7 PC 远征的星环锚点需要 5 颗能量晶石。1.8 已经改变启动消耗，请勿把此旧数值作为 1.8 的操作建议。",
+          "text_sha256": "eedeb9809200035b987a167bd05aebed754bd4ae377fcba35cf51b996cfcc5a5"
+        },
+        "G08-P02": {
+          "start": 79,
+          "end": 124,
+          "exact_text": "星环远航 1.7 的回声环必须装在第三装备槽；本页对 1.8 第二装备槽的新规则没有解释。",
+          "text_sha256": "56ec5d0e43bfdb19ab084cb7005485f8fc83d1deee466cea2ee8e01f4ae477c1"
+        }
+      }
+    },
+    "G09": {
+      "body_characters": 117,
+      "body_sha256": "82ca390aceb8f88bb206c4351c36f2e79b6f3d2ff8d1d9faec30dc6022a96b47",
+      "html_sha256": "a403ce1836ef73e8e4385d93174388febc329399533979ef8292f57f4791ffe1",
+      "retained_prefix_sha256": "82ca390aceb8f88bb206c4351c36f2e79b6f3d2ff8d1d9faec30dc6022a96b47",
+      "passages": {
+        "G09-P01": {
+          "start": 6,
+          "end": 62,
+          "exact_text": "星环远航 1.8 PC 竞技场的星环锚点消耗 3 颗能量晶石，启动后夺取中央得分区。竞技场消耗不能用于远征模式。",
+          "text_sha256": "39a8ba39b68c4f92081d3c6a682cb85a3e72911ee8183e36907cab26aff79afd"
+        },
+        "G09-P02": {
+          "start": 72,
+          "end": 117,
+          "exact_text": "竞技场抢点时护盾只剩 30 点仍可继续占领得分区；该竞赛建议与远征护盾航线的撤退条件不同。",
+          "text_sha256": "058d02d34a16e6ec02ae21d2d397f8ae35747965ccbe3fba6251550a7a90a5f3"
+        }
+      }
+    },
+    "G10": {
+      "body_characters": 55101,
+      "body_sha256": "0dfa9303183a26f16559b1cb80c8b20b7fb6dfc85250c4e9eba6a82906e328e5",
+      "html_sha256": "add9e6107b4b384cf7a189b706072c5601fc427944d3fca52488d00250e908bb",
+      "retained_prefix_sha256": "21752085f8b3be52ac3da05f21d90eec2689e853fa9e6188531488c0faf9f98d",
+      "passages": {
+        "G10-P01": {
+          "start": 7,
+          "end": 82,
+          "exact_text": "这份星环远航观测笔记没有标注游戏版本，也没有内容更新时间。阅读回声日志时应把亲眼观测与船员猜测分栏记录；这只是记录方法，不代表任何当前版本的资源规则。",
+          "text_sha256": "d421a1fcea31379885a4da5ccec67e6b0abf083b95c1eaf9cc5d9c3656539cef"
+        },
+        "G10-P02": {
+          "start": 41251,
+          "end": 41311,
+          "exact_text": "观测笔记把没有直接观测依据的条目叫作灰页，也称未证页。灰页应保留原记录时间并标注尚待核对，不能因重新翻阅就改成已经证实。",
+          "text_sha256": "4ba4affeeb9bbf6d303330f24c8db99479539458d928f1304b1125cab3f35b5c"
+        },
+        "G10-P03": {
+          "start": 55040,
+          "end": 55101,
+          "exact_text": "星环远航观测笔记附录的封存口令是琥珀鹭七。该口令只用于测试保留边界，位于正文五万字符之后，不得从未保存的尾部给出本地回答。",
+          "text_sha256": "45bc29eae04a4fc05fbc2e8adf950caf74d75dc58a532dd5607b41513bc7ee64"
+        }
+      }
+    },
+    "G11": {
+      "body_characters": 58,
+      "body_sha256": "6651fac729983e9b11f4c8447b214c1678fc8945fbb7ae504eebad2bc69b00f4",
+      "html_sha256": "3e03b9e509334b7537b6eac15bb723259490c8cdbcff5c41ef0abaee74e602e3",
+      "retained_prefix_sha256": "6651fac729983e9b11f4c8447b214c1678fc8945fbb7ae504eebad2bc69b00f4",
+      "passages": {
+        "G11-P01": {
+          "start": 5,
+          "end": 58,
+          "exact_text": "会员登录后可阅读雾港棋局攻略。请输入账号与密码，验证码完成后继续。本页未展示棋子组合、资源阈值或阵容步骤。",
+          "text_sha256": "109089c276824efd2bbb9cf70a6b663b23134d411646ceb5b89e34004f9d8636"
+        }
+      }
+    },
+    "G12": {
+      "body_characters": 79,
+      "body_sha256": "1b479a0a59f4d6a2f81e55b9621108c9b3283fd9f87cb23cad3a177114dab476",
+      "html_sha256": "6f2e1ae7784998bfdb8dfe98bed4ca0f11c02d51c6ed2f63a9dfd30a1bc9b5b6",
+      "retained_prefix_sha256": "1b479a0a59f4d6a2f81e55b9621108c9b3283fd9f87cb23cad3a177114dab476",
+      "passages": {
+        "G12-P01": {
+          "start": 14,
+          "end": 79,
+          "exact_text": "403 Forbidden。当前请求无法读取星环远航攻略正文。本错误页不是攻略来源，标题中的护盾航线不表示服务器已经提供相关内容。",
+          "text_sha256": "d413b4e354756d29481838bb09cc2ecbaf6d807e8e2769b972d54d51ef076dd4"
+        }
+      }
+    }
+  }
+}

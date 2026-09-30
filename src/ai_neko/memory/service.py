@@ -24,6 +24,7 @@ from uuid import uuid4
 from ai_neko.config.paths import DataPaths, DataRootError, safe_child
 from ai_neko.config.schema import apply_migrations, ensure_supported_schema
 
+from .guides import GuideStore
 from .recall import bm25_rank, tokenize
 from .script_fold import fold_script
 
@@ -208,6 +209,9 @@ class MemoryService:
             # snapshots. Release them only after migration and scope setup both
             # succeed, including leftovers from an earlier successful upgrade.
             safe_child(paths.backups, "long-term-pre-migration-v2.sqlite").unlink(missing_ok=True)
+            # External documents have their own database and snapshot boundary;
+            # this service owns their lifetime, but never turns them into facts.
+            self.guides = GuideStore(paths, self.scope)
         except BaseException:
             self._db.close()
             raise
@@ -1193,6 +1197,7 @@ class MemoryService:
     def close(self):
         with self._guard:
             if not self._closed:
+                self.guides.close()
                 self._db.close()
                 self._term_cache.clear()
                 self._closed = True

@@ -316,9 +316,11 @@ def test_successful_conversation_upgrade_removes_only_automatic_safety_copies(tm
         explicit = paths.backups / ("memory-" + uuid4().hex + ".sqlite")
         explicit.write_bytes(b"explicit user snapshot")
         runtime = SessionRuntime(paths, Store())
-        assert runtime._db.execute("PRAGMA user_version").fetchone()[0] == 3
+        assert runtime._db.execute("PRAGMA user_version").fetchone()[0] == 6
         assert not old.exists()
         assert not (paths.backups / "conversation-pre-migration-v3.sqlite").exists()
+        assert not (paths.backups / "conversation-pre-migration-v5.sqlite").exists()
+        assert not (paths.backups / "conversation-pre-migration-v6.sqlite").exists()
         assert explicit.read_bytes() == b"explicit user snapshot"
         await runtime.close()
 
@@ -348,7 +350,7 @@ def test_failed_conversation_upgrade_preserves_recovery_copy(tmp_path, monkeypat
     with pytest.raises(MigrationError):
         SessionRuntime(paths, Store())
     assert old.read_bytes() == b"old synthetic recovery copy"
-    assert (paths.backups / "conversation-pre-migration-v3.sqlite").exists()
+    assert (paths.backups / "conversation-pre-migration-v6.sqlite").exists()
     with sqlite3.connect(paths.memory / "conversation.sqlite") as connection:
         assert connection.execute("PRAGMA user_version").fetchone()[0] == 2
 
@@ -539,7 +541,8 @@ def test_erasure_connections_close_on_success_and_checkpoint_failure(
                     await runtime.forget_memory(fact["id"])
             else:
                 await runtime.forget_memory(fact["id"])
-            assert len(opened) == 2
+            # Candidate evidence scan, erasure journal, and graph checkpoint.
+            assert len(opened) == 3
             for connection in opened:
                 with pytest.raises(sqlite3.ProgrammingError, match="closed"):
                     connection.execute("SELECT 1")

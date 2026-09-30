@@ -1,0 +1,2339 @@
+{
+  "schema_version": 1,
+  "fixture_release": "mvp2-g6-v1",
+  "frozen_at": "2026-09-27",
+  "oracle_authoring": "Expected passage text is independently authored here and duplicated intentionally from the editorial source. No expected answers derive from implementation chunks, rankings, model responses, or retriever output.",
+  "scoring_contract": {
+    "answerable_question_count": 24,
+    "minimum_top3_evidence_hits": 22,
+    "absent_question_count": 6,
+    "required_absent_rejections": 6,
+    "maximum_wrong_game_hits": 0,
+    "maximum_known_conflicting_version_hits": 0,
+    "top_k": 3,
+    "candidate_limit": 6,
+    "injected_character_budget": 8000,
+    "report_retrieval_and_model_quality_separately": true,
+    "absent_passage_fallback_forbidden": true
+  },
+  "questions": [
+    {
+      "question_id": "Q01",
+      "question": "攻略里说的灯芯是哪个棋子？",
+      "input_kind": "text",
+      "tags": [
+        "terminology"
+      ],
+      "version_sensitive": true,
+      "query_context": {
+        "scope_id": "synthetic-g6-user",
+        "as_of": "2026-09-26T08:05:00Z",
+        "available_guide_ids": [
+          "G01",
+          "G02",
+          "G03",
+          "G04",
+          "G05",
+          "G06",
+          "G07",
+          "G08",
+          "G09",
+          "G10",
+          "G11",
+          "G12"
+        ],
+        "selected_guide_id": "G01",
+        "selected_fixture_revision_id": "G01-R1",
+        "selection_revision": 1,
+        "active_match": {
+          "match_id": "MATCH-Q01",
+          "status": "active",
+          "game_id": "fog-harbor-tactics",
+          "game_name": "雾港棋局",
+          "platform": "pc",
+          "mode": "ranked",
+          "game_version": "2.4",
+          "goal": "",
+          "observations": [],
+          "last_delivered_advice": null
+        },
+        "excluded_previous_match": null
+      },
+      "answerability": "answerable",
+      "required_path": "local_evidence",
+      "expected_evidence": [
+        {
+          "guide_id": "G01",
+          "fixture_revision_id": "G01-R1",
+          "passage_id": "G01-P01",
+          "exact_text": "本攻略适用于雾港棋局 2.4 的 PC 排位模式。灯芯指放在后排中央的潮灯守卫；灯芯负责给两侧护卫供能，不是商店中的装备。",
+          "applicability": {
+            "game_id": "fog-harbor-tactics",
+            "game_name": "雾港棋局",
+            "platform": "pc",
+            "mode": "ranked",
+            "game_version": "2.4"
+          }
+        }
+      ],
+      "prohibited_guide_ids": [
+        "G02",
+        "G03",
+        "G04",
+        "G05",
+        "G06",
+        "G07",
+        "G08",
+        "G09",
+        "G10",
+        "G11",
+        "G12"
+      ],
+      "expected_network_calls": {
+        "search": 0,
+        "read_page": 0
+      }
+    },
+    {
+      "question_id": "Q02",
+      "question": "三盏灯应该由哪三名棋子组成？",
+      "input_kind": "text",
+      "tags": [
+        "alias",
+        "version_conflict_distractor"
+      ],
+      "version_sensitive": true,
+      "query_context": {
+        "scope_id": "synthetic-g6-user",
+        "as_of": "2026-09-26T08:05:00Z",
+        "available_guide_ids": [
+          "G01",
+          "G02",
+          "G03",
+          "G04",
+          "G05",
+          "G06",
+          "G07",
+          "G08",
+          "G09",
+          "G10",
+          "G11",
+          "G12"
+        ],
+        "selected_guide_id": "G01",
+        "selected_fixture_revision_id": "G01-R1",
+        "selection_revision": 1,
+        "active_match": {
+          "match_id": "MATCH-Q02",
+          "status": "active",
+          "game_id": "fog-harbor-tactics",
+          "game_name": "雾港棋局",
+          "platform": "pc",
+          "mode": "ranked",
+          "game_version": "2.4",
+          "goal": "",
+          "observations": [],
+          "last_delivered_advice": null
+        },
+        "excluded_previous_match": null
+      },
+      "answerability": "answerable",
+      "required_path": "local_evidence",
+      "expected_evidence": [
+        {
+          "guide_id": "G01",
+          "fixture_revision_id": "G01-R1",
+          "passage_id": "G01-P02",
+          "exact_text": "三灯阵也叫三灯、三盏灯或潮卫线：用一名潮灯守卫搭配两名雾盾护卫，三名棋子必须相邻站成一排。不要把三名潮灯守卫误当作三灯阵。",
+          "applicability": {
+            "game_id": "fog-harbor-tactics",
+            "game_name": "雾港棋局",
+            "platform": "pc",
+            "mode": "ranked",
+            "game_version": "2.4"
+          }
+        }
+      ],
+      "prohibited_guide_ids": [
+        "G02",
+        "G03",
+        "G04",
+        "G05",
+        "G06",
+        "G07",
+        "G08",
+        "G09",
+        "G10",
+        "G11",
+        "G12"
+      ],
+      "expected_network_calls": {
+        "search": 0,
+        "read_page": 0
+      }
+    },
+    {
+      "question_id": "Q03",
+      "question": "PC 排位二阶段第 3 回合要多少金币才升五人口？",
+      "input_kind": "text",
+      "tags": [
+        "numeric_rule",
+        "platform_conflict_distractor",
+        "contradictory_strategy_distractor"
+      ],
+      "version_sensitive": true,
+      "query_context": {
+        "scope_id": "synthetic-g6-user",
+        "as_of": "2026-09-26T08:05:00Z",
+        "available_guide_ids": [
+          "G01",
+          "G02",
+          "G03",
+          "G04",
+          "G05",
+          "G06",
+          "G07",
+          "G08",
+          "G09",
+          "G10",
+          "G11",
+          "G12"
+        ],
+        "selected_guide_id": "G01",
+        "selected_fixture_revision_id": "G01-R1",
+        "selection_revision": 1,
+        "active_match": {
+          "match_id": "MATCH-Q03",
+          "status": "active",
+          "game_id": "fog-harbor-tactics",
+          "game_name": "雾港棋局",
+          "platform": "pc",
+          "mode": "ranked",
+          "game_version": "2.4",
+          "goal": "",
+          "observations": [],
+          "last_delivered_advice": null
+        },
+        "excluded_previous_match": null
+      },
+      "answerability": "answerable",
+      "required_path": "local_evidence",
+      "expected_evidence": [
+        {
+          "guide_id": "G01",
+          "fixture_revision_id": "G01-R1",
+          "passage_id": "G01-P03",
+          "exact_text": "在 2.4 PC 排位的二阶段第 3 回合，金币达到 18 时先升至五人口，保留 8 金币再考虑刷新；金币不足 18 时维持四人口，不购买升级。此处的 18 金币门槛只适用于潮卫三灯阵。",
+          "applicability": {
+            "game_id": "fog-harbor-tactics",
+            "game_name": "雾港棋局",
+            "platform": "pc",
+            "mode": "ranked",
+            "game_version": "2.4"
+          }
+        }
+      ],
+      "prohibited_guide_ids": [
+        "G02",
+        "G03",
+        "G04",
+        "G05",
+        "G06",
+        "G07",
+        "G08",
+        "G09",
+        "G10",
+        "G11",
+        "G12"
+      ],
+      "expected_network_calls": {
+        "search": 0,
+        "read_page": 0
+      }
+    },
+    {
+      "question_id": "Q04",
+      "question": "下一步呢？",
+      "input_kind": "voice_transcript",
+      "tags": [
+        "follow_up",
+        "suggestion_is_not_execution"
+      ],
+      "version_sensitive": true,
+      "query_context": {
+        "scope_id": "synthetic-g6-user",
+        "as_of": "2026-09-26T08:05:00Z",
+        "available_guide_ids": [
+          "G01",
+          "G02",
+          "G03",
+          "G04",
+          "G05",
+          "G06",
+          "G07",
+          "G08",
+          "G09",
+          "G10",
+          "G11",
+          "G12"
+        ],
+        "selected_guide_id": "G01",
+        "selected_fixture_revision_id": "G01-R1",
+        "selection_revision": 1,
+        "active_match": {
+          "match_id": "MATCH-Q04",
+          "status": "active",
+          "game_id": "fog-harbor-tactics",
+          "game_name": "雾港棋局",
+          "platform": "pc",
+          "mode": "ranked",
+          "game_version": "2.4",
+          "goal": "采用潮卫三灯阵稳住二阶段",
+          "observations": [
+            {
+              "text": "本局三灯阵已经成形，当前仍是四人口，持有 18 金币。",
+              "source_kind": "explicit_user_description",
+              "observed_at": "2026-09-26T08:04:30Z",
+              "expires_at": "2026-09-26T08:06:30Z",
+              "match_id": "MATCH-Q04"
+            }
+          ],
+          "last_delivered_advice": {
+            "text": "先凑齐潮卫三灯阵，等你确认当前人口和金币后再安排后续。",
+            "delivered": true,
+            "match_id": "MATCH-Q04",
+            "guide_id": "G01",
+            "fixture_revision_id": "G01-R1",
+            "delivered_at": "2026-09-26T08:04:00Z",
+            "executed_by_user": false
+          }
+        },
+        "excluded_previous_match": {
+          "match_id": "OLD-Q04",
+          "text": "上一局采用其他路线，金币为 99，已收到建议继续刷新商店；该局已经结束。",
+          "must_not_influence_current_query": true
+        }
+      },
+      "answerability": "answerable",
+      "required_path": "local_evidence",
+      "expected_evidence": [
+        {
+          "guide_id": "G01",
+          "fixture_revision_id": "G01-R1",
+          "passage_id": "G01-P04",
+          "exact_text": "三灯阵已成形、当前四人口且拥有 18 金币时，下一步是升到五人口并补入一名岸哨侦察员；不要先刷新商店。上一条建议只是凑齐三灯，不能据此认定已经升级。",
+          "applicability": {
+            "game_id": "fog-harbor-tactics",
+            "game_name": "雾港棋局",
+            "platform": "pc",
+            "mode": "ranked",
+            "game_version": "2.4"
+          }
+        }
+      ],
+      "prohibited_guide_ids": [
+        "G02",
+        "G03",
+        "G04",
+        "G05",
+        "G06",
+        "G07",
+        "G08",
+        "G09",
+        "G10",
+        "G11",
+        "G12"
+      ],
+      "expected_network_calls": {
+        "search": 0,
+        "read_page": 0
+      }
+    },
+    {
+      "question_id": "Q05",
+      "question": "潮印攒到多少才能开雾港锚点，给谁护盾？",
+      "input_kind": "text",
+      "tags": [
+        "cross_game_homonym",
+        "mode_conflict_distractor"
+      ],
+      "version_sensitive": true,
+      "query_context": {
+        "scope_id": "synthetic-g6-user",
+        "as_of": "2026-09-26T08:05:00Z",
+        "available_guide_ids": [
+          "G01",
+          "G02",
+          "G03",
+          "G04",
+          "G05",
+          "G06",
+          "G07",
+          "G08",
+          "G09",
+          "G10",
+          "G11",
+          "G12"
+        ],
+        "selected_guide_id": "G01",
+        "selected_fixture_revision_id": "G01-R1",
+        "selection_revision": 1,
+        "active_match": {
+          "match_id": "MATCH-Q05",
+          "status": "active",
+          "game_id": "fog-harbor-tactics",
+          "game_name": "雾港棋局",
+          "platform": "pc",
+          "mode": "ranked",
+          "game_version": "2.4",
+          "goal": "",
+          "observations": [],
+          "last_delivered_advice": null
+        },
+        "excluded_previous_match": null
+      },
+      "answerability": "answerable",
+      "required_path": "local_evidence",
+      "expected_evidence": [
+        {
+          "guide_id": "G01",
+          "fixture_revision_id": "G01-R1",
+          "passage_id": "G01-P05",
+          "exact_text": "潮印是潮卫阵容的专属资源。攒到 4 枚潮印后，在备战阶段开启雾港锚点，让最左侧雾盾护卫获得一次护盾。这里的锚点不消耗能量晶石。",
+          "applicability": {
+            "game_id": "fog-harbor-tactics",
+            "game_name": "雾港棋局",
+            "platform": "pc",
+            "mode": "ranked",
+            "game_version": "2.4"
+          }
+        }
+      ],
+      "prohibited_guide_ids": [
+        "G02",
+        "G03",
+        "G04",
+        "G05",
+        "G06",
+        "G07",
+        "G08",
+        "G09",
+        "G10",
+        "G11",
+        "G12"
+      ],
+      "expected_network_calls": {
+        "search": 0,
+        "read_page": 0
+      }
+    },
+    {
+      "question_id": "Q06",
+      "question": "我玩的是 2.3 旧版，二阶段第 3 回合潮卫升五人口要多少金币？",
+      "input_kind": "text",
+      "tags": [
+        "known_old_version",
+        "numeric_rule"
+      ],
+      "version_sensitive": true,
+      "query_context": {
+        "scope_id": "synthetic-g6-user",
+        "as_of": "2026-09-26T08:05:00Z",
+        "available_guide_ids": [
+          "G01",
+          "G02",
+          "G03",
+          "G04",
+          "G05",
+          "G06",
+          "G07",
+          "G08",
+          "G09",
+          "G10",
+          "G11",
+          "G12"
+        ],
+        "selected_guide_id": "G02",
+        "selected_fixture_revision_id": "G02-R1",
+        "selection_revision": 1,
+        "active_match": {
+          "match_id": "MATCH-Q06",
+          "status": "active",
+          "game_id": "fog-harbor-tactics",
+          "game_name": "雾港棋局",
+          "platform": "pc",
+          "mode": "ranked",
+          "game_version": "2.3",
+          "goal": "",
+          "observations": [],
+          "last_delivered_advice": null
+        },
+        "excluded_previous_match": null
+      },
+      "answerability": "answerable",
+      "required_path": "local_evidence",
+      "expected_evidence": [
+        {
+          "guide_id": "G02",
+          "fixture_revision_id": "G02-R1",
+          "passage_id": "G02-P01",
+          "exact_text": "本攻略只适用于雾港棋局 2.3 PC 排位。在二阶段第 3 回合，潮卫线需要 24 金币才升至五人口，并保留 10 金币；2.4 已修改此数值，不能按旧档指导 2.4 对局。",
+          "applicability": {
+            "game_id": "fog-harbor-tactics",
+            "game_name": "雾港棋局",
+            "platform": "pc",
+            "mode": "ranked",
+            "game_version": "2.3"
+          }
+        }
+      ],
+      "prohibited_guide_ids": [
+        "G01",
+        "G03",
+        "G04",
+        "G05",
+        "G06",
+        "G07",
+        "G08",
+        "G09",
+        "G10",
+        "G11",
+        "G12"
+      ],
+      "expected_network_calls": {
+        "search": 0,
+        "read_page": 0
+      }
+    },
+    {
+      "question_id": "Q07",
+      "question": "2.3 的三盏灯要几名潮灯守卫？",
+      "input_kind": "text",
+      "tags": [
+        "alias",
+        "known_old_version"
+      ],
+      "version_sensitive": true,
+      "query_context": {
+        "scope_id": "synthetic-g6-user",
+        "as_of": "2026-09-26T08:05:00Z",
+        "available_guide_ids": [
+          "G01",
+          "G02",
+          "G03",
+          "G04",
+          "G05",
+          "G06",
+          "G07",
+          "G08",
+          "G09",
+          "G10",
+          "G11",
+          "G12"
+        ],
+        "selected_guide_id": "G02",
+        "selected_fixture_revision_id": "G02-R1",
+        "selection_revision": 1,
+        "active_match": {
+          "match_id": "MATCH-Q07",
+          "status": "active",
+          "game_id": "fog-harbor-tactics",
+          "game_name": "雾港棋局",
+          "platform": "pc",
+          "mode": "ranked",
+          "game_version": "2.3",
+          "goal": "",
+          "observations": [],
+          "last_delivered_advice": null
+        },
+        "excluded_previous_match": null
+      },
+      "answerability": "answerable",
+      "required_path": "local_evidence",
+      "expected_evidence": [
+        {
+          "guide_id": "G02",
+          "fixture_revision_id": "G02-R1",
+          "passage_id": "G02-P02",
+          "exact_text": "2.3 的三灯阵，也称三灯或三盏灯，由两名潮灯守卫和一名雾盾护卫组成。2.4 的组合已经改变，本页不是新版本攻略。",
+          "applicability": {
+            "game_id": "fog-harbor-tactics",
+            "game_name": "雾港棋局",
+            "platform": "pc",
+            "mode": "ranked",
+            "game_version": "2.3"
+          }
+        }
+      ],
+      "prohibited_guide_ids": [
+        "G01",
+        "G03",
+        "G04",
+        "G05",
+        "G06",
+        "G07",
+        "G08",
+        "G09",
+        "G10",
+        "G11",
+        "G12"
+      ],
+      "expected_network_calls": {
+        "search": 0,
+        "read_page": 0
+      }
+    },
+    {
+      "question_id": "Q08",
+      "question": "休闲模式的快灯第一回合怎么买？",
+      "input_kind": "text",
+      "tags": [
+        "alias",
+        "mode_conflict_distractor"
+      ],
+      "version_sensitive": true,
+      "query_context": {
+        "scope_id": "synthetic-g6-user",
+        "as_of": "2026-09-26T08:05:00Z",
+        "available_guide_ids": [
+          "G01",
+          "G02",
+          "G03",
+          "G04",
+          "G05",
+          "G06",
+          "G07",
+          "G08",
+          "G09",
+          "G10",
+          "G11",
+          "G12"
+        ],
+        "selected_guide_id": "G03",
+        "selected_fixture_revision_id": "G03-R1",
+        "selection_revision": 1,
+        "active_match": {
+          "match_id": "MATCH-Q08",
+          "status": "active",
+          "game_id": "fog-harbor-tactics",
+          "game_name": "雾港棋局",
+          "platform": "pc",
+          "mode": "casual",
+          "game_version": "2.4",
+          "goal": "",
+          "observations": [],
+          "last_delivered_advice": null
+        },
+        "excluded_previous_match": null
+      },
+      "answerability": "answerable",
+      "required_path": "local_evidence",
+      "expected_evidence": [
+        {
+          "guide_id": "G03",
+          "fixture_revision_id": "G03-R1",
+          "passage_id": "G03-P01",
+          "exact_text": "本页仅适用于雾港棋局 2.4 PC 休闲模式。速灯开局又叫快灯：第一回合直接购买两名潮灯守卫，然后花 6 金币刷新一次商店。排位模式不要照搬这一顺序。",
+          "applicability": {
+            "game_id": "fog-harbor-tactics",
+            "game_name": "雾港棋局",
+            "platform": "pc",
+            "mode": "casual",
+            "game_version": "2.4"
+          }
+        }
+      ],
+      "prohibited_guide_ids": [
+        "G01",
+        "G02",
+        "G04",
+        "G05",
+        "G06",
+        "G07",
+        "G08",
+        "G09",
+        "G10",
+        "G11",
+        "G12"
+      ],
+      "expected_network_calls": {
+        "search": 0,
+        "read_page": 0
+      }
+    },
+    {
+      "question_id": "Q09",
+      "question": "休闲锚点需要几枚潮印，影响哪边棋子？",
+      "input_kind": "text",
+      "tags": [
+        "numeric_rule",
+        "mode_conflict_distractor"
+      ],
+      "version_sensitive": true,
+      "query_context": {
+        "scope_id": "synthetic-g6-user",
+        "as_of": "2026-09-26T08:05:00Z",
+        "available_guide_ids": [
+          "G01",
+          "G02",
+          "G03",
+          "G04",
+          "G05",
+          "G06",
+          "G07",
+          "G08",
+          "G09",
+          "G10",
+          "G11",
+          "G12"
+        ],
+        "selected_guide_id": "G03",
+        "selected_fixture_revision_id": "G03-R1",
+        "selection_revision": 1,
+        "active_match": {
+          "match_id": "MATCH-Q09",
+          "status": "active",
+          "game_id": "fog-harbor-tactics",
+          "game_name": "雾港棋局",
+          "platform": "pc",
+          "mode": "casual",
+          "game_version": "2.4",
+          "goal": "",
+          "observations": [],
+          "last_delivered_advice": null
+        },
+        "excluded_previous_match": null
+      },
+      "answerability": "answerable",
+      "required_path": "local_evidence",
+      "expected_evidence": [
+        {
+          "guide_id": "G03",
+          "fixture_revision_id": "G03-R1",
+          "passage_id": "G03-P02",
+          "exact_text": "休闲模式的雾港锚点需要 2 枚潮印即可开启，目标是最右侧棋子；该规则不适用于排位模式。",
+          "applicability": {
+            "game_id": "fog-harbor-tactics",
+            "game_name": "雾港棋局",
+            "platform": "pc",
+            "mode": "casual",
+            "game_version": "2.4"
+          }
+        }
+      ],
+      "prohibited_guide_ids": [
+        "G01",
+        "G02",
+        "G04",
+        "G05",
+        "G06",
+        "G07",
+        "G08",
+        "G09",
+        "G10",
+        "G11",
+        "G12"
+      ],
+      "expected_network_calls": {
+        "search": 0,
+        "read_page": 0
+      }
+    },
+    {
+      "question_id": "Q10",
+      "question": "火鸟线开局留谁，二阶段先升人口还是先刷新？",
+      "input_kind": "text",
+      "tags": [
+        "alias",
+        "contradictory_strategy_distractor"
+      ],
+      "version_sensitive": true,
+      "query_context": {
+        "scope_id": "synthetic-g6-user",
+        "as_of": "2026-09-26T08:05:00Z",
+        "available_guide_ids": [
+          "G01",
+          "G02",
+          "G03",
+          "G04",
+          "G05",
+          "G06",
+          "G07",
+          "G08",
+          "G09",
+          "G10",
+          "G11",
+          "G12"
+        ],
+        "selected_guide_id": "G04",
+        "selected_fixture_revision_id": "G04-R1",
+        "selection_revision": 1,
+        "active_match": {
+          "match_id": "MATCH-Q10",
+          "status": "active",
+          "game_id": "fog-harbor-tactics",
+          "game_name": "雾港棋局",
+          "platform": "pc",
+          "mode": "ranked",
+          "game_version": "2.4",
+          "goal": "",
+          "observations": [],
+          "last_delivered_advice": null
+        },
+        "excluded_previous_match": null
+      },
+      "answerability": "answerable",
+      "required_path": "local_evidence",
+      "expected_evidence": [
+        {
+          "guide_id": "G04",
+          "fixture_revision_id": "G04-R1",
+          "passage_id": "G04-P01",
+          "exact_text": "烬翼路线也叫火鸟线。开局保留两名烬翼游侠，把火羽使放在后排；二阶段第 3 回合先刷新寻找火羽使，不套用潮卫三灯阵的升人口顺序。",
+          "applicability": {
+            "game_id": "fog-harbor-tactics",
+            "game_name": "雾港棋局",
+            "platform": "pc",
+            "mode": "ranked",
+            "game_version": "2.4"
+          }
+        }
+      ],
+      "prohibited_guide_ids": [
+        "G01",
+        "G02",
+        "G03",
+        "G05",
+        "G06",
+        "G07",
+        "G08",
+        "G09",
+        "G10",
+        "G11",
+        "G12"
+      ],
+      "expected_network_calls": {
+        "search": 0,
+        "read_page": 0
+      }
+    },
+    {
+      "question_id": "Q11",
+      "question": "那接下来做什么？",
+      "input_kind": "voice_transcript",
+      "tags": [
+        "follow_up",
+        "contradictory_strategy_distractor"
+      ],
+      "version_sensitive": true,
+      "query_context": {
+        "scope_id": "synthetic-g6-user",
+        "as_of": "2026-09-26T08:05:00Z",
+        "available_guide_ids": [
+          "G01",
+          "G02",
+          "G03",
+          "G04",
+          "G05",
+          "G06",
+          "G07",
+          "G08",
+          "G09",
+          "G10",
+          "G11",
+          "G12"
+        ],
+        "selected_guide_id": "G04",
+        "selected_fixture_revision_id": "G04-R1",
+        "selection_revision": 1,
+        "active_match": {
+          "match_id": "MATCH-Q11",
+          "status": "active",
+          "game_id": "fog-harbor-tactics",
+          "game_name": "雾港棋局",
+          "platform": "pc",
+          "mode": "ranked",
+          "game_version": "2.4",
+          "goal": "本局走火鸟线，培养火羽使",
+          "observations": [
+            {
+              "text": "两名烬翼游侠和一名火羽使已在场，余烬刚好 6 枚，火羽使仍是一星。",
+              "source_kind": "explicit_user_description",
+              "observed_at": "2026-09-26T08:04:30Z",
+              "expires_at": "2026-09-26T08:06:30Z",
+              "match_id": "MATCH-Q11"
+            }
+          ],
+          "last_delivered_advice": {
+            "text": "先找到火羽使并保留余烬，凑齐火鸟线基础棋子。",
+            "delivered": true,
+            "match_id": "MATCH-Q11",
+            "guide_id": "G04",
+            "fixture_revision_id": "G04-R1",
+            "delivered_at": "2026-09-26T08:04:00Z",
+            "executed_by_user": false
+          }
+        },
+        "excluded_previous_match": {
+          "match_id": "OLD-Q11",
+          "text": "上一局采用其他路线，金币为 99，已收到建议继续刷新商店；该局已经结束。",
+          "must_not_influence_current_query": true
+        }
+      },
+      "answerability": "answerable",
+      "required_path": "local_evidence",
+      "expected_evidence": [
+        {
+          "guide_id": "G04",
+          "fixture_revision_id": "G04-R1",
+          "passage_id": "G04-P02",
+          "exact_text": "火鸟线已有两名烬翼游侠和一名火羽使，且余烬达到 6 枚时，下一步将火羽使升为二星，再把烬翼游侠移到前排两侧；此时先不要升级人口。",
+          "applicability": {
+            "game_id": "fog-harbor-tactics",
+            "game_name": "雾港棋局",
+            "platform": "pc",
+            "mode": "ranked",
+            "game_version": "2.4"
+          }
+        }
+      ],
+      "prohibited_guide_ids": [
+        "G01",
+        "G02",
+        "G03",
+        "G05",
+        "G06",
+        "G07",
+        "G08",
+        "G09",
+        "G10",
+        "G11",
+        "G12"
+      ],
+      "expected_network_calls": {
+        "search": 0,
+        "read_page": 0
+      }
+    },
+    {
+      "question_id": "Q12",
+      "question": "手机排位二阶段第 3 回合，潮卫线升五人口的金币门槛是多少？",
+      "input_kind": "text",
+      "tags": [
+        "platform_conflict_distractor",
+        "numeric_rule"
+      ],
+      "version_sensitive": true,
+      "query_context": {
+        "scope_id": "synthetic-g6-user",
+        "as_of": "2026-09-26T08:05:00Z",
+        "available_guide_ids": [
+          "G01",
+          "G02",
+          "G03",
+          "G04",
+          "G05",
+          "G06",
+          "G07",
+          "G08",
+          "G09",
+          "G10",
+          "G11",
+          "G12"
+        ],
+        "selected_guide_id": "G05",
+        "selected_fixture_revision_id": "G05-R1",
+        "selection_revision": 1,
+        "active_match": {
+          "match_id": "MATCH-Q12",
+          "status": "active",
+          "game_id": "fog-harbor-tactics",
+          "game_name": "雾港棋局",
+          "platform": "mobile",
+          "mode": "ranked",
+          "game_version": "2.4",
+          "goal": "",
+          "observations": [],
+          "last_delivered_advice": null
+        },
+        "excluded_previous_match": null
+      },
+      "answerability": "answerable",
+      "required_path": "local_evidence",
+      "expected_evidence": [
+        {
+          "guide_id": "G05",
+          "fixture_revision_id": "G05-R1",
+          "passage_id": "G05-P01",
+          "exact_text": "雾港棋局 2.4 手机排位采用触屏简化经济。二阶段第 3 回合，潮卫线持有 16 金币即可升到五人口，并保留 6 金币；PC 排位的 18 金币门槛不适用。",
+          "applicability": {
+            "game_id": "fog-harbor-tactics",
+            "game_name": "雾港棋局",
+            "platform": "mobile",
+            "mode": "ranked",
+            "game_version": "2.4"
+          }
+        }
+      ],
+      "prohibited_guide_ids": [
+        "G01",
+        "G02",
+        "G03",
+        "G04",
+        "G06",
+        "G07",
+        "G08",
+        "G09",
+        "G10",
+        "G11",
+        "G12"
+      ],
+      "expected_network_calls": {
+        "search": 0,
+        "read_page": 0
+      }
+    },
+    {
+      "question_id": "Q13",
+      "question": "手机上小船锚该怎么按才会生效？",
+      "input_kind": "text",
+      "tags": [
+        "alias",
+        "platform_conflict_distractor"
+      ],
+      "version_sensitive": true,
+      "query_context": {
+        "scope_id": "synthetic-g6-user",
+        "as_of": "2026-09-26T08:05:00Z",
+        "available_guide_ids": [
+          "G01",
+          "G02",
+          "G03",
+          "G04",
+          "G05",
+          "G06",
+          "G07",
+          "G08",
+          "G09",
+          "G10",
+          "G11",
+          "G12"
+        ],
+        "selected_guide_id": "G05",
+        "selected_fixture_revision_id": "G05-R1",
+        "selection_revision": 1,
+        "active_match": {
+          "match_id": "MATCH-Q13",
+          "status": "active",
+          "game_id": "fog-harbor-tactics",
+          "game_name": "雾港棋局",
+          "platform": "mobile",
+          "mode": "ranked",
+          "game_version": "2.4",
+          "goal": "",
+          "observations": [],
+          "last_delivered_advice": null
+        },
+        "excluded_previous_match": null
+      },
+      "answerability": "answerable",
+      "required_path": "local_evidence",
+      "expected_evidence": [
+        {
+          "guide_id": "G05",
+          "fixture_revision_id": "G05-R1",
+          "passage_id": "G05-P02",
+          "exact_text": "手机排位的锚点按钮俗称小船锚。拥有 4 枚潮印后长按小船锚一秒，再点选雾盾护卫确认；单击按钮只显示说明，不消耗潮印。",
+          "applicability": {
+            "game_id": "fog-harbor-tactics",
+            "game_name": "雾港棋局",
+            "platform": "mobile",
+            "mode": "ranked",
+            "game_version": "2.4"
+          }
+        }
+      ],
+      "prohibited_guide_ids": [
+        "G01",
+        "G02",
+        "G03",
+        "G04",
+        "G06",
+        "G07",
+        "G08",
+        "G09",
+        "G10",
+        "G11",
+        "G12"
+      ],
+      "expected_network_calls": {
+        "search": 0,
+        "read_page": 0
+      }
+    },
+    {
+      "question_id": "Q14",
+      "question": "逆风旗变成什么颜色后，领航员才能去左侧浮桥？",
+      "input_kind": "text",
+      "tags": [
+        "alias",
+        "evidence_after_6000"
+      ],
+      "version_sensitive": true,
+      "query_context": {
+        "scope_id": "synthetic-g6-user",
+        "as_of": "2026-09-26T08:05:00Z",
+        "available_guide_ids": [
+          "G01",
+          "G02",
+          "G03",
+          "G04",
+          "G05",
+          "G06",
+          "G07",
+          "G08",
+          "G09",
+          "G10",
+          "G11",
+          "G12"
+        ],
+        "selected_guide_id": "G06",
+        "selected_fixture_revision_id": "G06-R1",
+        "selection_revision": 1,
+        "active_match": {
+          "match_id": "MATCH-Q14",
+          "status": "active",
+          "game_id": "fog-harbor-tactics",
+          "game_name": "雾港棋局",
+          "platform": "pc",
+          "mode": "ranked",
+          "game_version": "2.4",
+          "goal": "",
+          "observations": [],
+          "last_delivered_advice": null
+        },
+        "excluded_previous_match": null
+      },
+      "answerability": "answerable",
+      "required_path": "local_evidence",
+      "expected_evidence": [
+        {
+          "guide_id": "G06",
+          "fixture_revision_id": "G06-R1",
+          "passage_id": "G06-P02",
+          "exact_text": "风帆路线所称蓝旗，也叫逆风旗。只在旗面变为蓝色后把风帆领航员放到左侧浮桥，白旗期间让领航员留在后排。",
+          "applicability": {
+            "game_id": "fog-harbor-tactics",
+            "game_name": "雾港棋局",
+            "platform": "pc",
+            "mode": "ranked",
+            "game_version": "2.4"
+          }
+        }
+      ],
+      "prohibited_guide_ids": [
+        "G01",
+        "G02",
+        "G03",
+        "G04",
+        "G05",
+        "G07",
+        "G08",
+        "G09",
+        "G10",
+        "G11",
+        "G12"
+      ],
+      "expected_network_calls": {
+        "search": 0,
+        "read_page": 0
+      }
+    },
+    {
+      "question_id": "Q15",
+      "question": "风帆路线的折返是什么操作，花哪种资源？",
+      "input_kind": "text",
+      "tags": [
+        "terminology",
+        "evidence_after_20000"
+      ],
+      "version_sensitive": true,
+      "query_context": {
+        "scope_id": "synthetic-g6-user",
+        "as_of": "2026-09-26T08:05:00Z",
+        "available_guide_ids": [
+          "G01",
+          "G02",
+          "G03",
+          "G04",
+          "G05",
+          "G06",
+          "G07",
+          "G08",
+          "G09",
+          "G10",
+          "G11",
+          "G12"
+        ],
+        "selected_guide_id": "G06",
+        "selected_fixture_revision_id": "G06-R1",
+        "selection_revision": 1,
+        "active_match": {
+          "match_id": "MATCH-Q15",
+          "status": "active",
+          "game_id": "fog-harbor-tactics",
+          "game_name": "雾港棋局",
+          "platform": "pc",
+          "mode": "ranked",
+          "game_version": "2.4",
+          "goal": "",
+          "observations": [],
+          "last_delivered_advice": null
+        },
+        "excluded_previous_match": null
+      },
+      "answerability": "answerable",
+      "required_path": "local_evidence",
+      "expected_evidence": [
+        {
+          "guide_id": "G06",
+          "fixture_revision_id": "G06-R1",
+          "passage_id": "G06-P03",
+          "exact_text": "风帆路线的折返指主动撤回一名领航员到替补席，再花费 3 枚风向筹码重新放回左侧浮桥；折返不消耗潮印，也不是刷新商店。",
+          "applicability": {
+            "game_id": "fog-harbor-tactics",
+            "game_name": "雾港棋局",
+            "platform": "pc",
+            "mode": "ranked",
+            "game_version": "2.4"
+          }
+        }
+      ],
+      "prohibited_guide_ids": [
+        "G01",
+        "G02",
+        "G03",
+        "G04",
+        "G05",
+        "G07",
+        "G08",
+        "G09",
+        "G10",
+        "G11",
+        "G12"
+      ],
+      "expected_network_calls": {
+        "search": 0,
+        "read_page": 0
+      }
+    },
+    {
+      "question_id": "Q16",
+      "question": "然后呢？",
+      "input_kind": "voice_transcript",
+      "tags": [
+        "follow_up",
+        "evidence_after_20000"
+      ],
+      "version_sensitive": true,
+      "query_context": {
+        "scope_id": "synthetic-g6-user",
+        "as_of": "2026-09-26T08:05:00Z",
+        "available_guide_ids": [
+          "G01",
+          "G02",
+          "G03",
+          "G04",
+          "G05",
+          "G06",
+          "G07",
+          "G08",
+          "G09",
+          "G10",
+          "G11",
+          "G12"
+        ],
+        "selected_guide_id": "G06",
+        "selected_fixture_revision_id": "G06-R1",
+        "selection_revision": 1,
+        "active_match": {
+          "match_id": "MATCH-Q16",
+          "status": "active",
+          "game_id": "fog-harbor-tactics",
+          "game_name": "雾港棋局",
+          "platform": "pc",
+          "mode": "ranked",
+          "game_version": "2.4",
+          "goal": "按风帆路线把领航员部署到浮桥",
+          "observations": [
+            {
+              "text": "逆风旗已经变蓝，风帆领航员还在后排，我有 3 枚风向筹码。",
+              "source_kind": "explicit_user_description",
+              "observed_at": "2026-09-26T08:04:30Z",
+              "expires_at": "2026-09-26T08:06:30Z",
+              "match_id": "MATCH-Q16"
+            }
+          ],
+          "last_delivered_advice": {
+            "text": "先看旗面颜色，白旗时留住后排领航员，不要提前折返。",
+            "delivered": true,
+            "match_id": "MATCH-Q16",
+            "guide_id": "G06",
+            "fixture_revision_id": "G06-R1",
+            "delivered_at": "2026-09-26T08:04:00Z",
+            "executed_by_user": false
+          }
+        },
+        "excluded_previous_match": {
+          "match_id": "OLD-Q16",
+          "text": "上一局采用其他路线，金币为 99，已收到建议继续刷新商店；该局已经结束。",
+          "must_not_influence_current_query": true
+        }
+      },
+      "answerability": "answerable",
+      "required_path": "local_evidence",
+      "expected_evidence": [
+        {
+          "guide_id": "G06",
+          "fixture_revision_id": "G06-R1",
+          "passage_id": "G06-P04",
+          "exact_text": "当前已亮蓝色逆风旗、风帆领航员仍在后排且持有 3 枚风向筹码时，下一步把领航员直接移到左侧浮桥，保留筹码；只有领航员已经站上浮桥又需要重新部署时才执行折返。",
+          "applicability": {
+            "game_id": "fog-harbor-tactics",
+            "game_name": "雾港棋局",
+            "platform": "pc",
+            "mode": "ranked",
+            "game_version": "2.4"
+          }
+        }
+      ],
+      "prohibited_guide_ids": [
+        "G01",
+        "G02",
+        "G03",
+        "G04",
+        "G05",
+        "G07",
+        "G08",
+        "G09",
+        "G10",
+        "G11",
+        "G12"
+      ],
+      "expected_network_calls": {
+        "search": 0,
+        "read_page": 0
+      }
+    },
+    {
+      "question_id": "Q17",
+      "question": "远征的星环锚点要几颗能量晶石，启动后有什么作用？",
+      "input_kind": "text",
+      "tags": [
+        "cross_game_homonym",
+        "version_conflict_distractor",
+        "mode_conflict_distractor"
+      ],
+      "version_sensitive": true,
+      "query_context": {
+        "scope_id": "synthetic-g6-user",
+        "as_of": "2026-09-26T08:05:00Z",
+        "available_guide_ids": [
+          "G01",
+          "G02",
+          "G03",
+          "G04",
+          "G05",
+          "G06",
+          "G07",
+          "G08",
+          "G09",
+          "G10",
+          "G11",
+          "G12"
+        ],
+        "selected_guide_id": "G07",
+        "selected_fixture_revision_id": "G07-R1",
+        "selection_revision": 1,
+        "active_match": {
+          "match_id": "MATCH-Q17",
+          "status": "active",
+          "game_id": "star-ring-voyage",
+          "game_name": "星环远航",
+          "platform": "pc",
+          "mode": "expedition",
+          "game_version": "1.8",
+          "goal": "",
+          "observations": [],
+          "last_delivered_advice": null
+        },
+        "excluded_previous_match": null
+      },
+      "answerability": "answerable",
+      "required_path": "local_evidence",
+      "expected_evidence": [
+        {
+          "guide_id": "G07",
+          "fixture_revision_id": "G07-R1",
+          "passage_id": "G07-P01",
+          "exact_text": "星环远航 1.8 PC 远征中的星环锚点由 7 颗能量晶石启动，启动后固定旗舰朝向。星环锚点不使用雾港棋局的潮印，两个游戏的锚点没有通用规则。",
+          "applicability": {
+            "game_id": "star-ring-voyage",
+            "game_name": "星环远航",
+            "platform": "pc",
+            "mode": "expedition",
+            "game_version": "1.8"
+          }
+        }
+      ],
+      "prohibited_guide_ids": [
+        "G01",
+        "G02",
+        "G03",
+        "G04",
+        "G05",
+        "G06",
+        "G08",
+        "G09",
+        "G10",
+        "G11",
+        "G12"
+      ],
+      "expected_network_calls": {
+        "search": 0,
+        "read_page": 0
+      }
+    },
+    {
+      "question_id": "Q18",
+      "question": "小铃铛放哪个装备槽，它会提高护盾吗？",
+      "input_kind": "text",
+      "tags": [
+        "alias",
+        "version_conflict_distractor"
+      ],
+      "version_sensitive": true,
+      "query_context": {
+        "scope_id": "synthetic-g6-user",
+        "as_of": "2026-09-26T08:05:00Z",
+        "available_guide_ids": [
+          "G01",
+          "G02",
+          "G03",
+          "G04",
+          "G05",
+          "G06",
+          "G07",
+          "G08",
+          "G09",
+          "G10",
+          "G11",
+          "G12"
+        ],
+        "selected_guide_id": "G07",
+        "selected_fixture_revision_id": "G07-R1",
+        "selection_revision": 1,
+        "active_match": {
+          "match_id": "MATCH-Q18",
+          "status": "active",
+          "game_id": "star-ring-voyage",
+          "game_name": "星环远航",
+          "platform": "pc",
+          "mode": "expedition",
+          "game_version": "1.8",
+          "goal": "",
+          "observations": [],
+          "last_delivered_advice": null
+        },
+        "excluded_previous_match": null
+      },
+      "answerability": "answerable",
+      "required_path": "local_evidence",
+      "expected_evidence": [
+        {
+          "guide_id": "G07",
+          "fixture_revision_id": "G07-R1",
+          "passage_id": "G07-P02",
+          "exact_text": "回声环俗称小铃铛，是放在旗舰第二装备槽的导航器。小铃铛只缩短扫描间隔，不增加护盾容量，也不是武器。",
+          "applicability": {
+            "game_id": "star-ring-voyage",
+            "game_name": "星环远航",
+            "platform": "pc",
+            "mode": "expedition",
+            "game_version": "1.8"
+          }
+        }
+      ],
+      "prohibited_guide_ids": [
+        "G01",
+        "G02",
+        "G03",
+        "G04",
+        "G05",
+        "G06",
+        "G08",
+        "G09",
+        "G10",
+        "G11",
+        "G12"
+      ],
+      "expected_network_calls": {
+        "search": 0,
+        "read_page": 0
+      }
+    },
+    {
+      "question_id": "Q19",
+      "question": "下一步呢？",
+      "input_kind": "voice_transcript",
+      "tags": [
+        "follow_up",
+        "mode_conflict_distractor"
+      ],
+      "version_sensitive": true,
+      "query_context": {
+        "scope_id": "synthetic-g6-user",
+        "as_of": "2026-09-26T08:05:00Z",
+        "available_guide_ids": [
+          "G01",
+          "G02",
+          "G03",
+          "G04",
+          "G05",
+          "G06",
+          "G07",
+          "G08",
+          "G09",
+          "G10",
+          "G11",
+          "G12"
+        ],
+        "selected_guide_id": "G07",
+        "selected_fixture_revision_id": "G07-R1",
+        "selection_revision": 1,
+        "active_match": {
+          "match_id": "MATCH-Q19",
+          "status": "active",
+          "game_id": "star-ring-voyage",
+          "game_name": "星环远航",
+          "platform": "pc",
+          "mode": "expedition",
+          "game_version": "1.8",
+          "goal": "按护盾航线保住旗舰",
+          "observations": [
+            {
+              "text": "旗舰护盾只剩 28 点，修复无人机还可以使用，附近有蓝色补给灯塔。",
+              "source_kind": "explicit_user_description",
+              "observed_at": "2026-09-26T08:04:30Z",
+              "expires_at": "2026-09-26T08:06:30Z",
+              "match_id": "MATCH-Q19"
+            }
+          ],
+          "last_delivered_advice": {
+            "text": "先查看旗舰护盾与无人机可用状态，再决定是否扫描矿带。",
+            "delivered": true,
+            "match_id": "MATCH-Q19",
+            "guide_id": "G07",
+            "fixture_revision_id": "G07-R1",
+            "delivered_at": "2026-09-26T08:04:00Z",
+            "executed_by_user": false
+          }
+        },
+        "excluded_previous_match": {
+          "match_id": "OLD-Q19",
+          "text": "上一局采用其他路线，金币为 99，已收到建议继续刷新商店；该局已经结束。",
+          "must_not_influence_current_query": true
+        }
+      },
+      "answerability": "answerable",
+      "required_path": "local_evidence",
+      "expected_evidence": [
+        {
+          "guide_id": "G07",
+          "fixture_revision_id": "G07-R1",
+          "passage_id": "G07-P03",
+          "exact_text": "采用护盾航线时，旗舰护盾已降到 30 点或以下、修复无人机仍可用，下一步先释放修复无人机并撤向蓝色补给灯塔。不要继续扫描矿带，也不要先启动星环锚点。",
+          "applicability": {
+            "game_id": "star-ring-voyage",
+            "game_name": "星环远航",
+            "platform": "pc",
+            "mode": "expedition",
+            "game_version": "1.8"
+          }
+        }
+      ],
+      "prohibited_guide_ids": [
+        "G01",
+        "G02",
+        "G03",
+        "G04",
+        "G05",
+        "G06",
+        "G08",
+        "G09",
+        "G10",
+        "G11",
+        "G12"
+      ],
+      "expected_network_calls": {
+        "search": 0,
+        "read_page": 0
+      }
+    },
+    {
+      "question_id": "Q20",
+      "question": "霜脊冰矿应该先扫描还是先发采样艇？完整顺序是什么？",
+      "input_kind": "text",
+      "tags": [
+        "ordered_steps"
+      ],
+      "version_sensitive": true,
+      "query_context": {
+        "scope_id": "synthetic-g6-user",
+        "as_of": "2026-09-26T08:05:00Z",
+        "available_guide_ids": [
+          "G01",
+          "G02",
+          "G03",
+          "G04",
+          "G05",
+          "G06",
+          "G07",
+          "G08",
+          "G09",
+          "G10",
+          "G11",
+          "G12"
+        ],
+        "selected_guide_id": "G07",
+        "selected_fixture_revision_id": "G07-R1",
+        "selection_revision": 1,
+        "active_match": {
+          "match_id": "MATCH-Q20",
+          "status": "active",
+          "game_id": "star-ring-voyage",
+          "game_name": "星环远航",
+          "platform": "pc",
+          "mode": "expedition",
+          "game_version": "1.8",
+          "goal": "",
+          "observations": [],
+          "last_delivered_advice": null
+        },
+        "excluded_previous_match": null
+      },
+      "answerability": "answerable",
+      "required_path": "local_evidence",
+      "expected_evidence": [
+        {
+          "guide_id": "G07",
+          "fixture_revision_id": "G07-R1",
+          "passage_id": "G07-P04",
+          "exact_text": "远征模式采集霜脊冰矿的次序是先扫描裂缝，再派一架采样艇，最后回收样本箱。扫描前直接发射采样艇会丢失矿层定位。",
+          "applicability": {
+            "game_id": "star-ring-voyage",
+            "game_name": "星环远航",
+            "platform": "pc",
+            "mode": "expedition",
+            "game_version": "1.8"
+          }
+        }
+      ],
+      "prohibited_guide_ids": [
+        "G01",
+        "G02",
+        "G03",
+        "G04",
+        "G05",
+        "G06",
+        "G08",
+        "G09",
+        "G10",
+        "G11",
+        "G12"
+      ],
+      "expected_network_calls": {
+        "search": 0,
+        "read_page": 0
+      }
+    },
+    {
+      "question_id": "Q21",
+      "question": "1.7 远征旧版启动星环锚点要几颗晶石？",
+      "input_kind": "text",
+      "tags": [
+        "known_old_version",
+        "cross_game_homonym"
+      ],
+      "version_sensitive": true,
+      "query_context": {
+        "scope_id": "synthetic-g6-user",
+        "as_of": "2026-09-26T08:05:00Z",
+        "available_guide_ids": [
+          "G01",
+          "G02",
+          "G03",
+          "G04",
+          "G05",
+          "G06",
+          "G07",
+          "G08",
+          "G09",
+          "G10",
+          "G11",
+          "G12"
+        ],
+        "selected_guide_id": "G08",
+        "selected_fixture_revision_id": "G08-R1",
+        "selection_revision": 1,
+        "active_match": {
+          "match_id": "MATCH-Q21",
+          "status": "active",
+          "game_id": "star-ring-voyage",
+          "game_name": "星环远航",
+          "platform": "pc",
+          "mode": "expedition",
+          "game_version": "1.7",
+          "goal": "",
+          "observations": [],
+          "last_delivered_advice": null
+        },
+        "excluded_previous_match": null
+      },
+      "answerability": "answerable",
+      "required_path": "local_evidence",
+      "expected_evidence": [
+        {
+          "guide_id": "G08",
+          "fixture_revision_id": "G08-R1",
+          "passage_id": "G08-P01",
+          "exact_text": "星环远航 1.7 PC 远征的星环锚点需要 5 颗能量晶石。1.8 已经改变启动消耗，请勿把此旧数值作为 1.8 的操作建议。",
+          "applicability": {
+            "game_id": "star-ring-voyage",
+            "game_name": "星环远航",
+            "platform": "pc",
+            "mode": "expedition",
+            "game_version": "1.7"
+          }
+        }
+      ],
+      "prohibited_guide_ids": [
+        "G01",
+        "G02",
+        "G03",
+        "G04",
+        "G05",
+        "G06",
+        "G07",
+        "G09",
+        "G10",
+        "G11",
+        "G12"
+      ],
+      "expected_network_calls": {
+        "search": 0,
+        "read_page": 0
+      }
+    },
+    {
+      "question_id": "Q22",
+      "question": "竞技场的星环锚点消耗几颗晶石，能抢哪个区域？",
+      "input_kind": "text",
+      "tags": [
+        "mode_conflict_distractor",
+        "numeric_rule"
+      ],
+      "version_sensitive": true,
+      "query_context": {
+        "scope_id": "synthetic-g6-user",
+        "as_of": "2026-09-26T08:05:00Z",
+        "available_guide_ids": [
+          "G01",
+          "G02",
+          "G03",
+          "G04",
+          "G05",
+          "G06",
+          "G07",
+          "G08",
+          "G09",
+          "G10",
+          "G11",
+          "G12"
+        ],
+        "selected_guide_id": "G09",
+        "selected_fixture_revision_id": "G09-R1",
+        "selection_revision": 1,
+        "active_match": {
+          "match_id": "MATCH-Q22",
+          "status": "active",
+          "game_id": "star-ring-voyage",
+          "game_name": "星环远航",
+          "platform": "pc",
+          "mode": "arena",
+          "game_version": "1.8",
+          "goal": "",
+          "observations": [],
+          "last_delivered_advice": null
+        },
+        "excluded_previous_match": null
+      },
+      "answerability": "answerable",
+      "required_path": "local_evidence",
+      "expected_evidence": [
+        {
+          "guide_id": "G09",
+          "fixture_revision_id": "G09-R1",
+          "passage_id": "G09-P01",
+          "exact_text": "星环远航 1.8 PC 竞技场的星环锚点消耗 3 颗能量晶石，启动后夺取中央得分区。竞技场消耗不能用于远征模式。",
+          "applicability": {
+            "game_id": "star-ring-voyage",
+            "game_name": "星环远航",
+            "platform": "pc",
+            "mode": "arena",
+            "game_version": "1.8"
+          }
+        }
+      ],
+      "prohibited_guide_ids": [
+        "G01",
+        "G02",
+        "G03",
+        "G04",
+        "G05",
+        "G06",
+        "G07",
+        "G08",
+        "G10",
+        "G11",
+        "G12"
+      ],
+      "expected_network_calls": {
+        "search": 0,
+        "read_page": 0
+      }
+    },
+    {
+      "question_id": "Q23",
+      "question": "这份未署版本的笔记建议怎样区分观测和船员猜测？",
+      "input_kind": "text",
+      "tags": [
+        "missing_version",
+        "missing_content_date",
+        "non_version_sensitive"
+      ],
+      "version_sensitive": false,
+      "query_context": {
+        "scope_id": "synthetic-g6-user",
+        "as_of": "2026-09-26T08:05:00Z",
+        "available_guide_ids": [
+          "G01",
+          "G02",
+          "G03",
+          "G04",
+          "G05",
+          "G06",
+          "G07",
+          "G08",
+          "G09",
+          "G10",
+          "G11",
+          "G12"
+        ],
+        "selected_guide_id": "G10",
+        "selected_fixture_revision_id": "G10-R1",
+        "selection_revision": 1,
+        "active_match": {
+          "match_id": "MATCH-Q23",
+          "status": "active",
+          "game_id": "star-ring-voyage",
+          "game_name": "星环远航",
+          "platform": "pc",
+          "mode": "expedition",
+          "game_version": null,
+          "goal": "",
+          "observations": [],
+          "last_delivered_advice": null
+        },
+        "excluded_previous_match": null
+      },
+      "answerability": "answerable",
+      "required_path": "local_evidence",
+      "expected_evidence": [
+        {
+          "guide_id": "G10",
+          "fixture_revision_id": "G10-R1",
+          "passage_id": "G10-P01",
+          "exact_text": "这份星环远航观测笔记没有标注游戏版本，也没有内容更新时间。阅读回声日志时应把亲眼观测与船员猜测分栏记录；这只是记录方法，不代表任何当前版本的资源规则。",
+          "applicability": {
+            "game_id": "star-ring-voyage",
+            "game_name": "星环远航",
+            "platform": "pc",
+            "mode": "expedition",
+            "game_version": null
+          }
+        }
+      ],
+      "prohibited_guide_ids": [
+        "G01",
+        "G02",
+        "G03",
+        "G04",
+        "G05",
+        "G06",
+        "G07",
+        "G08",
+        "G09",
+        "G11",
+        "G12"
+      ],
+      "expected_network_calls": {
+        "search": 0,
+        "read_page": 0
+      }
+    },
+    {
+      "question_id": "Q24",
+      "question": "笔记中的未证页是什么意思，重新翻阅后能改成已证实吗？",
+      "input_kind": "text",
+      "tags": [
+        "alias",
+        "evidence_after_20000",
+        "partial_body",
+        "non_version_sensitive"
+      ],
+      "version_sensitive": false,
+      "query_context": {
+        "scope_id": "synthetic-g6-user",
+        "as_of": "2026-09-26T08:05:00Z",
+        "available_guide_ids": [
+          "G01",
+          "G02",
+          "G03",
+          "G04",
+          "G05",
+          "G06",
+          "G07",
+          "G08",
+          "G09",
+          "G10",
+          "G11",
+          "G12"
+        ],
+        "selected_guide_id": "G10",
+        "selected_fixture_revision_id": "G10-R1",
+        "selection_revision": 1,
+        "active_match": {
+          "match_id": "MATCH-Q24",
+          "status": "active",
+          "game_id": "star-ring-voyage",
+          "game_name": "星环远航",
+          "platform": "pc",
+          "mode": "expedition",
+          "game_version": null,
+          "goal": "",
+          "observations": [],
+          "last_delivered_advice": null
+        },
+        "excluded_previous_match": null
+      },
+      "answerability": "answerable",
+      "required_path": "local_evidence",
+      "expected_evidence": [
+        {
+          "guide_id": "G10",
+          "fixture_revision_id": "G10-R1",
+          "passage_id": "G10-P02",
+          "exact_text": "观测笔记把没有直接观测依据的条目叫作灰页，也称未证页。灰页应保留原记录时间并标注尚待核对，不能因重新翻阅就改成已经证实。",
+          "applicability": {
+            "game_id": "star-ring-voyage",
+            "game_name": "星环远航",
+            "platform": "pc",
+            "mode": "expedition",
+            "game_version": null
+          }
+        }
+      ],
+      "prohibited_guide_ids": [
+        "G01",
+        "G02",
+        "G03",
+        "G04",
+        "G05",
+        "G06",
+        "G07",
+        "G08",
+        "G09",
+        "G11",
+        "G12"
+      ],
+      "expected_network_calls": {
+        "search": 0,
+        "read_page": 0
+      }
+    },
+    {
+      "question_id": "Q25",
+      "question": "潮卫三灯阵合成暮潮龙角需要几枚潮印？",
+      "input_kind": "text",
+      "tags": [
+        "absent",
+        "high_lexical_overlap",
+        "invented_item_not_in_corpus"
+      ],
+      "version_sensitive": true,
+      "query_context": {
+        "scope_id": "synthetic-g6-user",
+        "as_of": "2026-09-26T08:05:00Z",
+        "available_guide_ids": [
+          "G01",
+          "G02",
+          "G03",
+          "G04",
+          "G05",
+          "G06",
+          "G07",
+          "G08",
+          "G09",
+          "G10",
+          "G11",
+          "G12"
+        ],
+        "selected_guide_id": "G01",
+        "selected_fixture_revision_id": "G01-R1",
+        "selection_revision": 1,
+        "requested_guide_id": null,
+        "active_match": {
+          "match_id": "MATCH-Q25",
+          "status": "active",
+          "game_id": "fog-harbor-tactics",
+          "game_name": "雾港棋局",
+          "platform": "pc",
+          "mode": "ranked",
+          "game_version": "2.4",
+          "goal": "只在已有且适用的本地资料范围内确认这个问题",
+          "observations": [],
+          "last_delivered_advice": null
+        },
+        "excluded_previous_match": null
+      },
+      "answerability": "absent",
+      "required_path": "evidence_gap",
+      "absence_reason": "uncovered_fact",
+      "expected_evidence": [],
+      "prohibited_guide_ids": [
+        "G01",
+        "G02",
+        "G03",
+        "G04",
+        "G05",
+        "G06",
+        "G07",
+        "G08",
+        "G09",
+        "G10",
+        "G11",
+        "G12"
+      ],
+      "expected_behavior": "Record an evidence gap before requesting an allowed supplement or clarification; do not label any stored passage as support for this question.",
+      "network_policy": "The fixture does not supply a successful external answer. Tests may observe a supplement request or clarification, but may not fabricate supported local completion."
+    },
+    {
+      "question_id": "Q26",
+      "question": "现在是 2.4 PC 排位，照这份旧攻略二阶段第 3 回合该用多少金币升五人口？",
+      "input_kind": "text",
+      "tags": [
+        "absent",
+        "known_version_conflict",
+        "stale_numbers_must_not_answer"
+      ],
+      "version_sensitive": true,
+      "query_context": {
+        "scope_id": "synthetic-g6-user",
+        "as_of": "2026-09-26T08:05:00Z",
+        "available_guide_ids": [
+          "G02",
+          "G03",
+          "G05",
+          "G07",
+          "G08",
+          "G09",
+          "G10",
+          "G11",
+          "G12"
+        ],
+        "selected_guide_id": "G02",
+        "selected_fixture_revision_id": "G02-R1",
+        "selection_revision": 1,
+        "requested_guide_id": null,
+        "active_match": {
+          "match_id": "MATCH-Q26",
+          "status": "active",
+          "game_id": "fog-harbor-tactics",
+          "game_name": "雾港棋局",
+          "platform": "pc",
+          "mode": "ranked",
+          "game_version": "2.4",
+          "goal": "只在已有且适用的本地资料范围内确认这个问题",
+          "observations": [],
+          "last_delivered_advice": null
+        },
+        "excluded_previous_match": null
+      },
+      "answerability": "absent",
+      "required_path": "evidence_gap",
+      "absence_reason": "known_version_conflict",
+      "expected_evidence": [],
+      "prohibited_guide_ids": [
+        "G01",
+        "G02",
+        "G03",
+        "G04",
+        "G05",
+        "G06",
+        "G07",
+        "G08",
+        "G09",
+        "G10",
+        "G11",
+        "G12"
+      ],
+      "expected_behavior": "Record an evidence gap before requesting an allowed supplement or clarification; do not label any stored passage as support for this question.",
+      "network_policy": "The fixture does not supply a successful external answer. Tests may observe a supplement request or clarification, but may not fabricate supported local completion."
+    },
+    {
+      "question_id": "Q27",
+      "question": "我打 PC 排位，当前采用的休闲快灯开局能直接照做吗？请给排位第一回合的购买顺序。",
+      "input_kind": "text",
+      "tags": [
+        "absent",
+        "mode_conflict"
+      ],
+      "version_sensitive": true,
+      "query_context": {
+        "scope_id": "synthetic-g6-user",
+        "as_of": "2026-09-26T08:05:00Z",
+        "available_guide_ids": [
+          "G03",
+          "G05",
+          "G07",
+          "G08",
+          "G09",
+          "G10",
+          "G11",
+          "G12"
+        ],
+        "selected_guide_id": "G03",
+        "selected_fixture_revision_id": "G03-R1",
+        "selection_revision": 1,
+        "requested_guide_id": null,
+        "active_match": {
+          "match_id": "MATCH-Q27",
+          "status": "active",
+          "game_id": "fog-harbor-tactics",
+          "game_name": "雾港棋局",
+          "platform": "pc",
+          "mode": "ranked",
+          "game_version": "2.4",
+          "goal": "只在已有且适用的本地资料范围内确认这个问题",
+          "observations": [],
+          "last_delivered_advice": null
+        },
+        "excluded_previous_match": null
+      },
+      "answerability": "absent",
+      "required_path": "evidence_gap",
+      "absence_reason": "mode_conflict",
+      "expected_evidence": [],
+      "prohibited_guide_ids": [
+        "G01",
+        "G02",
+        "G03",
+        "G04",
+        "G05",
+        "G06",
+        "G07",
+        "G08",
+        "G09",
+        "G10",
+        "G11",
+        "G12"
+      ],
+      "expected_behavior": "Record an evidence gap before requesting an allowed supplement or clarification; do not label any stored passage as support for this question.",
+      "network_policy": "The fixture does not supply a successful external answer. Tests may observe a supplement request or clarification, but may not fabricate supported local completion."
+    },
+    {
+      "question_id": "Q28",
+      "question": "就按刚才会员页里的攻略，三灯阵的棋子怎么摆？",
+      "input_kind": "text",
+      "tags": [
+        "absent",
+        "http_200_is_not_readable",
+        "adoption_must_fail"
+      ],
+      "version_sensitive": true,
+      "query_context": {
+        "scope_id": "synthetic-g6-user",
+        "as_of": "2026-09-26T08:05:00Z",
+        "available_guide_ids": [
+          "G11"
+        ],
+        "selected_guide_id": null,
+        "selected_fixture_revision_id": null,
+        "selection_revision": 0,
+        "requested_guide_id": "G11",
+        "active_match": {
+          "match_id": "MATCH-Q28",
+          "status": "active",
+          "game_id": "fog-harbor-tactics",
+          "game_name": "雾港棋局",
+          "platform": "pc",
+          "mode": "ranked",
+          "game_version": "2.4",
+          "goal": "只在已有且适用的本地资料范围内确认这个问题",
+          "observations": [],
+          "last_delivered_advice": null
+        },
+        "excluded_previous_match": null
+      },
+      "answerability": "absent",
+      "required_path": "evidence_gap",
+      "absence_reason": "login_required",
+      "expected_evidence": [],
+      "prohibited_guide_ids": [
+        "G01",
+        "G02",
+        "G03",
+        "G04",
+        "G05",
+        "G06",
+        "G07",
+        "G08",
+        "G09",
+        "G10",
+        "G11",
+        "G12"
+      ],
+      "expected_behavior": "Record an evidence gap before requesting an allowed supplement or clarification; do not label any stored passage as support for this question.",
+      "network_policy": "The fixture does not supply a successful external answer. Tests may observe a supplement request or clarification, but may not fabricate supported local completion."
+    },
+    {
+      "question_id": "Q29",
+      "question": "刚才那个护盾航线页面要求护盾低到多少就撤退？",
+      "input_kind": "text",
+      "tags": [
+        "absent",
+        "http_403",
+        "title_is_not_evidence",
+        "adoption_must_fail"
+      ],
+      "version_sensitive": true,
+      "query_context": {
+        "scope_id": "synthetic-g6-user",
+        "as_of": "2026-09-26T08:05:00Z",
+        "available_guide_ids": [
+          "G12"
+        ],
+        "selected_guide_id": null,
+        "selected_fixture_revision_id": null,
+        "selection_revision": 0,
+        "requested_guide_id": "G12",
+        "active_match": {
+          "match_id": "MATCH-Q29",
+          "status": "active",
+          "game_id": "star-ring-voyage",
+          "game_name": "星环远航",
+          "platform": "pc",
+          "mode": "expedition",
+          "game_version": "1.8",
+          "goal": "只在已有且适用的本地资料范围内确认这个问题",
+          "observations": [],
+          "last_delivered_advice": null
+        },
+        "excluded_previous_match": null
+      },
+      "answerability": "absent",
+      "required_path": "evidence_gap",
+      "absence_reason": "access_denied",
+      "expected_evidence": [],
+      "prohibited_guide_ids": [
+        "G01",
+        "G02",
+        "G03",
+        "G04",
+        "G05",
+        "G06",
+        "G07",
+        "G08",
+        "G09",
+        "G10",
+        "G11",
+        "G12"
+      ],
+      "expected_behavior": "Record an evidence gap before requesting an allowed supplement or clarification; do not label any stored passage as support for this question.",
+      "network_policy": "The fixture does not supply a successful external answer. Tests may observe a supplement request or clarification, but may not fabricate supported local completion."
+    },
+    {
+      "question_id": "Q30",
+      "question": "请从已保存的观测笔记中找出附录封存口令。",
+      "input_kind": "text",
+      "tags": [
+        "absent",
+        "evidence_after_50000",
+        "partial_body"
+      ],
+      "version_sensitive": false,
+      "query_context": {
+        "scope_id": "synthetic-g6-user",
+        "as_of": "2026-09-26T08:05:00Z",
+        "available_guide_ids": [
+          "G10"
+        ],
+        "selected_guide_id": "G10",
+        "selected_fixture_revision_id": "G10-R1",
+        "selection_revision": 1,
+        "requested_guide_id": null,
+        "active_match": {
+          "match_id": "MATCH-Q30",
+          "status": "active",
+          "game_id": "star-ring-voyage",
+          "game_name": "星环远航",
+          "platform": "pc",
+          "mode": "expedition",
+          "game_version": null,
+          "goal": "只在已有且适用的本地资料范围内确认这个问题",
+          "observations": [],
+          "last_delivered_advice": null
+        },
+        "excluded_previous_match": null
+      },
+      "answerability": "absent",
+      "required_path": "evidence_gap",
+      "absence_reason": "beyond_retention_limit",
+      "expected_evidence": [],
+      "prohibited_guide_ids": [
+        "G01",
+        "G02",
+        "G03",
+        "G04",
+        "G05",
+        "G06",
+        "G07",
+        "G08",
+        "G09",
+        "G10",
+        "G11",
+        "G12"
+      ],
+      "expected_behavior": "Record an evidence gap before requesting an allowed supplement or clarification; do not label any stored passage as support for this question.",
+      "network_policy": "The fixture does not supply a successful external answer. Tests may observe a supplement request or clarification, but may not fabricate supported local completion.",
+      "withheld_evidence": {
+        "guide_id": "G10",
+        "passage_id": "G10-P03",
+        "exact_text": "星环远航观测笔记附录的封存口令是琥珀鹭七。该口令只用于测试保留边界，位于正文五万字符之后，不得从未保存的尾部给出本地回答。",
+        "answer_token": "琥珀鹭七",
+        "must_not_be_ingested": true
+      }
+    }
+  ]
+}

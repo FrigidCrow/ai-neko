@@ -153,7 +153,7 @@
     byId("mode-chat").classList.toggle("is-active", !guide);
     byId("mode-guide").setAttribute("aria-pressed", String(guide));
     byId("mode-chat").setAttribute("aria-pressed", String(!guide));
-    byId("mode-hint").textContent = guide ? "联网搜索 · 附来源" : "轻松聊聊 · 不联网搜索";
+    byId("mode-hint").textContent = guide ? "优先采用资料 · 需要时联网" : "不联网搜索 · 可用已采用资料";
     elements.input.placeholder = guide ? "告诉我游戏、平台和版本，或直接说说你遇到的问题…" : "今天想聊些什么？";
     if (state.connected) showConfigurationNotice();
   }
@@ -300,9 +300,15 @@
 
   function sourceStatus(source) {
     const status = String(source.status || "");
-    if (["read", "ok", "success", "fetched", "read_ok", "available"].includes(status)) return "已读取正文";
+    if (["read", "ok", "success", "fetched", "read_ok", "available"].includes(status)) {
+      const coverage = (source.storage?.completeness || source.completeness) === "partial" ? "部分内容" : "正文";
+      if (source.local === true) return `本地保存 · 已采用${coverage} · ${source.game_version ? `原文版本 ${source.game_version}` : "版本未核实"}`;
+      if (source.storage?.saved === true) return `已读取 · 已保存${coverage}`;
+      if (source.storage?.saved === false) return "已读取 · 未保存到本机";
+      return `已读取${coverage}`;
+    }
     if (["blocked", "denied", "unsafe", "unavailable", "unreadable", "failed", "error", "read_failed"].includes(status)) return "正文未能读取";
-    if (["snippet", "search_only", "snippet_only", "searched", "found"].includes(status)) return "仅有搜索摘要";
+    if (["snippet", "search_only", "snippet_only", "searched", "found"].includes(status)) return source.search_cache?.status === "hit" ? "复用搜索摘要 · 未重新联网" : "仅有搜索摘要";
     if (["reading", "pending", "fetching"].includes(status)) return "正在读取正文";
     return source.text || source.content ? "已读取正文" : "仅有搜索摘要";
   }
@@ -325,6 +331,14 @@
     summary.append(titleRow, node("span", "source-meta", [url?.hostname || "链接不可用", status].join(" · ")));
     const body = node("div", "source-details");
     body.append(node("p", "source-status", status));
+    if (source.local === true) {
+      body.append(node("p", "", `上次核查：${source.last_checked_at || "未知"}。本轮引用本地原文片段，不表示刚刚联网。`));
+      if (Number.isInteger(source.start) && Number.isInteger(source.end)) body.append(node("p", "", `原文位置：第 ${source.start + 1}–${source.end} 字符。`));
+      if (source.version_status !== "matched") body.append(node("p", "", "尚未核实与你当前游戏版本一致。"));
+    }
+    if (source.completeness === "partial" || source.storage?.completeness === "partial") body.append(node("p", "", "可读资料未完整保存，请结合原始来源核对。"));
+    if (source.prompt_truncated) body.append(node("p", "", "这里仅展示本轮引用的正文片段。"));
+    if (source.storage?.saved === false) body.append(node("p", "", source.storage.error === "guide_capacity_exceeded" ? "本地资料空间不足，本次读取未保存。" : "本地保存未成功，本次仍可查看已读取内容。"));
     const readText = source.text || source.content || "";
     const snippet = source.snippet || "";
     if (readText) body.append(node("p", "source-excerpt", readText));

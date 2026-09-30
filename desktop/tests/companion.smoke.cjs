@@ -234,7 +234,7 @@ report.executable_sha256 = crypto.createHash('sha256').update(fs.readFileSync(ex
     assert.equal(await page.locator('#notice').isHidden(), true);
     await page.locator('#mode-chat').click(); await page.locator('#new-session').click();
     assert.equal(await page.locator('#mode-chat').getAttribute('aria-pressed'), 'true');
-    assert.equal(await page.locator('#mode-hint').innerText(), '不联网搜索');
+    assert.equal(await page.locator('#mode-hint').innerText(), '不联网搜索 · 可用已采用资料');
     await page.locator('#mode-guide').click(); await page.locator('#new-session').click();
     assert.equal(await page.locator('#mode-guide').getAttribute('aria-pressed'), 'true');
   });
@@ -311,7 +311,7 @@ report.executable_sha256 = crypto.createHash('sha256').update(fs.readFileSync(ex
     await page.locator('#session-list .session-item').first().click();
     await page.waitForFunction(() => !document.querySelector('#chat-panel').hidden && document.body.dataset.sessionLoading === 'false');
     assert.equal(await page.locator('#mode-chat').getAttribute('aria-pressed'), 'true');
-    assert.equal(await page.locator('#mode-hint').innerText(), '不联网搜索');
+    assert.equal(await page.locator('#mode-hint').innerText(), '不联网搜索 · 可用已采用资料');
     await page.locator('#mode-guide').click();
   });
   await check('failed_history_retry_uses_current_chat_only_permission', async () => {
@@ -328,7 +328,7 @@ report.executable_sha256 = crypto.createHash('sha256').update(fs.readFileSync(ex
     await page.locator('.retry-turn').last().click();
     await page.waitForFunction((count) => document.querySelector('#cancel-turn').hidden && [...document.querySelectorAll('.assistant-output')].length === count + 1 && [...document.querySelectorAll('.assistant-output')].at(-1).textContent.includes('再决定下一步。'), beforeReplies);
     assert.equal(await page.locator('#mode-chat').getAttribute('aria-pressed'), 'true');
-    assert.equal(await page.locator('#mode-hint').innerText(), '不联网搜索');
+    assert.equal(await page.locator('#mode-hint').innerText(), '不联网搜索 · 可用已采用资料');
     const retried = calls.models.slice(before);
     assert.equal(retried.length, 1); assert.ok(retried.every((request) => !request.tools));
     const turns = await page.evaluate(async () => { const id = localStorage.getItem('ai-neko.desktop.last-session'); return (await window.aiNekoChat.api(`/api/sessions/${id}`)).turns; });

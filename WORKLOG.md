@@ -458,3 +458,195 @@ GitHub Release 397176556于2026-09-26T09:41:25Z发布为prerelease，15个附件
 ZIP版本0.4.0-dev.748bab516488、191,878,279字节、SHA256 `53eb5bfad5187094558dbfcd2ee814ceb4ceea8310aa638da7d0c1b32c8db65f`。源报告/截图另存 `docs/evidence/companion/mvp1-closeout-windows/`；独立目视复核白裙YUI、按需联网与记忆界面正常。本次Windows20次WebAudio停止p95约0.20ms，边界仅点击到实际stop返回；真实服务、用户采集与Windows11体验未执行。更新README、PLAN、HANDOFF、MVP2基线和收尾状态；没有实现G1–G6，没有改默认分支或创建tag，旧Release保留。最后仅提交文档与证据，使用[skip ci]避免对相同产品源码重复构建。
 
 最终文档复验PASS：28份Markdown、414个本地链接、206个参考文件，issues为空，参考工程指纹未变；`git diff --check`通过。GitHub完整日志再次确认两平台测试job及Windows打包job的桌面单测均64通过/0失败，已纳入下载核对记录。产品代码保持CI验证的748bab5不变，最终提交仅文档、摘要和合成截图证据。
+
+
+## 2026-09-27 — MVP2 G1 正文入库实施
+
+用户确认“Mvp1结束了，开始mvp2”。先更新PLAN17.3任务和验收，再并行实现独立攻略库、公开网页采集边界，并冻结G6独立语料；Root接入Memory Service所有权、实际LangGraph/Runtime保存回调与来源状态。当前基线HEAD为e830730，本批次产品与测试尚未提交；没有推送、打tag或创建Release。
+
+新增guides.sqlite文档/版本/核查记录/段落，50,000字符保留、100MiB逻辑载荷及LRU保护、scope隔离、迁移和跨进程读取。网页保持SSRF/响应限额，保存先于6,000/4,000字符模型预算；网页不进入个人事实库或其快照。桌面/Web仅增加准确保存/部分内容状态，不计G5管理入口。
+
+首轮产品路径定向检查3失败：两处测试夹具分别误用了httpx预消费Response和缺少新正文完整性契约，修正夹具；另一次真实失败复现工作线程取消后报错覆盖取消信号、继续调用模型，修复_finish_task并添加写成功/失败关闭回归。独立审查再发现同正文前缀去重掩盖新增未读内容、回答节点4,000字符裁剪未置标；分别以核查coverage旁表和逐节点截断标记修复，保留回归。库专项最终48，采集22，Runtime8，冻结HTML生产入库12，合计90新增通过。
+
+实际关键命令与结果：
+
+- `uv run pytest tests/test_guide_ingestion.py tests/test_chat.py tests/test_request_cancellation.py tests/test_runtime_lifecycle.py -q --basetemp=/tmp/ai-neko-g1-integration-20260927b`：46 passed（审查补项之前）。
+- `uv run pytest tests/test_guides.py tests/test_guide_web.py tests/test_guide_ingestion.py tests/test_web_tools.py tests/test_chat.py -q --basetemp=/tmp/ai-neko-g1-reviewed-20260927f`：132 passed；随后12篇独立HTML入库专项通过。
+- `uv run pytest tests/ -q --basetemp=/tmp/ai-neko-g1-final-20260927g --junitxml=artifacts/mvp2/g1-python-final.xml > artifacts/mvp2/g1-python-final.txt 2>&1`：730 passed、1 Windows凭据专属skip，41.60秒；最后产品/测试源码冻结后执行。
+- `npm --prefix desktop test > artifacts/mvp2/g1-desktop-unit.txt 2>&1`：64 passed。
+- `node desktop/tests/companion.smoke.cjs --output artifacts/mvp2/g1-companion-final.json > artifacts/mvp2/g1-companion-final.txt 2>&1`：实际Electron既有闭环20/20，renderer errors为空；合成18模型/3ASR/29TTS，真实服务与用户采集0。只算既有陪伴回归。
+- `python3 tests/fixtures/guides/fixture_loader.py --verify`：12篇、24有依据/6缺依据、4追问，摘要/独立标签校验通过；A03与模型质量NOT_RUN。
+- `uv run ruff check .`、`uv run ruff format --check src tests scripts packaging`：通过，79文件已格式化；两份app.js的`node --check`与`git diff --check`通过。
+
+从最终JUnit、Electron报告和当前文件生成`docs/evidence/mvp2/g1-local-verification.json`，含基线SHA、dirty说明、16份产品/测试/fixture摘要、锁摘要、环境和原始日志摘要。本机macOS26.6.2 arm64/Python3.11.15/Node25.9.0，依赖锁没有修改；原始日志保留artifacts/mvp2。G1报告、README、PLAN、NEXT-GUIDE-COMPANION、ARCHITECTURE和交接同步；下一步G2采用/切换/刷新/删除及独立攻略快照，整体目标active。Windows与真实服务验收未运行。
+
+G1最后文档校验PASS：30份Markdown、424个本地链接、206个参考文件、issues为空，参考源码指纹未变。最终测试后16份产品/测试/fixture SHA-256复核一致，git diff --check通过。
+
+## 2026-09-27 — MVP2 G2 采用管理与删除恢复
+
+按已授权完整MVP2继续，先登记PLAN17.4，分工实现guides v3控制/采用/账本/删除标记、独立攻略快照、鉴权API与桌面路由白名单；Root实现Runtime v4依赖/异步抓取/持久清理意图及图修订门禁。固定采用版本、刷新不暗换版本、最多4个异步抓取、202操作回执；指南资料仍独立于用户个人事实。没有增加依赖、导入参考内容、读取参考配置或推送发布。
+
+首轮Runtime定向检查37通过/4失败：两处旧夹具不接受新expected_revision参数、两处迁移版本/临时备份路径预期落后，修正后51通过。真实API联调发现provider配置异常写了running行但没有任务，调整为验证adapter后才落任务；另一失败是测试误将正文刷新视为控制修订变更，明确刷新不变更采用关系后修正预期。
+
+独立只读审查用实际Runtime复现并补回归：同轮用户偏好被攻略删除级联误删；取消回执先返回而SQLite线程随后保存；同URL新正文保存失败后来源副本漏清；写清理意图失败后运行时永远mutating。修复为助手证据与用户事实分开、保存/取消共用变更锁、注入前记录来源哈希、意图写入纳入失败结算。控制意图保留已提交结果和全部字段，事件已清而checkpoint清理失败也可重启续清。重启还可用攻略账本恢复已提交但操作日志未更新的抓取。
+
+快照坏头复现正常API永久阻塞，增加写文件前持久scope归属登记；已登记损坏文件和中断sidecar可安全清理，跨scope保留，未知归属外来坏文件明确人工恢复。七项边界测试首轮6通过/1失败进一步定位checkpoint空闲页残留（活行已无正文）；保留强字节断言，将所有checkpoint写连接设secure_delete并在定向删除后压缩，其他活行仍保留。修复后联合边界/Runtime/lifecycle35通过。
+
+实际关键命令与结果：
+
+- `uv run pytest tests/test_guide_runtime.py tests/test_guide_ingestion.py tests/test_runtime_lifecycle.py tests/test_schema_migration.py -q --basetemp=/tmp/ai-neko-g2-runtime-20260927i`：51通过。
+- `uv run pytest tests/test_guide_runtime.py tests/test_guide_api.py tests/test_guide_ingestion.py tests/test_runtime_lifecycle.py tests/test_schema_migration.py -q --basetemp=/tmp/ai-neko-g2-runtime-20260927j`：143通过。
+- `uv run pytest tests/test_guide_runtime.py tests/test_guide_runtime_boundaries.py tests/test_runtime_lifecycle.py -q --basetemp=/tmp/ai-neko-g2-boundaries-20260927l`：35通过。
+- `uv run pytest tests/test_guide_runtime.py tests/test_guide_snapshots.py tests/test_guide_management.py -q --basetemp=/tmp/ai-neko-g2-recovery-20260927m`：122通过。
+- `uv run pytest -q --basetemp=/tmp/ai-neko-g2-final-20260927n --junitxml=artifacts/mvp2/g2-pytest-final.xml > artifacts/mvp2/g2-pytest-final.txt 2>&1`：**951通过、1 Windows凭据专属skip，46.02秒**。
+- `npm --prefix desktop test > artifacts/mvp2/g2-desktop-final.txt 2>&1`：**67通过**。
+- `node desktop/tests/companion.smoke.cjs --output artifacts/mvp2/g2-companion-final.json > artifacts/mvp2/g2-companion-final.txt 2>&1`：**实际Electron既有陪伴20通过**，renderer errors为空；合成18模型/3ASR/29TTS，真实服务与用户采集0。
+- `uv run ruff check src tests scripts packaging`、`uv run ruff format --check src tests scripts packaging`、`node --check desktop/lib/security.cjs`、`git diff --check`：通过，87文件格式通过。
+
+从最终JUnit、Electron和前后源码清单生成`docs/evidence/mvp2/g2-local-verification.json`：232份产品/测试/构建文件在最终测试期间SHA-256一致；G2新增专项221（管理56/快照58/API92/Runtime8/边界7）。基线HEAD仍e830730，G1/G2未提交，锁摘要未变；环境macOS26.6.2 arm64/Python3.11.15/Node25.9.0。原始日志留artifacts/mvp2/g2-*，报告、README、PLAN、NEXT、架构、交接与REVIEW同步更新。下一批G3本地优先检索；完整MVP2、A01–A11、G5播放边界、Windows和真实服务均未宣称完成。
+
+最终`python3 docs/diagrams/tools/validate-docs.py > artifacts/mvp2/g2-docs-final.json`：PASS，31份Markdown、435个本地链接、206个参考文件，issues为空且参考指纹未变。文档使用系统Python3.9.6，产品测试使用独立uv环境Python3.11.15，未混算；最终232份源码摘要再次核对一致。
+
+## 2026-09-28 — MVP2 G3 本地优先检索与来源复用
+
+实现前登记PLAN17.5。分工完成固定采用版本的有界BM25、搜索TTL/并发合并/条件核查、冻结30题实际图评测；Root接入唯一LangGraph、Runtime来源依赖、版本重核、流式补查和来源卡。没有新增依赖或参考项目导入，没有使用真实凭据、推送或发布。G4仅提供显式当前对局context接缝，未持久实现对局。
+
+先以实际图和真实Runtime验证本地命中无需搜索配置、聊天模式可用、独立进程5问、来源定位、304/新内容/失败、切换时检索取消及旧派生历史排除。首次冻结Q13/Q18不达标保留在`artifacts/guides-evaluation/initial-fail.json`，修复通用中文问题语气词处理；冻结题、标签、80%单段覆盖和数字断言不变。定向审查补上未采用资料时明确最新绕缓存、清理意图同进程恢复失效缓存、未知版本304不解除门禁、首次采用排除旧网页建议。补查分支改为首文字立即流式投递，工具先到才抑制计划文字；晚到工具延后，仍只有一个图循环。
+
+实际关键命令与结果：
+
+- `uv run pytest tests/test_chat.py tests/test_guide_runtime.py tests/test_guide_api.py tests/test_guide_ingestion.py -q --basetemp=/tmp/ai-neko-g3-integration-20260928a`：120通过。
+- `uv run pytest tests/test_guide_local_runtime.py tests/test_guide_evaluation.py -q --basetemp=/tmp/ai-neko-g3-local-20260928b`：52通过；随后扩充版本/流式与来源边界。
+- `uv run pytest tests/test_search_cache.py tests/test_guide_local_runtime.py tests/test_guide_evaluation.py -q --basetemp=/tmp/ai-neko-g3-review-20260928c`：80通过。
+- `uv run pytest tests/test_guide_local_runtime.py tests/test_guide_runtime.py tests/test_chat.py -q --basetemp=/tmp/ai-neko-g3-stream-20260928d`：31通过。
+- `uv run pytest tests/test_search_cache.py tests/test_guide_local_runtime.py tests/test_guide_retrieval.py tests/test_guide_evaluation.py -q --basetemp=/tmp/ai-neko-g3-reviewed-20260928e`：160通过。
+- `uv run pytest -q --basetemp=/tmp/ai-neko-g3-final-20260928f --junitxml=artifacts/mvp2/g3-pytest-final.xml > artifacts/mvp2/g3-pytest-final.txt 2>&1`：**1,143通过/1 Windows凭据专属skip，47.68秒**。G3新增192项：检索75、刷新32、缓存29、Runtime11、评测45。
+- `npm --prefix desktop test > artifacts/mvp2/g3-desktop-final.txt 2>&1`：**67通过**。
+- `node desktop/tests/companion.smoke.cjs --output artifacts/mvp2/g3-companion-final.json > artifacts/mvp2/g3-companion-final.txt 2>&1`：首轮在历史模式提示处断言旧文案失败，保留`g3-companion-first-fail.*`；同步两处遗漏的精确提示预期后同命令重跑 **20/20**，合成18模型/3ASR/29TTS，renderer errors为空。
+- `node desktop/tests/guide-local.smoke.cjs --output artifacts/mvp2/g3-guide-ui-final.json > artifacts/mvp2/g3-guide-ui-final.txt 2>&1`：**5/5**，实际设置页配置本机合成模型且搜索未配置，真实IPC采用/切换，UI提问、来源卡、首段未结束可见、S1重映射和旧建议排除通过；3模型请求/0工具，截图实际查看，非G5管理按钮验收。
+- `uv run python scripts/evaluate_guides.py --output artifacts/mvp2/g3-evaluation-final.json > artifacts/mvp2/g3-evaluation-final.txt 2>&1`：**24/24 top3命中、6/6缺口识别**，错误游戏/已知冲突版本/禁止来源0，覆盖题0搜索/0取页/0规划；最多6段5,798字符，另3个仅聊天检查通过。实际图注入，合成模型不计回答质量。
+- `uv run python scripts/benchmark_guides.py --output artifacts/mvp2/g3-benchmark-final.json > artifacts/mvp2/g3-benchmark-final.txt 2>&1`：正式200篇，共2,041,900字符/2,242段，采用49,900字符/51段；预热5+测100，**p95 20.3945ms**，SQLite14,852,096字节，零网络。此前初跑20.817417ms保留在`artifacts/guides-benchmark/initial.json`；最终采用完整冻结版本单独复测。
+- `uv run ruff check src tests scripts packaging`、`uv run ruff format --check src tests scripts packaging`、两份app.js与两份Electron harness的`node --check`、`git diff --check`：通过，97文件格式通过。
+
+`uv run python artifacts/mvp2/record-g3.py`汇总JUnit、Electron、评测、基准及摘要至`docs/evidence/mvp2/g3-local-verification.json`。243份产品/测试/构建文件在最终Electron与基准期间摘要一致；Python全套之后唯一改动是`desktop/tests/companion.smoke.cjs`两处文案预期，产品/Python源码未改，原始Python起点摘要单独保留。HEAD仍e830730，当前G1–G3未提交；锁文件未改。macOS26.6.2/M4、Python3.11.15、Node25.9.0，真实模型/搜索/音频与用户采集均0。
+
+下一阶段G4持久对局与动态模型上下文；G5管理/语音控制和客户端停音、G6真实服务与Windows11继续Pending。报告、README、PLAN、NEXT、架构、交接及REVIEW同步，A03只计检索/注入，未把上下文夹具或Mac性能替代完整MVP2验收。
+
+最终`python3 docs/diagrams/tools/validate-docs.py > artifacts/mvp2/g3-docs-final.json`：PASS，32份Markdown、452个本地链接、206个参考文件，issues为空，参考指纹未变；文档运行Python3.9.6。机器证据已补文档结果，243份产品/测试/构建文件最终再次核对一致。
+
+## 2026-09-28 — MVP2 G4 对局连续性与动态证据
+
+先登记PLAN17.6，再并行实现MatchStore、图观察/上下文、API/IPC，Root接入实际Runtime、持久取消结算、历史隔离、投递/已听建议和遗忘依赖。conversation schema v5新增scope/session对局、修订与幂等账本、观察、每轮绑定、取消意图和实际目标版本消费者。图像只走同一LangGraph中的单帧结构化观察，不保存图像字节；动态证据120秒，模型流中到期也撤销。新局排除旧用户与助手动态历史，显式复盘独立标记且不自动联网。
+
+独立回归发现并修复：泛化追问无法召回适用游戏偏好；取消已写行状态而真实任务仍退出，重试漏等待；改目标前消费者漏清；Memory提交删除/恢复后丢失返回值导致目标/消费者残留；Runtime重试接纳bool/float修订。预写仅含ID/hash的候选依赖由实际删除IDs激活，拒绝恢复及保留事实不能误删。故障注入限定原来源实际移除后才抛错，避免测试依赖set遍历顺序；数据库字节清除与无关资料保留均检查。
+
+前期失败保留：新测试最初使用项目未安装的pytest asyncio插件，改成既有asyncio.run；随后两处夹具和迁移v5预期修正。`g4-integration-initial.txt`为129通过/2失败（实际偏好召回+旧schema预期），修复后`g4-integration-fixed.txt`152通过。`g4-boundaries-fixed.txt`41通过，初始全套`g4-pytest-initial.xml`1,436/1skip仅作中途证据。`g4-erasure-candidates.txt`因误写不存在的tests/test_runtime_memory.py未运行任何测试；改正路径后`g4-erasure-candidates-fixed.txt`44通过/3失败（故障注入源顺序和新增候选连接数），保留闭合连接断言并校正夹具，`g4-erasure-lifecycle-final.txt`36通过，独立目标遗忘14通过。未将这些中途结果冒充最终冻结源码。
+
+最终实际命令：
+
+- 保存`git ls-files --cached --others --exclude-standard`中src/tests/scripts/packaging/desktop/.github/pyproject.toml/uv.lock共255份文件SHA-256为`artifacts/mvp2/g4-source-before.json`。
+- `uv run pytest -q --basetemp=/tmp/ai-neko-g4-final-20260928l --junitxml=artifacts/mvp2/g4-pytest-final.xml > artifacts/mvp2/g4-pytest-final.txt 2>&1`：**1,457通过、1 Windows凭据专属skip，55.43秒**；G4新增314项。
+- `npm --prefix desktop test > artifacts/mvp2/g4-desktop-final.txt 2>&1`：**70通过**。
+- `node desktop/tests/companion.smoke.cjs --output artifacts/mvp2/g4-companion-final.json > artifacts/mvp2/g4-companion-final.txt 2>&1`：实际Electron **20/20**，合成18模型/3ASR/29TTS，renderer errors为空。
+- `node desktop/tests/guide-local.smoke.cjs --output artifacts/mvp2/g4-guide-ui-final.json > artifacts/mvp2/g4-guide-ui-final.txt 2>&1`：实际Electron **5/5**，3模型/0工具，来源定位/固定版本/旧建议排除；实际查看切换后来源卡与陪伴截图。不是G5新按钮验收。
+- `uv run python scripts/evaluate_guides.py --output artifacts/mvp2/g4-evaluation-final.json > artifacts/mvp2/g4-evaluation-final.txt 2>&1`：冻结30题仍24/24 top3命中、6/6缺口正确，覆盖题0网络/0规划、禁止来源0，另3仅聊天检查通过。
+- `uv run ruff check src tests scripts packaging`、`uv run ruff format --check src tests scripts packaging`、`node --check desktop/lib/security.cjs`、`git diff --check`：通过，108文件已格式化。
+- `uv run python artifacts/mvp2/record-g4.py`：255份源码摘要前后完全一致，机器证据写入`docs/evidence/mvp2/g4-local-verification.json`。
+
+真实Runtime测试包括G01网页提取/采用/用户原话/ACK/“下一步”完整链、A旧建议→切B→11新轮→显式复盘A→删除A清派生答，以及两个独立Python进程重启后的实际模型输入。合成模型只证明路由/来源/隔离，不证明视觉识别或建议质量。Mac测试、当前未提交源码与旧Windows包分列；锁文件未改，未推送/发布，真实服务和用户采集均0。G4报告与PLAN/NEXT/架构/交接/REVIEW同步，下一阶段G5，G6及MVP2整体继续进行。
+
+最终`python3 docs/diagrams/tools/validate-docs.py > artifacts/mvp2/g4-docs-final.json`通过：33份Markdown、462本地链接、206参考文件，issues为空、参考指纹未变；系统Python3.9.6。机器证据补齐文档结果，255份产品/测试/构建文件再次核对一致。
+
+## 2026-09-28 — MVP2 G5 实施中（初始集成，非最终验收）
+
+先登记PLAN17.7，再并行实现攻略/对局面板、唯一图的明确控制意图与Runtime独立确认、真实Electron管理闭环。Root接入app/companion/media的对局绑定、媒体取消和控制结果跟随。目标是完整G5入口，不把已有G4后端和旧Electron回归当作G5完成。
+
+Root初始 `npm --prefix desktop test > artifacts/mvp2/g5-desktop-initial.txt 2>&1` 为54通过/16失败：既有合成companion桩缺新绑定方法，另发现把新会话创建提前到截图返回之前破坏取消边界。保持“取图期间停止不创建会话”的原断言，把普通文字的会话建立留在截图返回后；录音开始时绑定现有或明确创建的新会话。补齐桩协议与有效绑定参数，新增实际ASR原绑定传递/迟到识别不提交的回归，`g5-desktop-binding-final.txt`为72通过。这是阶段回归，尚未冻结全部G5代码。
+
+`node desktop/tests/companion.smoke.cjs --output artifacts/mvp2/g5-companion-integration.json > artifacts/mvp2/g5-companion-integration.txt 2>&1`：实际Electron旧闭环20通过，renderer errors为空；仍只作既有能力回归。独立G5新harness的用户动作通过真实按钮/表单/假麦克风，不以直接API写入替代UI验收，初始报告保留在`artifacts/guides-evaluation/g5-integration-*.json`。
+
+真实G5集成05定位确认自取消：控制响应的events也携control_job_id，前端将其再次跟随，重复beginTurn取消了自己的TTS。修复为只有原请求跟随、每个独立响应只入队一次；06已通过三种语音采用/切换/新局及独立确认，均无额外模型调用。后续发现删除攻略会清理包含它的快照，UI快照列表却未刷新；保留真实失败并修界面，测试恢复顺序按既有purge_deleted语义调整，不把旧快照不存在伪装成可恢复。
+
+后端审查补两处边界：请求撤销在原图完成、job待提交时也要取消控制；无活动局的match revision 0不能独自阻止旧TTS，加入持久攻略修订、已投递状态和控制取消校验。当前仍在后端全套、新帧视觉修订、实际Electron完整恢复流程验收，最终结果后续登记，不宣称G5完成。
+
+## 2026-09-28 — MVP2 G5 最终冻结验证
+
+实际集成07进一步定位开启观察自取消：companion已关闭旧来源，closeObservation进入runControl再次disableVision，visionEpoch被重复推进。内部已完成本地关闭的路径传visionAlreadyDisabled，管理面板直接关闭仍执行本地失效；用户等待期间再次取消/换来源仍能阻止迟到开启。集成08的17项全部通过，保留05/06/07失败报告，不把服务桩错误或快照测试顺序修正计作产品功能。
+
+独立客户端VM复现改选B后重试仍指A、纯文字旧请求未退役、失败撤销后下一输入绕过。Root修复目标比较和统一tombstone结算，同来源仅目录修订变化或目录刷新清目标仍重试原载荷。补后端重启replayed回执不播、fetch取消迟到completed不续采用、未知控制回执同ID/CAS重试。control-client最终13项；guide-panel新增6项验证save/adopt先验正文、刷新不换pin、快照旧GET失效和状态清理。最终截图发现空控制助手行与残留进度，修复后再次实际目视确认。
+
+后端首轮全套1493通过/1skip/2失败：旧schema预期5改6；旧G4测试用裸“842”判断泄漏，随机session UUID偶然包含该串，改为完整原文“842金币”，仍断言无观察/建议。另加入持有mutation lock时关闭控制worker不会死锁。后端代理末轮1496/1skip及39专项只保存终端工具输出，没有正式日志/JUnit，未据此伪造文件；Root下列统一冻结执行补齐正式证据。
+
+最终实际命令与输出：
+
+- 按`git ls-files --cached --others --exclude-standard -z`收集src/tests/scripts/packaging/desktop/.github/pyproject.toml/uv.lock，共263文件，SHA-256写`artifacts/mvp2/g5-source-before.json`；验证后逐一重算，完全一致。
+- `uv run pytest -q --basetemp=/tmp/ai-neko-g5-final-20260928 --junitxml=artifacts/mvp2/g5-pytest-final.xml > artifacts/mvp2/g5-pytest-final.txt 2>&1`：**1496 passed/1 Windows凭据skip**，终端55.77秒（JUnit55.74秒）；控制Runtime/API专项39包含在内。
+- `npm --prefix desktop test > artifacts/mvp2/g5-desktop-final.txt 2>&1`：**91/91**，746.64ms。
+- `node desktop/tests/g5-management.smoke.cjs --output artifacts/mvp2/g5-management-final.json > artifacts/mvp2/g5-management-final.txt 2>&1`：**17/17**，无renderer/provider错误；11模型/5ASR/8TTS合成HTTP，9截图、两个实际进程、真实WebAudio、0用户变更API捷径。
+- `node desktop/tests/companion.smoke.cjs --output artifacts/mvp2/g5-companion-final.json > artifacts/mvp2/g5-companion-final.txt 2>&1`：**20/20**，18模型/3ASR/29TTS；20次点击到WebAudio.stop返回p95 0.20ms，仅合成播放中软件边界，不冒称Windows/硬件停止性能。
+- `node desktop/tests/guide-local.smoke.cjs --output artifacts/mvp2/g5-guide-ui-final.json > artifacts/mvp2/g5-guide-ui-final.txt 2>&1`：**5/5**，3模型/0工具；来源卡和S1重映射回归通过。
+- `uv run python scripts/evaluate_guides.py --output artifacts/mvp2/g5-evaluation-final.json > artifacts/mvp2/g5-evaluation-final.txt 2>&1`：**24/24 top3、6/6缺口**；覆盖题零网络/规划，错误游戏/版本/禁止来源0，最多6段5798字符，3个仅聊天检查通过。冻结标签未改。
+- `uv run ruff check src tests scripts packaging`、`uv run ruff format --check src tests scripts packaging`输出到g5-ruff-final.txt/g5-format-final.txt；全部通过，112文件。`node --check`检查app/companion/media/guide-panel/security五份JS，`git diff --check`通过。
+- `uv run python artifacts/mvp2/record-g5.py`汇总JUnit、三份Electron报告、冻结检索和文件摘要到`docs/evidence/mvp2/g5-local-verification.json`；263份摘要一致，源HEAD仅历史基线，G1–G5未提交。
+
+没有新增依赖/素材或改锁，没有调用真实模型/搜索/音频或采集用户媒体。README、PLAN、NEXT、ARCHITECTURE、HANDOFF、REVIEW与G5报告同步，实际API/schema v6和恢复/取消边界已记。下一阶段G6；只读审计已在HANDOFF留下真实旧版库升级、同聊天五问/搜索对照、冷暖记录和Windows包门禁缺口，本轮未提前实施或宣布G6通过。
+
+最终`python3 docs/diagrams/tools/validate-docs.py > artifacts/mvp2/g5-docs-final.json`通过：34份Markdown、472本地链接、206参考文件，issues为空、参考指纹未变；系统Python3.9.6。机器证据补文档检查和日志摘要，最终再次核对263份文件与冻结起点一致。
+
+## 2026-09-30：G6联合验收、真实旧版升级与测量工具
+
+G6于9月28日在PLAN§17.8先登记，额度中断后9月30日确认没有仍在运行的测试进程，继续原工作区和原分工。基线HEAD仍e830730，G1–G6未提交；不重启工程、不套回历史草稿，不读取参考配置/凭据。当前Mac没有本工程模型/搜索/ASR/TTS环境Key及正常配置文件；仅检查存在性。已询问拟使用的服务与Windows11环境，未收到回复；先推进独立可完成部分。
+
+- `uv run python scripts/generate_v04_fixture.py --output /tmp/ai-neko-v04-frozen-2`生成真实旧结构；源tag v0.4.0-alpha.1/f359826bd60139a6a9efcef8d959f56c385228ba，原样归档36份旧src、5份合成payload共274475字节。冻结在tests/fixtures/v04，CI不依赖旧Git对象/外网；未以降PRAGMA代替旧程序。
+- `uv run pytest tests/test_v04_upgrade.py -q --junitxml=artifacts/mvp2/g6-v04-final-2.xml > artifacts/mvp2/g6-v04-final-2.txt 2>&1`：6通过/1.98秒。此前故障注入因来源顺序在目标提交前抛错，g6-v04-final失败保留；改为目标真实提交后再注入，没有产品变更或降低断言。
+- `uv run pytest tests/test_guides_integrated.py -q --junitxml=artifacts/mvp2/g6-integrated-20260930.xml > artifacts/mvp2/g6-integrated-20260930.log 2>&1`：4通过/0.67秒。实际Runtime/HTTPMock/模型请求涵盖6852与21823后段、53146→50000字符、304/去重/索引重建、恶意正文控制隔离、新旧/未知/119/121秒/关闭重开观察和持久文件无8份合成媒体标记。初始版本字段、SQL列名、短数字和音频fixture错误保留，不当产品修复。
+- `node desktop/tests/g6-acceptance.smoke.cjs --output artifacts/guides-evaluation/g6-electron-04.json`：8场景通过，11.874秒；26回合（25普通问加1明确复盘）、36合成模型HTTP、8截图、真实进程79442→79463，错误为空。来源采用后新进程新聊天、同聊天两遍五题/搜索开关对照、十旧局/新局/偏好/复盘及S1重映射均核对实际请求。01–03失败保留：搜索端点须HTTPS、本地足够仍允许补充tools schema、缺口规划加回答可有两次模型请求；没有放宽0工具执行要求。
+- Provider新增显式request_usage，默认关闭；按官方OpenAI/DeepSeek流协议读取空choices的最后usage，仅保留数值白名单，重复快照不相加，中断不报完整总量。不支持时不自动重试付费调用。`uv run pytest tests/test_provider_usage.py tests/test_providers.py -q`：26通过/0.05秒，日志g6-usage-initial.txt。官方依据为OpenAI how_to_stream_completions与DeepSeek create-chat-completion。
+- 初始20对探针g6-paired-probe-initial全部失败：误调用不存在的memory.update_settings；改为Runtime.update_memory_preferences。随后g6-paired-probe-fixed的10/20路由不合格，发现真实生产漏检：短混合名“灯芯10”被共享分词当整词，而长中文正文只有二/三字片段。修复guide_retrieval覆盖门禁，对单个中文/数字混合名称要求完整字面与数字/字母边界，不改上游分词、不把“灯芯100”当“灯芯10”。`uv run pytest tests/test_guide_query_numeric.py tests/test_guide_retrieval.py -q --junitxml=artifacts/mvp2/g6-numeric-initial.xml > artifacts/mvp2/g6-numeric-initial.txt 2>&1`：83通过/0.66秒，新增8回归。`uv run --locked python scripts/evaluate_guides.py --output artifacts/mvp2/g6-numeric-evaluation.json`仍24/24命中、6/6缺口，冻结题和标签未改。
+- 测量审查发现构造/close错误会丢失后续pair，以及失败search后成功直接read会被错误记合格；修复逐pair异常结算、保留20样本、成功search/read资格。失败日志g6-measurement-before-fixes-20260930.log保留；6新回归加7usage共13通过，20对合成记录流程通过。各阶段检索配对和人工真实验收记录器随后补齐；首个有效文字/语音和费用尚未知，不拿首字/合成延迟做性能结论。
+- Windows工作流新增冻结30题、200篇基准及实际解压exe G6门禁，门禁失败阻止verified ZIP上传；静态YAML/AST/JS检查通过。`--archive`只允许Windows x64，检查包内commit、实际app.isPackaged/execPath和ZIP/exe摘要，中文路径与移除PATH Python；本机没有执行新Windows包，也没有推送/tag/发布。
+
+最终统一冻结和全套结果在后续补记。独立报告、用户入口和A01–A11矩阵需待当前变更全部稳定后同步；尚不将本节初步结果称G6全部通过。
+
+### G6最终冻结与回归
+
+记录器补cold/warm各自guide_retrieve_ms及turn归属，调用数明确为adapter/tool attempts，不等于底层HTTP连接数。人工记录器固定20/10/3/20数量、保留失败与原始probe，补ASR转写/请求、TTS请求/人工监听、同钟及账单依据。独立审查复现并修复声音早于首字、导入失败外层覆盖、跨turn指标、bool/非法类型与巨整数；10回归通过。`uv run pytest`最初因直接from scripts导入失败，改用明确文件路径importlib加载，`g6-record-invocation-fixed.txt`记录普通入口10通过/0.08秒。
+
+数字主体判定收窄为中文名称加数字/ASCII后缀，普通数量问句不要求整句字面相等。`uv run pytest tests/test_guide_query_numeric.py tests/test_guide_retrieval.py -q --junitxml=artifacts/mvp2/g6-numeric-refined.xml > artifacts/mvp2/g6-numeric-refined.txt 2>&1`：84通过/0.49秒，包括新增普通数量句真实检索。
+
+`uv run python artifacts/mvp2/record-g6.py freeze`冻结284份产品/测试/构建文件。第一次全量`uv run --locked pytest -q --basetemp=/tmp/ai-neko-g6-final-20260930 --junitxml=artifacts/mvp2/g6-pytest-final.xml > artifacts/mvp2/g6-pytest-final.txt 2>&1`得到1失败/1537通过/1平台skip（62.97秒）。原因是旧test_match_runtime把observation-e1529379…里的937认作旧金币，非实际观察内容泄漏。改为完整“937金币”原话、空观察和新帧fields精确断言，并将同文件913/711–720裸数字断言改为完整描述，保持旧局建议排除。定向16通过/1.02秒。原日志和起始摘要移为g6-first-failed-*，唯一改动tests/test_match_runtime.py及前后摘要写g6-freeze-repair.json；生产/桌面/构建均未变。
+
+重新冻结284份文件后实际命令：
+
+- `uv run --locked pytest -q --basetemp=/tmp/ai-neko-g6-final2-20260930 --junitxml=artifacts/mvp2/g6-pytest-final.xml > artifacts/mvp2/g6-pytest-final.txt 2>&1`：**1538通过/1 Windows凭据skip**，61.24秒。G6新增42项（6+4+9+7+6+10）已含总数。
+- `npm --prefix desktop test > artifacts/mvp2/g6-desktop-final.txt 2>&1`：**91/91**，725.605ms。
+- `node desktop/tests/companion.smoke.cjs --output artifacts/mvp2/g6-companion-final.json`：**20/20**，18模型/3ASR/29TTS合成HTTP；实际软件播放停止证据。
+- `node desktop/tests/guide-local.smoke.cjs --output artifacts/mvp2/g6-guide-ui-final.json`：**5/5**，3模型/0工具，3截图。
+- `node desktop/tests/g5-management.smoke.cjs --output artifacts/mvp2/g6-management-final.json`：**17/17**，11模型/5ASR/8TTS，9截图、实际进程84529→84560。
+- `node desktop/tests/g6-acceptance.smoke.cjs --output artifacts/mvp2/g6-acceptance-final.json`：**8/8**，26回合/36模型，8截图、进程84628→84638。四份Electron均错误为空、产品/脚本摘要未变，实际在旧测试断言修正前已完成；修正仅测试文件，所以不重复无关UI运行。
+- `uv run --locked python scripts/evaluate_guides.py --output artifacts/mvp2/g6-evaluation-final.json`：**24/24、6/6**，24覆盖题0搜索/取页/规划；错误游戏/版本/禁止来源/来源身份0，冻结标签未改。
+- `uv run --locked python scripts/measure_guides.py --output artifacts/mvp2/g6-probe-final.json`：**20/20 SYNTHETIC_PIPELINE_PASS**，冷40工具尝试/暖0，40回合独立检索指标。有效文字/语音和费用仍null，ASR/TTS未运行。
+- `uv run --locked python scripts/record_guides_acceptance.py init --probe artifacts/mvp2/g6-probe-final.json --output artifacts/mvp2/g6-live-record-final.json`后运行`check artifacts/mvp2/g6-live-record-final.json --output artifacts/mvp2/g6-live-record-check-final.json`：四部分均**PENDING**、退出2，符合合成资料不能升级成真实验收的要求，非脚本错误。
+- 待Python和所有Electron结束后，`uv run --locked python scripts/benchmark_guides.py --output artifacts/mvp2/g6-benchmark-final.json`：200篇/5预热/100测量，**p95 19.720625ms≤150ms**，0网络/验证错误，临时数据已移除。
+- `uv run --locked ruff check src tests scripts packaging`、`uv run --locked ruff format --check src tests scripts packaging`：通过、123文件。6份JS node --check、三份Python AST、工作流YAML/门禁解析和git diff --check通过，证据g6-static-final.json。以上运行标准输出另存同名-final.txt。
+- `uv run python artifacts/mvp2/record-g6.py record`汇总为docs/evidence/mvp2/g6-local-verification.json；最终284份摘要一致，唯一旧测试修正前后信息另列。真实模型/搜索/音频、用户采集、Windows执行均0；未改锁/素材、未推送/tag/发布。
+
+README、PLAN、NEXT、ARCHITECTURE、HANDOFF、G6报告、真实记录手册和REVIEW同步；本机联合结果通过，完整MVP2保留真实服务/Windows交付缺口。
+
+最终`python3 docs/diagrams/tools/validate-docs.py > artifacts/mvp2/g6-docs-final.json`：37份Markdown、511本地链接、206参考文件通过，issues为空，参考仓库指纹不变（系统Python3.9.6）。检查结果与日志摘要补入G6机器证据，重新核对284份最终源码全部一致。报告已通过Codex文件面板请求展示（返回queued，不冒称已打开）。
+
+### G6完成条件复核（继续目标）
+
+上轮是实质进展：完成实现、全量和联合运行、修复实际漏检及记录器问题。本轮先按当前文件重算机器报告中的284份摘要，全部相同；仅检查项目专用环境变量及正常配置存在性，模型/搜索/ASR/TTS Key与本工程正常配置仍未就绪，平台仍Darwin。没有新的推送授权，也没有正在运行的Windows构建。
+
+两条只读审查分别核对NEXT§4–5/G1–G3，以及§6–10/G4–G6和PLAN17.8。结论：未发现遗漏的本机功能或明确自动化验收；现有源证据覆盖权威、入库/版本/完整性、采用、检索/缓存、对局/动态证据、删除恢复、界面/媒体、旧版升级与测量工具。真实服务质量、20对有效文本/语音与费用、公开来源三次、Windows11十轮和硬件停音、新Windows包仍需实际环境或授权，不以合成PASS代替。
+
+修正PLAN顶部/§17、NEXT顶部/§8和ARCHITECTURE中“G6待实施”的旧当前状态；将NEXT的20,000字符描述明确归为MVP1历史基线，当前50,000入库在裁剪之前，已核对web/graph/guides代码。旧阶段报告和历史数量不重写。只有文档及审计元数据变化，不重复运行已通过且源码未变的产品测试。
+
+`python3 docs/diagrams/tools/validate-docs.py > artifacts/mvp2/g6-completion-audit-docs.json`重新通过：37份Markdown、515本地链接、206参考文件、issues为空。再次核对284份产品/测试/构建摘要相同。完整MVP2尚不能标完成，等待现有推送授权问题及实际服务/Windows11环境信息；不重复提问、不自动推送。
+
+### 2026-09-30 用户确认推送/CI，核查免费服务与Windows虚拟机
+
+用户明确确认推送授权，询问免费服务及旧N.E.K.O的接入，并要求试Windows虚拟机。先登记PLAN§17.9，更新当前交接的授权状态。`git diff --check`通过；`gh repo view FrigidCrow/ai-neko --json nameWithOwner,defaultBranchRef,isPrivate,viewerPermission`核实既有public仓库、ADMIN权限与默认分支codex/initial-plan，继续现有codex/companion-five-capabilities，不改默认分支。
+
+两条并行只读调查分别核查参考工程tracked源码/官方服务文档，以及本机VM平台/存储与官方兼容性。未读旧凭据或配置，未启动参考服务，未购买或接受许可。VM实查Mac mini M4/24GB，空闲约36GiB，无已安装虚拟机；存储选择已向用户提出，CI可独立继续。

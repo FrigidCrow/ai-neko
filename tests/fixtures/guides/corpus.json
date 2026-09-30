@@ -1,0 +1,613 @@
+{
+  "schema_version": 1,
+  "fixture_release": "mvp2-g6-v1",
+  "frozen_at": "2026-09-27",
+  "provenance": "Fully synthetic, authored independently of implementation or retrieval outputs. Two fictitious games; no claims about real games.",
+  "public_page_format": "HTML article with headings and paragraphs; reserved .test source URLs; no live network dependency.",
+  "normalization_contract": "body_text joins each heading and exact paragraph with a newline; blocks are separated by two newlines. Unicode code-point offsets, not byte offsets.",
+  "guides": [
+    {
+      "guide_id": "G01",
+      "fixture_revision_id": "G01-R1",
+      "applicability": {
+        "game_id": "fog-harbor-tactics",
+        "game_name": "雾港棋局",
+        "platform": "pc",
+        "mode": "ranked",
+        "game_version": "2.4"
+      },
+      "source": {
+        "original_url": "https://guides.example.test/fog-harbor-tactics/g01",
+        "final_url": "https://guides.example.test/fog-harbor-tactics/g01",
+        "title": "雾港棋局 2.4 PC 排位：潮卫三灯阵",
+        "response_status": 200,
+        "media_type": "text/html; charset=utf-8",
+        "readability": "readable",
+        "content_updated_at": "2026-09-25T04:00:00Z",
+        "fetched_at": "2026-09-26T08:00:00Z",
+        "checked_at": "2026-09-26T08:00:00Z",
+        "version_evidence": {
+          "kind": "explicit_page_heading",
+          "text": "雾港棋局 2.4 / pc / ranked"
+        },
+        "etag": null,
+        "last_modified": null
+      },
+      "expected_ingestion": {
+        "save_allowed": true,
+        "completeness": "full",
+        "retention_character_limit": 50000,
+        "reason": "readable"
+      },
+      "body_blocks": [
+        {
+          "passage_id": "G01-P01",
+          "heading": "规则版本与术语",
+          "text": "本攻略适用于雾港棋局 2.4 的 PC 排位模式。灯芯指放在后排中央的潮灯守卫；灯芯负责给两侧护卫供能，不是商店中的装备。"
+        },
+        {
+          "passage_id": "G01-P02",
+          "heading": "三灯阵的棋子",
+          "text": "三灯阵也叫三灯、三盏灯或潮卫线：用一名潮灯守卫搭配两名雾盾护卫，三名棋子必须相邻站成一排。不要把三名潮灯守卫误当作三灯阵。"
+        },
+        {
+          "passage_id": "G01-P03",
+          "heading": "二阶段的经济检查",
+          "text": "在 2.4 PC 排位的二阶段第 3 回合，金币达到 18 时先升至五人口，保留 8 金币再考虑刷新；金币不足 18 时维持四人口，不购买升级。此处的 18 金币门槛只适用于潮卫三灯阵。"
+        },
+        {
+          "passage_id": "G01-P04",
+          "heading": "三灯成形后的下一步",
+          "text": "三灯阵已成形、当前四人口且拥有 18 金币时，下一步是升到五人口并补入一名岸哨侦察员；不要先刷新商店。上一条建议只是凑齐三灯，不能据此认定已经升级。"
+        },
+        {
+          "passage_id": "G01-P05",
+          "heading": "潮印与锚点",
+          "text": "潮印是潮卫阵容的专属资源。攒到 4 枚潮印后，在备战阶段开启雾港锚点，让最左侧雾盾护卫获得一次护盾。这里的锚点不消耗能量晶石。"
+        }
+      ]
+    },
+    {
+      "guide_id": "G02",
+      "fixture_revision_id": "G02-R1",
+      "applicability": {
+        "game_id": "fog-harbor-tactics",
+        "game_name": "雾港棋局",
+        "platform": "pc",
+        "mode": "ranked",
+        "game_version": "2.3"
+      },
+      "source": {
+        "original_url": "https://guides.example.test/fog-harbor-tactics/g02",
+        "final_url": "https://guides.example.test/fog-harbor-tactics/g02",
+        "title": "雾港棋局 2.3 PC 排位旧档：潮卫三灯阵",
+        "response_status": 200,
+        "media_type": "text/html; charset=utf-8",
+        "readability": "readable",
+        "content_updated_at": "2026-09-25T04:00:00Z",
+        "fetched_at": "2026-09-26T08:00:00Z",
+        "checked_at": "2026-09-26T08:00:00Z",
+        "version_evidence": {
+          "kind": "explicit_page_heading",
+          "text": "雾港棋局 2.3 / pc / ranked"
+        },
+        "etag": null,
+        "last_modified": null
+      },
+      "expected_ingestion": {
+        "save_allowed": true,
+        "completeness": "full",
+        "retention_character_limit": 50000,
+        "reason": "readable"
+      },
+      "body_blocks": [
+        {
+          "passage_id": "G02-P01",
+          "heading": "旧版本升级门槛",
+          "text": "本攻略只适用于雾港棋局 2.3 PC 排位。在二阶段第 3 回合，潮卫线需要 24 金币才升至五人口，并保留 10 金币；2.4 已修改此数值，不能按旧档指导 2.4 对局。"
+        },
+        {
+          "passage_id": "G02-P02",
+          "heading": "旧三灯棋子",
+          "text": "2.3 的三灯阵，也称三灯或三盏灯，由两名潮灯守卫和一名雾盾护卫组成。2.4 的组合已经改变，本页不是新版本攻略。"
+        }
+      ]
+    },
+    {
+      "guide_id": "G03",
+      "fixture_revision_id": "G03-R1",
+      "applicability": {
+        "game_id": "fog-harbor-tactics",
+        "game_name": "雾港棋局",
+        "platform": "pc",
+        "mode": "casual",
+        "game_version": "2.4"
+      },
+      "source": {
+        "original_url": "https://guides.example.test/fog-harbor-tactics/g03",
+        "final_url": "https://guides.example.test/fog-harbor-tactics/g03",
+        "title": "雾港棋局 2.4 PC 休闲：速灯玩法",
+        "response_status": 200,
+        "media_type": "text/html; charset=utf-8",
+        "readability": "readable",
+        "content_updated_at": "2026-09-25T04:00:00Z",
+        "fetched_at": "2026-09-26T08:00:00Z",
+        "checked_at": "2026-09-26T08:00:00Z",
+        "version_evidence": {
+          "kind": "explicit_page_heading",
+          "text": "雾港棋局 2.4 / pc / casual"
+        },
+        "etag": null,
+        "last_modified": null
+      },
+      "expected_ingestion": {
+        "save_allowed": true,
+        "completeness": "full",
+        "retention_character_limit": 50000,
+        "reason": "readable"
+      },
+      "body_blocks": [
+        {
+          "passage_id": "G03-P01",
+          "heading": "休闲开局",
+          "text": "本页仅适用于雾港棋局 2.4 PC 休闲模式。速灯开局又叫快灯：第一回合直接购买两名潮灯守卫，然后花 6 金币刷新一次商店。排位模式不要照搬这一顺序。"
+        },
+        {
+          "passage_id": "G03-P02",
+          "heading": "休闲锚点",
+          "text": "休闲模式的雾港锚点需要 2 枚潮印即可开启，目标是最右侧棋子；该规则不适用于排位模式。"
+        }
+      ]
+    },
+    {
+      "guide_id": "G04",
+      "fixture_revision_id": "G04-R1",
+      "applicability": {
+        "game_id": "fog-harbor-tactics",
+        "game_name": "雾港棋局",
+        "platform": "pc",
+        "mode": "ranked",
+        "game_version": "2.4"
+      },
+      "source": {
+        "original_url": "https://guides.example.test/fog-harbor-tactics/g04",
+        "final_url": "https://guides.example.test/fog-harbor-tactics/g04",
+        "title": "雾港棋局 2.4 PC 排位：烬翼节奏",
+        "response_status": 200,
+        "media_type": "text/html; charset=utf-8",
+        "readability": "readable",
+        "content_updated_at": "2026-09-25T04:00:00Z",
+        "fetched_at": "2026-09-26T08:00:00Z",
+        "checked_at": "2026-09-26T08:00:00Z",
+        "version_evidence": {
+          "kind": "explicit_page_heading",
+          "text": "雾港棋局 2.4 / pc / ranked"
+        },
+        "etag": null,
+        "last_modified": null
+      },
+      "expected_ingestion": {
+        "save_allowed": true,
+        "completeness": "full",
+        "retention_character_limit": 50000,
+        "reason": "readable"
+      },
+      "body_blocks": [
+        {
+          "passage_id": "G04-P01",
+          "heading": "火鸟线的开场",
+          "text": "烬翼路线也叫火鸟线。开局保留两名烬翼游侠，把火羽使放在后排；二阶段第 3 回合先刷新寻找火羽使，不套用潮卫三灯阵的升人口顺序。"
+        },
+        {
+          "passage_id": "G04-P02",
+          "heading": "余烬齐备后的下一步",
+          "text": "火鸟线已有两名烬翼游侠和一名火羽使，且余烬达到 6 枚时，下一步将火羽使升为二星，再把烬翼游侠移到前排两侧；此时先不要升级人口。"
+        }
+      ]
+    },
+    {
+      "guide_id": "G05",
+      "fixture_revision_id": "G05-R1",
+      "applicability": {
+        "game_id": "fog-harbor-tactics",
+        "game_name": "雾港棋局",
+        "platform": "mobile",
+        "mode": "ranked",
+        "game_version": "2.4"
+      },
+      "source": {
+        "original_url": "https://guides.example.test/fog-harbor-tactics/g05",
+        "final_url": "https://guides.example.test/fog-harbor-tactics/g05",
+        "title": "雾港棋局 2.4 手机排位：触屏潮卫",
+        "response_status": 200,
+        "media_type": "text/html; charset=utf-8",
+        "readability": "readable",
+        "content_updated_at": "2026-09-25T04:00:00Z",
+        "fetched_at": "2026-09-26T08:00:00Z",
+        "checked_at": "2026-09-26T08:00:00Z",
+        "version_evidence": {
+          "kind": "explicit_page_heading",
+          "text": "雾港棋局 2.4 / mobile / ranked"
+        },
+        "etag": null,
+        "last_modified": null
+      },
+      "expected_ingestion": {
+        "save_allowed": true,
+        "completeness": "full",
+        "retention_character_limit": 50000,
+        "reason": "readable"
+      },
+      "body_blocks": [
+        {
+          "passage_id": "G05-P01",
+          "heading": "手机版经济规则",
+          "text": "雾港棋局 2.4 手机排位采用触屏简化经济。二阶段第 3 回合，潮卫线持有 16 金币即可升到五人口，并保留 6 金币；PC 排位的 18 金币门槛不适用。"
+        },
+        {
+          "passage_id": "G05-P02",
+          "heading": "长按锚点",
+          "text": "手机排位的锚点按钮俗称小船锚。拥有 4 枚潮印后长按小船锚一秒，再点选雾盾护卫确认；单击按钮只显示说明，不消耗潮印。"
+        }
+      ]
+    },
+    {
+      "guide_id": "G06",
+      "fixture_revision_id": "G06-R1",
+      "applicability": {
+        "game_id": "fog-harbor-tactics",
+        "game_name": "雾港棋局",
+        "platform": "pc",
+        "mode": "ranked",
+        "game_version": "2.4"
+      },
+      "source": {
+        "original_url": "https://guides.example.test/fog-harbor-tactics/g06",
+        "final_url": "https://guides.example.test/fog-harbor-tactics/g06",
+        "title": "雾港棋局 2.4 PC 排位：风帆长篇路线",
+        "response_status": 200,
+        "media_type": "text/html; charset=utf-8",
+        "readability": "readable",
+        "content_updated_at": "2026-09-25T04:00:00Z",
+        "fetched_at": "2026-09-26T08:00:00Z",
+        "checked_at": "2026-09-26T08:00:00Z",
+        "version_evidence": {
+          "kind": "explicit_page_heading",
+          "text": "雾港棋局 2.4 / pc / ranked"
+        },
+        "etag": null,
+        "last_modified": null
+      },
+      "expected_ingestion": {
+        "save_allowed": true,
+        "completeness": "full",
+        "retention_character_limit": 50000,
+        "reason": "readable"
+      },
+      "body_blocks": [
+        {
+          "passage_id": "G06-P01",
+          "heading": "风帆路线范围",
+          "text": "本篇适用于雾港棋局 2.4 PC 排位的风帆路线。长文后部列出风向旗、折返与浮桥调整的明确步骤，目录不替代正文。"
+        },
+        {
+          "repeat": {
+            "count": 90,
+            "text_template": "航线档案第{index:04d}页：本段记录观众席座位编号、地图美术与训练日记，未给出资源阈值或行动顺序。窗外有灰色港湾、白色云层和石板道路；这些背景文字仅用于公开长文格式测试，不构成局内策略依据。"
+          }
+        },
+        {
+          "passage_id": "G06-P02",
+          "heading": "风向旗的颜色",
+          "text": "风帆路线所称蓝旗，也叫逆风旗。只在旗面变为蓝色后把风帆领航员放到左侧浮桥，白旗期间让领航员留在后排。"
+        },
+        {
+          "repeat": {
+            "count": 145,
+            "text_template": "航线档案第{index:04d}页：本段记录观众席座位编号、地图美术与训练日记，未给出资源阈值或行动顺序。窗外有灰色港湾、白色云层和石板道路；这些背景文字仅用于公开长文格式测试，不构成局内策略依据。"
+          }
+        },
+        {
+          "passage_id": "G06-P03",
+          "heading": "折返的代价",
+          "text": "风帆路线的折返指主动撤回一名领航员到替补席，再花费 3 枚风向筹码重新放回左侧浮桥；折返不消耗潮印，也不是刷新商店。"
+        },
+        {
+          "passage_id": "G06-P04",
+          "heading": "风帆路线的下一步",
+          "text": "当前已亮蓝色逆风旗、风帆领航员仍在后排且持有 3 枚风向筹码时，下一步把领航员直接移到左侧浮桥，保留筹码；只有领航员已经站上浮桥又需要重新部署时才执行折返。"
+        }
+      ]
+    },
+    {
+      "guide_id": "G07",
+      "fixture_revision_id": "G07-R1",
+      "applicability": {
+        "game_id": "star-ring-voyage",
+        "game_name": "星环远航",
+        "platform": "pc",
+        "mode": "expedition",
+        "game_version": "1.8"
+      },
+      "source": {
+        "original_url": "https://guides.example.test/star-ring-voyage/g07",
+        "final_url": "https://guides.example.test/star-ring-voyage/g07",
+        "title": "星环远航 1.8 PC 远征：护盾航线",
+        "response_status": 200,
+        "media_type": "text/html; charset=utf-8",
+        "readability": "readable",
+        "content_updated_at": "2026-09-25T04:00:00Z",
+        "fetched_at": "2026-09-26T08:00:00Z",
+        "checked_at": "2026-09-26T08:00:00Z",
+        "version_evidence": {
+          "kind": "explicit_page_heading",
+          "text": "星环远航 1.8 / pc / expedition"
+        },
+        "etag": null,
+        "last_modified": null
+      },
+      "expected_ingestion": {
+        "save_allowed": true,
+        "completeness": "full",
+        "retention_character_limit": 50000,
+        "reason": "readable"
+      },
+      "body_blocks": [
+        {
+          "passage_id": "G07-P01",
+          "heading": "远征锚点",
+          "text": "星环远航 1.8 PC 远征中的星环锚点由 7 颗能量晶石启动，启动后固定旗舰朝向。星环锚点不使用雾港棋局的潮印，两个游戏的锚点没有通用规则。"
+        },
+        {
+          "passage_id": "G07-P02",
+          "heading": "回声环的别称",
+          "text": "回声环俗称小铃铛，是放在旗舰第二装备槽的导航器。小铃铛只缩短扫描间隔，不增加护盾容量，也不是武器。"
+        },
+        {
+          "passage_id": "G07-P03",
+          "heading": "护盾见底后的下一步",
+          "text": "采用护盾航线时，旗舰护盾已降到 30 点或以下、修复无人机仍可用，下一步先释放修复无人机并撤向蓝色补给灯塔。不要继续扫描矿带，也不要先启动星环锚点。"
+        },
+        {
+          "passage_id": "G07-P04",
+          "heading": "冰矿采样",
+          "text": "远征模式采集霜脊冰矿的次序是先扫描裂缝，再派一架采样艇，最后回收样本箱。扫描前直接发射采样艇会丢失矿层定位。"
+        }
+      ]
+    },
+    {
+      "guide_id": "G08",
+      "fixture_revision_id": "G08-R1",
+      "applicability": {
+        "game_id": "star-ring-voyage",
+        "game_name": "星环远航",
+        "platform": "pc",
+        "mode": "expedition",
+        "game_version": "1.7"
+      },
+      "source": {
+        "original_url": "https://guides.example.test/star-ring-voyage/g08",
+        "final_url": "https://guides.example.test/star-ring-voyage/g08",
+        "title": "星环远航 1.7 PC 远征旧档",
+        "response_status": 200,
+        "media_type": "text/html; charset=utf-8",
+        "readability": "readable",
+        "content_updated_at": "2026-09-25T04:00:00Z",
+        "fetched_at": "2026-09-26T08:00:00Z",
+        "checked_at": "2026-09-26T08:00:00Z",
+        "version_evidence": {
+          "kind": "explicit_page_heading",
+          "text": "星环远航 1.7 / pc / expedition"
+        },
+        "etag": null,
+        "last_modified": null
+      },
+      "expected_ingestion": {
+        "save_allowed": true,
+        "completeness": "full",
+        "retention_character_limit": 50000,
+        "reason": "readable"
+      },
+      "body_blocks": [
+        {
+          "passage_id": "G08-P01",
+          "heading": "旧版锚点晶石",
+          "text": "星环远航 1.7 PC 远征的星环锚点需要 5 颗能量晶石。1.8 已经改变启动消耗，请勿把此旧数值作为 1.8 的操作建议。"
+        },
+        {
+          "passage_id": "G08-P02",
+          "heading": "旧版扫描限制",
+          "text": "星环远航 1.7 的回声环必须装在第三装备槽；本页对 1.8 第二装备槽的新规则没有解释。"
+        }
+      ]
+    },
+    {
+      "guide_id": "G09",
+      "fixture_revision_id": "G09-R1",
+      "applicability": {
+        "game_id": "star-ring-voyage",
+        "game_name": "星环远航",
+        "platform": "pc",
+        "mode": "arena",
+        "game_version": "1.8"
+      },
+      "source": {
+        "original_url": "https://guides.example.test/star-ring-voyage/g09",
+        "final_url": "https://guides.example.test/star-ring-voyage/g09",
+        "title": "星环远航 1.8 PC 竞技场：抢点手册",
+        "response_status": 200,
+        "media_type": "text/html; charset=utf-8",
+        "readability": "readable",
+        "content_updated_at": "2026-09-25T04:00:00Z",
+        "fetched_at": "2026-09-26T08:00:00Z",
+        "checked_at": "2026-09-26T08:00:00Z",
+        "version_evidence": {
+          "kind": "explicit_page_heading",
+          "text": "星环远航 1.8 / pc / arena"
+        },
+        "etag": null,
+        "last_modified": null
+      },
+      "expected_ingestion": {
+        "save_allowed": true,
+        "completeness": "full",
+        "retention_character_limit": 50000,
+        "reason": "readable"
+      },
+      "body_blocks": [
+        {
+          "passage_id": "G09-P01",
+          "heading": "竞技场锚点",
+          "text": "星环远航 1.8 PC 竞技场的星环锚点消耗 3 颗能量晶石，启动后夺取中央得分区。竞技场消耗不能用于远征模式。"
+        },
+        {
+          "passage_id": "G09-P02",
+          "heading": "竞技场护盾取舍",
+          "text": "竞技场抢点时护盾只剩 30 点仍可继续占领得分区；该竞赛建议与远征护盾航线的撤退条件不同。"
+        }
+      ]
+    },
+    {
+      "guide_id": "G10",
+      "fixture_revision_id": "G10-R1",
+      "applicability": {
+        "game_id": "star-ring-voyage",
+        "game_name": "星环远航",
+        "platform": "pc",
+        "mode": "expedition",
+        "game_version": null
+      },
+      "source": {
+        "original_url": "https://guides.example.test/star-ring-voyage/g10",
+        "final_url": "https://guides.example.test/star-ring-voyage/g10",
+        "title": "星环远航 PC 远征：未署版本的观测笔记",
+        "response_status": 200,
+        "media_type": "text/html; charset=utf-8",
+        "readability": "readable",
+        "content_updated_at": null,
+        "fetched_at": "2026-09-26T08:00:00Z",
+        "checked_at": "2026-09-26T08:00:00Z",
+        "version_evidence": null,
+        "etag": null,
+        "last_modified": null
+      },
+      "expected_ingestion": {
+        "save_allowed": true,
+        "completeness": "partial",
+        "retention_character_limit": 50000,
+        "reason": "character_limit"
+      },
+      "body_blocks": [
+        {
+          "passage_id": "G10-P01",
+          "heading": "日志阅读方法",
+          "text": "这份星环远航观测笔记没有标注游戏版本，也没有内容更新时间。阅读回声日志时应把亲眼观测与船员猜测分栏记录；这只是记录方法，不代表任何当前版本的资源规则。"
+        },
+        {
+          "repeat": {
+            "count": 420,
+            "text_template": "观测日志第{index:04d}页：记录员描绘舷窗边缘、星图装饰、舱室地毯与壁灯颜色。这里没有口令、坐标或资源操作步骤，也不提供版本信息。重复出现的背景叙述仅用于验证长篇资料保留上限，不能据此生成游戏建议。"
+          }
+        },
+        {
+          "passage_id": "G10-P02",
+          "heading": "日志中的灰页",
+          "text": "观测笔记把没有直接观测依据的条目叫作灰页，也称未证页。灰页应保留原记录时间并标注尚待核对，不能因重新翻阅就改成已经证实。"
+        },
+        {
+          "repeat": {
+            "count": 140,
+            "text_template": "观测日志第{index:04d}页：记录员描绘舷窗边缘、星图装饰、舱室地毯与壁灯颜色。这里没有口令、坐标或资源操作步骤，也不提供版本信息。重复出现的背景叙述仅用于验证长篇资料保留上限，不能据此生成游戏建议。"
+          }
+        },
+        {
+          "passage_id": "G10-P03",
+          "heading": "附录封存口令",
+          "text": "星环远航观测笔记附录的封存口令是琥珀鹭七。该口令只用于测试保留边界，位于正文五万字符之后，不得从未保存的尾部给出本地回答。"
+        }
+      ]
+    },
+    {
+      "guide_id": "G11",
+      "fixture_revision_id": "G11-R1",
+      "applicability": {
+        "game_id": "fog-harbor-tactics",
+        "game_name": "雾港棋局",
+        "platform": "pc",
+        "mode": "ranked",
+        "game_version": "2.4"
+      },
+      "source": {
+        "original_url": "https://guides.example.test/fog-harbor-tactics/g11",
+        "final_url": "https://guides.example.test/fog-harbor-tactics/g11",
+        "title": "雾港棋局攻略会员登录页",
+        "response_status": 200,
+        "media_type": "text/html; charset=utf-8",
+        "readability": "login_required",
+        "content_updated_at": "2026-09-25T04:00:00Z",
+        "fetched_at": "2026-09-26T08:00:00Z",
+        "checked_at": "2026-09-26T08:00:00Z",
+        "version_evidence": {
+          "kind": "explicit_page_heading",
+          "text": "雾港棋局 2.4 / pc / ranked"
+        },
+        "etag": null,
+        "last_modified": null
+      },
+      "expected_ingestion": {
+        "save_allowed": false,
+        "completeness": "unreadable",
+        "retention_character_limit": 50000,
+        "reason": "login_required"
+      },
+      "body_blocks": [
+        {
+          "passage_id": "G11-P01",
+          "heading": "需要登录",
+          "text": "会员登录后可阅读雾港棋局攻略。请输入账号与密码，验证码完成后继续。本页未展示棋子组合、资源阈值或阵容步骤。"
+        }
+      ]
+    },
+    {
+      "guide_id": "G12",
+      "fixture_revision_id": "G12-R1",
+      "applicability": {
+        "game_id": "star-ring-voyage",
+        "game_name": "星环远航",
+        "platform": "pc",
+        "mode": "expedition",
+        "game_version": "1.8"
+      },
+      "source": {
+        "original_url": "https://guides.example.test/star-ring-voyage/g12",
+        "final_url": "https://guides.example.test/star-ring-voyage/g12",
+        "title": "星环远航攻略访问被拒绝",
+        "response_status": 403,
+        "media_type": "text/html; charset=utf-8",
+        "readability": "access_denied",
+        "content_updated_at": "2026-09-25T04:00:00Z",
+        "fetched_at": "2026-09-26T08:00:00Z",
+        "checked_at": "2026-09-26T08:00:00Z",
+        "version_evidence": {
+          "kind": "explicit_page_heading",
+          "text": "星环远航 1.8 / pc / expedition"
+        },
+        "etag": null,
+        "last_modified": null
+      },
+      "expected_ingestion": {
+        "save_allowed": false,
+        "completeness": "unreadable",
+        "retention_character_limit": 50000,
+        "reason": "access_denied"
+      },
+      "body_blocks": [
+        {
+          "passage_id": "G12-P01",
+          "heading": "Access denied",
+          "text": "403 Forbidden。当前请求无法读取星环远航攻略正文。本错误页不是攻略来源，标题中的护盾航线不表示服务器已经提供相关内容。"
+        }
+      ]
+    }
+  ]
+}

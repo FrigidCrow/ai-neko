@@ -56,7 +56,9 @@ async function harness({ request, capture, flush, stopRecording, plain = false }
         if (payload.path === '/api/config') body = { model_base_url: 'http://127.0.0.1:9000', model: 'synthetic' };
         else if (payload.path === '/api/sessions' && payload.method === 'GET') body = { sessions: [] };
         else if (payload.path === '/api/sessions' && payload.method === 'POST') body = { id: SID };
-        else if (/\/turns$/.test(payload.path)) body = { id: TID, status: 'accepted', sent_seq: 0 };
+        else if (/\/turns$/.test(payload.path)) body = { id: TID, status: 'accepted', sent_seq: 0, context: { match: { match_id: null, expected_revision: 0 } } };
+        else if (payload.path === '/api/guides') body = { revision: 0, guides: [], selections: [] };
+        else if (/\/matches$/.test(payload.path)) body = { revision: 0, current: null, matches: [] };
         else if (payload.path.includes('/events')) body = { events: [], status: 'completed', last_seq: 0 };
         return { status: 200, body };
       },
@@ -212,9 +214,9 @@ test('a late revoked response cannot clear or replace a newer submission', async
     assert.equal(app.byId('message-input').value, '新来源问题');
     assert.equal(app.byId('message-input').disabled, true);
     assert.equal(app.calls.begin.length, 0);
-    newResponse.resolve({ status: 202, body: { id: newTurn } });
+    newResponse.resolve({ status: 202, body: { id: newTurn, context: { match: { match_id: null, expected_revision: 0 } } } });
     await current; await drain();
-    assert.deepEqual(app.calls.begin, [[newTurn, SID]]);
+    assert.deepEqual(app.calls.begin, [[newTurn, SID, { match_id: null, expected_revision: 0 }]]);
     assert.equal(app.byId('message-input').value, '');
     assert.equal(app.calls.captures, 2);
   } finally { await app.dispose(); }

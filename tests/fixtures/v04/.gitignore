@@ -1,0 +1,6 @@
+# These are bounded synthetic release fixtures, never application/user data.
+!data/
+!data/**
+data/**/*-wal
+data/**/*-shm
+data/**/*-journal

@@ -27,14 +27,48 @@ def http_error(status: int) -> ProviderError:
     return ProviderError("provider_http_error", "服务返回错误，请检查配置或稍后重试。")
 
 
+def token_usage(value):
+    """Keep only reported numeric counters, never arbitrary provider metadata."""
+    if not isinstance(value, dict):
+        return None
+    required = ("prompt_tokens", "completion_tokens", "total_tokens")
+    if any(type(value.get(key)) is not int or not 0 <= value[key] <= 10**12 for key in required):
+        return None
+    if value["total_tokens"] != value["prompt_tokens"] + value["completion_tokens"]:
+        return None
+    result = {key: value[key] for key in required}
+    for key in ("prompt_cache_hit_tokens", "prompt_cache_miss_tokens"):
+        if type(value.get(key)) is int and 0 <= value[key] <= value["prompt_tokens"]:
+            result[key] = value[key]
+    for group, names, bound in (
+        ("prompt_tokens_details", ("cached_tokens", "audio_tokens"), value["prompt_tokens"]),
+        (
+            "completion_tokens_details",
+            ("reasoning_tokens", "audio_tokens"),
+            value["completion_tokens"],
+        ),
+    ):
+        details = value.get(group)
+        if isinstance(details, dict):
+            kept = {
+                key: details[key]
+                for key in names
+                if type(details.get(key)) is int and 0 <= details[key] <= bound
+            }
+            if kept:
+                result[group] = kept
+    return result
+
+
 class ModelAdapter:
     MAX_BYTES = 1_000_000
     MAX_TEXT = 80_000
     TIMEOUT = 120
 
-    def __init__(self, config: dict, api_key: str | None):
+    def __init__(self, config: dict, api_key: str | None, *, request_usage: bool = False):
         self.config = dict(config)
         self._key = api_key
+        self.request_usage = request_usage
 
     async def stream(self, messages: list, tools: list | None = None):
         model = self.config.get("model")
@@ -58,6 +92,10 @@ class ModelAdapter:
                 "stream": True,
                 "max_completion_tokens": 4096,
             }
+            if self.request_usage:
+                # Opt-in for measurement; do not retry a billable request when
+                # an otherwise compatible provider does not support this field.
+                payload["stream_options"] = {"include_usage": True}
             if url.host == "api.deepseek.com":
                 # Official DeepSeek Chat Completions uses the legacy token field.
                 payload["max_tokens"] = payload.pop("max_completion_tokens")
@@ -81,6 +119,7 @@ class ModelAdapter:
                     reasoning = ""
                     total_text = 0
                     finished = False
+                    usage = None
                     async for data in self._events(response):
                         if data == "[DONE]":
                             finished = True
@@ -88,6 +127,10 @@ class ModelAdapter:
                         packet = json.loads(data)
                         if not isinstance(packet, dict) or packet.get("error"):
                             raise ValueError
+                        if packet.get("usage") is not None:
+                            # Usage chunks may have empty choices. A repeated
+                            # total replaces the earlier snapshot; never sum it.
+                            usage = token_usage(packet["usage"])
                         choices = packet.get("choices", [])
                         if not choices:
                             continue
@@ -130,6 +173,8 @@ class ModelAdapter:
                                     raise ValueError
                     if not finished:
                         raise ProviderError("stream_interrupted", "模型连接中断，请重试。")
+                    if usage is not None:
+                        yield {"type": "usage", "usage": usage}
                     if reasoning and calls:
                         # Protocol-only context: graph keeps it in memory, never emits it.
                         yield {"type": "assistant_context", "reasoning_content": reasoning}

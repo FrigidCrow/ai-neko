@@ -21,7 +21,11 @@
     sessionId: null, guide: true, generation: 0, active: null, submitting: false,
     pollController: null, noticeAction: null, pendingRequest: null, submission: null,
     visionGeneration: 0, visualTurn: null, visionRevocations: new Map(),
+    contextEpoch: 0, contextTicket: 0, guideCatalog: null, matchCatalog: null,
+    controlBusy: false, controlRequest: null, controlJob: null, followedControlResponses: new Set(),
   };
+
+  let guidePanel = null;
 
   function node(tag, className, text) {
     const element = document.createElement(tag);
@@ -124,6 +128,7 @@
     byId("chat-panel").hidden = name !== "chat";
     byId("history-panel").hidden = name !== "history";
     byId("settings-panel").hidden = name !== "settings";
+    if (byId("guide-panel")) byId("guide-panel").hidden = name !== "guides";
     if (name !== "settings") { clearKeyInputs(); window.aiNekoCompanion?.clearKeys(); }
     window.aiNekoPet?.refreshInteractive();
   }
@@ -177,20 +182,20 @@
     byId("mode-chat").classList.toggle("is-active", !guide);
     byId("mode-guide").setAttribute("aria-pressed", String(guide));
     byId("mode-chat").setAttribute("aria-pressed", String(!guide));
-    byId("mode-hint").textContent = guide ? "需要时查询 · 附来源" : "不联网搜索";
+    byId("mode-hint").textContent = guide ? "优先采用资料 · 需要时联网" : "不联网搜索 · 可用已采用资料";
     elements.input.placeholder = guide ? "聊聊天，或问问当前局面；需要资料时我会查询…" : "今天想聊些什么？";
     if (state.connected) showConfigurationNotice();
   }
 
   function chatReady() {
-    return state.connected && !state.initializing && !state.loadingSession && !state.historyError && !state.stopped;
+    return state.connected && !state.initializing && !state.loadingSession && !state.historyError && !state.stopped && !state.controlBusy;
   }
 
   function updateComposer() {
     const ready = chatReady();
     document.body.dataset.chatReady = String(ready);
     document.body.dataset.sessionLoading = String(state.initializing || state.loadingSession);
-    const busy = Boolean(state.active || state.submitting);
+    const busy = Boolean(state.active || state.submitting || state.controlJob || state.controlBusy);
     elements.send.disabled = !ready || busy || !elements.input.value.trim();
     const cancellable = busy || Boolean(state.pendingRequest) || state.visionRevocations.size > 0;
     elements.send.hidden = cancellable;
@@ -198,8 +203,180 @@
     elements.cancel.disabled = !cancellable || Boolean(state.active?.cancelling);
     elements.messages.setAttribute("aria-busy", String(busy || state.initializing || state.loadingSession));
     elements.input.disabled = !ready || state.submitting;
-    byId("new-session").disabled = !state.connected || state.initializing || state.submitting || state.stopped;
+    byId("new-session").disabled = !state.connected || state.initializing || state.submitting || state.controlBusy || state.stopped;
     document.querySelectorAll(".retry-turn").forEach((button) => { button.disabled = busy || !ready; });
+    renderContext();
+  }
+
+  function renderContext() {
+    guidePanel?.render({ guideCatalog: state.guideCatalog, matchCatalog: state.matchCatalog,
+      sessionId: state.sessionId, busy: state.controlBusy || state.initializing || state.loadingSession, connected: state.connected });
+    const cancel = byId("cancel-guide-operation");
+    if (cancel) cancel.hidden = !state.controlBusy || !state.controlRequest?.fetch;
+  }
+
+  async function ensureSession() {
+    if (state.sessionId) return state.sessionId;
+    const generation = state.generation;
+    const value = await api("/api/sessions", { method: "POST", body: {} });
+    if (generation !== state.generation) throw new DOMException("Cancelled", "AbortError");
+    state.sessionId = sessionId(value.session || value);
+    if (!state.sessionId) throw new Error("Missing session identifier");
+    rememberSession(state.sessionId);
+    state.matchCatalog = null;
+    return state.sessionId;
+  }
+
+  async function refreshContext() {
+    const ticket = ++state.contextTicket;
+    const id = state.sessionId;
+    const [guides, matches] = await Promise.all([
+      api("/api/guides"), id ? api(`/api/sessions/${encodeURIComponent(id)}/matches`) : Promise.resolve({ revision: 0, current: null, matches: [] }),
+    ]);
+    if (matches.current) {
+      const detail = await api(`/api/sessions/${encodeURIComponent(id)}/matches/${encodeURIComponent(matches.current.match_id)}`);
+      matches.current = detail.match || detail;
+    }
+    if (ticket !== state.contextTicket || id !== state.sessionId) return false;
+    state.guideCatalog = guides; state.matchCatalog = matches;
+    renderContext();
+    return true;
+  }
+
+  function matchBinding(value = state.matchCatalog) {
+    if (!value) throw Object.assign(new Error("对局状态尚未载入，请稍后重试。"), { publicMessage: "对局状态尚未载入，请稍后重试。" });
+    return { match_id: value.current?.match_id || null, expected_revision: value.revision };
+  }
+
+  async function captureBinding({ create = true } = {}) {
+    if (create) await ensureSession();
+    if (!(await refreshContext()) && !(await refreshContext())) throw Object.assign(new Error("状态仍在更新，请稍后重试。"), { publicMessage: "状态仍在更新，请稍后重试。" });
+    const selected = guidePanel?.selectedSource();
+    return { sessionId: state.sessionId, contextEpoch: state.contextEpoch,
+      match: matchBinding(), guideTarget: selected ? { ...selected, expected_revision: state.guideCatalog.revision } : null };
+  }
+
+  function bindingCurrent(binding) {
+    return !binding || (binding.contextEpoch === state.contextEpoch && binding.sessionId === state.sessionId);
+  }
+
+  async function runControl(command, { visionAlreadyDisabled = false } = {}) {
+    if (state.controlBusy) throw Object.assign(new Error("操作正在提交，请稍候。"), { publicMessage: "操作正在提交，请稍候。" });
+    const identity = JSON.stringify([command.kind, command.targetId || null, command.fields || {}]);
+    if (state.controlRequest && state.controlRequest.identity !== identity) {
+      throw Object.assign(new Error("上次操作的结果尚未确认，请先重试同一操作。"), { publicMessage: "上次操作的结果尚未确认，请先重试同一操作。" });
+    }
+    state.controlBusy = true; state.contextEpoch += 1;
+    window.aiNekoCompanion?.stopSpeech(); window.aiNekoCompanion?.stopRecording(true);
+    updateComposer();
+    let request = state.controlRequest;
+    try {
+      await cancelControlJob();
+      await invalidatePending(); await cancelTurn({ preserveControl: true });
+      await window.aiNekoCompanion?.flushPlayback();
+      const isMatch = command.kind.startsWith("match-");
+      if (isMatch) await ensureSession();
+      if (!state.guideCatalog || (isMatch && !state.matchCatalog)) await refreshContext();
+      if (!request) {
+        const id = crypto.randomUUID().replaceAll("-", "");
+        const revision = command.expectedRevision ?? (isMatch ? state.matchCatalog.revision : state.guideCatalog.revision);
+        const fields = { ...(command.fields || {}), request_id: id, expected_revision: revision };
+        const target = encodeURIComponent(command.targetId || "");
+        const routes = {
+          "guide-select": ["PUT", "/api/guide-selection"], "guide-unselect": ["PUT", "/api/guide-selection"],
+          "guide-fetch": ["POST", "/api/guides"], "guide-refresh": ["POST", `/api/guides/${target}/refresh`],
+          "guide-delete": ["DELETE", `/api/guides/${target}`], "guide-backup": ["POST", "/api/guide-backups"],
+          "guide-restore": ["POST", `/api/guide-backups/${target}/restore`], "guide-delete-backup": ["DELETE", `/api/guide-backups/${target}`],
+        };
+        let route = routes[command.kind];
+        if (isMatch) {
+          const base = `/api/sessions/${encodeURIComponent(state.sessionId)}/matches`;
+          route = ["POST", command.kind === "match-start" ? base : `${base}/${target}/${command.kind.slice(6)}`];
+        }
+        if (!route) throw new Error("Unknown control");
+        if (command.kind === "guide-backup") delete fields.expected_revision;
+        if (command.kind === "guide-unselect") { fields.guide_id = null; fields.revision_id = null; }
+        if (["guide-delete", "guide-restore"].includes(command.kind)) fields.confirm = true;
+        request = { identity, command, id, method: route[0], path: route[1], body: command.kind === "guide-delete-backup" ? undefined : fields,
+          fetch: ["guide-fetch", "guide-refresh"].includes(command.kind), cancelled: false };
+        state.controlRequest = request;
+        renderContext();
+      }
+      if (command.kind === "match-close-observation" && !visionAlreadyDisabled) await window.aiNekoCompanion?.disableVision({ notify: false });
+      let result = await api(request.path, { method: request.method, body: request.body });
+      if (request.fetch) {
+        const deadline = Date.now() + 130000;
+        while (result.status === "running") {
+          if (Date.now() >= deadline) throw Object.assign(new Error("查询尚未完成，请重试核对本次操作。"), { code: "network" });
+          await pause(250);
+          result = await api(`/api/guide-operations/${request.id}`);
+        }
+        if (result.status !== "completed") throw Object.assign(new Error(result.error || "操作已取消。"), { code: result.error || "cancelled", status: 409 });
+        result = result.result;
+      }
+      if (request.cancelled) throw Object.assign(new Error("已停止本次操作。已保存的资料保留在攻略库，不再继续采用。"), { publicMessage: "已停止本次操作。已保存的资料保留在攻略库，不再继续采用。", status: 409, code: "cancelled" });
+      state.controlRequest = null;
+      await refreshContext();
+      if (["guide-delete", "guide-restore"].includes(command.kind) && state.sessionId) {
+        const panel = byId("guide-panel")?.hidden === false ? "guides" : "chat";
+        await openSession(state.sessionId, { controlRefresh: true }); showPanel(panel);
+      }
+      return result;
+    } catch (error) {
+      if (error.status && state.controlRequest === request) state.controlRequest = null;
+      await refreshContext().catch(() => {});
+      if (state.controlRequest) showNotice("上次操作的结果尚未确认；重试会核对同一操作。", { error: true, label: "核对上次操作", action: () => runControl(command, { visionAlreadyDisabled }).catch((failure) => guidePanel?.status(friendlyError(failure))) });
+      throw error;
+    } finally { state.controlBusy = false; updateComposer(); }
+  }
+
+  async function cancelControlJob() {
+    const job = state.controlJob;
+    if (!job) return;
+    job.cancelled = true;
+    await api(`/api/sessions/${encodeURIComponent(job.sessionId)}/control-jobs/${encodeURIComponent(job.id)}/cancel`, { method: "POST", body: {} });
+    if (state.controlJob === job) state.controlJob = null;
+    await refreshContext();
+  }
+
+  async function followControlJob(id, jobId, view, generation) {
+    if (generation !== state.generation) return;
+    const job = { id: jobId, sessionId: id, cancelled: false };
+    state.controlJob = job; updateComposer();
+    try {
+      for (;;) {
+        const result = await api(`/api/sessions/${encodeURIComponent(id)}/control-jobs/${encodeURIComponent(jobId)}`);
+        if (job.cancelled || generation !== state.generation) return;
+        if (result.status === "completed" && result.response_turn && !result.replayed && !result.confirmation_cancelled && !result.superseded) {
+          const turn = result.response_turn;
+          if (state.followedControlResponses.has(turn.id)) return;
+          await refreshContext();
+          if (job.cancelled || generation !== state.generation) return;
+          state.controlJob = null;
+          state.followedControlResponses.add(turn.id);
+          if (state.followedControlResponses.size > 256) state.followedControlResponses.delete(state.followedControlResponses.values().next().value);
+          const responseView = createTurnView({ ...turn, output: "", assistant_text: "", confirmed_text: "", heard_text: "", delivered_text: "" });
+          responseView.liveTurnId = turn.id;
+          responseView.isControlResponse = true;
+          window.aiNekoCompanion?.beginTurn(turn.id, id, turn.context?.match, true);
+          scrollBottom(true);
+          await startPolling(id, turn.id, responseView, 0, generation);
+          return;
+        }
+        if (["completed", "cancelled", "error", "failed", "interrupted"].includes(result.status)) {
+          view.assistant.hidden = false;
+          view.result.textContent = result.confirmation_cancelled ? "操作确认已停止。"
+            : result.committed ? "操作已提交，请查看当前攻略和对局状态。"
+            : result.status === "interrupted" ? "操作因应用重启中断，请核对当前状态后重新操作。"
+            : "操作未能完成，请核对当前状态后再试。";
+          await refreshContext(); return;
+        }
+        elements.status.textContent = "正在提交你的操作…";
+        await pause(200);
+      }
+    } catch (error) {
+      if (!job.cancelled && generation === state.generation) showNotice(friendlyError(error), { error: true });
+    } finally { if (state.controlJob === job) state.controlJob = null; updateComposer(); }
   }
 
   function resizeInput() {
@@ -222,6 +399,10 @@
     window.aiNekoCompanion?.stopSpeech();
     window.aiNekoCompanion?.stopRecording(true);
     state.generation += 1;
+    state.contextEpoch += 1;
+    state.contextTicket += 1;
+    state.matchCatalog = null;
+    if (state.controlJob) void cancelControlJob().catch(() => {});
     state.pollController?.abort();
     state.pollController = null;
     state.active = null;
@@ -238,9 +419,11 @@
   }
 
   function newConversation() {
-    if (!state.connected || state.initializing || state.submitting || state.stopped) return;
+    if (!state.connected || state.initializing || state.submitting || state.controlBusy || state.stopped) return;
     resetView();
     state.sessionId = null;
+    state.matchCatalog = { revision: 0, current: null, matches: [] };
+    renderContext();
     rememberSession(null);
     elements.title.textContent = "新对话";
     renderSessions();
@@ -325,11 +508,12 @@
     const sources = node("div", "source-list");
     sources.hidden = true;
     assistant.append(heading, output, result, retry, sourceHeading, sources);
+    if (turn.kind === "control_response") user.hidden = true;
     container.append(user, assistant);
     elements.messages.append(container);
     elements.welcome.hidden = true;
     elements.messages.hidden = false;
-    const view = { container, output, result, retry, sourceHeading, sources, sourceMap: new Map(), errorMessage: turn.error ? friendlyError({ code: turn.error }) : "" };
+    const view = { container, assistant, output, result, retry, sourceHeading, sources, sourceMap: new Map(), isControlCommand: Boolean(turn.control_job_id && turn.kind !== "control_response"), errorMessage: turn.error ? friendlyError({ code: turn.error }) : "" };
     for (const source of turn.sources || []) updateSource(view, source);
     if (terminalStatuses.has(turn.status)) finishView(view, turn.status);
     return view;
@@ -346,9 +530,15 @@
 
   function sourceStatus(source) {
     const status = String(source.status || "");
-    if (["read", "ok", "success", "fetched", "read_ok", "available"].includes(status)) return "已读取正文";
+    if (["read", "ok", "success", "fetched", "read_ok", "available"].includes(status)) {
+      const coverage = (source.storage?.completeness || source.completeness) === "partial" ? "部分内容" : "正文";
+      if (source.local === true) return `本地保存 · 已采用${coverage} · ${source.game_version ? `原文版本 ${source.game_version}` : "版本未核实"}`;
+      if (source.storage?.saved === true) return `已读取 · 已保存${coverage}`;
+      if (source.storage?.saved === false) return "已读取 · 未保存到本机";
+      return `已读取${coverage}`;
+    }
     if (["blocked", "denied", "unsafe", "unavailable", "unreadable", "failed", "error", "read_failed"].includes(status)) return "正文未能读取";
-    if (["snippet", "search_only", "snippet_only", "searched", "found"].includes(status)) return "仅有搜索摘要";
+    if (["snippet", "search_only", "snippet_only", "searched", "found"].includes(status)) return source.search_cache?.status === "hit" ? "复用搜索摘要 · 未重新联网" : "仅有搜索摘要";
     if (["reading", "pending", "fetching"].includes(status)) return "正在读取正文";
     return source.text || source.content ? "已读取正文" : "仅有搜索摘要";
   }
@@ -371,6 +561,14 @@
     summary.append(titleRow, node("span", "source-meta", [url?.hostname || "链接不可用", status].join(" · ")));
     const body = node("div", "source-details");
     body.append(node("p", "source-status", status));
+    if (source.local === true) {
+      body.append(node("p", "", `上次核查：${source.last_checked_at || "未知"}。本轮引用本地原文片段，不表示刚刚联网。`));
+      if (Number.isInteger(source.start) && Number.isInteger(source.end)) body.append(node("p", "", `原文位置：第 ${source.start + 1}–${source.end} 字符。`));
+      if (source.version_status !== "matched") body.append(node("p", "", "尚未核实与你当前游戏版本一致。"));
+    }
+    if (source.completeness === "partial" || source.storage?.completeness === "partial") body.append(node("p", "", "可读资料未完整保存，请结合原始来源核对。"));
+    if (source.prompt_truncated) body.append(node("p", "", "这里仅展示本轮引用的正文片段。"));
+    if (source.storage?.saved === false) body.append(node("p", "", source.storage.error === "guide_capacity_exceeded" ? "本地资料空间不足，本次读取未保存。" : "本地保存未成功，本次仍可查看已读取内容。"));
     const readText = source.text || source.content || "";
     const snippet = source.snippet || "";
     if (readText) body.append(node("p", "source-excerpt", readText));
@@ -392,6 +590,8 @@
       link.addEventListener("click", () => bridge.openExternal(url.href).catch(() => showNotice("这个来源暂时无法打开。", { error: true })));
       body.append(link);
     }
+    const action = guidePanel?.sourceAction(source);
+    if (action) body.append(action);
     details.append(summary, body);
     if (previous) previous.replaceWith(details);
     else view.sources.append(details);
@@ -410,11 +610,14 @@
       interrupted: "服务曾中断；已收到的内容保留在这里，可以重新提问。",
     };
     view.result.textContent = view.errorMessage || messages[status] || "";
+    // The control's independent response provides the assistant message.
+    // Keep its original command visible without a duplicate empty reply row.
+    view.assistant.hidden = Boolean(view.isControlCommand && !view.output.textContent && !view.result.textContent);
     view.result.classList.toggle("is-error", Boolean(view.errorMessage) || ["failed", "error", "interrupted"].includes(status));
   }
 
-  async function openSession(id) {
-    if (state.submitting || state.stopped) return;
+  async function openSession(id, { controlRefresh = false } = {}) {
+    if (state.submitting || state.stopped || (state.controlBusy && !controlRefresh)) return;
     const generation = resetView();
     state.loadingSession = true;
     updateComposer();
@@ -449,6 +652,8 @@
           if (turnId) pending.push({ turnId: String(turnId), view, sent });
         }
       }
+      await refreshContext();
+      if (generation !== state.generation) return;
       scrollBottom(true);
       updateComposer();
       // Completed turns may still have unseen events. Drain every turn in order, not just the active one.
@@ -474,9 +679,9 @@
   function pause(milliseconds, signal) {
     return new Promise((resolve, reject) => {
       const abort = () => { clearTimeout(timer); reject(new DOMException("Cancelled", "AbortError")); };
-      const timer = setTimeout(() => { signal.removeEventListener("abort", abort); resolve(); }, milliseconds);
-      if (signal.aborted) abort();
-      else signal.addEventListener("abort", abort, { once: true });
+      const timer = setTimeout(() => { signal?.removeEventListener("abort", abort); resolve(); }, milliseconds);
+      if (signal?.aborted) abort();
+      else signal?.addEventListener("abort", abort, { once: true });
     });
   }
 
@@ -500,8 +705,10 @@
           showNotice(friendlyError({ code: data.error }), { error: true, label: "设置搜索", action: openSettings });
         } else showNotice("这次资料查询未完成，回答中的信息缺口需要继续核实。", { error: true });
       }
+    } else if (event.type === "match_observation") {
+      void refreshContext().catch(() => {});
     } else if (event.type === "status") {
-      elements.status.textContent = data.message || ({ accepted: "正在想…", researching: "正在查资料…", answering: "正在组织回答…" }[data.status] || "正在想…");
+      elements.status.textContent = data.message || ({ accepted: "正在想…", observing_match: "正在读取本轮画面…", control_pending: "正在提交你的操作…", researching: "正在查资料…", answering: "正在组织回答…" }[data.status] || "正在想…");
       setPetState(/查|搜|读|search|read|tool/i.test(data.message || data.status || "") ? "searching" : "thinking");
     } else if (event.type === "error") {
       setPetState("failed");
@@ -528,6 +735,7 @@
     let errors = 0;
     let acknowledgedSequence = -1;
     let finalStatus = "";
+    let controlJobId = null;
     const path = `/api/sessions/${encodeURIComponent(id)}/turns/${encodeURIComponent(turnId)}`;
     try {
       while (!controller.signal.aborted && generation === state.generation) {
@@ -542,6 +750,9 @@
           if (errors) elements.status.textContent = "连接已恢复，正在接收回答…";
           const follow = nearBottom();
           const events = Array.isArray(response.events) ? response.events : [];
+          controlJobId = response.control_job_id || controlJobId;
+          if (controlJobId && !view.isControlResponse) view.isControlCommand = true;
+          if (response.match_binding && view.liveTurnId) window.aiNekoCompanion?.updateTurnBinding(view.liveTurnId, response.match_binding);
           let sawDone = false;
           for (const event of events) {
             const next = eventSequence(event);
@@ -588,6 +799,8 @@
         } else setPetState("failed");
         updateComposer();
         refreshSessions().catch(() => {});
+        refreshContext().catch(() => {});
+        if (controlJobId && !view.isControlResponse && view.liveTurnId && finalStatus === "completed") void followControlJob(id, controlJobId, view, generation);
       }
     }
   }
@@ -675,7 +888,7 @@
     const generation = state.generation;
     const guide = state.guide;
     requireCurrentSubmission(owner);
-    const attempt = { generation, visionGeneration: state.visionGeneration, capturePending: true, capture: null, request: null, revoked: false };
+    const attempt = { generation, binding: owner.binding || null, inputOrigin: owner.inputOrigin || "text", reviewMatchId: owner.reviewMatchId || null, visionGeneration: state.visionGeneration, capturePending: true, capture: null, request: null, revoked: false };
     state.submission = attempt;
     state.submitting = true;
     window.aiNekoCompanion?.stopSpeech();
@@ -687,13 +900,24 @@
     try {
       await window.aiNekoCompanion?.flushPlayback();
       if (!currentAttempt(attempt)) return;
+      // A replacement must not overtake a lost request whose cancellation has
+      // not reached the server, including when the previous retry failed.
+      await Promise.all([...state.visionRevocations.values()].map(retireVisionRequest));
+      if (!currentAttempt(attempt)) return;
+      if (!attempt.binding) attempt.binding = await captureBinding({ create: false });
+      if (!currentAttempt(attempt)) return;
+      if (!bindingCurrent(attempt.binding)) throw Object.assign(new Error("对局已改变，请重新输入。"), { publicMessage: "对局已改变，请重新输入。", status: 409 });
       const prior = state.pendingRequest;
+      const target = attempt.binding.guideTarget;
+      // Catalog refresh can clear selection or advance its CAS revision after
+      // acceptance. Preserve that exact retry, unless the user chose a new target.
+      const changedTarget = target && ["guide_id", "revision_id", "game", "platform", "mode"].some((key) => target[key] !== prior?.binding?.guideTarget?.[key]);
       let request;
-      if (prior && !prior.revoked && prior.sessionId === state.sessionId && prior.text === text && prior.guide === guide) {
+      if (prior && !prior.revoked && !changedTarget && prior.sessionId === state.sessionId && prior.text === text && prior.guide === guide && prior.inputOrigin === attempt.inputOrigin && prior.reviewMatchId === attempt.reviewMatchId) {
         request = prior;
         attempt.capturePending = false;
       } else {
-        if (prior?.hasImage) await retireVisionRequest(prior);
+        if (prior) await retireVisionRequest(prior);
         if (!currentAttempt(attempt)) return;
         attempt.capture = await window.aiNekoCompanion?.captureForTurn();
         attempt.capturePending = false;
@@ -704,8 +928,9 @@
           state.sessionId = sessionId(response.session || response);
           if (!state.sessionId) throw new Error("Missing session identifier");
           rememberSession(state.sessionId);
+          attempt.binding = { ...attempt.binding, sessionId: state.sessionId };
         }
-        request = { sessionId: state.sessionId, text, guide, requestId: crypto.randomUUID().replaceAll("-", ""), capture: attempt.capture, hasImage: Boolean(attempt.capture?.frame), revoked: false };
+        request = { sessionId: state.sessionId, text, guide, requestId: crypto.randomUUID().replaceAll("-", ""), binding: attempt.binding, inputOrigin: attempt.inputOrigin, reviewMatchId: attempt.reviewMatchId, capture: attempt.capture, hasImage: Boolean(attempt.capture?.frame), revoked: false };
         state.pendingRequest = request;
       }
       attempt.request = request;
@@ -715,7 +940,7 @@
         throw Object.assign(new Error("Vision revoked"), { code: "vision_revoked" });
       }
       if (!currentAttempt(attempt)) return;
-      const response = await api(`/api/sessions/${encodeURIComponent(id)}/turns`, { method: "POST", body: { text, guide, request_id: request.requestId, ...(request.capture?.frame ? { image: request.capture.frame } : {}) } });
+      const response = await api(`/api/sessions/${encodeURIComponent(id)}/turns`, { method: "POST", body: { text, guide, request_id: request.requestId, match: request.binding.match, input_origin: request.inputOrigin, ...(request.binding.guideTarget ? { guide_target: request.binding.guideTarget } : {}), ...(request.reviewMatchId ? { review_match_id: request.reviewMatchId } : {}), ...(request.capture?.frame ? { image: request.capture.frame } : {}) } });
       const turn = response.turn || response;
       const turnId = turn.turn_id || turn.id;
       if (!turnId) throw new Error("Missing turn identifier");
@@ -732,13 +957,14 @@
       const view = createTurnView({ ...turn, text, input: text });
       view.hasImage = request.hasImage;
       view.liveTurnId = String(turnId);
-      window.aiNekoCompanion?.beginTurn(view.liveTurnId, id);
+      window.aiNekoCompanion?.beginTurn(view.liveTurnId, id, turn.context?.match);
       scrollBottom(true);
       startPolling(id, String(turnId), view, Number(turn.sent_seq || 0), generation);
       refreshSessions().catch(() => {});
     } catch (error) {
       if (!currentAttempt(attempt)) return;
-      elements.status.textContent = "未能确认发送结果，输入内容已保留；重试可恢复本次回答。";
+      if (error.status === 409 || error.status === 400) { state.pendingRequest = null; await refreshContext().catch(() => {}); }
+      elements.status.textContent = error.status === 409 ? "状态已改变，原输入已保留；请核对当前对局后重新发送。" : "未能确认发送结果，输入内容已保留；重试可恢复本次回答。";
       showNotice(friendlyError(error), { error: true, label: "检查设置", action: openSettings });
     } finally {
       attempt.capture = null;
@@ -750,8 +976,14 @@
     }
   }
 
-  async function cancelTurn() {
+  async function cancelTurn({ preserveControl = false } = {}) {
     window.aiNekoCompanion?.stopSpeech();
+    await cancelControlJob();
+    if (!preserveControl && state.controlRequest?.fetch) {
+      const request = state.controlRequest;
+      request.cancelled = true;
+      await api(`/api/guide-operations/${request.id}/cancel`, { method: "POST", body: {} });
+    }
     if (state.submission || state.pendingRequest || state.visionRevocations.size) {
       try { await invalidatePending(); }
       catch (error) { showNotice(friendlyError(error), { error: true }); throw error; }
@@ -884,6 +1116,7 @@
       try { previous = localStorage.getItem(LAST_SESSION) || ""; } catch { /* Optional preference. */ }
       const latest = state.sessions.find((item) => sessionId(item) === previous) || state.sessions[0];
       if (latest && !state.sessionId) await openSession(sessionId(latest));
+      else await refreshContext();
       if (state.connected) byId("connection-label").textContent = "在你身边 · 记录保存在本机";
     } catch (error) {
       connectionState(false, "连接暂时中断");
@@ -980,7 +1213,18 @@
   });
   window.addEventListener("pagehide", () => { clearKeyInputs(); state.pollController?.abort(); });
   window.addEventListener("ai-neko-persona", (event) => { state.personaName = event.detail.name; });
-  window.aiNekoChat = Object.freeze({ api, friendlyError, cancelTurn, revokeVision, invalidatePending,
+  byId("cancel-guide-operation")?.addEventListener("click", () => { void cancelTurn().catch((error) => guidePanel?.status(friendlyError(error))); });
+  guidePanel = window.aiNekoGuidePanel?.create({ api, runControl, showPanel, friendlyError,
+    onReview: async (matchId, text) => { await cancelTurn(); showPanel("chat"); return window.aiNekoChat.submitText(text, { reviewMatchId: matchId }); },
+  });
+  window.aiNekoChat = Object.freeze({ api, friendlyError, cancelTurn, revokeVision, invalidatePending, captureBinding, bindingCurrent,
+    refreshContext, runControl, cancelControlConfirmation: cancelControlJob,
+    closeObservation: async () => {
+      if (!state.sessionId || state.controlBusy) return;
+      await refreshContext();
+      const current = state.matchCatalog?.current;
+      if (current) await runControl({ kind: "match-close-observation", targetId: current.match_id, expectedRevision: state.matchCatalog.revision }, { visionAlreadyDisabled: true });
+    },
     refreshAfterForget: async () => {
       if (state.sessionId) await openSession(state.sessionId);
       await refreshSessions(); showPanel("settings");

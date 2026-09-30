@@ -1,0 +1,111 @@
+{
+  "stage": "MVP2 G1",
+  "status": "LOCAL_SYNTHETIC_PASS",
+  "goal_status": "active",
+  "source_commit": "e83073018abd60fc02be7e5188f68fc87ca4d90f",
+  "source_dirty": true,
+  "source_identity": "uncommitted G1 files identified by SHA-256; HEAD is baseline only",
+  "platform": "macOS-26.6.2-arm64-arm-64bit",
+  "python": "3.11.15",
+  "node": "v25.9.0",
+  "dependencies": {
+    "langgraph": "1.2.12",
+    "langgraph-checkpoint-sqlite": "3.1.1",
+    "httpx": "0.28.1",
+    "pytest": "9.1.1",
+    "ruff": "0.16.9"
+  },
+  "locks": {
+    "uv.lock": "b6bce6f7c7944ea724f12a5e643e4ebe20a8564c7f402e61bc0129cca6d584eb",
+    "desktop/package-lock.json": "f7fd6d8131adeec4e8a776e6600c1303255822fe7cc71557628d13107efbc36a"
+  },
+  "python_tests": {
+    "tests": 731,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 1,
+    "passed": 730
+  },
+  "desktop_units": {
+    "passed": 64,
+    "failed": 0
+  },
+  "actual_electron_companion": {
+    "status": "PASS",
+    "passed": 20,
+    "renderer_errors": [],
+    "synthetic_calls": {
+      "model": 18,
+      "asr": 3,
+      "tts": 29
+    },
+    "scope": "existing MVP1 companion regression, not G5 guide-management acceptance"
+  },
+  "fixture_integrity": {
+    "fixture_integrity": "PASS",
+    "retrieval_evaluation": "NOT_RUN",
+    "model_quality": "NOT_RUN",
+    "guide_count": 12,
+    "answerable_questions": 24,
+    "absent_questions": 6,
+    "follow_up_questions": 4,
+    "body_characters": {
+      "G01": 400,
+      "G02": 160,
+      "G03": 130,
+      "G04": 146,
+      "G05": 151,
+      "G06": 22367,
+      "G07": 281,
+      "G08": 124,
+      "G09": 117,
+      "G10": 55101,
+      "G11": 58,
+      "G12": 79
+    }
+  },
+  "checks": {
+    "ruff": "PASS",
+    "format": "PASS (79 files)",
+    "js_syntax": "PASS",
+    "diff_check": "PASS",
+    "documentation": "PASS: 30 Markdown files, 424 local links, 206 reference files; reference fingerprint unchanged"
+  },
+  "real_model_calls": 0,
+  "real_search_calls": 0,
+  "real_audio_service_calls": 0,
+  "actual_user_captures": 0,
+  "pending": [
+    "G2 adoption, revisioned management, deletion and guide snapshots",
+    "G3 local retrieval, A03 frozen evaluation and network cache",
+    "G4 matches and evidence expiry",
+    "G5 management controls and text/voice lifecycle",
+    "G6 Windows build and real service/Windows11 evaluations"
+  ],
+  "files_sha256": {
+    "src/ai_neko/memory/guides.py": "87981daea2dd289541e5bae0dbc551634f43e893a293a0f0bf79637d0afd04d8",
+    "src/ai_neko/memory/service.py": "b050241432f084e7713ab5c5e2b3f9de6b951d1200bc8f0546efeff46de75178",
+    "src/ai_neko/tools/web.py": "bb72bfdadd0c83bed91d187d491b1295a7ec63acefc13220d2144bc114f374e4",
+    "src/ai_neko/chat/graph.py": "0f436d6f325229f5b6b8b1332f869d43ea393a7046feecfc76593262dfa2558b",
+    "src/ai_neko/runtime/service.py": "fb60e29654503f1fd6eae2dcabe3c3d031862ec2801c39faebd9ad4a8047be16",
+    "src/ai_neko/web/app.js": "3fcceac8ebd1af77c711994fe281ae55c69f5390c6832144e177b183528aa47f",
+    "desktop/renderer/app.js": "afe4d07d6670c8e7e0da0a92038fd87229f993419af37b8490389e3abb84f3c0",
+    "tests/test_guides.py": "5e00d5c967816c28ffe0eee0faefeef6193a77c38c1272fae3e5e7cb9cf8b2f4",
+    "tests/test_guide_web.py": "717356cc41ff88982922dd1145b393e6922ab6b50c43893f35f511a408998502",
+    "tests/test_guide_ingestion.py": "bcfba992a867677d70e3b2ae1385d2dabf65d48e6b6b23895ee2d7fbc942370b",
+    "tests/test_guide_corpus.py": "f86e3a55e6231d3b344a7c7c6513196136f4d05a9f520bb4e98dc0655a2d8946",
+    "tests/fixtures/guides/README.md": "3e1c4bbf839fbfc1bd8ff539d2fc3fa30961c24a9eced2fb4c90cf09432d567f",
+    "tests/fixtures/guides/corpus.json": "f0f1336316d975aeff341525fefc93528931b7e0b9d47a441602361f6ef626dd",
+    "tests/fixtures/guides/fixture_loader.py": "ce13c2762c0f25538d546cad6c5978c145bd35ab0e03ac90ac93710c6a505673",
+    "tests/fixtures/guides/manifest.json": "ea8df80a7de12ba9879991498c434f0200797289fec6de097dfdd3f441873dc0",
+    "tests/fixtures/guides/questions.json": "3a71788e0e9db1245cdc594412f8add1df8c3520a78b7e32123ecb36f0655c8a"
+  },
+  "local_raw_evidence": {
+    "artifacts/mvp2/g1-python-final.xml": "a60b3a6f77bd3a2c9d627b2614f48053d7fef7445f7ebef981f9142af4f56f66",
+    "artifacts/mvp2/g1-python-final.txt": "df1ee3d3f201f8daf463dc98b6bb1cda941de6485532d98332b8f3db4b127f42",
+    "artifacts/mvp2/g1-desktop-unit.txt": "25381ae7ce169824caa281688c4dae6d42c9c5152df3fbbb5d9f11726dc9243c",
+    "artifacts/mvp2/g1-companion-final.json": "a9109f5eb60fbd5aaf1cf05d746f7ab3b6c22632f9d6e29d8233a7a725a73a71",
+    "artifacts/mvp2/g1-fixture-verify.json": "6924076a49f1d7696575e9688d72b06b2415f773f6c5c2c3a65d8c94bd134da0"
+  },
+  "raw_evidence_note": "artifacts/ files exist in this workspace and are ignored by Git; summary keeps their digests"
+}

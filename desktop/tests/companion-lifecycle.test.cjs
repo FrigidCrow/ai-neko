@@ -33,6 +33,10 @@ function fixture(overrides = {}) {
   class Context { async resume() { if (overrides.resume) await overrides.resume(); } }
   const chat = {
     canRecord: () => true,
+    captureBinding: async () => overrides.binding ? overrides.binding() : ({ sessionId: 'a'.repeat(32), contextEpoch: 0, match: { match_id: null, expected_revision: 0 } }),
+    bindingCurrent: (binding) => overrides.bindingCurrent ? overrides.bindingCurrent(binding) : true,
+    cancelControlConfirmation: async () => {},
+    closeObservation: async () => overrides.closeObservation?.(),
     cancelTurn: async () => { calls.cancel++; if (overrides.cancel) await overrides.cancel(calls.cancel); },
     api: async (route, options) => { calls.api.push({ route, options }); if (route === '/api/voice/transcribe') { calls.asr++; return overrides.transcribe ? overrides.transcribe(options) : { text: '合成问题' }; } return {}; },
     invalidatePending: async () => overrides.invalidate?.(),
@@ -219,4 +223,32 @@ test('memory snapshot waits for pending request revocation and never mutates aft
   await saving;
   assert.equal(f.calls.api.some((item) => item.options?.method === 'POST'), false);
   assert.match(f.el('memory-backup-status').textContent, /synthetic durable revocation failed/);
+});
+
+
+test('voice preserves the match and selected source captured before microphone input', async () => {
+  const binding = { sessionId: 'a'.repeat(32), contextEpoch: 7,
+    match: { match_id: 'match-' + 'b'.repeat(32), expected_revision: 11 },
+    guideTarget: { guide_id: 'guide-' + 'c'.repeat(32), revision_id: 'revision-' + 'd'.repeat(32) } };
+  let reads = 0;
+  const f = fixture({ binding: async () => { reads++; return binding; } });
+  f.start(); await tick(); f.start(); await tick();
+  assert.equal(reads, 1);
+  const request = f.calls.api.find((item) => item.route === '/api/voice/transcribe');
+  assert.deepEqual(request.options.body.match, binding.match);
+  assert.equal(request.options.body.session_id, binding.sessionId);
+  assert.equal(f.calls.submitted[0].options.inputOrigin, 'voice');
+  assert.equal(f.calls.submitted[0].options.binding, binding);
+});
+
+test('a stale match invalidates a delayed ASR result before a user turn is submitted', async () => {
+  const wait = deferred(); let valid = true;
+  const f = fixture({ transcribe: () => wait.promise, bindingCurrent: () => valid });
+  f.start(); await tick(); f.start(); await tick();
+  assert.equal(f.calls.asr, 1);
+  valid = false;
+  wait.resolve({ text: '旧局迟到语音' }); await tick();
+  assert.equal(f.calls.submitted.length, 0);
+  f.stop(); await tick();
+  assert.ok(f.streams.every((stream) => stream.track.stopped));
 });

@@ -1,10 +1,10 @@
 {
-  "checkedAt": "2026-09-27T11:50:53.949657+00:00",
+  "checkedAt": "2026-09-30T10:38:44.715069+00:00",
   "scope": "Rename, documentation, diagrams, reference integrity; no ai-neko product runtime or Windows validation",
   "environment": {
     "system": "Darwin",
     "machine": "arm64",
-    "python": "3.11.15"
+    "python": "3.9.6"
   },
   "gitRoot": "/Users/frigidcrow/Dev/ai-neko",
   "branch": "codex/companion-five-capabilities",
@@ -24,8 +24,8 @@
     "WORKLOG.md",
     "docs/validation-initial.json"
   ],
-  "markdownFiles": 28,
-  "localLinks": 414,
+  "markdownFiles": 37,
+  "localLinks": 515,
   "referenceFiles": 206,
   "courses": 24,
   "referenceGroups": 10,

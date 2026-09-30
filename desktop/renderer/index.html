@@ -13,6 +13,7 @@
   <script src="../vendor/cubism4.min.js" defer></script>
   <script src="./pet.js" defer></script>
   <script src="./media.js" defer></script>
+  <script src="./guide-panel.js" defer></script>
   <script src="./app.js" defer></script>
   <script src="./companion.js" defer></script>
 </head>
@@ -29,6 +30,10 @@
         </div>
       </header>
       <div id="conversation-title" class="conversation-title">一个新的小话题</div>
+      <section id="companion-context" class="companion-context" aria-label="当前攻略与对局">
+        <div><span id="current-guide-label">尚未采用攻略</span><span id="current-match-label">尚未开始对局</span></div>
+        <button id="open-guides" class="text-button" type="button">攻略库</button><button id="manage-match" class="text-button" type="button">开始陪玩</button>
+      </section>
       <div id="notice" class="notice" role="status" hidden><span id="notice-text"></span><button id="notice-action" class="text-button" type="button" hidden></button></div>
       <div id="conversation-scroll" class="conversation-scroll">
         <section id="welcome" class="welcome">
@@ -56,6 +61,53 @@
     <section id="history-panel" class="companion-panel secondary-panel" data-interactive aria-labelledby="history-title" hidden>
       <header class="panel-header"><div><span class="eyebrow">留在这里的小话题</span><h2 id="history-title">最近对话</h2></div><button id="close-history" class="icon-button" type="button" aria-label="返回聊天">×</button></header>
       <nav id="session-list" class="session-list" aria-label="最近对话"></nav><p class="panel-footnote">聊天记录与长期记忆分开保存；在设置中查看和管理记忆。</p>
+    </section>
+
+    <section id="guide-panel" class="companion-panel secondary-panel" data-interactive aria-labelledby="guide-panel-title" hidden>
+      <header class="panel-header"><div><span class="eyebrow">这份攻略，这一局</span><h2 id="guide-panel-title">攻略与陪玩</h2></div><button id="close-guides" class="icon-button" type="button" aria-label="返回聊天">×</button></header>
+      <div class="settings-scroll guide-scroll">
+        <p id="guide-status" class="settings-message" role="status" aria-live="polite"></p><button id="cancel-guide-operation" class="soft-button" type="button" hidden>停止读取网页</button>
+        <section id="guide-confirmation" class="backup-confirmation" role="alertdialog" aria-modal="false" aria-labelledby="guide-confirm-title" hidden><strong id="guide-confirm-title"></strong><p id="guide-confirm-detail"></p><button id="confirm-guide-action" class="primary-button" type="button">确认</button><button id="cancel-guide-action" class="soft-button" type="button">取消</button></section>
+        <section id="guide-adoption" class="companion-settings" aria-labelledby="guide-adoption-title" hidden>
+          <h3 id="guide-adoption-title">采用这份攻略</h3><p id="guide-source-title" class="guide-document-title"></p><p id="guide-source-state" class="field-help"></p>
+          <form id="guide-selection-form" autocomplete="off">
+            <label for="guide-adopt-game">游戏</label><input id="guide-adopt-game" maxlength="200" required>
+            <div class="guide-field-pair"><div><label for="guide-adopt-platform">平台</label><input id="guide-adopt-platform" maxlength="200" required></div><div><label for="guide-adopt-mode">模式</label><input id="guide-adopt-mode" maxlength="200" required></div></div>
+            <label for="guide-adopt-version">攻略适用的游戏版本（未知可留空）</label><input id="guide-adopt-version" maxlength="200">
+            <label for="guide-adopt-version-basis">版本依据（填写版本时请说明）</label><input id="guide-adopt-version-basis" maxlength="2000" placeholder="例如原文明确写出的版本，或你确认的适用版本">
+            <p class="field-help">游戏条件由来源记录或你明确填写。保存的正文版本不会因刷新而自动替换；部分正文会保留相应标记。</p>
+            <button id="guide-adopt" class="primary-button" type="submit">确认采用</button><button id="cancel-guide-adoption" class="text-button" type="button">取消</button>
+          </form>
+        </section>
+        <section class="companion-settings" aria-labelledby="match-section-title">
+          <h3 id="match-section-title">当前对局</h3><p id="match-summary" class="guide-summary">尚未开始陪玩。</p><div id="match-evidence" class="match-evidence" aria-live="polite"></div>
+          <form id="match-form" autocomplete="off">
+            <label for="match-game">游戏</label><input id="match-game" maxlength="200" required>
+            <div class="guide-field-pair"><div><label for="match-platform">平台</label><input id="match-platform" maxlength="200" required></div><div><label for="match-mode">模式</label><input id="match-mode" maxlength="200" required></div></div>
+            <label for="match-version">当前游戏版本（未知可留空）</label><input id="match-version" maxlength="200">
+            <label for="match-goal">本局目标（可留空）</label><textarea id="match-goal" maxlength="2000" rows="2" placeholder="这局想尝试什么？"></textarea>
+            <p class="field-help">开始或新局由你确认。更改游戏、平台或模式时请开始新局。重启后旧局势待更新；新的描述或画面才作为当前依据。</p>
+            <div class="guide-actions"><button id="match-start" class="primary-button" type="submit">开始陪玩</button><button id="match-new" class="primary-button" type="button" hidden>新对局</button><button id="match-update" class="soft-button" type="button" hidden>更新目标与版本</button><button id="match-end" class="text-button" type="button" hidden>结束本局</button><button id="match-close-observation" class="text-button" type="button" hidden>关闭本局观察</button></div>
+          </form>
+          <details id="match-history"><summary>复盘已有对局</summary><div id="match-list"></div></details>
+        </section>
+        <section class="companion-settings" aria-labelledby="guide-library-title">
+          <div class="guide-heading-row"><h3 id="guide-library-title">本地攻略库</h3><button id="refresh-guide-library" class="text-button" type="button">重新载入</button></div>
+          <p class="field-help">本地正文与个人记忆分开。取消采用保留正文；删除会清理相关资料与依赖回答。</p><div id="guide-selection-list"></div><div id="guide-library-list"></div>
+          <details id="guide-save-section"><summary>从公开网页保存攻略</summary>
+            <form id="guide-save-form" autocomplete="off">
+              <label for="guide-url">公开网页地址</label><input id="guide-url" type="url" maxlength="4096" required placeholder="https://…">
+              <label for="guide-game">游戏（采用时必填）</label><input id="guide-game" maxlength="200">
+              <div class="guide-field-pair"><div><label for="guide-platform">平台</label><input id="guide-platform" maxlength="200"></div><div><label for="guide-mode">模式</label><input id="guide-mode" maxlength="200"></div></div>
+              <label for="guide-version">攻略适用的游戏版本（未知可留空）</label><input id="guide-version" maxlength="200">
+              <label for="guide-version-basis">版本依据</label><input id="guide-version-basis" maxlength="2000" placeholder="有明确依据时再填写版本">
+              <p class="field-help">会读取公开正文；搜索摘要、登录页和空页不会作为已保存攻略。保存不自动采用。</p>
+              <button id="guide-save" class="primary-button" type="submit">读取并保存</button><button id="guide-save-adopt" class="soft-button" type="button">读取并采用</button>
+            </form>
+          </details>
+        </section>
+        <details id="guide-backups" class="companion-settings"><summary>攻略库快照</summary><p class="field-help">仅包含攻略库与采用关系，与人格和个人记忆快照分开。恢复保留之后的删除标记，不恢复当前局势。</p><button id="create-guide-backup" class="soft-button" type="button">创建攻略快照</button><button id="refresh-guide-backups" class="text-button" type="button">重新载入</button><div id="guide-backup-list"></div></details>
+      </div>
     </section>
 
     <section id="settings-panel" class="companion-panel secondary-panel" data-interactive aria-labelledby="settings-title" hidden>

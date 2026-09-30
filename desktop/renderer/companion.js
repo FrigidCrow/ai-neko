@@ -3,7 +3,7 @@
   const el = (id) => document.getElementById(id);
   const bridge = window.aiNeko;
   const chat = window.aiNekoChat;
-  const state = { vision: false, visionEpoch: 0, recording: null, recordingEpoch: 0, audioContext: null, voiceConfig: {}, pending: new Set(), speechTurn: null };
+  const state = { vision: false, visionEpoch: 0, recording: null, recordingEpoch: 0, audioContext: null, voiceConfig: {}, pending: new Set(), speechTurn: null, speechContext: null };
   const status = (message) => { el('media-status').textContent = message; };
   const abortError = () => new DOMException('Cancelled', 'AbortError');
   const errorText = (error) => error.code ? `${chat.friendlyError(error)}${error.status ? `（${error.status}）` : ''}` : (error.message || '操作失败，请重试。');
@@ -67,15 +67,21 @@
     });
   }
   const speech = new window.aiNekoMedia.SpeechQueue({
-    synthesize: (text, signal) => voiceRequest('/api/voice/synthesize', { text }, signal),
+    synthesize: (text, signal, segment) => voiceRequest('/api/voice/synthesize', { text,
+      ...(segment?.context?.match ? { session_id: segment.context.sessionId, turn_id: segment.context.turnId, match: segment.context.match } : {}) }, signal),
     play: playAudio,
     onActivity: (active) => { document.body.dataset.speaking = String(active); },
     onError: (error) => status(`声音未能播放：${errorText(error)} 文字回答仍保留。`),
   });
-  function stopSpeech() { state.speechTurn = null; speech.stop(); window.aiNekoPet?.setSpeechLevel(0); }
+  function stopSpeech() {
+    const prior = state.speechContext;
+    state.speechTurn = null; state.speechContext = null;
+    speech.stop(); window.aiNekoPet?.setSpeechLevel(0);
+    if (prior?.control) void chat.api(`/api/sessions/${encodeURIComponent(prior.sessionId)}/turns/${encodeURIComponent(prior.turnId)}/cancel`, { method: 'POST', body: {} }).catch(() => {});
+  }
   function clearKeys() { for (const kind of ['asr', 'tts']) el(`${kind}-api-key`).value = ''; }
   function currentCapture(capture) {
-    return state.recording === capture && capture.epoch === state.recordingEpoch && !capture.discard && !capture.controller.signal.aborted;
+    return state.recording === capture && capture.epoch === state.recordingEpoch && !capture.discard && !capture.controller.signal.aborted && chat.bindingCurrent(capture.binding);
   }
   function stopCapture(capture, discard = false, { quiet = false } = {}) {
     if (!capture) return;
@@ -109,6 +115,8 @@
     try {
       await chat.cancelTurn();
       if (!currentCapture(capture)) return;
+      capture.binding = await chat.captureBinding();
+      if (!currentCapture(capture)) return;
       status('正在打开麦克风…');
       await bridge.microphone(true);
       if (!currentCapture(capture)) return;
@@ -132,13 +140,13 @@
           const blob = new Blob(capture.chunks, { type: capture.recorder.mimeType });
           const dataURL = await new Promise((resolve, reject) => { const reader = new FileReader(); reader.onerror = reject; reader.onload = () => resolve(reader.result); reader.readAsDataURL(blob); });
           if (!currentCapture(capture)) return;
-          const result = await voiceRequest('/api/voice/transcribe', { audio_base64: String(dataURL).split(',')[1], mime_type: blob.type }, capture.controller.signal);
+          const result = await voiceRequest('/api/voice/transcribe', { audio_base64: String(dataURL).split(',')[1], mime_type: blob.type, session_id: capture.binding.sessionId, match: capture.binding.match }, capture.controller.signal);
           if (!currentCapture(capture)) return;
           const text = result.text?.trim();
           if (!text) { status('没有识别到文字，请再说一次。'); return; }
           status(`听到：${text}`);
           el('speak-replies').checked = true;
-          await chat.submitText(text, { signal: capture.controller.signal, isCurrent: () => currentCapture(capture) });
+          await chat.submitText(text, { signal: capture.controller.signal, isCurrent: () => currentCapture(capture), binding: capture.binding, inputOrigin: "voice" });
         } catch (error) { if (currentCapture(capture)) status(`语音识别未完成：${errorText(error)}`); }
         finally { capture.chunks = []; if (state.recording === capture) state.recording = null; }
       };
@@ -161,7 +169,7 @@
       if (owned) status(`无法开始录音：${error.name === 'NotAllowedError' ? '请在系统隐私设置中允许麦克风。' : errorText(error)}`);
     }
   }
-  async function disableVision() {
+  async function disableVision({ notify = true } = {}) {
     state.vision = false; state.visionEpoch += 1;
     el('vision-enabled').checked = false;
     el('vision-preview').removeAttribute('src'); el('vision-preview').hidden = true;
@@ -169,6 +177,7 @@
     const results = await Promise.allSettled([chat.revokeVision(), bridge.stopVision()]);
     const failed = results.find((item) => item.status === 'rejected');
     if (failed) throw failed.reason;
+    if (notify) await chat.closeObservation();
   }
   async function captureForTurn() {
     if (!state.vision) return null;
@@ -390,7 +399,7 @@
   el('voice-shortcut').onchange = async (event) => { try { const enabled = await bridge.voiceShortcut(event.target.checked); event.target.checked = enabled; status(enabled ? '语音快捷键已开启。' : '快捷键未启用；如果被占用，可以使用说话按钮。'); } catch (error) { event.target.checked = false; status(errorText(error)); } };
   el('test-voice').onclick = () => { stopSpeech(); speech.append('我在这里陪你。准备好了，我们一起看看下一步怎么做。', true); };
   el('record-voice').onclick = () => void toggleRecording();
-  el('stop-audio').onclick = () => { stopRecording(true); stopSpeech(); status('已停止声音。'); };
+  el('stop-audio').onclick = () => { stopRecording(true); stopSpeech(); void chat.cancelControlConfirmation().catch((error) => status(errorText(error))); status('已停止声音。'); };
   el('speak-replies').onchange = () => { if (!el('speak-replies').checked) stopSpeech(); };
   const loadSettings = () => {
     loadPersona().catch((error) => { el('persona-status').textContent = errorText(error); });
@@ -400,11 +409,22 @@
   };
   window.addEventListener('ai-neko-settings', loadSettings);
   window.addEventListener('ai-neko-connected', loadSettings);
-  window.addEventListener('pagehide', () => { stopRecording(true); stopSpeech(); void disableVision().catch(() => {}); clearKeys(); });
+  window.addEventListener('pagehide', () => { stopRecording(true); stopSpeech(); void disableVision({ notify: false }).catch(() => {}); clearKeys(); });
   bridge?.onAction((action) => { if (action === 'voice-toggle') void toggleRecording(); });
   window.aiNekoCompanion = Object.freeze({
-    captureForTurn, frameStillAllowed, stopSpeech, stopRecording, clearKeys, flushPlayback,
-    beginTurn: (id, sessionId) => { stopSpeech(); if (el('speak-replies').checked) { state.speechTurn = id; speech.begin({ sessionId, turnId: id }); } },
+    captureForTurn, frameStillAllowed, stopSpeech, stopRecording, clearKeys, flushPlayback, disableVision,
+    beginTurn: (id, sessionId, binding, control = false) => {
+      stopSpeech();
+      if (el('speak-replies').checked) {
+        state.speechTurn = id;
+        state.speechContext = { sessionId, turnId: id, control,
+          match: binding ? { match_id: binding.match_id, expected_revision: binding.expected_revision } : null };
+        speech.begin(state.speechContext);
+      }
+    },
+    updateTurnBinding: (id, binding) => {
+      if (state.speechTurn === id && state.speechContext) state.speechContext.match = { match_id: binding.match_id, expected_revision: binding.expected_revision };
+    },
     text: (id, value) => { if (state.speechTurn === id && el('speak-replies').checked) speech.append(value); },
     done: (id, completed) => { if (state.speechTurn === id) { if (completed) speech.append('', true); else stopSpeech(); } },
     speakingTurn: (id) => state.speechTurn === id,

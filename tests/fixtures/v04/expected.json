@@ -1,0 +1,196 @@
+{
+  "persona": {
+    "name": "旧版合成猫",
+    "user_name": "合成测试员",
+    "traits": [
+      "耐心",
+      "坦诚"
+    ],
+    "speaking_style": "自然亲切，简洁中文；适度猫娘口吻，不每句加喵。",
+    "catchphrase": "",
+    "game_style": "先给最有用的一步和简短理由；看不清或资料不足就说明，不编造局势。",
+    "version": 2
+  },
+  "facts": [
+    {
+      "id": "854da95fd7124ed0bcf4b521dd3518a7",
+      "fact_key": "55babd1670e6eaa9340aa267751fcaf2cc912ed7853cb645fdf6c1752b73b1c0",
+      "content": "合成测试偏好：回复简短",
+      "kind": "preference",
+      "revision": 2,
+      "created_at": 1790528519.5478468,
+      "updated_at": 1790528519.5478468,
+      "source_ids": [
+        "manual:v04-preserved"
+      ]
+    },
+    {
+      "id": "bdcbde0268234c58b6665807dd27bb8e",
+      "fact_key": "ed7e052c1dd2d1628f8094bae6d1a359edf6634988e9c65fae1fec33fca42b8f",
+      "content": "喜欢青柚茶，校验代号 V04_SYNTHETIC_ORCHID",
+      "kind": "preference",
+      "revision": 1,
+      "created_at": 1790528519.547502,
+      "updated_at": 1790528519.547502,
+      "source_ids": [
+        "turn:2995516833e1454f9dca8ff494c04c15"
+      ]
+    }
+  ],
+  "erased_fact": {
+    "id": "bdcbde0268234c58b6665807dd27bb8e",
+    "fact_key": "ed7e052c1dd2d1628f8094bae6d1a359edf6634988e9c65fae1fec33fca42b8f",
+    "content": "喜欢青柚茶，校验代号 V04_SYNTHETIC_ORCHID",
+    "kind": "preference",
+    "revision": 1,
+    "created_at": 1790528519.547502,
+    "updated_at": 1790528519.547502,
+    "source_ids": [
+      "turn:2995516833e1454f9dca8ff494c04c15"
+    ]
+  },
+  "preserved_fact": {
+    "id": "854da95fd7124ed0bcf4b521dd3518a7",
+    "fact_key": "55babd1670e6eaa9340aa267751fcaf2cc912ed7853cb645fdf6c1752b73b1c0",
+    "content": "合成测试偏好：回复简短",
+    "kind": "preference",
+    "revision": 2,
+    "created_at": 1790528519.5478468,
+    "updated_at": 1790528519.5478468,
+    "source_ids": [
+      "manual:v04-preserved"
+    ]
+  },
+  "session_id": "422375fcc453448ea5ae3530a389cb52",
+  "turn_ids": [
+    "2995516833e1454f9dca8ff494c04c15",
+    "ac71b80227274e9084efec549a742547"
+  ],
+  "independent_session_id": "8854fde51f2e427eb6773b5629357969",
+  "independent_turn_id": "90a3b2ae478647be853768082f60dad0",
+  "sessions": [
+    {
+      "id": "422375fcc453448ea5ae3530a389cb52",
+      "session_id": "422375fcc453448ea5ae3530a389cb52",
+      "title": "这是合成数据：我喜欢青柚茶，校验代号 V04_SYNTHETIC_ORCHID。",
+      "created_at": 1790528519.532938,
+      "updated_at": 1790528519.55136,
+      "turns": [
+        {
+          "id": "2995516833e1454f9dca8ff494c04c15",
+          "turn_id": "2995516833e1454f9dca8ff494c04c15",
+          "session_id": "422375fcc453448ea5ae3530a389cb52",
+          "input": "这是合成数据：我喜欢青柚茶，校验代号 V04_SYNTHETIC_ORCHID。",
+          "text": "这是合成数据：我喜欢青柚茶，校验代号 V04_SYNTHETIC_ORCHID。",
+          "guide": false,
+          "context": {
+            "persona_version": 2,
+            "memory_revision": 0,
+            "image": null
+          },
+          "status": "completed",
+          "created_at": 1790528519.533521,
+          "settled_at": 1790528519.546907,
+          "delivered_text": "已确认合成偏好：青柚茶，校验代号 V04_SYNTHETIC_ORCHID。",
+          "assistant_text": "已确认合成偏好：青柚茶，校验代号 V04_SYNTHETIC_ORCHID。",
+          "output": "已确认合成偏好：青柚茶，校验代号 V04_SYNTHETIC_ORCHID。",
+          "confirmed_text": "已确认合成偏好：青柚茶，校验代号 V04_SYNTHETIC_ORCHID。",
+          "heard_text": "已确认合成偏好：青柚茶，校验代号 V04_SYNTHETIC_ORCHID。",
+          "heard_characters": 38,
+          "confirmed_characters": 38,
+          "audio_playback": [
+            {
+              "segment_id": "9a7da4ddfc504e36a36d0f28448a1902",
+              "state": "completed",
+              "updated_at": 1790528519.567752,
+              "text_start": 0,
+              "text_end": 38
+            }
+          ],
+          "sources": [],
+          "ack_seq": 4,
+          "sent_seq": 4,
+          "last_sequence": 4,
+          "last_seq": 4,
+          "error": null
+        },
+        {
+          "id": "ac71b80227274e9084efec549a742547",
+          "turn_id": "ac71b80227274e9084efec549a742547",
+          "session_id": "422375fcc453448ea5ae3530a389cb52",
+          "input": "请回顾青柚茶和 V04_SYNTHETIC_ORCHID 的合成偏好。",
+          "text": "请回顾青柚茶和 V04_SYNTHETIC_ORCHID 的合成偏好。",
+          "guide": false,
+          "context": {
+            "persona_version": 2,
+            "memory_revision": 2,
+            "image": null
+          },
+          "status": "completed",
+          "created_at": 1790528519.551355,
+          "settled_at": 1790528519.562656,
+          "delivered_text": "已确认合成偏好：青柚茶，校验代号 V04_SYNTHETIC_ORCHID。",
+          "assistant_text": "已确认合成偏好：青柚茶，校验代号 V04_SYNTHETIC_ORCHID。",
+          "output": "已确认合成偏好：青柚茶，校验代号 V04_SYNTHETIC_ORCHID。",
+          "confirmed_text": "已确认合成偏好：青柚茶，校验代号 V04_SYNTHETIC_ORCHID。",
+          "heard_text": "",
+          "heard_characters": 0,
+          "confirmed_characters": 38,
+          "audio_playback": [],
+          "sources": [],
+          "ack_seq": 4,
+          "sent_seq": 4,
+          "last_sequence": 4,
+          "last_seq": 4,
+          "error": null
+        }
+      ]
+    },
+    {
+      "id": "8854fde51f2e427eb6773b5629357969",
+      "session_id": "8854fde51f2e427eb6773b5629357969",
+      "title": "请记一条独立天气记录。",
+      "created_at": 1790528519.5629902,
+      "updated_at": 1790528519.563184,
+      "turns": [
+        {
+          "id": "90a3b2ae478647be853768082f60dad0",
+          "turn_id": "90a3b2ae478647be853768082f60dad0",
+          "session_id": "8854fde51f2e427eb6773b5629357969",
+          "input": "请记一条独立天气记录。",
+          "text": "请记一条独立天气记录。",
+          "guide": false,
+          "context": {
+            "persona_version": 2,
+            "memory_revision": 2,
+            "image": null
+          },
+          "status": "completed",
+          "created_at": 1790528519.563179,
+          "settled_at": 1790528519.567255,
+          "delivered_text": "独立合成天气记录：晴朗。",
+          "assistant_text": "独立合成天气记录：晴朗。",
+          "output": "独立合成天气记录：晴朗。",
+          "confirmed_text": "独立合成天气记录：晴朗。",
+          "heard_text": "",
+          "heard_characters": 0,
+          "confirmed_characters": 12,
+          "audio_playback": [],
+          "sources": [],
+          "ack_seq": 4,
+          "sent_seq": 4,
+          "last_sequence": 4,
+          "last_seq": 4,
+          "error": null
+        }
+      ]
+    }
+  ],
+  "snapshot": {
+    "id": "memory-a4b1923d74534874af85ec4645402d82.sqlite",
+    "created_at": 1790528519.56783,
+    "revision": 2
+  },
+  "model_calls": 3,
+  "network_calls": 0
+}

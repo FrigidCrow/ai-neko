@@ -52,12 +52,18 @@ jobs:
         run: uv run --locked ruff format --check src tests scripts packaging
       - name: Run synthetic acceptance and save redacted evidence
         run: uv run --locked python scripts/m0_smoke.py --output artifacts/m0/${{ runner.os }}-smoke.json
+      - name: Verify frozen guide retrieval and injection corpus
+        run: uv run --locked python scripts/evaluate_guides.py --output artifacts/mvp2/${{ runner.os }}-guide-evaluation.json
+      - name: Measure production guide retrieval with 200 synthetic documents
+        run: uv run --locked python scripts/benchmark_guides.py --output artifacts/mvp2/${{ runner.os }}-guide-benchmark.json
       - name: Preserve test evidence
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: evidence-${{ runner.os }}
-          path: artifacts/m0/*.json
+          path: |
+            artifacts/m0/*.json
+            artifacts/mvp2/*.json
           if-no-files-found: warn
           retention-days: 14
 
@@ -120,6 +126,10 @@ jobs:
         env:
           PREVIEW_VERSION: ${{ steps.version.outputs.value }}
         run: node desktop/tests/companion.smoke.cjs --archive "artifacts/package/ai-neko-$env:PREVIEW_VERSION-windows-x64.zip" --output artifacts/package/companion-smoke.json
+      - name: Exercise packaged guide persistence and continuous match context
+        env:
+          PREVIEW_VERSION: ${{ steps.version.outputs.value }}
+        run: node desktop/tests/g6-acceptance.smoke.cjs --archive "artifacts/package/ai-neko-$env:PREVIEW_VERSION-windows-x64.zip" --output artifacts/package/g6-acceptance.json
       - name: Preserve package evidence
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -173,7 +183,7 @@ jobs:
           PREVIEW_VERSION: ${{ needs.package.outputs.version }}
         run: |
           cat > release-notes.md <<'NOTES'
-          ## 五项能力猫娘桌宠预览
+          ## 攻略复用与连续陪玩工程预览
 
           下载 `ai-neko-…-windows-x64.zip` 后解压到独立目录，阅读包内 README，双击 `ai-neko.exe`。包内包含 Electron、Python、猫娘与运行依赖，无需安装 Python、Node 或 uv。首次使用请阅读 Live2D 条款并选择是否接受。
 
@@ -181,11 +191,11 @@ jobs:
 
           首次试用：在猫娘设置中保存人格和模型配置；需要看图时选择游戏窗口并启用观察；配置ASR/TTS并勾选“朗读回复”后点击“说话”，说完再次点击，猫娘将按句朗读回复。默认按需联网，搜索凭据由兼容模型共用；没有搜索Key仍可普通聊天。
 
-          本轮补齐记忆快照确认恢复/删除与已完整听完句子的后续上下文，修复快速录音、旧识别结果、截图重试和关闭观察的竞态。截图只在当轮内存使用；关闭观察取消相关视觉请求，超过120秒的截图停止继续使用。已有v0.3.0-alpha.1及更早版本保留。
+          聊天中的“攻略库”可保存公开网页正文、采用固定版本、刷新核查、切换/删除和管理攻略快照；有适用本地依据时可直接复用，缺口再补查。“管理本局”提供目标、版本、新局与明确复盘；新局隔离旧动态状态，重启后等待新的观察。明确文字/语音控制成功后使用独立确认，切换或删除会停止旧建议。截图只在当轮内存使用；关闭观察取消相关视觉请求，超过120秒的截图停止继续使用。旧版本继续保留。
 
-          本版本在 GitHub Windows Server 2022 x64 runner 构建，并用解压后的 exe 实际验证启动、鉴权、退出、图恢复以及人格/记忆/视觉/语音合成闭环。Windows 11 x64 用户真机验收仍待完成；尚未签名。
+          本版本在 GitHub Windows Server 2022 x64 runner 构建，并用解压后的 exe 实际验证启动、鉴权、退出、图恢复以及人格/记忆/视觉/语音合成闭环，另验攻略采用后重启新聊天、两轮五问零搜索和新局/复盘隔离。Windows 11 x64 用户真机、真实服务冷暖性能与游戏建议质量仍待完成，工程预览不代表完整MVP2验收；尚未签名。
 
-          `build-info.json` 记录源码 commit、锁文件、依赖和构建环境，`SHA256SUMS.txt` 可核对 ZIP；`package-smoke.json`、`desktop-smoke.json`、`companion-smoke.json` 与各平台 smoke 报告为合成验证证据。CI 使用本地合成模型、画面和音频服务，真实云模型/搜索/语音质量未包含在这些合成报告中；未提供真实凭据时真实测试数为 0。Windows 11 真机和真实攻略质量仍需单独验收。旧版本保留，可按版本下载，不自动迁移数据。
+          `build-info.json` 记录源码 commit、锁文件、依赖和构建环境，`SHA256SUMS.txt` 可核对 ZIP；`package-smoke.json`、`desktop-smoke.json`、`companion-smoke.json`、`g6-acceptance.json` 与各平台 smoke、guide-evaluation、guide-benchmark 报告为合成验证证据。CI 使用本地合成模型、画面和音频服务，真实云模型/搜索/语音质量未包含在这些合成报告中；未提供真实凭据时真实测试数为 0。Windows 11 真机和真实攻略质量仍需单独验收。旧版本保留，可按版本下载，不自动迁移数据。
           NOTES
           printf '\nSource: `%s`\nWorkflow: %s/%s/actions/runs/%s\n' "$GITHUB_SHA" "$GITHUB_SERVER_URL" "$GITHUB_REPOSITORY" "$GITHUB_RUN_ID" >> release-notes.md
       - name: Create new prerelease (never overwrite an existing version)
@@ -199,4 +209,4 @@ jobs:
             echo 'This version already has a release. Create a new version instead.' >&2
             exit 1
           fi
-          gh release create "$RELEASE_TAG" release/* --verify-tag --prerelease --title "ai-neko $RELEASE_TAG — 人格、视觉、语音与长期记忆预览" --notes-file release-notes.md
+          gh release create "$RELEASE_TAG" release/* --verify-tag --prerelease --title "ai-neko $RELEASE_TAG — 攻略复用与连续陪玩预览" --notes-file release-notes.md

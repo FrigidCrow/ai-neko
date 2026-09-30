@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import ipaddress
 import json
 import os
@@ -13,6 +14,7 @@ from ai_neko.config.credentials import Credentials
 from ai_neko.config.paths import DataPaths, safe_child
 from ai_neko.providers import ModelAdapter
 from ai_neko.tools import network
+from ai_neko.tools.search_cache import SearchCache
 from ai_neko.tools.web import WebTools
 
 DEFAULTS = {
@@ -63,6 +65,8 @@ class ProviderStore:
         self._lock = threading.RLock()
         self._credentials = Credentials(paths.root)
         self._config = dict(DEFAULTS)
+        self.search_cache = SearchCache()
+        self._search_identity = None
         path = safe_child(paths.config, "providers.json")
         if path.exists():
             try:
@@ -139,6 +143,9 @@ class ProviderStore:
                     self._credentials.set(kind, value if was_stored else None)
                 raise
             self._config = updated
+            if any(key in changes for key in DEFAULTS) or "search" in secrets:
+                self.search_cache.advance_generation()
+                self._search_identity = None
             return self.public_config()
 
     def _save(self, config):
@@ -166,6 +173,28 @@ class ProviderStore:
         with self._lock:
             return ModelAdapter(self._config, self._credentials.get("model"))
 
-    def web_tools(self) -> WebTools:
+    def web_tools(self, *, scope: str | None = None, locale: str = "zh-CN") -> WebTools:
         with self._lock:
-            return WebTools(self._config, self._credentials.get("search"))
+            key = self._credentials.get("search")
+            # Credentials may also come from this application's environment. Only a
+            # one-way identity is kept alongside the cache, never the credential.
+            identity = hashlib.sha256(
+                json.dumps([self._config["search_base_url"], key]).encode()
+            ).digest()
+            if self._search_identity is not None and identity != self._search_identity:
+                self.search_cache.advance_generation()
+            self._search_identity = identity
+            return WebTools(
+                self._config,
+                key,
+                search_cache=self.search_cache,
+                scope=scope if scope is not None else str(self.paths.root),
+                generation=self.search_cache.generation,
+                locale=locale,
+            )
+
+    def invalidate_search_cache(self, scope: str | None = None) -> None:
+        self.search_cache.invalidate(scope)
+
+    async def close_search_cache(self) -> None:
+        await self.search_cache.close()

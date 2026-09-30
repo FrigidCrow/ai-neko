@@ -1,6 +1,6 @@
 # 架构与接口设计
 
-状态：整体设计基线；桌宠宿主、单猫娘和文字/查询后端已实现。工作区新增人格、当轮视觉、ASR/TTS及本地长期记忆，当前证据见[五项能力实施](COMPANION-IMPLEMENTATION.md)，v0.4的Windows Server打包运行已验证，真实服务与Windows11真机验收未完成。产品范围与阶段状态由[PLAN](PLAN.md)管理，旧发布版不自动获得新能力。 下一阶段拟在现有边界内加入攻略文档/采用关系及Runtime对局状态，具体设计见[下一阶段优化计划](NEXT-GUIDE-COMPANION.md)，尚未实现。
+状态：整体设计基线与当前接口映射。桌宠宿主、单猫娘、文字/查询、人格、当轮视觉、ASR/TTS和本地长期记忆的既有证据见[五项能力实施](COMPANION-IMPLEMENTATION.md)。当前工作区已实现攻略文档、固定版本采用、本地优先检索、Runtime持久对局及G5桌宠/语音入口，历史实现见[G2报告](MVP2-G2-REPORT.md)、[G3报告](MVP2-G3-REPORT.md)与[G4报告](MVP2-G4-REPORT.md)，G5契约见下文。G6联合评测交付仍待完成；v0.4的Windows Server打包证据不替代当前工作区Windows构建、真实服务或Windows11真机验收。产品范围和阶段状态由[PLAN](PLAN.md)及[MVP2计划](NEXT-GUIDE-COMPANION.md)管理。
 
 完整模块图解见 [20 张图与覆盖表](DIAGRAMS.md)，可 [离线查看图册](diagrams/index.html)。建议先读 01 总览、02 回合时序，再按各模块深入；图与下文描述整体目标设计，已实现映射见第 9 节，新增桌宠规划见第 10 节。
 
@@ -27,23 +27,27 @@ N.E.K.O 的 LLMSessionManager 混合了以上职责，提取时按接口拆开�
 
 > **唯一对话图：`ai_neko.chat.graph`**（由 `SessionRuntime` 驱动）。`ai_neko.graph` 是 M0 合成原型，仅服务 `self-check`、`graph` CLI 与 Windows 打包冒烟的跨进程 checkpoint/scope 证据，不承载任何产品对话逻辑；新增能力一律进 `ai_neko.chat.graph`。
 
-拟定流程：
+当前产品流程（可选观察也在同一图内）：
 
 ```mermaid
 flowchart TD
-    A[校验输入与所属回合] --> B[读取近期信息与检索长期记忆]
-    B --> C[构造有预算的上下文]
-    C --> D[调用模型并流式输出]
-    D --> E{有工具调用?}
-    E -->|有且未超限| F[校验并执行工具]
-    F --> D
-    E -->|无| G[提交对话记录与整理任务]
-    G --> H[结束生成]
-    E -->|超过上限| I[返回可解释错误或有限回复]
-    I --> G
+    A[Runtime校验绑定并召回独立个人偏好] --> B[接受回合并构造限定历史]
+    B --> C[observe: 有活动局及当轮图时单次结构化观察]
+    C --> L[local: 当前采用原文检索或显式历史复盘]
+    L --> E{仅聊天 / 充分 / 澄清 / 历史?}
+    E -->|是| D[answer: 新鲜局资料与证据进入模型]
+    E -->|否| P[plan: 既有公开查询规划]
+    P --> F{有工具且未超预算?}
+    F -->|是| T[tools: 查询 / 取页 / 保存来源]
+    T --> Q{工具轮数少于3?}
+    Q -->|是| P
+    Q -->|否| D
+    F -->|否| D
+    D -->|充分命中且首段文字前请求补查| T
+    D -->|流式回答完成| G[Runtime结算 / ACK与播放回执另记]
 ```
 
-记忆整理任务在提交原文与任务记录后由本工程 worker 消费；抽取/反思可以用独立维护图，但不向用户发起第二条对话。生成结束、记忆记录提交、音频流结束、播放器结束是不同事件；UI 不用一个 done 标记混为一谈。
+公开查询仍最多3轮、每轮3次；可选观察只调用同一model一次，不注册搜索或其他副作用工具，也不占公开查询轮数。无活动局或无本轮图时不增加模型请求。记忆整理任务由本工程worker消费，局内和显式复盘回合不自动抽取个人事实；独立维护任务不发起第二条对话。生成结束、记忆提交、音频流结束、播放器结束是不同事件，UI不能用一个done标记混为一谈。
 
 同一 `(user_id, character_id, thread_id)` 的新输入由 Runtime 排队或抢占。每次运行分配 `turn_id`，取消先使旧轮失效。LangGraph 的 thread_id 用于恢复同一会话；user_id 和 character_id 决定长期记忆范围，不能只靠用户提供的 thread_id 判定范围。
 
@@ -72,6 +76,8 @@ flowchart TD
 
 搜索工具属于应用公共能力：搜索服务配置一次，兼容的对话模型共用。当前后端为Tavily，后续新增搜索服务只在工具层增加后端适配与规范化来源，不按对话模型复制搜索实现。供应商原生搜索可作为可选后端；模型函数调用和流式协议差异由ModelAdapter负责，不能把“搜索可复用”误写成所有模型协议已经兼容。
 
+G6测量通过`ModelAdapter(..., request_usage=True)`显式请求`stream_options.include_usage`，普通调用默认不增加该兼容要求。usage事件在流完整结束后发送，允许最后数据块的choices为空；重复用量快照取最后值，不逐块累加。只接受有界非负整数计数及已知缓存/推理细项，异常或缺失用量保持未知，不估算账单，不为不支持usage的供应商自动重试。`scripts/measure_guides.py`在独立临时根运行实际LangGraph/Runtime，冷轮实际搜索/取页后采用已保存资料，再用新session问同题；记录模型/工具适配器尝试及后端文字投递，不能替代桌面显示、实际听到语音或供应商账单。人工验收及真实记录步骤见[MVP2真实验收记录](MVP2-LIVE-ACCEPTANCE.md)。
+
 | 工具/输出 | 契约 |
 | --- | --- |
 | `search_web(query, locale, budget)` | 返回 `source_id/title/url/snippet`，有依据时附发布日期与版本信息；snippet 明确是搜索摘要，不表示正文已读取 |
@@ -83,9 +89,122 @@ flowchart TD
 
 **键鼠自动操作、电脑控制、接管游戏或其他软件目前不实现，也不注册相应工具。** M5 可把用户主动提供的截图带入同一查询流程，正常桌宠拖拽/本应用按钮属于用户界面交互。未来外部副作用工具需要用户提出后另行规划，当前不为它们引入执行框架。
 
-## 4. 两种持久化，单一长期记忆权威
+### MVP2 G1 公开正文入库（2026-09-27 实施）
 
-- `checkpoints/graph.sqlite`：拟保存 LangGraph 会话消息、节点状态和执行位置。采用文件持久适配器，不能使用 InMemorySaver 冒充重启持久化。
+`MemoryService.guides` 拥有 `guides/guides.sqlite` 的连接与生命周期。该库独立于个人事实库和其快照；网页不能触发个人记忆写入、角色更新或采用动作。文档身份按受信任scope及规范化原URL区分，查询参数保留；相同正文SHA-256复用同一文档下的不可变版本，不合并不同来源。`guide_revision_checks` 单独记录最后成功核查时间，不将核查时间当内容日期或游戏版本依据。
+
+产品路径是 `WebTools.read → LangGraph.execute_tools → Runtime._ingest_guide_source → MemoryService.guides.ingest`。公开读取保持既有地址校验、逐跳固定IP、响应大小和超时边界；正文最多保留50,000字符，然后在图的6,000字符预算与回答节点4,000字符预算前完成保存。数据库保存失败时仍可用当轮已读片段回答，来源明确 `storage.saved=false`，不宣称已采用。
+
+| G1 内部接口 / 数据 | 实际契约 |
+| --- | --- |
+| `GuideStore.ingest(source, *, game, platform, mode, game_version, version_basis)` | 只接收成功读到的公开正文，身份与游戏条件由调用方明确提供；网页不自行决定这些字段。Runtime自动缓存暂不推定游戏条件/版本 |
+| `list_documents / get_document / chunks / rebuild_index` | 固定scope，稳定guide/revision/chunk ID；段落含正文字符起止和标题层级；重建不改变源版本或段落身份 |
+| reader source | `original_url / final_url / url`、`retrieved_at / content_date`、`etag / last_modified`、`headings`精确字符范围、保留/提取字符数 |
+| 完整性 | `full`仅指这次提取的可读文字没有已知缺失；图片/嵌入媒体未读、解码替换或超过50,000字符标`partial`并列出原因；受限页/登录页/空页不入库 |
+| `source`事件 | 保留原本S编号/6,000字符片段，新增`completeness / completeness_reasons / prompt_truncated / original_url`；`storage`仅有保存结果、稳定ID、内容摘要、去重及完整性，无整篇正文 |
+| 容量 | 默认100MiB逻辑UTF-8载荷预算，包含正文、元数据与段落副本；SQLite页/日志额外占用另计。仅回收本scope未保护文档，无法回收则整次写入回滚；G2采用关系必须在确认前持久保护 |
+| 取消/关闭 | 入库在线程执行且由Runtime追踪到真实结算；迟到抓取不开始写入。已开始的自动缓存写入可完成，但取消后不显示新来源或调用回答模型。工作线程失败不能覆盖原取消信号 |
+
+攻略库从事务迁移v2创建，拒绝未来schema，成功初始化移除临时迁移备份；个人记忆快照既不包含也不替换攻略库。后续G2管理、G3检索与G4对局的实现边界见各自小节，不从G1入库能力推断其他关卡结果。
+
+### MVP2 G2 采用与管理（2026-09-27 实施）
+
+G2将攻略库迁移至v3、对话库迁移至v4；具体结果与边界见[G2报告](MVP2-G2-REPORT.md)。`GuideStore`持有控制修订和固定正文版本采用关系，`GuideRuntimeMixin`管理异步操作、依赖失效与可续清意图；没有新增模型或工具循环。刷新只更新文档最新版本指针，采用关系保留原`revision_id`，再次明确采用才改变。
+
+| 鉴权路由 | 契约 |
+| --- | --- |
+| `GET /api/guides`、`GET /api/guides/{guide_id}` | 固定scope列表及详情，详情可指定单个`revision_id`；返回当前控制修订 |
+| `POST /api/guides`、`POST /api/guides/{guide_id}/refresh` | 两者均要求`request_id + expected_revision`；导入必填公开URL，游戏/平台/模式和版本依据可选；刷新仅接受两控制字段，不继承旧版本的游戏版本断言。返回202操作回执，最多4个活动抓取 |
+| `GET /api/guide-operations/{request_id}`、`POST .../cancel` | 状态为running/completed/error/cancelled/interrupted；预取消拒绝后到创建，重试不重复取页；已开始保存时取消等真实结算 |
+| `PUT /api/guide-selection` | `game/platform/mode`与固定`guide_id/revision_id`；两ID同时为null表示取消采用。采用、删除、恢复要求`expected_revision`和32位十六进制`request_id` |
+| `DELETE /api/guides/{guide_id}` | 显式`confirm=true`；持久删除标记与清理意图，删除正文及其助手证据副本，保留无关用户原话/个人事实 |
+| `GET/POST /api/guide-backups`、`POST /api/guide-backups/{backup_id}/restore`、`DELETE /api/guide-backups/{backup_id}` | 独立格式、固定文件ID，不接受任意路径。备份有幂等request_id，恢复还要求预期修订和确认；不恢复个人记忆 |
+
+请求先验证身份，再检查64KiB上限、字段白名单和类型；不接受scope、用户/角色身份或客户端正文。控制账本仅保存安全ID/数值/状态。旧控制回执可重放但标明当前修订及是否已被后续操作取代；不恢复旧绑定。桌面IPC只放行上述精确路径。
+
+实际读到的来源在注入前记`turn_guide_sources`地址/正文哈希，即使入库失败也可关联清理；成功入库另记`turn_guides`具体版本。后续依赖沿实际送给模型的助手历史传播；显式历史复盘也保留旧攻略依赖，供后续删除清理。切换使旧依赖退出当前决策，删除/恢复清除相关事件与checkpoint；不以助手的攻略依赖作为用户个人事实来源去执行遗忘。攻略控制仍保守结算活动回合与语音任务，并同步G4当前局的采用关系；G5客户端先停止实际播放器、队列与录音，再提交控制。
+
+`guide_backup_registry`在写快照之前持久登记scope归属，已登记坏文件可在删除时安全清理。合法旧快照可验证后登记；完全未知归属的损坏外来文件保持明确人工恢复边界。删除/恢复只有副本清理成功后才移除跨库意图；进程重启可从已提交结果继续，不依赖已经删除的快照文件。
+
+### MVP2 G3 本地优先检索（2026-09-28 实施）
+
+`GuideRetriever`从同一`GuideStore`读取固定采用版本，先过滤scope、游戏/平台/模式和已知版本，再使用已有分词器及BM25排序。最多6段、8,000字符，来源保留guide/revision/chunk ID和原文字符位置；覆盖不足不会拿首段补位。结果分为`sufficient / gap / needs_check / clarify`；未知版本不因304核查成功变成适用版本。多份采用而没有当前游戏条件时明确澄清，不跨游戏混合检索。
+
+唯一对话图在可选`observe`后运行`local`节点：资料足够则直接调用回答模型，联网模式中的缺口或需核查进入既有规划，澄清直接回答。仅聊天模式也可读取本地采用资料。`LazyWebTools`直到真实需要工具才建立适配器，因此没有搜索Key的本地命中仍可回答。实际片段在来源事件和模型请求之前登记`turn_guides`及来源哈希，切换/删除沿用控制修订门禁；来源S编号每轮独立，网页的新内容不会覆盖已采用旧片段。
+
+按需联网模式下，本地命中的第一次回答调用可在输出文字前提出补查，回到同一图的原工具预算；不增加第二个agent循环。首个可见文字一旦到达就立即流式投递，随后到达的工具调用延后到下一轮，避免为了补查而整段缓冲、拖延TTS。模型输入明确区分本地资料、当前核查状态和搜索摘要。
+
+| G3 边界 | 实际契约 |
+| --- | --- |
+| 24小时/明确最新 | 用户回合中核查采用资料，没有自动后台联网；只对曾读取的同一最终URL发送ETag/Last-Modified，每个重定向仍校验公开地址，整个取页有总时限 |
+| 304 / 新正文 / 失败 | 304只更新核查时间；新正文另存版本，不继承旧游戏版本断言、不暗换采用；失败保留旧资料并标需核查，内容日期和游戏版本不以抓取日期填充 |
+| 搜索缓存 | 120秒、最多64项，键包含scope、配置代次、查询与locale，仅缓存成功搜索摘要；同键合并等待者，单人取消不影响其他人，最后取消等待真实请求结算 |
+| 缓存撤销 | 配置/凭据变更、攻略控制变更、续清意图恢复撤销在途和已缓存结果；显式最新即使尚未采用资料也绕缓存，迟到旧请求不能覆盖新结果 |
+| 来源卡 | 本地已采用正文、原文版本、最后核查时间及原文位置明确显示；缓存搜索摘要标记复用，不能显示为本轮重新联网 |
+| 测量 | `guide_retrieve_ms`只计本地读取/分词/排序；`guide_revalidate_ms`单列网络核查；`guide_query_ms`包含整个查询路径，不混用作本地检索基准 |
+
+短追问只使用显式当前对局、未过期观察、目标和已投递建议。G3冻结评测的人工context接缝不承担持久对局验收；G4已由Runtime实际观察、ACK与绑定生成同一接缝，见下一节。G3原始实现、固定标签评分与检索基准见[G3报告](MVP2-G3-REPORT.md)。
+
+### MVP2 G4 持久对局与有效上下文（2026-09-28 实施）
+
+`MatchRuntimeMixin`与`MatchStore`管理 `memory/conversation.sqlite` schema v5，仍由现有SessionRuntime持有连接。`matches`保存独立match_id、scope、session_id、游戏/平台/模式/版本、目标、采用文档与修订、state_revision和active/needs_update/ended状态；`match_control`保存session当前指针与修订，`match_requests`保存幂等控制回执，`match_observations`保存有来源和时效的观察。`turn_matches`记录每轮接受时的原始请求与有效绑定；攻略权威仍在Memory Service，动态局势不写个人事实库。
+
+以下路由均需要既有本地鉴权、所属session/match校验和字段白名单；不接受客户端scope、伪造时间、frame_id、结构化观察fields或任意执行状态。表中`base`为 `/api/sessions/{session_id}/matches`，所有控制JSON共同要求32位十六进制`request_id`及严格非负整数`expected_revision`。
+
+| 鉴权路由 | 额外输入与结果 |
+| --- | --- |
+| `GET base`、`GET base/{match_id}` | 列表返回revision、current和历史matches；详情返回该局及仍有效观察。外部match_id为`match-`加32位十六进制，不接受跨session资源 |
+| `POST base` | 开始局；必填game/platform/mode，可选game_version和goal，当前已有局则冲突。成功201 |
+| `POST base/{match_id}/new` | 必填新局game/platform/mode，可选game_version和goal；原局结束，创建新ID并按相同条件保留当前采用。成功201 |
+| `POST base/{match_id}/end` | 结束当前局并清当前指针，使动态观察失效；不删除历史 |
+| `POST base/{match_id}/update` | 至少提供goal或game_version；两者之外的动态数据不能从该入口伪造 |
+| `POST base/{match_id}/observations` | 必填turn_id及text（API最多2,000字符）；必须是本局已接受用户turn的真实原话片段，可用于明确确认/纠正 |
+| `POST base/{match_id}/close-observation` | 使视觉观察失效，保留仍有效的文字描述；不声称已控制客户端取图器或播放器 |
+
+控制响应含当前`revision`、本次`committed_revision`、`match_id`、该局`match`、`current`及`replayed/superseded`。相同request_id与载荷重放原回执，不重新执行控制；复用ID但改变载荷或旧修订的新请求返回409，字段错误400、非所属资源404。`match_settlements`与控制修订在同一事务落盘，随后取消受影响session的旧回合、结算控制时已登记的语音任务并标记未完播放中断。收尾失败保留记录、拒绝新输入，下一次控制先续清；重启将遗留回合/播放结算为interrupted并使当前局needs_update，不重放网络或音频。语音任务注册尚未按session细分，后端仍保守取消控制时已登记的任务。
+
+`POST /api/sessions/{session_id}/turns`新增`match={match_id,expected_revision}`、`input_origin`和`review_match_id`。`input_origin`仅text/voice，缺省text；显式复盘的match ID必须属于同session。只在session修订为0时允许省略match，结束局之后也须带null match_id及最新修订。接受前后、每个模型请求、流事件和写入前均复核当前绑定；自动文字/视觉观察与该轮有效修订在同一事务更新，客户端从回合或对局详情获取新修订。已接受request_id重试必须保留原始match/input_origin/review，不能借bool与整数相等绕过类型校验。
+
+ASR/TTS接口接受可选但必须成对的`session_id + match`，调用前及返回后各校验一次；它们不自行接受新聊天回合。G5客户端在录音/截图开始时固定绑定，将ASR结果作为`input_origin=voice`提交，旧结果不能替换成新局绑定；按句TTS沿用既有turn和播放回执，并增加下节的持久回合校验。
+
+普通文字输入仅保留连续明确声明的原话，问题和假设截断；不把数字解析成执行事实。观察包含turn_id、source_kind、observed_at、expires_at，视觉包含frame_id；动态文字与视觉最多有效120秒，后来的同渠道观察替换旧集合。新图缺字段保持未知，不能复制旧值续期。重启提高修订并将局状态标needs_update，收到新画面或新明确描述才建立有效观察；本局目标可保留至结束，普通更新不伪造新观察。
+
+`chat/match_observation.py`定义唯一 `report_match_observation`工具：只在active/needs_update局且本轮有图时，由同一model在observe节点调用一次。完整报告最多16个`{name,value}`，name≤64字符、value为≤512字符字符串或null，总JSON≤7,000字符。要求严格唯一工具与完整必填字段；缺失、畸形、重复调用、自由回答和超限结果均记录空fields、明确unknown。报告只描述本帧，忽略图中文字指令，不读旧观察、不推测用户执行，也不注册搜索/记忆写入等工具。事件`observing_match / match_observation`只含source_kind、frame_id、source_id、captured_at及字段数量/known数量/recorded或unknown状态，不泄露字段值或图像字节。
+
+Runtime的`_match_context_for_turn`在每个真实模型请求重新读取有效资料，固定规则在system，动态JSON作为单独不可信user资料插入；图像仍附在当前问题上。动态context和图像字节不写入GraphState或checkpoint。请求冻结其实际使用观察的最早expires_at，并在每个流事件及结束时复核；不能用更新context延长旧请求有效期。无观察或显式历史复盘不受实时观察期限限制，图片本身仍遵守已有120秒时效。
+
+活动局不直接重放原始十轮，避免动态值绕过时效；仅当前目标、有效观察与本局已实际投递建议进入检索/回答，独立个人偏好正常召回。文本建议取ACK确认内容，voice只取完整已听前缀；`last_delivered_advice`含来源turn、delivery、delivered_at、固定攻略ID，且`executed=false`。同一建议不因模型再次提及而成为用户执行记录。局内及复盘回合不进入个人事实自动抽取。
+
+显式`review_match_id`先按旧match过滤、再取最多10个历史回合，所以超过10轮新局聊天不会挤掉旧局复盘。资料标`status=historical, history_only=true`，不运行视觉观察；local_query返回`historical/explicit_review`及空sources，图直接answer且不给补查工具。旧A的已确认建议可在采用已切B后用于历史回顾，B的当前攻略不会注入；旧S编号改为历史来源需重新检索。普通无局聊天也排除局内与复盘历史。保留复盘实际使用的旧攻略依赖，删除A时其历史答复与派生复盘答复一起清理。
+
+实际用户观察通过`turn_user_history`登记消费者，建议通过`turn_history`登记。`match_goal_evidence`保存已注入目标的文本与哈希，`turn_match_goals`保存turn到该目标版本的依赖，改目标不会遗失旧目标消费者。个人Memory破坏性操作前，`runtime/erasure.py`将fact/source对应的turn、观察、goal ID/哈希候选写入持久清理意图；只有Memory已提交的删除标记才激活候选，恢复被拒绝或保留的事实不触发误清。续清不需要已删正文，清理对应观察、目标版本、依赖事件及checkpoint，意图完成前禁止残留资料回答。攻略删除仍按攻略依赖清助手资料，独立个人事实与用户原话不因同轮出现攻略而被删除。
+
+真实Runtime短追问、原文定位、ACK/已听建议、旧A复盘不混B、删除传播、重启和故障点的证据见[G4报告](MVP2-G4-REPORT.md)。G5进一步接入真实按钮、媒体绑定、播放器停止和界面状态；G6已补本机联合升级/恢复与测量工具，见[G6报告](MVP2-G6-REPORT.md)。真实服务、Windows包与Windows11真机及冷暖延迟仍待验收。
+
+### MVP2 G5 桌宠控制与独立确认（2026-09-28 实施）
+
+`guide-panel.js`负责当前攻略/对局呈现、明确来源选择、管理表单和确认框；所有写入经`app.js`的`runControl`统一撤销旧请求、停止录音/实际音频、结算后端任务，再调用G2/G4接口。失败的未知回执保留原request_id，先核对同一操作。文字问题丢失接受回执时也保留原始载荷；若改问或明确改选来源，先持久撤销旧请求，撤销失败则禁止新请求越过。来源编号由每轮重新映射，界面显示标题/版本和原文位置。
+
+唯一LangGraph在观察和模型调用之前，用`chat/control_intent.py`识别整句明确控制（如“按这份攻略”“换成这份攻略”“新一局”）。它只读取本轮用户文字；引用、否定、条件句、网页或截图指令不会作为控制执行。选攻略须随本轮提供用户明确选中的唯一`guide_target`，缺失或游戏条件不匹配则返回确定性澄清。没有另一个模型判断循环。
+
+conversation迁移至**schema v6**，新增`control_jobs`保存原turn、动作、载荷、取消状态、持久回执和独立response_turn_id。图只提交控制意图并结束；Runtime在原图任务退出后启动独立worker，调用既有攻略/对局权威，避免取消并等待自身。成功确认是普通事件/ACK日志中的独立`kind=control_response`回合，携带新match修订和持久攻略修订，不额外调用模型，不成为已执行游戏操作或个人事实。新局保留游戏条件与攻略，清空本局目标和动态状态。
+
+| 接口或事件 | 契约 |
+| --- | --- |
+| `POST /api/sessions/{sid}/turns` | 新可选`guide_target={guide_id,revision_id,game,platform,mode,expected_revision}`；形状、ID与整数修订严格校验，重试必须与原目标一致 |
+| 回合摘要与events | `control_job_id`关联独立任务；events顶层`match_binding`是该轮观察后有效绑定，客户端必须先更新它再处理文字/TTS |
+| `GET /api/sessions/{sid}/control-jobs/{id}` | 返回状态、持久结果、committed、独立response_turn、replayed、superseded及confirmation_cancelled；仅本进程未取消且未被新状态取代的成功确认自动播放 |
+| `POST /api/sessions/{sid}/control-jobs/{id}/cancel` | 持久取消；未提交不执行，已经提交的事实保留并结算，停止后续确认；普通请求tombstone同样撤销其排队控制 |
+| `POST /api/voice/synthesize` | 新可选`turn_id`须伴随session/match；合成前后核对实际投递、回合状态、match、持久攻略修订、删除/遗忘依赖及控制取消。无活动match也不能让旧攻略音频迟到 |
+
+独立确认沿同一媒体队列播放，停止声音会撤销确认；确认事件自身带job ID也只跟随一次。重启不重新执行未提交控制，不自动重播旧确认；已提交但丢失返回值的控制从原权威回执恢复。关闭先排空控制worker再取得变更锁，避免相互等待。
+
+画面开启先停止旧来源并撤销后台视觉证据。由companion发起的关闭已完成本地失效，内部调用`runControl`时不再二次变更visionEpoch；管理面板直接关闭仍负责本地停止。等待期间用户再次关闭或切来源，旧开启不得恢复。显示“有当前证据”不代表模型已理解正确，也不代表用户已执行建议；真实视觉/语音质量继续单独验收。
+
+## 4. 持久化边界与单一长期记忆权威
+
+- `checkpoints/chat-graph.sqlite`：产品图保存有限消息、节点状态和执行位置，每轮使用独立内部命名空间；`graph.sqlite`属于M0诊断图。动态match_context在实际请求时取用，不写入checkpoint副本。
+- `memory/conversation.sqlite`：Runtime会话、回合、投递、对局/观察、控制任务及依赖的权威日志；conversation v6沿用v5对局隔离，新增独立控制结算。重启历史可见，但观察必须重新更新。
 - `memory/`：本工程 Memory Service 的权威数据。优先移植 N.E.K.O 原始日志 SQLite 与 recent/facts/reflections/persona 等必要结构；在 M0/M2 确认实际文件布局并写迁移版本，不强行把成熟结构全部重写成单表。
 - LangGraph 节点调用 MemoryServiceAdapter；若使用 Store 接口，只把它适配到同一服务，不额外建立独立事实库。索引是可重建派生物，不成为事实权威。
 - GraphState 中只保留当前所需的有限上下文、来源 ID、记忆版本和必要状态；不把完整长期记忆、音频或截图原始二进制塞进每个 checkpoint。
@@ -101,7 +220,7 @@ LangGraph `interrupt()` 表示等待外部输入后恢复流程。语音插话�
 
 首次语音采用 ASR → 文本图 → TTS，复用 N.E.K.O 语音模块时保留必要协议与状态处理。原生实时语音模型涉及独立输入/输出事件协议，作为后续 ModelAdapter 扩展，仍保持统一回合归属。
 
-下一交付的 [游戏陪玩方案](NEXT-GAME-COMPANION.md) 把此路径与用户选择的游戏窗口截图结合：ASR文字、带时间/来源的当轮图像及版本化角色档案进入同一个LangGraph；最终回复才进入TTS。局内状态不成为长期事实，音频分段归属和实际播放确认由Runtime/Media管理。这里是待实现契约，当前发布版没有截图或音频接口。
+工作区已把ASR文字、带时间/来源的当轮图像及角色档案接到同一个LangGraph，最终回复才进入TTS，既有范围见[游戏陪玩方案](NEXT-GAME-COMPANION.md)。G4增加显式match归属与有效观察，局内状态不成为长期事实；音频分段归属和实际播放确认由Runtime/Media管理。G5在新局/切攻略时停止实际WebAudio并更新绑定；本机合成音频证据不证明Windows11真实扬声器或云服务质量。
 
 ## 6. 设计取舍记录
 

@@ -26,14 +26,33 @@ function validateRequest(value) {
   }
   const id = '[A-Za-z0-9_-]{1,80}';
   const backupId = 'memory-[a-f0-9]{32}\\.sqlite';
+  const guideId = 'guide-[a-f0-9]{32}';
+  const guideRevisionId = 'revision-[a-f0-9]{32}';
+  const guideRequestId = '[a-f0-9]{32}';
+  const guideBackupId = 'guides-[a-f0-9]{32}\\.sqlite';
+  const matchSessionId = '[a-f0-9]{32}';
+  const matchId = 'match-[a-f0-9]{32}';
   const routes = {
     GET: [ /^\/api\/(?:persona|memories|memory\/(?:config|backups)|voice\/config)$/, /^\/api\/config$/, /^\/api\/sessions$/,
+      /^\/api\/guides$/, /^\/api\/guide-backups$/,
+      new RegExp(`^/api/guides/${guideId}(?:\\?revision_id=${guideRevisionId})?$`),
+      new RegExp(`^/api/guide-operations/${guideRequestId}$`),
+      new RegExp(`^/api/sessions/${matchSessionId}/matches(?:/${matchId})?$`),
+      new RegExp(`^/api/sessions/${matchSessionId}/control-jobs/${guideRequestId}$`),
       new RegExp(`^/api/memories/${id}/sources$`),
       new RegExp(`^/api/sessions/${id}$`),
       new RegExp(`^/api/sessions/${id}/turns/${id}/events(?:\\?after=[0-9]{1,9})?$`) ],
-    PUT: [ /^\/api\/(?:config|persona|memory\/config|voice\/config)$/, new RegExp(`^/api/memories/${id}$`) ],
-    DELETE: [ new RegExp(`^/api/memories/${id}$`), new RegExp(`^/api/memory/backups/${backupId}$`) ],
+    PUT: [ /^\/api\/(?:config|persona|memory\/config|voice\/config|guide-selection)$/, new RegExp(`^/api/memories/${id}$`) ],
+    DELETE: [ new RegExp(`^/api/memories/${id}$`), new RegExp(`^/api/memory/backups/${backupId}$`),
+      new RegExp(`^/api/guides/${guideId}$`), new RegExp(`^/api/guide-backups/${guideBackupId}$`) ],
     POST: [ /^\/api\/memories$/, /^\/api\/memory\/backups$/, new RegExp(`^/api/memory/backups/${backupId}/restore$`), /^\/api\/voice\/(?:transcribe|synthesize|cancel)$/, /^\/api\/sessions$/, new RegExp(`^/api/sessions/${id}/turns$`),
+      /^\/api\/guides$/, /^\/api\/guide-backups$/,
+      new RegExp(`^/api/guides/${guideId}/refresh$`),
+      new RegExp(`^/api/guide-operations/${guideRequestId}/cancel$`),
+      new RegExp(`^/api/guide-backups/${guideBackupId}/restore$`),
+      new RegExp(`^/api/sessions/${matchSessionId}/matches$`),
+      new RegExp(`^/api/sessions/${matchSessionId}/control-jobs/${guideRequestId}/cancel$`),
+      new RegExp(`^/api/sessions/${matchSessionId}/matches/${matchId}/(?:new|end|update|observations|close-observation)$`),
       new RegExp(`^/api/sessions/${id}/requests/[a-f0-9]{32}/cancel$`),
       new RegExp(`^/api/sessions/${id}/turns/${id}/(?:ack|cancel|audio)$`) ],
   };

@@ -1,0 +1,312 @@
+{
+  "format": "ai-neko-v04-upgrade-fixture-v1",
+  "synthetic_only": true,
+  "source_tag": "v0.4.0-alpha.1",
+  "source_commit": "f359826bd60139a6a9efcef8d959f56c385228ba",
+  "source_files": {
+    "src/ai_neko/__init__.py": "f7cd7930a5d34949e3582596418f5c12ece9c17f8517eea4080aa429f769db54",
+    "src/ai_neko/__main__.py": "0716d745cc5e8ab4fa5b82b7dad212da5c6e06ea8d77ec8c75c943ec3dd954da",
+    "src/ai_neko/app/__init__.py": "c559be6cfcad20083ce892bd5c736e5547de1571adbcd5d9c5a1550361f588d2",
+    "src/ai_neko/app/api.py": "6ce95577ffd8d29f7b6a6aac2cf1eda89f98075da49ab15b063cf6eee8e9bc93",
+    "src/ai_neko/app/server.py": "a4ebfa2c185f62386b8608f5f0878421f804f8450d932a5b3cf5781f6c1c6e97",
+    "src/ai_neko/chat/__init__.py": "a2f48631c969967b1af5a88e0d2635083686a6ae49e2440a214720291425dd00",
+    "src/ai_neko/chat/extraction.py": "9392d5009fe26c396413f9f3f3476e24029ce729e41bf59c9c4e5a8cf260b192",
+    "src/ai_neko/chat/graph.py": "be8306b627fa6553cb2232ed46a56bdb84694e7f3bac131314846a56c3de0621",
+    "src/ai_neko/chat/vision.py": "e927c72af5589637eab044cc4621a6acb52cba327a84bcc3247867330e43a7ee",
+    "src/ai_neko/config/__init__.py": "63cd2a0b2613b9ade4b7fcb9ad33337fbca8f864d9c9198b0a769a316ac6fe8b",
+    "src/ai_neko/config/credentials.py": "a3013c02eeb8d98654373e58e6214aab748adcd88a8d4891ab95a7e17ee48136",
+    "src/ai_neko/config/memory.py": "59c47d07c928e3bc0e57147099bb32e604e7803320ead1fba6e85d69ca216190",
+    "src/ai_neko/config/paths.py": "a59c89070100391be5464c617c1cfe59584f49d671bfd121ec5b2713a9240b1b",
+    "src/ai_neko/config/providers.py": "6f1e2058b6c2563b5cbe2822166c18437efb16afe67ee68bf3af376e1144886e",
+    "src/ai_neko/config/settings.py": "6bae37ef698cad195270d31dd898a759cc5efb22db53083fb7ae5a147876aca0",
+    "src/ai_neko/diagnostics.py": "0b1b658b6e8f74b8d8ea8de45de15472eba1b659cbdbf889e03d61277e7bc8e4",
+    "src/ai_neko/graph/__init__.py": "d9152e6547aa627bcb4ecff609853df52ef8e026645a65c55fdec8ba06de59ac",
+    "src/ai_neko/graph/__main__.py": "9a5579516876c7c58a1fa81a56ae015c4079253762970966bf9e3480519e3dd6",
+    "src/ai_neko/graph/service.py": "e6d419db6092d6a679e6a2df86ff802290fbbbb71152229804d2e8c83c51b8a2",
+    "src/ai_neko/media/__init__.py": "93cce6fce3176d400ff44633fc88cdf0ea22fa6073ece4e92b1df466a74390fa",
+    "src/ai_neko/media/voice.py": "09dff69f403bea5a9b0ce23c5f1a26911f923fd27d5766e2447f8ddc947fc957",
+    "src/ai_neko/memory/__init__.py": "687a9198532305272e75560c951e31fc09d90978b6456174ec437a558fdea69a",
+    "src/ai_neko/memory/licenses/NEKO-LICENSE.txt": "0d99b64baf1323c3a7f70a28075b14d573df6d773aa2d33d827053cc775062d8",
+    "src/ai_neko/memory/licenses/NEKO-NOTICE.txt": "96199da23327c5086c4f562e4c1a05685e18643ab32ce896f13934b15b4a8aca",
+    "src/ai_neko/memory/recall.py": "6527a7961996778444e65ad6e41c1d9112f03d1fde0b716a32bb2eb208af701f",
+    "src/ai_neko/memory/script_fold.py": "2f4b77021f296c3234fea7b11964c2cbb463258a2bb170059d9edf10ccb5c305",
+    "src/ai_neko/memory/service.py": "9f28d9de9c309efa60a34c9489ef3f0937e97cc2dbdd0c3b0815f9cd00a0cb56",
+    "src/ai_neko/providers.py": "12ede714ad947f48876212e213a694ccd7c44a16a1b25fc7ba96dbc315407a04",
+    "src/ai_neko/runtime/__init__.py": "94a4ebd5952a5fec19a38b326f4c59c86e75bd16d592ab95f8b6aaa550e17891",
+    "src/ai_neko/runtime/service.py": "764d113e276de6a35f7cc5c7cdc15f593715cf1cc6efa591d8ac4202c49962dd",
+    "src/ai_neko/tools/__init__.py": "332e2bb9e9ab31716317ea3e9dd8ac3d70d86ea7209a99a9fa8b281bc03afe5e",
+    "src/ai_neko/tools/network.py": "8480529ce75abef4d5672b568245f79baa26b3350be36c351780a7bd280f2f2e",
+    "src/ai_neko/tools/web.py": "79fc04e74779efae96604c81ab204c10aa9815b4c7bde088314a7cd8ea84c133",
+    "src/ai_neko/web/app.js": "524fa115ca0bc3a5e8785c226acfa9198ef5148a14fdc9d3881c77a0671cb196",
+    "src/ai_neko/web/index.html": "2eee2c3df8729cbc3781cb193247578f57f1ee1a20cb9128bc3139c4fa9e7461",
+    "src/ai_neko/web/style.css": "aeb04131e0323e8e77c96188833d9786cdcc06a10d380465b9831771598fb1bd"
+  },
+  "source_archive_sha256": "af44eaecef9b5f4c84cbf615f403ee67a0aceb7d76e717570ceed5ac1b6cc230",
+  "driver_sha256": "186257bc8222d0efeac0abe4442e5ed6db9da8f9ffca9d137f09f8679f9e4c19",
+  "expected_sha256": "133f10a788c98585ad0bd3a738001f30086f26e280820459ceff3b22abe9b30f",
+  "generation": {
+    "old_source_imported": true,
+    "mode": "create",
+    "network_calls": 0
+  },
+  "files": {
+    "data/.ai-neko.json": {
+      "sha256": "422947fa179327603978561c97beaece99d1d00acbbe67ec61eaa9a06a2c7fa3",
+      "bytes": 43
+    },
+    "data/memory/conversation.sqlite": {
+      "sha256": "6cca918eb7f80422e6d930f9c82039a687253fbe8efd069a982e06530649e020",
+      "bytes": 86016,
+      "database": {
+        "user_version": 0,
+        "integrity_check": "ok",
+        "ddl": [
+          [
+            "index",
+            "one_active_turn",
+            "turns",
+            "CREATE UNIQUE INDEX one_active_turn\n                    ON turns(session_id) WHERE status IN ('accepted', 'running')"
+          ],
+          [
+            "table",
+            "audio_playback",
+            "audio_playback",
+            "CREATE TABLE audio_playback (\n                    turn_id TEXT NOT NULL REFERENCES turns(id), segment_id TEXT NOT NULL,\n                    state TEXT NOT NULL, updated_at REAL NOT NULL, text_start INTEGER, text_end INTEGER,\n                    PRIMARY KEY(turn_id,segment_id)\n                )"
+          ],
+          [
+            "table",
+            "cancelled_requests",
+            "cancelled_requests",
+            "CREATE TABLE cancelled_requests (\n                    session_id TEXT NOT NULL REFERENCES sessions(id),\n                    request_id TEXT NOT NULL, cancelled_at REAL NOT NULL,\n                    PRIMARY KEY(session_id,request_id)\n                )"
+          ],
+          [
+            "table",
+            "events",
+            "events",
+            "CREATE TABLE events (\n                    turn_id TEXT NOT NULL REFERENCES turns(id), seq INTEGER NOT NULL,\n                    payload TEXT NOT NULL, PRIMARY KEY(turn_id, seq)\n                )"
+          ],
+          [
+            "table",
+            "memory_erasure",
+            "memory_erasure",
+            "CREATE TABLE memory_erasure (\n                    id INTEGER PRIMARY KEY CHECK(id=1), payload TEXT NOT NULL\n                )"
+          ],
+          [
+            "table",
+            "sessions",
+            "sessions",
+            "CREATE TABLE sessions (\n                    id TEXT PRIMARY KEY, internal_id TEXT UNIQUE NOT NULL,\n                    user_id TEXT NOT NULL, character_id TEXT NOT NULL,\n                    title TEXT NOT NULL, created_at REAL NOT NULL, updated_at REAL NOT NULL\n                )"
+          ],
+          [
+            "table",
+            "turn_images",
+            "turn_images",
+            "CREATE TABLE turn_images (\n                    turn_id TEXT PRIMARY KEY, fingerprint TEXT NOT NULL\n                )"
+          ],
+          [
+            "table",
+            "turn_memory",
+            "turn_memory",
+            "CREATE TABLE turn_memory (\n                    turn_id TEXT NOT NULL, fact_id TEXT NOT NULL,\n                    PRIMARY KEY(turn_id, fact_id)\n                )"
+          ],
+          [
+            "table",
+            "turn_metadata",
+            "turn_metadata",
+            "CREATE TABLE turn_metadata (\n                    turn_id TEXT PRIMARY KEY, payload TEXT NOT NULL\n                )"
+          ],
+          [
+            "table",
+            "turns",
+            "turns",
+            "CREATE TABLE turns (\n                    id TEXT PRIMARY KEY, session_id TEXT NOT NULL REFERENCES sessions(id),\n                    request_id TEXT, input TEXT NOT NULL, guide INTEGER NOT NULL,\n                    status TEXT NOT NULL, created_at REAL NOT NULL, settled_at REAL,\n                    sent_seq INTEGER NOT NULL DEFAULT 0, ack_seq INTEGER NOT NULL DEFAULT 0,\n                    next_seq INTEGER NOT NULL DEFAULT 1, error TEXT,\n                    UNIQUE(session_id, request_id)\n                )"
+          ]
+        ],
+        "ddl_sha256": "adb932eb83bf30f00c73f54ea344dad3ec50839cdda2732aa51579d438d82df1",
+        "rows": {
+          "audio_playback": 1,
+          "cancelled_requests": 0,
+          "events": 12,
+          "memory_erasure": 0,
+          "sessions": 2,
+          "turn_images": 3,
+          "turn_memory": 2,
+          "turn_metadata": 3,
+          "turns": 3
+        }
+      }
+    },
+    "data/memory/long-term.sqlite": {
+      "sha256": "646f71c33a4dfeee21725f48ec1abb519ec0943fa18353cbce7e81812b13c9b9",
+      "bytes": 69632,
+      "database": {
+        "user_version": 0,
+        "integrity_check": "ok",
+        "ddl": [
+          [
+            "table",
+            "memory_corrections",
+            "memory_corrections",
+            "CREATE TABLE memory_corrections (\n                    scope TEXT NOT NULL, fact_id TEXT NOT NULL, revision INTEGER NOT NULL,\n                    previous_content TEXT NOT NULL, source_id TEXT NOT NULL,\n                    PRIMARY KEY(scope,fact_id,revision),\n                    FOREIGN KEY(scope,fact_id) REFERENCES memory_facts(scope,id)\n                        ON DELETE CASCADE\n                )"
+          ],
+          [
+            "table",
+            "memory_fact_sources",
+            "memory_fact_sources",
+            "CREATE TABLE memory_fact_sources (\n                    scope TEXT NOT NULL, fact_id TEXT NOT NULL, source_id TEXT NOT NULL,\n                    PRIMARY KEY(scope,fact_id,source_id),\n                    FOREIGN KEY(scope,fact_id) REFERENCES memory_facts(scope,id)\n                        ON DELETE CASCADE\n                )"
+          ],
+          [
+            "table",
+            "memory_facts",
+            "memory_facts",
+            "CREATE TABLE memory_facts (\n                    scope TEXT NOT NULL, id TEXT NOT NULL, fact_key TEXT NOT NULL,\n                    content TEXT NOT NULL, kind TEXT NOT NULL, revision INTEGER NOT NULL,\n                    created_at REAL NOT NULL, updated_at REAL NOT NULL,\n                    PRIMARY KEY(scope,id), UNIQUE(scope,fact_key)\n                )"
+          ],
+          [
+            "table",
+            "memory_jobs",
+            "memory_jobs",
+            "CREATE TABLE memory_jobs (\n                    scope TEXT NOT NULL, id TEXT NOT NULL, source_id TEXT NOT NULL,\n                    expected_revision INTEGER NOT NULL, status TEXT NOT NULL,\n                    lease_token TEXT, lease_until REAL, attempts INTEGER NOT NULL DEFAULT 0,\n                    created_at REAL NOT NULL, PRIMARY KEY(scope,id), UNIQUE(scope,source_id)\n                )"
+          ],
+          [
+            "table",
+            "memory_scopes",
+            "memory_scopes",
+            "CREATE TABLE memory_scopes (\n                    scope TEXT PRIMARY KEY, revision INTEGER NOT NULL DEFAULT 0,\n                    persona TEXT NOT NULL, persona_version INTEGER NOT NULL DEFAULT 1,\n                    invalidation_revision INTEGER NOT NULL DEFAULT 0\n                )"
+          ],
+          [
+            "table",
+            "memory_sources",
+            "memory_sources",
+            "CREATE TABLE memory_sources (\n                    scope TEXT NOT NULL, id TEXT NOT NULL, body TEXT NOT NULL,\n                    turn_id TEXT, created_at REAL NOT NULL,\n                    PRIMARY KEY(scope,id)\n                )"
+          ],
+          [
+            "table",
+            "memory_tombstones",
+            "memory_tombstones",
+            "CREATE TABLE memory_tombstones (\n                    scope TEXT NOT NULL, kind TEXT NOT NULL, token TEXT NOT NULL,\n                    revision INTEGER NOT NULL, PRIMARY KEY(scope,kind,token)\n                )"
+          ]
+        ],
+        "ddl_sha256": "8524b7e69cf9ea09da6dbca4a2be1691ba35007bd622b29e0ad3526f195d4156",
+        "rows": {
+          "memory_corrections": 0,
+          "memory_fact_sources": 2,
+          "memory_facts": 2,
+          "memory_jobs": 0,
+          "memory_scopes": 1,
+          "memory_sources": 2,
+          "memory_tombstones": 0
+        }
+      }
+    },
+    "data/checkpoints/chat-graph.sqlite": {
+      "sha256": "6fbebe00eaa2de4194d877c45ddccf65981b91e035ed783aea7dbe33d8f00277",
+      "bytes": 40960,
+      "database": {
+        "user_version": 0,
+        "integrity_check": "ok",
+        "ddl": [
+          [
+            "table",
+            "checkpoints",
+            "checkpoints",
+            "CREATE TABLE checkpoints (\n                    thread_id TEXT NOT NULL,\n                    checkpoint_ns TEXT NOT NULL DEFAULT '',\n                    checkpoint_id TEXT NOT NULL,\n                    parent_checkpoint_id TEXT,\n                    type TEXT,\n                    checkpoint BLOB,\n                    metadata BLOB,\n                    PRIMARY KEY (thread_id, checkpoint_ns, checkpoint_id)\n                )"
+          ],
+          [
+            "table",
+            "writes",
+            "writes",
+            "CREATE TABLE writes (\n                    thread_id TEXT NOT NULL,\n                    checkpoint_ns TEXT NOT NULL DEFAULT '',\n                    checkpoint_id TEXT NOT NULL,\n                    task_id TEXT NOT NULL,\n                    idx INTEGER NOT NULL,\n                    channel TEXT NOT NULL,\n                    type TEXT,\n                    value BLOB,\n                    PRIMARY KEY (thread_id, checkpoint_ns, checkpoint_id, task_id, idx)\n                )"
+          ]
+        ],
+        "ddl_sha256": "7ef5495a2afa61f66d004b6ab0d5b563d935c2eb7cd759f67e7918fc093b36d4",
+        "rows": {
+          "checkpoints": 9,
+          "writes": 27
+        }
+      }
+    },
+    "data/backups/memory-a4b1923d74534874af85ec4645402d82.sqlite": {
+      "sha256": "0f93b01241b4edbd68774fe793cb7b0f8baa75474859288224be1872970950f9",
+      "bytes": 77824,
+      "database": {
+        "user_version": 0,
+        "integrity_check": "ok",
+        "ddl": [
+          [
+            "table",
+            "memory_backup_info",
+            "memory_backup_info",
+            "CREATE TABLE memory_backup_info (id TEXT PRIMARY KEY, owner_scope TEXT NOT NULL, created_at REAL NOT NULL)"
+          ],
+          [
+            "table",
+            "memory_corrections",
+            "memory_corrections",
+            "CREATE TABLE memory_corrections (\n                    scope TEXT NOT NULL, fact_id TEXT NOT NULL, revision INTEGER NOT NULL,\n                    previous_content TEXT NOT NULL, source_id TEXT NOT NULL,\n                    PRIMARY KEY(scope,fact_id,revision),\n                    FOREIGN KEY(scope,fact_id) REFERENCES memory_facts(scope,id)\n                        ON DELETE CASCADE\n                )"
+          ],
+          [
+            "table",
+            "memory_fact_sources",
+            "memory_fact_sources",
+            "CREATE TABLE memory_fact_sources (\n                    scope TEXT NOT NULL, fact_id TEXT NOT NULL, source_id TEXT NOT NULL,\n                    PRIMARY KEY(scope,fact_id,source_id),\n                    FOREIGN KEY(scope,fact_id) REFERENCES memory_facts(scope,id)\n                        ON DELETE CASCADE\n                )"
+          ],
+          [
+            "table",
+            "memory_facts",
+            "memory_facts",
+            "CREATE TABLE memory_facts (\n                    scope TEXT NOT NULL, id TEXT NOT NULL, fact_key TEXT NOT NULL,\n                    content TEXT NOT NULL, kind TEXT NOT NULL, revision INTEGER NOT NULL,\n                    created_at REAL NOT NULL, updated_at REAL NOT NULL,\n                    PRIMARY KEY(scope,id), UNIQUE(scope,fact_key)\n                )"
+          ],
+          [
+            "table",
+            "memory_jobs",
+            "memory_jobs",
+            "CREATE TABLE memory_jobs (\n                    scope TEXT NOT NULL, id TEXT NOT NULL, source_id TEXT NOT NULL,\n                    expected_revision INTEGER NOT NULL, status TEXT NOT NULL,\n                    lease_token TEXT, lease_until REAL, attempts INTEGER NOT NULL DEFAULT 0,\n                    created_at REAL NOT NULL, PRIMARY KEY(scope,id), UNIQUE(scope,source_id)\n                )"
+          ],
+          [
+            "table",
+            "memory_scopes",
+            "memory_scopes",
+            "CREATE TABLE memory_scopes (\n                    scope TEXT PRIMARY KEY, revision INTEGER NOT NULL DEFAULT 0,\n                    persona TEXT NOT NULL, persona_version INTEGER NOT NULL DEFAULT 1,\n                    invalidation_revision INTEGER NOT NULL DEFAULT 0\n                )"
+          ],
+          [
+            "table",
+            "memory_sources",
+            "memory_sources",
+            "CREATE TABLE memory_sources (\n                    scope TEXT NOT NULL, id TEXT NOT NULL, body TEXT NOT NULL,\n                    turn_id TEXT, created_at REAL NOT NULL,\n                    PRIMARY KEY(scope,id)\n                )"
+          ],
+          [
+            "table",
+            "memory_tombstones",
+            "memory_tombstones",
+            "CREATE TABLE memory_tombstones (\n                    scope TEXT NOT NULL, kind TEXT NOT NULL, token TEXT NOT NULL,\n                    revision INTEGER NOT NULL, PRIMARY KEY(scope,kind,token)\n                )"
+          ]
+        ],
+        "ddl_sha256": "1be7af47be2778ff3801fe91afd445f3658b51be4ed6c341092afa0d76bacaff",
+        "rows": {
+          "memory_backup_info": 1,
+          "memory_corrections": 0,
+          "memory_fact_sources": 2,
+          "memory_facts": 2,
+          "memory_jobs": 0,
+          "memory_scopes": 1,
+          "memory_sources": 2,
+          "memory_tombstones": 0
+        }
+      }
+    }
+  },
+  "environment": {
+    "python": "3.11.15",
+    "system": "macOS-26.6.2-arm64-arm-64bit",
+    "sqlite": "3.50.4",
+    "dependencies": {
+      "langgraph": "1.2.12",
+      "langgraph-checkpoint-sqlite": "3.1.1",
+      "aiosqlite": "0.22.1",
+      "httpx": "0.28.1"
+    }
+  },
+  "release_lock_sha256": "b6bce6f7c7944ea724f12a5e643e4ebe20a8564c7f402e61bc0129cca6d584eb",
+  "network_calls": 0,
+  "real_model_calls": 0
+}

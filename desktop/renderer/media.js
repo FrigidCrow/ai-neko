@@ -55,7 +55,7 @@
       try {
         while (this.queue.length && generation === this.generation && !signal.aborted) {
           const segment = this.queue.shift();
-          const audio = await this.synthesize(segment.text, signal);
+          const audio = await this.synthesize(segment.text, signal, segment);
           if (signal.aborted || generation !== this.generation) return;
           await this.play(audio, signal, segment, () => this.onActivity(true));
           if (signal.aborted || generation !== this.generation) return;

@@ -21,9 +21,11 @@ from uuid import uuid4
 
 from filelock import FileLock, Timeout
 from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
+from langgraph.errors import NodeCancelledError
 from langsmith import tracing_context
 
 from ai_neko.chat import build_chat_graph
+from ai_neko.chat.control_intent import explicit_control
 from ai_neko.chat.extraction import extract_facts
 from ai_neko.chat.vision import validate_image
 from ai_neko.config.memory import MemoryPreferences
@@ -31,6 +33,16 @@ from ai_neko.config.paths import DataPaths, safe_child
 from ai_neko.config.schema import apply_migrations, ensure_supported_schema
 from ai_neko.config.telemetry import Metrics
 from ai_neko.memory import MemoryConflictError, MemoryService, persona_prompt
+from ai_neko.memory.guides import GuideCapacityError, GuideConflictError, GuideInputError
+from ai_neko.runtime.controls import (
+    ControlRuntimeMixin,
+    conversation_controls_v6,
+    validate_guide_target,
+)
+from ai_neko.runtime.erasure import erasure_candidates, evidence_ids
+from ai_neko.runtime.guides import GuideRuntimeMixin, conversation_guides_v4
+from ai_neko.runtime.lifecycle import _finish_task, _settled_mutation
+from ai_neko.runtime.matches import MatchRuntimeMixin, conversation_match_bindings_v5
 
 TERMINAL = {"completed", "cancelled", "error", "interrupted"}
 ACTIVE = {"accepted", "running"}
@@ -75,36 +87,13 @@ def _conversation_v3(db) -> None:
         )
 
 
-_MIGRATIONS = [(2, _conversation_v2), (3, _conversation_v3)]
-
-
-async def _finish_task(task):
-    """Defer caller cancellation until an owned operation actually finishes.
-
-    Cancelling an asyncio.to_thread await does not stop the SQLite worker. A
-    cancelled HTTP request must not release mutation locks or close its database
-    while that worker is still using it.
-    """
-    cancelled = False
-    while True:
-        try:
-            result = await asyncio.shield(task)
-            break
-        except asyncio.CancelledError:
-            if task.cancelled():
-                raise
-            cancelled = True
-    if cancelled:
-        raise asyncio.CancelledError
-    return result
-
-
-def _settled_mutation(method):
-    @functools.wraps(method)
-    async def wrapped(self, *args, **kwargs):
-        return await _finish_task(asyncio.create_task(method(self, *args, **kwargs)))
-
-    return wrapped
+_MIGRATIONS = [
+    (2, _conversation_v2),
+    (3, _conversation_v3),
+    (4, conversation_guides_v4),
+    (5, conversation_match_bindings_v5),
+    (6, conversation_controls_v6),
+]
 
 
 class RuntimeAccessError(LookupError):
@@ -125,7 +114,7 @@ def _identifier(value: Any) -> str:
     return value
 
 
-class SessionRuntime:
+class SessionRuntime(ControlRuntimeMixin, MatchRuntimeMixin, GuideRuntimeMixin):
     """Single local user/default persona runtime; no caller-supplied scope or DB paths."""
 
     def __init__(self, paths: DataPaths, provider_store: Any):
@@ -228,19 +217,26 @@ class SessionRuntime:
             apply_migrations(
                 self._db,
                 steps=_MIGRATIONS,
-                backup_path=safe_child(self.paths.backups, "conversation-pre-migration-v3.sqlite"),
+                backup_path=safe_child(self.paths.backups, "conversation-pre-migration-v6.sqlite"),
             )
             self.memory = MemoryService(paths)
             self.memory_preferences = MemoryPreferences(paths)
+            self._initialize_match_runtime()
+            self._initialize_guide_runtime()
+            self._initialize_control_runtime()
             self._recover()
             erasure = self._db.execute("SELECT payload FROM memory_erasure WHERE id=1").fetchone()
             if erasure:
                 self._complete_erasure(json.loads(erasure[0]))
+            self._recover_control_jobs()
             # Migration safety copies are temporary recovery material, not a
             # hidden permanent copy of conversations the user may later erase.
             for name in (
                 "conversation-pre-migration-v2.sqlite",
                 "conversation-pre-migration-v3.sqlite",
+                "conversation-pre-migration-v4.sqlite",
+                "conversation-pre-migration-v5.sqlite",
+                "conversation-pre-migration-v6.sqlite",
             ):
                 safe_child(paths.backups, name).unlink(missing_ok=True)
         except BaseException:
@@ -322,6 +318,10 @@ class SessionRuntime:
             if self._closed or self._closing or self._memory_mutating:
                 return
             row = self._turn(session_id, turn_id)
+            try:
+                self._assert_match_turn(session_id, turn_id)
+            except asyncio.CancelledError:
+                return
             if row["status"] not in ACTIVE:
                 return  # Invalidate old generation before task cancellation is delivered.
             if event.get("type") == "text":
@@ -357,6 +357,11 @@ class SessionRuntime:
             row = self._turn(session_id, turn_id)
             started = self._turn_started.pop(turn_id, None)
             self._first_text_pending.discard(turn_id)
+            if status == "completed":
+                try:
+                    self._assert_guide_turn(session_id, turn_id)
+                except asyncio.CancelledError:
+                    status = "cancelled"
             if started is not None:
                 self.metrics.record(
                     "turn_total_ms", (time.monotonic() - started) * 1000, status=status
@@ -398,6 +403,7 @@ class SessionRuntime:
             self._settle(row["session_id"], row["id"], "interrupted", "process_interrupted")
         with self._db:
             self._db.execute("UPDATE audio_playback SET state='interrupted' WHERE state='started'")
+            self._db.execute("DELETE FROM match_settlements")
             # Request revocations only need to outlive delayed retries; keep the
             # table bounded without weakening in-flight protection.
             self._db.execute(
@@ -448,6 +454,7 @@ class SessionRuntime:
         return [json.loads(row[0]) for row in self._db.execute(sql + " ORDER BY seq", args)]
 
     def _turn_summary(self, row) -> dict[str, Any]:
+        control_job = self._control_for_turn(row["id"])
         events = self._payloads(row["id"], through=row["sent_seq"])
         delivered = "".join(e.get("text", "") for e in events if e["type"] == "text")
         confirmed = "".join(
@@ -465,10 +472,17 @@ class SessionRuntime:
             "id": row["id"],
             "turn_id": row["id"],
             "session_id": row["session_id"],
+            "kind": "control_response"
+            if control_job and control_job["response_turn_id"] == row["id"]
+            else "chat",
+            "control_job_id": control_job["id"] if control_job else None,
             "input": row["input"],
             "text": row["input"],
             "guide": bool(row["guide"]),
-            "context": json.loads(metadata[0]) if metadata else {},
+            "context": {
+                **(json.loads(metadata[0]) if metadata else {}),
+                "match": self._binding(row["id"]),
+            },
             "status": row["status"],
             "created_at": row["created_at"],
             "settled_at": row["settled_at"],
@@ -524,14 +538,26 @@ class SessionRuntime:
         *,
         dependency_ids: set[str] | None = None,
         user_dependency_ids: set[str] | None = None,
+        guide_selection: dict | None = None,
     ) -> list[dict[str, str]]:
-        rows = self._db.execute(
-            "SELECT * FROM turns WHERE session_id=? AND id<>? AND status NOT IN ('accepted','running') ORDER BY created_at DESC,id DESC LIMIT 10",
-            (session_id, before),
-        ).fetchall()
+        review = (self._binding(before) or {}).get("review_match_id")
+        if review:
+            rows = self._db.execute(
+                "SELECT t.* FROM turns t JOIN turn_matches m ON m.turn_id=t.id "
+                "WHERE t.session_id=? AND t.id<>? AND m.match_id=? "
+                "AND t.status NOT IN ('accepted','running') ORDER BY t.created_at DESC,t.id DESC LIMIT 10",
+                (session_id, before, review),
+            ).fetchall()
+        else:
+            rows = self._db.execute(
+                "SELECT * FROM turns WHERE session_id=? AND id<>? AND status NOT IN ('accepted','running') ORDER BY created_at DESC,id DESC LIMIT 10",
+                (session_id, before),
+            ).fetchall()
         history = []
         for row in reversed(rows):
-            if row["input"] == "[已遗忘的对话]":
+            if row["input"] == "[已遗忘的对话]" or not self._match_history_mode(
+                session_id, before, row
+            ):
                 continue
             if user_dependency_ids is not None:
                 user_dependency_ids.add(row["id"])
@@ -544,6 +570,34 @@ class SessionRuntime:
                     summary["delivered_text"], len(text), summary["heard_characters"]
                 )
             text = text.strip()
+            if (
+                not review
+                and self._db.execute(
+                    "SELECT 1 FROM turn_guides WHERE turn_id=? AND invalidated=1", (row["id"],)
+                ).fetchone()
+            ):
+                # A guide switch keeps the visible conversation but excludes
+                # recommendations derived from the previous guide binding.
+                text = ""
+            if text and guide_selection and not review:
+                references = self._db.execute(
+                    "SELECT guide_id,revision_id FROM turn_guides WHERE turn_id=?",
+                    (row["id"],),
+                ).fetchall()
+                source_dependent = self._db.execute(
+                    "SELECT 1 FROM turn_guide_sources WHERE turn_id=?", (row["id"],)
+                ).fetchone()
+                if (
+                    references
+                    and any(
+                        ref[0] != guide_selection["guide_id"]
+                        or ref[1] != guide_selection["revision_id"]
+                        for ref in references
+                    )
+                ) or (source_dependent and not references):
+                    # First adoption is also a binding change: preceding web
+                    # advice must not override the newly chosen local source.
+                    text = ""
             if text:
                 if dependency_ids is not None:
                     dependency_ids.add(row["id"])
@@ -587,6 +641,11 @@ class SessionRuntime:
         ).fetchone()
         if active:
             raise RuntimeConflictError("这个会话仍在回复，请等待或先停止。")
+        if self._db.execute(
+            "SELECT 1 FROM control_jobs WHERE session_id=? AND status IN ('pending','running')",
+            (session_id,),
+        ).fetchone():
+            raise RuntimeConflictError("这个会话的操作仍在结算，请等待或先停止。")
         return None
 
     async def start_turn(
@@ -596,6 +655,10 @@ class SessionRuntime:
         guide: bool = False,
         request_id: str | None = None,
         image: dict | None = None,
+        match: dict | None = None,
+        input_origin: str = "text",
+        review_match_id: str | None = None,
+        guide_target: dict | None = None,
     ) -> dict[str, Any]:
         if not isinstance(text, str) or not text.strip() or len(text) > 8000:
             raise RuntimeInputError("请输入 1 到 8000 个字符。")
@@ -606,7 +669,15 @@ class SessionRuntime:
                 _identifier(request_id)
             except RuntimeAccessError as exc:
                 raise RuntimeInputError("请求编号无效。") from exc
+        if not isinstance(input_origin, str) or input_origin not in {"text", "voice"}:
+            raise RuntimeInputError("输入来源无效。")
+        if review_match_id is not None and (
+            not isinstance(review_match_id, str)
+            or not re.fullmatch(r"match-[a-f0-9]{32}", review_match_id)
+        ):
+            raise RuntimeInputError("复盘对局编号无效。")
         text = text.strip()
+        guide_target = validate_guide_target(guide_target)
         try:
             # A retried accepted request may arrive after its screenshot ages.
             # Validate exact content first; only new requests need fresh age.
@@ -630,12 +701,32 @@ class SessionRuntime:
                 session_id, text, guide, request_id, image, image_fingerprint
             )
             if previous is not None:
+                self._validate_match_retry(previous["id"], match, input_origin, review_match_id)
+                self._validate_control_retry(previous["id"], guide_target)
                 return self._turn_summary(previous)
+            match_snapshot = self._match_snapshot(session_id, match)
+            recall_query = text[:2000]
+            if match_snapshot["match_id"]:
+                current_match = self.matches.current(session_id)
+                recall_query = (
+                    text[:1200]
+                    + "\n"
+                    + current_match["game"]
+                    + "\n"
+                    + current_match["goal"][:500]
+                    + "\n游戏偏好 游戏风格"
+                )
+            if review_match_id:
+                from ai_neko.runtime.matches import match_errors
+
+                with match_errors():
+                    self.matches.get(session_id, review_match_id)
             epoch = self._memory_epoch
         # No thread RLock spans this await. Both request and memory generation
         # must still be current when the worker returns, before any acceptance.
         recall_started = time.monotonic()
-        snapshot = await self._memory_call(self.memory.recall_context, text[:2000], limit=10)
+        snapshot = await self._memory_call(self.memory.recall_context, recall_query, limit=10)
+        guide_snapshot = await self._memory_call(self.memory.guides.control_snapshot)
         self.metrics.record(
             "memory_recall_ms", (time.monotonic() - recall_started) * 1000, scope="personal"
         )
@@ -644,10 +735,15 @@ class SessionRuntime:
                 session_id, text, guide, request_id, image, image_fingerprint
             )
             if previous is not None:
+                self._validate_match_retry(previous["id"], match, input_origin, review_match_id)
+                self._validate_control_retry(previous["id"], guide_target)
                 return self._turn_summary(previous)
+            if match_snapshot != self._match_snapshot(session_id, match):
+                raise RuntimeConflictError("对局已更新，请重新提问。")
             if (
                 epoch != self._memory_epoch
                 or snapshot["revision"] != self.memory.published_revision
+                or guide_snapshot["revision"] != self.memory.guides.published_revision
             ):
                 raise RuntimeConflictError("记忆已更新，请重新提问。")
             session = self._session(session_id)
@@ -673,6 +769,9 @@ class SessionRuntime:
                     "INSERT INTO turns(id,session_id,request_id,input,guide,status,created_at) VALUES(?,?,?,?,?,'accepted',?)",
                     (turn_id, session_id, request_id, text, int(guide), time.time()),
                 )
+                self._accept_match_turn(
+                    session_id, turn_id, match_snapshot, match, input_origin, review_match_id, text
+                )
                 self._db.execute(
                     "UPDATE sessions SET title=CASE WHEN title='新对话' THEN ? ELSE title END, updated_at=? WHERE id=?",
                     (text[:50], time.time(), session_id),
@@ -689,6 +788,8 @@ class SessionRuntime:
                             {
                                 "persona_version": profile["version"],
                                 "memory_revision": snapshot["revision"],
+                                "guide_control": guide_snapshot,
+                                "guide_target": guide_target,
                                 "image": {
                                     key: image[key]
                                     for key in ("frame_id", "source_id", "captured_at")
@@ -716,8 +817,21 @@ class SessionRuntime:
                 turn_id,
                 dependency_ids=dependencies,
                 user_dependency_ids=user_dependencies,
+                guide_selection=match_snapshot["selection"]
+                if match_snapshot["match_id"]
+                else (
+                    guide_snapshot["selections"][0]
+                    if len(guide_snapshot["selections"]) == 1
+                    else None
+                ),
             ) + [{"role": "user", "content": text}]
             with self._db:
+                for source_turn in dependencies:
+                    self._db.execute(
+                        "INSERT OR IGNORE INTO turn_guides SELECT ?,guide_id,revision_id,invalidated "
+                        "FROM turn_guides WHERE turn_id=? AND (? OR invalidated=0)",
+                        (turn_id, source_turn, bool(review_match_id)),
+                    )
                 self._db.executemany(
                     "INSERT INTO turn_history VALUES (?,?)",
                     [(turn_id, source_id) for source_id in dependencies],
@@ -727,6 +841,7 @@ class SessionRuntime:
                     [(turn_id, source_id) for source_id in user_dependencies],
                 )
             self._turn_started[turn_id] = time.monotonic()
+            self._guide_turn_revisions[turn_id] = guide_snapshot["revision"]
             self._first_text_pending.add(turn_id)
             self._tasks[turn_id] = asyncio.create_task(
                 self._run(
@@ -746,6 +861,7 @@ class SessionRuntime:
 
     def _task_done(self, turn_id: str, task: asyncio.Task):
         self._tasks.pop(turn_id, None)
+        self._guide_turn_revisions.pop(turn_id, None)
         if not task.cancelled():
             task.exception()
 
@@ -760,6 +876,7 @@ class SessionRuntime:
         image: dict | None = None,
         memory_revision: int | None = None,
     ):
+        control_job_id = None
         try:
             with self._guard:
                 if self._turn(session_id, turn_id)["status"] not in ACTIVE:
@@ -770,11 +887,16 @@ class SessionRuntime:
                 with self._db:
                     self._db.execute("UPDATE turns SET status='running' WHERE id=?", (turn_id,))
             # Create independent adapters per turn: configuration changes affect future turns.
-            model = self.providers.model()
-            web_tools = self.providers.web_tools() if guide else None
+            from ai_neko.runtime.guide_query import LazyWebTools, local_query
+
+            model = None if explicit_control(messages[-1]["content"]) else self.providers.model()
+            web_tools = LazyWebTools(self)
             async with AsyncSqliteSaver.from_conn_string(
                 str(self.paths.checkpoints / "chat-graph.sqlite")
             ) as saver:
+                # Checkpoint updates replace blobs during normal generation.
+                # Enable scrubbing on every writer, not only the delete worker.
+                await saver.conn.execute("PRAGMA secure_delete=ON")
                 graph = build_chat_graph(
                     model,
                     web_tools,
@@ -782,9 +904,30 @@ class SessionRuntime:
                     saver,
                     context=context,
                     image=image,
+                    match_context=functools.partial(
+                        self._match_context_for_turn, session_id, turn_id
+                    ),
+                    record_observation=functools.partial(
+                        self._record_match_frame, session_id, turn_id, image
+                    ),
+                    resolve_control=functools.partial(
+                        self._resolve_control_intent, session_id, turn_id
+                    ),
+                    ingest_source=functools.partial(self._ingest_guide_source, session_id, turn_id),
+                    validate_turn=functools.partial(self._assert_guide_turn, session_id, turn_id),
+                    local_retrieve=functools.partial(
+                        local_query,
+                        self,
+                        session_id,
+                        turn_id,
+                        self._turn(session_id, turn_id)["input"],
+                        network=guide,
+                        web=web_tools,
+                        context=lambda: self._guide_context_for_turn(session_id, turn_id),
+                    ),
                 )
                 with tracing_context(enabled=False):
-                    await graph.ainvoke(
+                    graph_result = await graph.ainvoke(
                         {
                             "messages": messages,
                             "guide": guide,
@@ -803,10 +946,20 @@ class SessionRuntime:
                             "recursion_limit": 16,
                         },
                     )
+            if graph_result.get("control_intent"):
+                self._assert_guide_turn(session_id, turn_id)
+                control_job_id = self._queue_control(
+                    session_id, turn_id, graph_result["control_intent"]
+                )
             settled = self._settle(session_id, turn_id, "completed")
             if (
                 settled["status"] == "completed"
                 and self.memory_preferences.value["auto_extract"]
+                and not graph_result.get("control_handled")
+                and not (
+                    (self._binding(turn_id) or {}).get("match_id")
+                    or (self._binding(turn_id) or {}).get("review_match_id")
+                )
                 and not self._memory_mutating
                 and not self._closing
             ):
@@ -818,7 +971,7 @@ class SessionRuntime:
                     expected_revision=memory_revision,
                 )
                 self.start_memory_worker()
-        except asyncio.CancelledError:
+        except (asyncio.CancelledError, NodeCancelledError):
             if not self._closed:
                 self._settle(session_id, turn_id, "cancelled")
             raise
@@ -833,6 +986,73 @@ class SessionRuntime:
                 self._settle(session_id, turn_id, "error", safe)
         finally:
             self._tasks.pop(turn_id, None)
+            if control_job_id:
+                # The mutation worker may drain all chat tasks. Launch only
+                # after this owner has fully returned, avoiding a cancel cycle.
+                asyncio.current_task().add_done_callback(
+                    lambda _task: self._launch_control(control_job_id)
+                )
+
+    async def _ingest_guide_source(self, session_id: str, turn_id: str, source: dict) -> dict:
+        """Save public evidence without granting the model adoption or memory authority."""
+        with self._guard:
+            if (
+                self._closed
+                or self._closing
+                or self._memory_mutating
+                or self._turn(session_id, turn_id)["status"] not in ACTIVE
+            ):
+                raise asyncio.CancelledError
+        from ai_neko.runtime.guides import guide_source_hashes
+
+        # Reading and using a source creates a dependency even when the local
+        # content quota rejects its body. Keep only hashes here, before use.
+        with self._db:
+            self._db.executemany(
+                "INSERT OR IGNORE INTO turn_guide_sources VALUES (?,?,?)",
+                [(turn_id, kind, value) for kind, value in guide_source_hashes(source)],
+            )
+        started = time.monotonic()
+        try:
+            expected = self._guide_turn_revisions.get(
+                turn_id, self.memory.guides.published_revision
+            )
+            saved = await self._memory_call(
+                self.memory.guides.ingest, source, expected_revision=expected
+            )
+            self._assert_guide_turn(session_id, turn_id)
+            with self._db:
+                self._db.execute(
+                    "INSERT OR IGNORE INTO turn_guides VALUES (?,?,?,0)",
+                    (turn_id, saved["guide_id"], saved["revision_id"]),
+                )
+            # Only authoritative identities and coverage enter the journal. No
+            # body/chunks escape the graph's separate model context budget.
+            return {
+                "saved": True,
+                **{
+                    key: saved[key]
+                    for key in (
+                        "guide_id",
+                        "revision_id",
+                        "content_hash",
+                        "completeness",
+                        "completeness_reasons",
+                        "deduplicated",
+                    )
+                    if key in saved
+                },
+            }
+        except GuideCapacityError:
+            return {"saved": False, "error": "guide_capacity_exceeded"}
+        except GuideInputError:
+            return {"saved": False, "error": "guide_body_not_savable"}
+        except (GuideConflictError, sqlite3.Error, OSError):
+            # Reading remains useful when a local write fails; never report a
+            # durable save and never expose file paths/SQL through model/UI data.
+            return {"saved": False, "error": "guide_storage_unavailable"}
+        finally:
+            self.metrics.record("guide_ingest_ms", (time.monotonic() - started) * 1000)
 
     async def cancel_request(self, session_id: str, request_id: str) -> dict[str, Any]:
         """Revoke an input even when its acceptance response never reached the UI.
@@ -857,6 +1077,9 @@ class SessionRuntime:
                 (session_id, request_id),
             ).fetchone()
         if row:
+            job = self._control_for_turn(row["id"])
+            if job:
+                await self.cancel_control_job(session_id, job["id"])
             result = await self.cancel_turn(session_id, row["id"], _internal=True)
             return {"request_id": request_id, "turn_id": row["id"], "status": result["status"]}
         return {"request_id": request_id, "status": "cancelled"}
@@ -864,6 +1087,9 @@ class SessionRuntime:
     async def cancel_turn(
         self, session_id: str, turn_id: str, *, _internal: bool = False
     ) -> dict[str, Any]:
+        job = self._control_for_turn(turn_id)
+        if job and not _internal:
+            await self.cancel_control_job(session_id, job["id"])
         if self._memory_mutating and not _internal:
             raise RuntimeConflictError("记忆正在更新，请稍后重试。")
         # Settlement is not part of the cancellable graph task. Invalidate first.
@@ -906,6 +1132,12 @@ class SessionRuntime:
                 "ack_seq": row["ack_seq"],
                 "sent_seq": sent,
                 "turn_id": turn_id,
+                "control_job_id": (self._control_for_turn(turn_id) or {"id": None})["id"],
+                "match_binding": {
+                    key: self._binding(turn_id)[key] for key in ("match_id", "expected_revision")
+                }
+                if self._binding(turn_id)
+                else None,
             }
 
     def ack(self, session_id: str, turn_id: str, sequence: int) -> dict[str, Any]:
@@ -919,6 +1151,8 @@ class SessionRuntime:
                 self._db.execute(
                     "UPDATE turns SET ack_seq=MAX(ack_seq,?) WHERE id=?", (sequence, turn_id)
                 )
+                if sequence > row["ack_seq"]:
+                    self._record_match_delivery(turn_id)
             return {"turn_id": turn_id, "ack_seq": max(row["ack_seq"], sequence)}
 
     def audio_ack(
@@ -939,6 +1173,8 @@ class SessionRuntime:
             if self._closing or self._memory_mutating or self._erasure_failed:
                 raise RuntimeConflictError("播放回执当前不可更新。")
             turn = self._turn(session_id, turn_id)
+            if state == "started" and self._control_for_turn(turn_id):
+                self.validate_voice_turn(session_id, turn_id)
             if text_start is not None or text_end is not None:
                 delivered = "".join(
                     event.get("text", "")
@@ -964,6 +1200,8 @@ class SessionRuntime:
                     "UPDATE audio_playback SET state=?,updated_at=? WHERE turn_id=? AND segment_id=?",
                     (state, time.time(), turn_id, segment_id),
                 )
+                if state == "completed":
+                    self._record_match_delivery(turn_id)
             else:
                 if state != "started" or turn["status"] not in {"running", "completed"}:
                     raise RuntimeConflictError("播放回执没有有效开始事件。")
@@ -1011,12 +1249,15 @@ class SessionRuntime:
         await asyncio.shield(self._close_task)
 
     async def _close_serialized(self):
+        # Jobs may currently own the mutation lock; drain before acquiring it.
+        await self._stop_control_jobs()
         async with self._mutation_lock:
             await self._close_impl()
 
     async def _close_impl(self):
         if self._closed:
             return
+        await self._stop_guide_operations()
         if self._memory_retry:
             self._memory_retry.cancel()
         voice_tasks = list(self.voice_tasks.values())
@@ -1048,6 +1289,9 @@ class SessionRuntime:
         self._turn_started.clear()
         self._first_text_pending.clear()
         await self._drain_memory_io()
+        close_cache = getattr(self.providers, "close_search_cache", None)
+        if close_cache:
+            await close_cache()
         self.metrics.flush()
         with self._guard:
             self._closed = True
@@ -1195,7 +1439,11 @@ class SessionRuntime:
                 # Persist intent before changing Memory. Its restore transaction
                 # retains removed-source tombstones, so recovery can reconstruct
                 # the history cleanup even if the process dies before return.
-                intent = {"fact_ids": [], "source_ids": []}
+                intent = {
+                    "fact_ids": [],
+                    "source_ids": [],
+                    "evidence_candidates": await self._memory_call(self._erasure_candidates),
+                }
                 with self._db:
                     self._db.execute(
                         "INSERT OR REPLACE INTO memory_erasure VALUES (1,?)",
@@ -1217,7 +1465,7 @@ class SessionRuntime:
                     raise
                 result = await self._memory_call(
                     self._complete_erasure,
-                    result,
+                    {**intent, "fact_ids": result["fact_ids"], "source_ids": result["source_ids"]},
                     {
                         *result.get("fact_contents", ()),
                         *result.get("source_bodies", ()),
@@ -1303,6 +1551,7 @@ class SessionRuntime:
             result = {
                 "fact_ids": [fact_id],
                 "source_ids": [source["source_id"] for source in sources],
+                "evidence_candidates": await self._memory_call(self._erasure_candidates),
             }
             with self._db:
                 self._db.execute(
@@ -1325,21 +1574,29 @@ class SessionRuntime:
         finally:
             self._memory_mutating = self._erasure_failed
 
+    def _erasure_candidates(self):
+        with closing(sqlite3.connect(self.paths.memory / "conversation.sqlite")) as database:
+            return erasure_candidates(database, self.memory)
+
     def _complete_erasure(self, intent, needles: set[str] | None = None):
         with closing(sqlite3.connect(self.paths.memory / "conversation.sqlite")) as database:
             database.row_factory = sqlite3.Row
             database.execute("PRAGMA secure_delete=ON")
             database.execute("PRAGMA busy_timeout=3000")
+            if intent.get("kind") == "guide":
+                return self._complete_guide_control(intent, database)
             return self._erase_history(database, intent, needles)
 
     def _erase_history(self, database, intent, needles):
         facts, sources = set(intent["fact_ids"]), set(intent["source_ids"])
+        guide_only = intent.get("kind") == "guide"
         # Evidence needles are ephemeral and live-path only: the persisted intent
         # stays identifier-only, and startup recovery falls back to the ID cascade.
         needles = {n for n in (needles or set()) if isinstance(n, str) and 4 <= len(n) <= 2000}
-        deleted = self.memory.erasure_state()
-        facts.update(deleted["fact_ids"])
-        sources.update(deleted["source_ids"])
+        if not guide_only:
+            deleted = self.memory.erasure_state()
+            facts.update(deleted["fact_ids"])
+            sources.update(deleted["source_ids"])
         # A turn's hidden recalled facts taint its assistant output, not the
         # generic user question that preceded it. Track raw-source erasure
         # separately, and persist that distinction before deleting evidence.
@@ -1357,7 +1614,14 @@ class SessionRuntime:
         # them. Shared-source cascades can discover a real user turn that was
         # absent from the initial fact's source list. Persist its role first so
         # a crash after Memory commits cannot lose the raw-history dependency.
-        provenance = {item["id"]: set(item["source_ids"]) for item in self.memory.list_facts()}
+        # Guide dependencies belong to assistant evidence, while extraction
+        # sources are the user's own words. Sharing a turn ID does not make a
+        # user's personal preference depend on the guide read in that turn.
+        provenance = (
+            {}
+            if guide_only
+            else {item["id"]: set(item["source_ids"]) for item in self.memory.list_facts()}
+        )
 
         def persist_intent():
             with database:
@@ -1366,6 +1630,7 @@ class SessionRuntime:
                     (
                         json.dumps(
                             {
+                                **intent,
                                 "fact_ids": sorted(facts),
                                 "source_ids": sorted(sources),
                                 "user_turn_ids": sorted(user_affected),
@@ -1388,22 +1653,6 @@ class SessionRuntime:
                         )
                 if before == (len(facts), len(sources)):
                     break
-            persist_intent()
-            for source_id in sources - erased_sources:
-                result = self.memory.forget_source(source_id, with_evidence=True)
-                facts.update(result["fact_ids"])
-                sources.update(result["source_ids"])
-                user_affected.update(
-                    source[5:]
-                    for source in result.get("existing_source_ids", ())
-                    if source.startswith("turn:")
-                )
-                needles.update(
-                    n
-                    for n in (*result.get("fact_contents", ()), *result.get("source_bodies", ()))
-                    if 4 <= len(n) <= 2000
-                )
-                erased_sources.add(source_id)
             affected.update(source[5:] for source in sources if source.startswith("turn:"))
             for fact_id in facts:
                 affected.update(
@@ -1412,18 +1661,33 @@ class SessionRuntime:
                         "SELECT turn_id FROM turn_memory WHERE fact_id=?", (fact_id,)
                     )
                 )
-            # Evidence scan: an answer that still quotes erased text depended on
-            # it even without a turn_memory row (e.g. it saw the fact through
-            # chat history). One pass over events keeps this proportional to the
-            # journal size, not to the needle count.
-            if needles:
-                for row in database.execute("SELECT id,input FROM turns"):
-                    if row[1] != "[已遗忘的对话]" and any(needle in row[1] for needle in needles):
-                        affected.add(row[0])
-                        user_affected.add(row[0])
-                for row in database.execute("SELECT turn_id,payload FROM events"):
-                    if any(needle in row[1] for needle in needles):
-                        affected.add(row[0])
+            # Resolve pre-write candidates from committed removals. This also
+            # works after Memory committed but its return value was lost.
+            evidence = evidence_ids(database, self.memory.scope, needles)
+            selected = [evidence] + [
+                candidate
+                for candidate in intent.get("evidence_candidates", [])
+                if candidate["id"] in (facts if candidate["kind"] == "fact" else sources)
+            ]
+            goals = set(intent.get("match_goal_ids", []))
+            goal_evidence = {tuple(item) for item in intent.get("match_goal_evidence", [])}
+            for candidate in selected:
+                affected.update(candidate.get("turn_ids", []))
+                user_affected.update(candidate.get("user_turn_ids", []))
+                goals.update(candidate.get("match_goal_ids", []))
+                goal_evidence.update(
+                    tuple(item) for item in candidate.get("match_goal_evidence", [])
+                )
+            intent["match_goal_ids"] = sorted(goals)
+            intent["match_goal_evidence"] = sorted(goal_evidence)
+            for match_id, goal_hash in intent.get("match_goal_evidence", []):
+                affected.update(
+                    row[0]
+                    for row in database.execute(
+                        "SELECT turn_id FROM turn_match_goals WHERE match_id=? AND goal_hash=?",
+                        (match_id, goal_hash),
+                    )
+                )
             for identifier in tuple(affected):
                 affected.update(
                     row[0]
@@ -1442,16 +1706,45 @@ class SessionRuntime:
             sources.update("turn:" + identifier for identifier in affected)
             # Persist the expanded closure before deleting evidence needed to derive it.
             persist_intent()
+            if guide_only:
+                erased_sources.update(sources)
+            for source_id in sources - erased_sources:
+                result = self.memory.forget_source(source_id, with_evidence=True)
+                facts.update(result["fact_ids"])
+                sources.update(result["source_ids"])
+                user_affected.update(
+                    source[5:]
+                    for source in result.get("existing_source_ids", ())
+                    if source.startswith("turn:")
+                )
+                needles.update(
+                    n
+                    for n in (*result.get("fact_contents", ()), *result.get("source_bodies", ()))
+                    if 4 <= len(n) <= 2000
+                )
+                erased_sources.add(source_id)
             if (
                 sizes == (len(facts), len(sources), len(affected), len(user_affected))
                 and sources <= erased_sources
             ):
                 break
         with database:
+            if not guide_only:
+                from ai_neko.runtime.match_store import MatchStore
+
+                matches = MatchStore(database, self.memory.scope)
+                matches.erase_observations(affected | user_affected)
+                matches.forget_goals(intent.get("match_goal_ids", []))
+                for match_id, goal_hash in intent.get("match_goal_evidence", []):
+                    database.execute(
+                        "DELETE FROM match_goal_evidence WHERE match_id=? AND goal_hash=?",
+                        (match_id, goal_hash),
+                    )
             for identifier in affected:
                 database.execute(
-                    "UPDATE turns SET input='[已遗忘的对话]',sent_seq=0,ack_seq=0,next_seq=1 WHERE id=?",
-                    (identifier,),
+                    "UPDATE turns SET input=CASE WHEN ? THEN '[已遗忘的对话]' ELSE input END,"
+                    "sent_seq=0,ack_seq=0,next_seq=1 WHERE id=?",
+                    (not guide_only or identifier in user_affected, identifier),
                 )
                 for table in (
                     "events",
@@ -1461,6 +1754,9 @@ class SessionRuntime:
                     "turn_images",
                     "turn_metadata",
                     "audio_playback",
+                    "turn_guides",
+                    "turn_guide_sources",
+                    "turn_match_goals",
                 ):
                     database.execute(f"DELETE FROM {table} WHERE turn_id=?", (identifier,))
             database.execute(
@@ -1469,9 +1765,9 @@ class SessionRuntime:
         checkpoint = self.paths.checkpoints / "chat-graph.sqlite"
         if checkpoint.exists():
             # Delete only the erased turns' execution records. Other sessions'
-            # checkpoints are independent namespaces and must survive; the old
-            # whole-database DELETE + VACUUM erased unrelated sessions and
-            # rewrote the entire file on every single erasure.
+            # checkpoints are independent namespaces and must survive. Compact
+            # after targeted deletion to remove old free-page copies written by
+            # earlier versions without secure_delete, while retaining live rows.
             threads = []
             if affected:
                 marks = ",".join("?" for _ in affected)
@@ -1498,6 +1794,8 @@ class SessionRuntime:
                             [(thread,) for thread in threads],
                         )
                 checkpoint_db.commit()
+                if threads:
+                    checkpoint_db.execute("VACUUM")
                 checkpoint_db.execute("PRAGMA wal_checkpoint(TRUNCATE)")
         with database:
             database.execute("DELETE FROM memory_erasure WHERE id=1")
