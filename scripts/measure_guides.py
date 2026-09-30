@@ -22,7 +22,7 @@ from pathlib import Path
 from uuid import uuid4
 
 from ai_neko.config.paths import initialize_data_root
-from ai_neko.config.providers import validate
+from ai_neko.config.providers import SEARCH_BASE_URLS, validate
 from ai_neko.providers import ModelAdapter
 from ai_neko.runtime import SessionRuntime
 from ai_neko.tools.web import WebTools, source
@@ -150,7 +150,14 @@ class ProbeProviders:
     def web_tools(self):
         parent = self
         adapter = (
-            None if self.synthetic else WebTools(self.config, os.environ["AI_NEKO_SEARCH_API_KEY"])
+            None
+            if self.synthetic
+            else WebTools(
+                self.config,
+                os.environ["AI_NEKO_SEARCH_API_KEY"]
+                if self.config.get("search_provider", "tavily") == "tavily"
+                else None,
+            )
         )
 
         class Counted:
@@ -417,7 +424,8 @@ def main():
     parser.add_argument("--plan", type=Path)
     parser.add_argument("--model", default="synthetic")
     parser.add_argument("--model-base-url", default="https://api.openai.com/v1")
-    parser.add_argument("--search-base-url", default="https://api.tavily.com")
+    parser.add_argument("--search-provider", choices=tuple(SEARCH_BASE_URLS), default="tavily")
+    parser.add_argument("--search-base-url")
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     output = args.output.resolve()
@@ -425,9 +433,10 @@ def main():
         parser.error("Use a new JSON under artifacts; never overwrite prior evidence")
     if args.live and (not args.plan or args.model == "synthetic"):
         parser.error("Live mode requires an explicit 20-pair plan and model")
-    if args.live and any(
-        not os.environ.get(k) for k in ("AI_NEKO_MODEL_API_KEY", "AI_NEKO_SEARCH_API_KEY")
-    ):
+    required_keys = ["AI_NEKO_MODEL_API_KEY"]
+    if args.search_provider == "tavily":
+        required_keys.append("AI_NEKO_SEARCH_API_KEY")
+    if args.live and any(not os.environ.get(key) for key in required_keys):
         parser.error(
             "Missing project-specific model/search environment keys; no ordinary provider key fallback"
         )
@@ -436,7 +445,8 @@ def main():
         {
             "model": args.model,
             "model_base_url": args.model_base_url,
-            "search_base_url": args.search_base_url,
+            "search_provider": args.search_provider,
+            "search_base_url": args.search_base_url or SEARCH_BASE_URLS[args.search_provider],
         }
     )
     report = asyncio.run(evaluate(plan, config, output, synthetic=not args.live))

@@ -7,6 +7,7 @@ quality, audible latency, cost, or Windows performance.
 import asyncio
 import importlib.util
 import json
+import sys
 from pathlib import Path
 
 import pytest
@@ -291,3 +292,97 @@ def test_real_adapter_usage_snapshots_are_counted_once_and_invalid_final_usage_s
         unknown_measurements(result)
         assert "EXTRA_SECRET" not in json.dumps(result)
         assert "SYNTHETIC_REQUEST_KEY" not in json.dumps(result)
+
+
+@pytest.mark.parametrize(
+    "live,search_args,provider,base",
+    [
+        (False, [], "tavily", "https://api.tavily.com"),
+        (True, [], "tavily", "https://api.tavily.com"),
+        (True, ["--search-provider", "anysearch"], "anysearch", "https://api.anysearch.com/v1"),
+        (
+            True,
+            ["--search-provider", "anysearch", "--search-base-url", "https://search.example/v1"],
+            "anysearch",
+            "https://search.example/v1",
+        ),
+    ],
+)
+def test_cli_search_provider_defaults_and_anonymous_key_requirement(
+    probe, tmp_path, monkeypatch, live, search_args, provider, base
+):
+    monkeypatch.setattr(probe, "ROOT", tmp_path)
+    monkeypatch.delenv("AI_NEKO_MODEL_API_KEY", raising=False)
+    monkeypatch.delenv("AI_NEKO_SEARCH_API_KEY", raising=False)
+    plan = tmp_path / "plan.json"
+    plan.write_text(json.dumps(probe.synthetic_plan()), encoding="utf-8")
+    argv = ["measure_guides.py", "--output", str(tmp_path / "artifacts" / "result.json")]
+    if live:
+        monkeypatch.setenv("AI_NEKO_MODEL_API_KEY", "SYNTHETIC_MODEL_KEY")
+        if provider == "tavily":
+            monkeypatch.setenv("AI_NEKO_SEARCH_API_KEY", "SYNTHETIC_SEARCH_KEY")
+        argv.extend(["--live", "--model", "synthetic-live-model", "--plan", str(plan)])
+    argv.extend(search_args)
+    monkeypatch.setattr(sys, "argv", argv)
+    captured = []
+
+    async def fake_evaluate(plan, config, output, *, synthetic):
+        captured.append((config, synthetic))
+        # Exercise CLI validation only: no actual provider or network operation.
+        return {"status": "SYNTHETIC_PIPELINE_PASS", "pairs": plan["pairs"]}
+
+    monkeypatch.setattr(probe, "evaluate", fake_evaluate)
+    assert probe.main() == 0
+    checked, synthetic = captured[0]
+    assert checked["search_provider"] == provider and checked["search_base_url"] == base
+    assert synthetic is not live
+    assert "SYNTHETIC_MODEL_KEY" not in json.dumps(checked)
+
+
+@pytest.mark.parametrize("provider,model_key", [("anysearch", False), ("tavily", True)])
+def test_cli_live_mode_keeps_required_model_or_tavily_keys(
+    probe, tmp_path, monkeypatch, provider, model_key
+):
+    monkeypatch.setattr(probe, "ROOT", tmp_path)
+    monkeypatch.delenv("AI_NEKO_MODEL_API_KEY", raising=False)
+    monkeypatch.delenv("AI_NEKO_SEARCH_API_KEY", raising=False)
+    if model_key:
+        monkeypatch.setenv("AI_NEKO_MODEL_API_KEY", "SYNTHETIC_MODEL_KEY")
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "measure_guides.py",
+            "--live",
+            "--model",
+            "synthetic-live-model",
+            "--plan",
+            str(tmp_path / "plan.json"),
+            "--search-provider",
+            provider,
+            "--output",
+            str(tmp_path / "artifacts" / "result.json"),
+        ],
+    )
+    with pytest.raises(SystemExit) as exc:
+        probe.main()
+    assert exc.value.code == 2
+
+
+def test_live_probe_anonymous_adapter_never_reads_search_key(probe, monkeypatch):
+    monkeypatch.delenv("AI_NEKO_SEARCH_API_KEY", raising=False)
+    checked = {**config(probe), "search_provider": "anysearch"}
+    captured = []
+
+    class AnonymousAdapter:
+        def __init__(self, config, key):
+            captured.append((config, key))
+
+        async def execute(self, name, arguments):
+            return {"status": "ok", "sources": [], "error": None}
+
+    monkeypatch.setattr(probe, "WebTools", AnonymousAdapter)
+    providers = probe.ProbeProviders(checked, probe.synthetic_plan()["pairs"][0], synthetic=False)
+    outcome = asyncio.run(providers.web_tools().execute("search_web", {"query": "guide"}))
+    assert outcome["status"] == "ok"
+    assert captured == [(checked, None)]

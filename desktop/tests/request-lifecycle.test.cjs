@@ -66,6 +66,7 @@ async function harness({ request, capture, flush, stopRecording, plain = false }
       status: async () => ({ state: 'ready' }),
     },
     aiNekoCompanion: {
+      clearKeys() {},
       flushPlayback: async () => flush?.(),
       captureForTurn: async () => {
         calls.captures++;
@@ -93,6 +94,43 @@ async function harness({ request, capture, flush, stopRecording, plain = false }
 
 const turnPosts = (app) => app.requests.filter((item) => item.method === 'POST' && /\/turns$/.test(item.path));
 const requestCancels = (app) => app.requests.filter((item) => /\/requests\/[^/]+\/cancel$/.test(item.path));
+
+test('anonymous search settings omit stored credentials and keep custom endpoints', async () => {
+  const app = await harness({ request: ({ path, method, body }) => path === '/api/config' ? {
+    status: 200, body: method === 'PUT' ? { ...body, search_key_set: true, search_configured: true } : {
+      model_base_url: 'http://127.0.0.1:9000', model: 'synthetic',
+      search_base_url: 'https://api.tavily.com', search_key_set: true,
+    },
+  } : undefined });
+  try {
+    app.byId('open-settings').listeners.get('click')();
+    const provider = app.byId('search-provider');
+    assert.equal(provider.value, 'tavily');
+    provider.value = 'anysearch'; provider.listeners.get('change')();
+    assert.equal(app.byId('search-base-url').value, 'https://api.anysearch.com/v1');
+    assert.equal(app.byId('search-api-key').disabled, true);
+    assert.equal(app.byId('clear-search-label').hidden, true);
+    // Even retained input state cannot send a Tavily credential in anonymous mode.
+    app.byId('search-api-key').value = 'synthetic-old-key';
+    app.byId('clear-search-key').checked = true;
+    await app.byId('settings-form').requestSubmit();
+    const saved = app.requests.find((item) => item.path === '/api/config' && item.method === 'PUT').body;
+    assert.equal(saved.search_provider, 'anysearch');
+    assert.equal(saved.search_base_url, 'https://api.anysearch.com/v1');
+    assert.equal(Object.hasOwn(saved, 'search_api_key'), false);
+    assert.equal(Object.hasOwn(saved, 'clear_search_api_key'), false);
+    app.byId('open-settings').listeners.get('click')();
+    assert.equal(app.byId('search-key-state').textContent, '无需 Key');
+    provider.value = 'tavily'; provider.listeners.get('change')();
+    assert.equal(app.byId('search-base-url').value, 'https://api.tavily.com');
+    assert.equal(app.byId('search-api-key').disabled, false);
+    assert.equal(app.byId('clear-search-label').hidden, false);
+    app.byId('search-base-url').value = 'https://search.example.org/custom';
+    provider.value = 'anysearch'; provider.listeners.get('change')();
+    assert.equal(app.byId('search-base-url').value, 'https://search.example.org/custom');
+    assert.match(app.chat.friendlyError({ code: 'search_quota_exhausted' }), /额度已用完/);
+  } finally { await app.dispose(); }
+});
 
 test('lost visual acceptance retries the identical frame and request; a new question captures anew', async () => {
   let attempts = 0;

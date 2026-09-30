@@ -69,14 +69,15 @@
     <dialog id="settings-dialog" class="settings-dialog" aria-labelledby="settings-title">
       <form id="settings-form" autocomplete="off">
         <div class="dialog-heading"><div><p class="small-label">连接你的服务</p><h2 id="settings-title">模型与搜索设置</h2></div><button id="close-settings" type="button" class="icon-button close-button" aria-label="关闭设置">×</button></div>
-        <p class="dialog-description">首次使用先填写模型；查攻略还需要 Tavily 搜索。请求及费用由对应供应商处理。<span id="credential-note">API Key 不会写入浏览器存储。</span></p>
+        <p class="dialog-description">首次使用先填写模型；联网搜索可选免 Key 的 AnySearch 或 Tavily。请求及费用由对应供应商处理。<span id="credential-note">API Key 不会写入浏览器存储。</span></p>
         <fieldset><legend><span class="section-number">01</span> 对话模型 <span class="field-caption">OpenAI 兼容接口</span></legend>
           <label for="model-base-url">API 地址</label><input id="model-base-url" name="model_base_url" type="url" placeholder="https://api.example.com/v1" spellcheck="false" autocomplete="off" required><p class="field-help">填写供应商提供的基础地址，一般以 /v1 结尾。</p>
           <label for="model-name">模型名称</label><input id="model-name" name="model" type="text" placeholder="填写你的供应商支持的模型名称" spellcheck="false" autocomplete="off" required>
           <div class="label-row"><label for="model-api-key">API Key</label><span id="model-key-state" class="key-state">尚未设置</span></div><input id="model-api-key" name="model_api_key" type="password" placeholder="填写模型 API Key" autocomplete="new-password" spellcheck="false"><label class="checkbox-label" id="clear-model-label" hidden><input id="clear-model-key" type="checkbox">清除已保存的模型 Key</label>
         </fieldset>
-        <fieldset><legend><span class="section-number">02</span> 联网搜索 <span class="field-caption">Tavily</span></legend>
-          <label for="search-base-url">搜索 API 地址</label><input id="search-base-url" name="search_base_url" type="url" placeholder="https://api.tavily.com" spellcheck="false" autocomplete="off"><p class="field-help">填写基础地址，不必添加 /search。未配置时仍可使用日常聊天。</p>
+        <fieldset><legend><span class="section-number">02</span> 联网搜索</legend>
+          <label for="search-provider">搜索服务</label><select id="search-provider" name="search_provider"><option value="tavily">Tavily（需要 Key）</option><option value="anysearch">AnySearch（免费免 Key）</option></select>
+          <label for="search-base-url">搜索 API 地址</label><input id="search-base-url" name="search_base_url" type="url" placeholder="https://api.tavily.com" spellcheck="false" autocomplete="off"><p id="search-help" class="field-help">填写 Tavily API Key，或选择 AnySearch 免费搜索。</p>
           <div class="label-row"><label for="search-api-key">API Key</label><span id="search-key-state" class="key-state">尚未设置</span></div><input id="search-api-key" name="search_api_key" type="password" placeholder="填写 Tavily API Key" autocomplete="new-password" spellcheck="false"><label class="checkbox-label" id="clear-search-label" hidden><input id="clear-search-key" type="checkbox">清除已保存的搜索 Key</label>
         </fieldset>
         <p id="settings-message" class="settings-message" role="status" aria-live="polite"></p>

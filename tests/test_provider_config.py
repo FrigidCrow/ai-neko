@@ -79,6 +79,9 @@ def test_only_application_environment_key_and_explicit_clear(store, monkeypatch)
         {"search_base_url": "http://example.com"},
         {"search_base_url": "https://127.0.0.1"},
         {"search_base_url": "https://localhost"},
+        {"search_provider": "unknown"},
+        {"search_provider": None},
+        {"search_provider": ["anysearch"]},
         {"model_base_url": "http://example.com"},
         {"model_base_url": "https://10.0.0.1/v1"},
         {"model_base_url": "https://example.com?key=secret"},
@@ -147,3 +150,81 @@ def test_atomic_file_failure_rolls_back_changed_credentials(store, monkeypatch):
         store.update({"model": "new-model", "model_api_key": "new-key"})
     assert store.model()._key == "previous-key"
     assert store.public_config()["model"] == ""
+
+
+def test_schema_one_three_field_config_remains_tavily_and_upgrades_on_save(store):
+    path = store.paths.config / "providers.json"
+    original = {
+        "model_base_url": "https://model.example/v1",
+        "model": "synthetic-model",
+        "search_base_url": "https://search.example",
+    }
+    path.write_text(
+        json.dumps({"app_id": "ai-neko", "schema_version": 1, "providers": original}),
+        encoding="utf-8",
+    )
+    reloaded = ProviderStore(store.paths)
+    public = reloaded.public_config()
+    assert public["search_provider"] == "tavily"
+    assert not public["search_configured"]
+    assert {key: public[key] for key in original} == original
+    # A read does not rewrite old preferences; the next explicit save adds the field.
+    assert json.loads(path.read_text())["providers"] == original
+    reloaded.update({"model": "another-synthetic-model"})
+    assert json.loads(path.read_text())["providers"]["search_provider"] == "tavily"
+
+
+@pytest.mark.parametrize("extra", [{"api_key": "secret"}, {"search_backend": "anysearch"}])
+def test_legacy_config_does_not_upgrade_unknown_fields(store, extra):
+    config = {
+        "model_base_url": "https://model.example/v1",
+        "model": "synthetic-model",
+        "search_base_url": "https://search.example",
+        **extra,
+    }
+    (store.paths.config / "providers.json").write_text(
+        json.dumps({"app_id": "ai-neko", "schema_version": 1, "providers": config}),
+        encoding="utf-8",
+    )
+    with pytest.raises(ValueError, match="invalid_provider_config"):
+        ProviderStore(store.paths)
+
+
+def test_anysearch_selection_persists_without_search_key_and_uses_provider_default(store):
+    assert store.public_config()["search_provider"] == "tavily"
+    assert not store.public_config()["search_configured"]
+    public = store.update({"search_provider": "anysearch"})
+    assert public["search_base_url"] == "https://api.anysearch.com/v1"
+    assert public["search_configured"] and not public["search_key_set"]
+    reloaded = ProviderStore(store.paths)
+    assert reloaded.public_config() == public
+    assert reloaded.web_tools()._key is None
+    changed = reloaded.update({"search_provider": "tavily"})
+    assert changed["search_base_url"] == "https://api.tavily.com"
+    assert not changed["search_configured"]
+
+
+def test_explicit_search_base_survives_provider_selection_and_unrelated_updates(store):
+    public = store.update(
+        {"search_provider": "anysearch", "search_base_url": "https://search.example/v1"}
+    )
+    assert public["search_base_url"] == "https://search.example/v1"
+    assert store.update({"model": "test"})["search_base_url"] == "https://search.example/v1"
+    assert (
+        store.update({"search_provider": "anysearch"})["search_base_url"]
+        == public["search_base_url"]
+    )
+
+
+def test_anysearch_never_loads_saved_or_environment_key_into_web_tools(store, monkeypatch):
+    monkeypatch.setenv("AI_NEKO_SEARCH_API_KEY", "synthetic-environment-key")
+    assert store.public_config()["search_configured"]
+    store.update({"search_api_key": "synthetic-saved-key", "search_provider": "anysearch"})
+    assert store.public_config()["search_key_set"]
+    assert store.public_config()["search_configured"]
+    assert store.web_tools()._key is None
+    assert "synthetic-" not in json.dumps(store.public_config())
+    assert "synthetic-" not in (store.paths.config / "providers.json").read_text()
+    # An explicit switch back restores the user's stored Tavily credential.
+    store.update({"search_provider": "tavily"})
+    assert store.web_tools()._key == "synthetic-saved-key"

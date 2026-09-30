@@ -1,0 +1,26 @@
+{
+  "provider": "anysearch",
+  "mode": "anonymous",
+  "query": "Python official documentation pathlib",
+  "request_path": "independent httpx with trust_env=False",
+  "authorization_sent": false,
+  "attempts": 1,
+  "http_status": 200,
+  "code": 0,
+  "result_count": 3,
+  "results": [
+    {
+      "title": "pathlib — Object-oriented filesystem paths",
+      "url": "https://docs.python.org/3/library/pathlib.html"
+    },
+    {
+      "title": "pathlib — pathlib 1.0.1 documentation",
+      "url": "https://pathlib.readthedocs.io/"
+    },
+    {
+      "title": "Python pathlib Module",
+      "url": "https://www.w3schools.com/python/ref_module_pathlib.asp"
+    }
+  ],
+  "elapsed_ms": 1827.69
+}

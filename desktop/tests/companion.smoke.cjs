@@ -228,6 +228,34 @@ report.executable_sha256 = crypto.createHash('sha256').update(fs.readFileSync(ex
     await page.locator('#settings-form').evaluate((form) => form.requestSubmit());
     await page.waitForFunction(() => document.querySelector('#settings-panel').hidden);
   });
+  await check('anonymous_search_settings_save_without_a_key_and_restore_tavily', async () => {
+    await page.locator('#open-settings').click();
+    await page.locator('#search-provider').selectOption('anysearch');
+    assert.equal(await page.locator('#search-api-key').isDisabled(), true);
+    assert.equal(await page.locator('#search-base-url').inputValue(), 'https://api.anysearch.com/v1');
+    await page.locator('#settings-form').evaluate((form) => form.requestSubmit());
+    await page.waitForFunction(() => document.querySelector('#settings-panel').hidden);
+    const configured = await page.evaluate(() => window.aiNekoChat.api('/api/config'));
+    assert.equal(configured.search_provider, 'anysearch');
+    assert.equal(configured.search_configured, true);
+    assert.equal(configured.search_key_set, false);
+    await page.locator('#open-settings').click();
+    assert.equal(await page.locator('#search-provider').inputValue(), 'anysearch');
+    assert.equal(await page.locator('#search-key-state').innerText(), '无需 Key');
+    const settingsImage = screenshotPath.replace(/\.png$/, '-free-search.png');
+    await page.locator('#search-provider').scrollIntoViewIfNeeded();
+    await page.screenshot({ path: settingsImage, omitBackground: true });
+    report.search_settings_screenshot = path.basename(settingsImage);
+    report.search_settings_screenshot_sha256 = crypto.createHash('sha256').update(fs.readFileSync(settingsImage)).digest('hex');
+    await page.locator('#search-provider').selectOption('tavily');
+    assert.equal(await page.locator('#search-api-key').isDisabled(), false);
+    await page.locator('#settings-form').evaluate((form) => form.requestSubmit());
+    await page.waitForFunction(() => document.querySelector('#settings-panel').hidden);
+    const restored = await page.evaluate(() => window.aiNekoChat.api('/api/config'));
+    assert.equal(restored.search_provider, 'tavily');
+    assert.equal(restored.search_base_url, 'https://api.tavily.com');
+    assert.equal(restored.search_configured, false);
+  });
   await check('default_on_demand_mode_and_new_session_keep_explicit_choice', async () => {
     assert.equal(await page.locator('#mode-guide').getAttribute('aria-pressed'), 'true');
     assert.ok((await page.locator('#mode-guide').innerText()).includes('按需联网'));

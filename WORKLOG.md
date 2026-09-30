@@ -650,3 +650,15 @@ README、PLAN、NEXT、ARCHITECTURE、HANDOFF、G6报告、真实记录手册和
 用户明确确认推送授权，询问免费服务及旧N.E.K.O的接入，并要求试Windows虚拟机。先登记PLAN§17.9，更新当前交接的授权状态。`git diff --check`通过；`gh repo view FrigidCrow/ai-neko --json nameWithOwner,defaultBranchRef,isPrivate,viewerPermission`核实既有public仓库、ADMIN权限与默认分支codex/initial-plan，继续现有codex/companion-five-capabilities，不改默认分支。
 
 两条并行只读调查分别核查参考工程tracked源码/官方服务文档，以及本机VM平台/存储与官方兼容性。未读旧凭据或配置，未启动参考服务，未购买或接受许可。VM实查Mac mini M4/24GB，空闲约36GiB，无已安装虚拟机；存储选择已向用户提出，CI可独立继续。
+
+推送前重算284份G6源码摘要完全相同；84个新增文件共2,679,121字节，无超过1MB文件，凭据模式检查无命中，v04五份数据均为已冻结合成fixture。`git fetch origin`后本地/远端差异0/0，文档验证及diff检查通过。`git add .github README.md REVIEW.md WORKLOG.md desktop docs scripts src tests`、`git commit -m 'Implement MVP2 local guide reuse and continuous match context'`、`git push origin codex/companion-five-capabilities`成功，提交`7aeffd19312518749754aab67c0848d1c02f7c19`，触发CI36703688975。
+
+首次CI结论failure：Linux1538通过/1平台skip，冻结30题与200篇步骤成功；Windows收集阶段1 error、未执行测试，打包跳过。下载两平台artifact与日志到`artifacts/mvp2/ci-36703688975`，模拟CRLF复现冻结文件摘要不一致。更新PLAN后在`.gitattributes`将`tests/fixtures/guides/**`和`tests/fixtures/v04/**`设为`-text -whitespace`；用`git -c core.autocrlf=true cat-file --filters --path=<file> HEAD:<file>`核对16文件逐字一致，同时普通pyproject.toml实际转CRLF，报告`fixture-windows-checkout.json`。没有修改冻结标签、manifest或放宽摘要。
+
+免费服务核查见[免费服务与VM记录](docs/FREE-SERVICES-AND-WINDOWS-VM.md)。AnySearch一次独立httpx匿名探针成功后，先在PLAN登记再实现search_provider枚举、旧三字段兼容、显式免费设置和匿名协议；旧Key不进入匿名请求，402正文可能敏感因此不读取、不重试、不采用自动账号。新增CLI选择保留live/20对/模型Key门槛；缓存、SSRF过滤、取消与搜索摘要边界沿用原实现。后端专项141通过/1平台skip。
+
+实际`ProviderStore`临时独立数据根→`WebTools.execute`产品网络路径匿名搜索5条成功/3,399.813ms，正文读取成功；初始探针取了旧字段名导致字符统计无效，报告明确删除无效数字并单独重读。第二次真实读取57,980→50,000字符/228.648ms，保留partial原因，不保存网页正文到验证报告。结果`artifacts/mvp2/anysearch-product-live.json`；累计外部httpx搜索1、产品搜索1/读页2，未改用户正常配置。
+
+桌面VM测试新增匿名保存不传/不删除旧Key、默认地址切换和自定义地址保留；第一次仅因mock缺既有clearKeys方法失败，补mock后`npm --prefix desktop test`92/92。实际Electron陪伴脚本新增免费搜索选项保存、后端就绪、重新打开和切回Tavily的真实UI场景。完整Python/实际Electron及静态回归随后执行，结果另记。
+
+最终`uv run --locked pytest -q --basetemp=/tmp/ai-neko-free-search-final-20260930 --junitxml=artifacts/mvp2/free-search-pytest.xml`：1578通过/1 Windows凭据skip，69.34秒；`ruff check`/`ruff format --check`124份Python通过，三份JS语法与文档验证通过。`node desktop/tests/companion.smoke.cjs --output artifacts/mvp2/free-search-companion.json`21/21，renderer_errors为空；已目视核对免费设置截图，仅改匿名输入框占位提示后重跑桌面92及该实际Electron脚本。Python源码/结果未变。旧G6完整结果仍为历史冻结快照；本次新增40项Python、1桌面unit、1实际Electron场景单独记录在[免费服务机器证据](docs/evidence/mvp2/free-services/local-verification.json)。

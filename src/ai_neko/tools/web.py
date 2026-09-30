@@ -1,4 +1,4 @@
-"""Tavily search and bounded public webpage reads; all results are untrusted data."""
+"""Provider search and bounded public webpage reads; all results are untrusted data."""
 
 from __future__ import annotations
 
@@ -351,7 +351,9 @@ class WebTools:
         locale: str = "zh-CN",
     ):
         self.config = dict(config)
-        self._key = api_key
+        self._provider = self.config.get("search_provider", "tavily")
+        # Anonymous AnySearch must never reuse a Tavily or environment credential.
+        self._key = api_key if self._provider == "tavily" else None
         self._calls = 0
         self._search_cache = search_cache
         self._scope = scope
@@ -390,7 +392,9 @@ class WebTools:
     async def search(self, query, *, force_refresh=False) -> dict:
         if not isinstance(query, str) or not 1 <= len(query.strip()) <= 500:
             raise ProviderError("invalid_arguments", "搜索词长度无效。")
-        if not self._key:
+        if self._provider not in {"tavily", "anysearch"}:
+            raise ProviderError("invalid_search_provider", "搜索服务配置无效。")
+        if self._provider == "tavily" and not self._key:
             raise ProviderError("search_key_missing", "请先配置搜索 API Key。")
         query = query.strip()
         if self._search_cache is not None:
@@ -405,11 +409,27 @@ class WebTools:
         return await self._search(query)
 
     async def _search(self, query) -> dict:
+        anonymous = self._provider == "anysearch"
         base = network.parse_url(
-            self.config.get("search_base_url", "https://api.tavily.com"), allow_http=False
+            self.config.get(
+                "search_base_url",
+                "https://api.anysearch.com/v1" if anonymous else "https://api.tavily.com",
+            ),
+            allow_http=False,
         )
         target, headers, extensions = await network.pin_url(str(base).rstrip("/") + "/search")
-        headers.update(Authorization="Bearer " + self._key, Accept="application/json")
+        headers["Accept"] = "application/json"
+        request = {"query": query, "max_results": 5}
+        if anonymous:
+            request.update(language=self._locale, format="json")
+        else:
+            headers["Authorization"] = "Bearer " + self._key
+            request.update(
+                search_depth="basic",
+                include_answer=False,
+                include_raw_content=False,
+                include_images=False,
+            )
         async with (
             network.client() as client,
             client.stream(
@@ -417,19 +437,24 @@ class WebTools:
                 target,
                 headers=headers,
                 extensions=extensions,
-                json={
-                    "query": query,
-                    "max_results": 5,
-                    "search_depth": "basic",
-                    "include_answer": False,
-                    "include_raw_content": False,
-                    "include_images": False,
-                },
+                json=request,
             ) as response,
         ):
             if response.status_code != 200:
+                # Error bodies can contain automatically issued account credentials.
+                # Do not consume, expose, persist, or adopt them, and do not retry.
+                if anonymous and response.status_code == 402:
+                    raise ProviderError("search_quota_exhausted", "匿名搜索额度已用完。")
                 raise http_error(response.status_code)
             payload = json.loads(await network.bounded_body(response))
+        if anonymous:
+            if not isinstance(payload, dict) or type(payload.get("code")) is not int:
+                raise ValueError
+            if payload["code"] != 0:
+                raise ValueError
+            payload = payload.get("data")
+        if not isinstance(payload, dict):
+            raise ValueError
         results = payload.get("results")
         if not isinstance(results, list):
             raise ValueError
@@ -446,7 +471,12 @@ class WebTools:
             if url in seen:
                 continue
             seen.add(url)
-            title, snippet = result.get("title", ""), result.get("content", "")
+            title = result.get("title", "")
+            snippet = (
+                result.get("snippet", result.get("content", ""))
+                if anonymous
+                else result.get("content", "")
+            )
             if not isinstance(title, str) or not isinstance(snippet, str):
                 continue
             sources.append(

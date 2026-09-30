@@ -1,0 +1,87 @@
+{
+  "status": "PASS",
+  "method": "Git checkout filters with core.autocrlf=true",
+  "control_text_has_crlf": true,
+  "fixture_files": [
+    {
+      "file": "tests/fixtures/guides/README.md",
+      "equal": true,
+      "sha256": "3e1c4bbf839fbfc1bd8ff539d2fc3fa30961c24a9eced2fb4c90cf09432d567f"
+    },
+    {
+      "file": "tests/fixtures/guides/corpus.json",
+      "equal": true,
+      "sha256": "f0f1336316d975aeff341525fefc93528931b7e0b9d47a441602361f6ef626dd"
+    },
+    {
+      "file": "tests/fixtures/guides/fixture_loader.py",
+      "equal": true,
+      "sha256": "ce13c2762c0f25538d546cad6c5978c145bd35ab0e03ac90ac93710c6a505673"
+    },
+    {
+      "file": "tests/fixtures/guides/manifest.json",
+      "equal": true,
+      "sha256": "ea8df80a7de12ba9879991498c434f0200797289fec6de097dfdd3f441873dc0"
+    },
+    {
+      "file": "tests/fixtures/guides/questions.json",
+      "equal": true,
+      "sha256": "3a71788e0e9db1245cdc594412f8add1df8c3520a78b7e32123ecb36f0655c8a"
+    },
+    {
+      "file": "tests/fixtures/v04/.gitignore",
+      "equal": true,
+      "sha256": "cb67a30bb935e73abc0a38c53d39db66a0026d2decc2b207c9a5622033e125a7"
+    },
+    {
+      "file": "tests/fixtures/v04/README.md",
+      "equal": true,
+      "sha256": "9fbd9ea926ba4456ddc265146b2a40dc44afc4016e08691ad53969519afd70b6"
+    },
+    {
+      "file": "tests/fixtures/v04/data/.ai-neko.json",
+      "equal": true,
+      "sha256": "422947fa179327603978561c97beaece99d1d00acbbe67ec61eaa9a06a2c7fa3"
+    },
+    {
+      "file": "tests/fixtures/v04/data/backups/memory-a4b1923d74534874af85ec4645402d82.sqlite",
+      "equal": true,
+      "sha256": "0f93b01241b4edbd68774fe793cb7b0f8baa75474859288224be1872970950f9"
+    },
+    {
+      "file": "tests/fixtures/v04/data/checkpoints/chat-graph.sqlite",
+      "equal": true,
+      "sha256": "6fbebe00eaa2de4194d877c45ddccf65981b91e035ed783aea7dbe33d8f00277"
+    },
+    {
+      "file": "tests/fixtures/v04/data/memory/conversation.sqlite",
+      "equal": true,
+      "sha256": "6cca918eb7f80422e6d930f9c82039a687253fbe8efd069a982e06530649e020"
+    },
+    {
+      "file": "tests/fixtures/v04/data/memory/long-term.sqlite",
+      "equal": true,
+      "sha256": "646f71c33a4dfeee21725f48ec1abb519ec0943fa18353cbce7e81812b13c9b9"
+    },
+    {
+      "file": "tests/fixtures/v04/expected.json",
+      "equal": true,
+      "sha256": "133f10a788c98585ad0bd3a738001f30086f26e280820459ceff3b22abe9b30f"
+    },
+    {
+      "file": "tests/fixtures/v04/legacy-src.zip",
+      "equal": true,
+      "sha256": "af44eaecef9b5f4c84cbf615f403ee67a0aceb7d76e717570ceed5ac1b6cc230"
+    },
+    {
+      "file": "tests/fixtures/v04/legacy_driver.py",
+      "equal": true,
+      "sha256": "186257bc8222d0efeac0abe4442e5ed6db9da8f9ffca9d137f09f8679f9e4c19"
+    },
+    {
+      "file": "tests/fixtures/v04/manifest.json",
+      "equal": true,
+      "sha256": "5629b453ef2dce406f81b4f1a5017607a9c753680566e4d902a61c620903defa"
+    }
+  ]
+}

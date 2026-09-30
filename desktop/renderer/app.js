@@ -11,7 +11,7 @@
     noticeAction: byId("notice-action"), settings: byId("settings-panel"),
     settingsForm: byId("settings-form"), settingsMessage: byId("settings-message"),
     modelUrl: byId("model-base-url"), model: byId("model-name"), modelKey: byId("model-api-key"),
-    searchUrl: byId("search-base-url"), searchKey: byId("search-api-key"),
+    searchUrl: byId("search-base-url"), searchKey: byId("search-api-key"), searchProvider: byId("search-provider"),
   };
   const bridge = window.aiNeko;
   const LAST_SESSION = "ai-neko.desktop.last-session";
@@ -41,8 +41,9 @@
       config_required: "请先在设置中填写模型地址、模型名称和 API Key。",
       model_not_configured: "请先在设置中填写模型地址、模型名称和 API Key。",
       model_key_missing: "请先配置模型 API Key。本机运行的模型可以不填 Key。",
-      search_key_missing: "请先在设置中填写 Tavily API Key。",
-      search_not_configured: "查攻略需要搜索服务，请先在设置中填写 Tavily API Key。",
+      search_key_missing: "请填写 Tavily API Key，或在设置中选择 AnySearch 免费搜索。",
+      search_quota_exhausted: "免费搜索额度已用完，请稍后再试或切换搜索服务。",
+      search_not_configured: "请先在设置中选择搜索服务，可选 AnySearch 免费搜索。",
       authentication_failed: "服务鉴权失败，请检查对应供应商的 API Key。",
       rate_limited: "服务请求受限，请稍后重试。",
       provider_http_error: "供应商返回错误，请检查配置或稍后重试。",
@@ -1035,6 +1036,31 @@
     byId(`clear-${kind}-key`).checked = false;
   }
 
+  function searchDefaultURL() {
+    return elements.searchProvider?.value === "anysearch" ? "https://api.anysearch.com/v1" : "https://api.tavily.com";
+  }
+
+  function updateSearchSettings(changed = false) {
+    const anonymous = elements.searchProvider?.value === "anysearch";
+    const current = elements.searchUrl.value.trim().replace(/\/$/, "");
+    if (changed && (!current || ["https://api.tavily.com", "https://api.anysearch.com/v1"].includes(current))) {
+      elements.searchUrl.value = searchDefaultURL();
+    }
+    if (changed) elements.searchKey.value = "";
+    elements.searchKey.disabled = anonymous;
+    elements.searchKey.placeholder = anonymous ? "匿名模式无需填写" : "填写 Tavily API Key";
+    keyState("search", Boolean(configValue("search_key_set", "search_api_key_set")));
+    byId("clear-search-label").hidden = anonymous || !configValue("search_key_set", "search_api_key_set");
+    if (anonymous) {
+      byId("search-key-state").textContent = "无需 Key";
+      byId("search-key-state").classList.add("is-set");
+    }
+    const help = byId("search-help");
+    if (help) help.textContent = anonymous ?
+      "匿名免费搜索，无需注册。按 IP 限流并有每日额度；不会使用已保存的搜索 Key。" :
+      "填写 Tavily API Key。此搜索配置供所有对话模型共用。";
+  }
+
   function clearKeyInputs() {
     elements.modelKey.value = "";
     elements.searchKey.value = "";
@@ -1044,13 +1070,14 @@
     closeSidebar();
     elements.modelUrl.value = configValue("model_base_url") || "";
     elements.model.value = configValue("model") || "";
-    elements.searchUrl.value = configValue("search_base_url") || "https://api.tavily.com";
+    if (elements.searchProvider) elements.searchProvider.value = configValue("search_provider") || "tavily";
+    elements.searchUrl.value = configValue("search_base_url") || searchDefaultURL();
     byId("credential-note").textContent = configValue("credential_storage") === "windows_credential_manager" ?
       "API Key 使用 Windows 凭据管理器保存，不写入界面存储。" :
       "此平台的 Key 仅保留在当前服务进程，重启后需重新填写；环境变量中的 Key 需自行移除。不写入界面存储。";
     clearKeyInputs();
     keyState("model", Boolean(configValue("model_key_set", "model_api_key_set")));
-    keyState("search", Boolean(configValue("search_key_set", "search_api_key_set")));
+    updateSearchSettings();
     elements.settingsMessage.textContent = state.connected ? "" : "本地服务尚未连接，请等待服务准备完成。";
     byId("save-settings").disabled = !state.connected;
     showPanel("settings");
@@ -1073,9 +1100,11 @@
     }
     const payload = {
       model_base_url: modelUrl, model: elements.model.value.trim(), model_api_key: elements.modelKey.value.trim(),
-      search_base_url: searchUrl, search_api_key: elements.searchKey.value.trim(),
+      search_provider: elements.searchProvider?.value || "tavily", search_base_url: searchUrl,
       clear_model_api_key: byId("clear-model-key").checked,
-      clear_search_api_key: byId("clear-search-key").checked,
+      ...(elements.searchProvider?.value === "anysearch" ? {} : {
+        search_api_key: elements.searchKey.value.trim(), clear_search_api_key: byId("clear-search-key").checked,
+      }),
     };
     byId("save-settings").disabled = true;
     elements.settingsMessage.textContent = "正在保存…";
@@ -1180,6 +1209,7 @@
   byId("open-settings").addEventListener("click", openSettings);
   byId("welcome-settings").addEventListener("click", openSettings);
   byId("close-settings").addEventListener("click", () => showPanel("chat"));
+  elements.searchProvider?.addEventListener("change", () => updateSearchSettings(true));
   elements.settingsForm.addEventListener("submit", saveSettings);
   byId("exit-app").addEventListener("click", () => bridge.quit());
   byId("open-history").addEventListener("click", () => { showPanel("history"); refreshSessions().catch(() => {}); });

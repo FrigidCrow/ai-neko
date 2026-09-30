@@ -20,7 +20,13 @@ from ai_neko.tools.web import WebTools
 DEFAULTS = {
     "model_base_url": "https://api.openai.com/v1",
     "model": "",
+    "search_provider": "tavily",
     "search_base_url": "https://api.tavily.com",
+}
+
+SEARCH_BASE_URLS = {
+    "tavily": "https://api.tavily.com",
+    "anysearch": "https://api.anysearch.com/v1",
 }
 
 
@@ -46,10 +52,18 @@ def endpoint(value, *, model=False):
 
 
 def validate(config):
+    # Schema 1 and older explicit CLI callers used exactly these three fields.
+    # Only that known shape is upgraded; unknown fields stay invalid.
+    if isinstance(config, dict) and set(config) == set(DEFAULTS) - {"search_provider"}:
+        config = {**config, "search_provider": "tavily"}
     if not isinstance(config, dict) or set(config) != set(DEFAULTS):
         raise ValueError("invalid_provider_config")
+    provider = config["search_provider"]
+    if not isinstance(provider, str) or provider not in SEARCH_BASE_URLS:
+        raise ValueError("invalid_search_provider")
     result = {
         "model_base_url": endpoint(config["model_base_url"], model=True),
+        "search_provider": provider,
         "search_base_url": endpoint(config["search_base_url"]),
     }
     model = config["model"]
@@ -88,10 +102,13 @@ class ProviderStore:
 
     def public_config(self) -> dict:
         with self._lock:
+            search_key_set = bool(self._credentials.get("search"))
             return {
                 **self._config,
                 "model_key_set": bool(self._credentials.get("model")),
-                "search_key_set": bool(self._credentials.get("search")),
+                "search_key_set": search_key_set,
+                "search_configured": self._config["search_provider"] == "anysearch"
+                or search_key_set,
                 "credential_storage": self._credentials.storage,
             }
 
@@ -105,10 +122,19 @@ class ProviderStore:
             }
             if not isinstance(changes, dict) or set(changes) - allowed:
                 raise ValueError("invalid_provider_fields")
+            fields = {key: value for key, value in changes.items() if key in DEFAULTS}
+            provider = fields.get("search_provider")
+            if (
+                isinstance(provider, str)
+                and provider in SEARCH_BASE_URLS
+                and provider != self._config["search_provider"]
+                and "search_base_url" not in fields
+            ):
+                fields["search_base_url"] = SEARCH_BASE_URLS[provider]
             updated = validate(
                 {
                     **self._config,
-                    **{key: value for key, value in changes.items() if key in DEFAULTS},
+                    **fields,
                 }
             )
             secrets = {}
@@ -175,11 +201,12 @@ class ProviderStore:
 
     def web_tools(self, *, scope: str | None = None, locale: str = "zh-CN") -> WebTools:
         with self._lock:
-            key = self._credentials.get("search")
+            provider = self._config["search_provider"]
+            key = self._credentials.get("search") if provider == "tavily" else None
             # Credentials may also come from this application's environment. Only a
             # one-way identity is kept alongside the cache, never the credential.
             identity = hashlib.sha256(
-                json.dumps([self._config["search_base_url"], key]).encode()
+                json.dumps([provider, self._config["search_base_url"], key]).encode()
             ).digest()
             if self._search_identity is not None and identity != self._search_identity:
                 self.search_cache.advance_generation()

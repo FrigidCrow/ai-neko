@@ -1,0 +1,72 @@
+{
+  "provider": "anysearch",
+  "path": "ProviderStore -> WebTools.execute -> production network policy",
+  "anonymous": true,
+  "public_search_configured": true,
+  "search_status": "ok",
+  "search_error": null,
+  "search_ms": 3399.813,
+  "result_count": 5,
+  "sources": [
+    {
+      "title": "pathlib — Object-oriented filesystem paths",
+      "url": "https://docs.python.org/3/library/pathlib.html",
+      "status": "snippet"
+    },
+    {
+      "title": "pathlib — pathlib 1.0.1 documentation",
+      "url": "https://pathlib.readthedocs.io/",
+      "status": "snippet"
+    },
+    {
+      "title": "Python pathlib Module",
+      "url": "https://www.w3schools.com/python/ref_module_pathlib.asp",
+      "status": "snippet"
+    },
+    {
+      "title": "Python's pathlib Module: Taming the File System",
+      "url": "https://realpython.com/python-pathlib/",
+      "status": "snippet"
+    },
+    {
+      "title": "Using Python's pathlib module",
+      "url": "https://www.reddit.com/r/Python/comments/1guhphv/using_pythons_pathlib_module/",
+      "status": "snippet"
+    }
+  ],
+  "read": {
+    "status": "ok",
+    "error": null,
+    "ms": 237.613,
+    "sources": [
+      {
+        "url": "https://docs.python.org/3/library/pathlib.html",
+        "status": "read"
+      }
+    ],
+    "probe_note": "Initial probe used obsolete content field names; no character-count evidence retained from that request."
+  },
+  "read_with_content_metrics": {
+    "status": "ok",
+    "error": null,
+    "ms": 228.648,
+    "sources": [
+      {
+        "url": "https://docs.python.org/3/library/pathlib.html",
+        "status": "read",
+        "extracted_characters": 57980,
+        "retained_characters": 50000,
+        "completeness": "partial",
+        "completeness_reasons": [
+          "images_unread",
+          "body_limit"
+        ]
+      }
+    ]
+  },
+  "http_probe_counts": {
+    "product_search": 1,
+    "product_read": 2,
+    "external_httpx_search": 1
+  }
+}
