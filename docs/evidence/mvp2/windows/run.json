@@ -1,0 +1,548 @@
+{
+  "conclusion": "success",
+  "headSha": "50227627e8d4c7c5574b4c52ebc12189d63988f9",
+  "jobs": [
+    {
+      "completedAt": "2026-09-30T12:54:47Z",
+      "conclusion": "success",
+      "databaseId": 109891134311,
+      "name": "Synthetic tests (windows-2022)",
+      "startedAt": "2026-09-30T12:44:24Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-09-30T12:44:26Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-09-30T12:44:25Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-30T12:44:34Z",
+          "conclusion": "success",
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "number": 2,
+          "startedAt": "2026-09-30T12:44:26Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-30T12:44:36Z",
+          "conclusion": "success",
+          "name": "Run astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7",
+          "number": 3,
+          "startedAt": "2026-09-30T12:44:34Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-30T12:44:42Z",
+          "conclusion": "success",
+          "name": "Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+          "number": 4,
+          "startedAt": "2026-09-30T12:44:36Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-30T12:44:47Z",
+          "conclusion": "success",
+          "name": "Install locked desktop dependencies",
+          "number": 5,
+          "startedAt": "2026-09-30T12:44:42Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-30T12:44:48Z",
+          "conclusion": "success",
+          "name": "Fetch pinned Cubism Core for the complete application",
+          "number": 6,
+          "startedAt": "2026-09-30T12:44:47Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-30T12:44:50Z",
+          "conclusion": "success",
+          "name": "Desktop host unit tests",
+          "number": 7,
+          "startedAt": "2026-09-30T12:44:48Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-30T12:44:52Z",
+          "conclusion": "success",
+          "name": "Install locked Python from uv managed distributions",
+          "number": 8,
+          "startedAt": "2026-09-30T12:44:50Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-30T12:44:57Z",
+          "conclusion": "success",
+          "name": "Install locked dependencies",
+          "number": 9,
+          "startedAt": "2026-09-30T12:44:52Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-30T12:44:57Z",
+          "conclusion": "success",
+          "name": "Lint",
+          "number": 10,
+          "startedAt": "2026-09-30T12:44:57Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-30T12:44:58Z",
+          "conclusion": "success",
+          "name": "Check format",
+          "number": 11,
+          "startedAt": "2026-09-30T12:44:57Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-30T12:45:22Z",
+          "conclusion": "success",
+          "name": "Diagnose synthetic Windows compatibility regressions",
+          "number": 12,
+          "startedAt": "2026-09-30T12:44:58Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-30T12:45:37Z",
+          "conclusion": "success",
+          "name": "Verify frozen guide retrieval and injection corpus",
+          "number": 13,
+          "startedAt": "2026-09-30T12:45:22Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-30T12:46:00Z",
+          "conclusion": "success",
+          "name": "Measure production guide retrieval with 200 synthetic documents",
+          "number": 14,
+          "startedAt": "2026-09-30T12:45:37Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-30T12:54:42Z",
+          "conclusion": "success",
+          "name": "Run synthetic acceptance and save redacted evidence",
+          "number": 15,
+          "startedAt": "2026-09-30T12:46:00Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-30T12:54:43Z",
+          "conclusion": "success",
+          "name": "Preserve test evidence",
+          "number": 16,
+          "startedAt": "2026-09-30T12:54:42Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-30T12:54:43Z",
+          "conclusion": "success",
+          "name": "Post Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+          "number": 30,
+          "startedAt": "2026-09-30T12:54:43Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-30T12:54:43Z",
+          "conclusion": "success",
+          "name": "Post Run astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7",
+          "number": 31,
+          "startedAt": "2026-09-30T12:54:43Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-30T12:54:45Z",
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "number": 32,
+          "startedAt": "2026-09-30T12:54:43Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-30T12:54:45Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 33,
+          "startedAt": "2026-09-30T12:54:45Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/FrigidCrow/ai-neko/actions/runs/36716659417/job/109891134311"
+    },
+    {
+      "completedAt": "2026-09-30T12:46:15Z",
+      "conclusion": "success",
+      "databaseId": 109891134615,
+      "name": "Synthetic tests (ubuntu-24.04)",
+      "startedAt": "2026-09-30T12:43:52Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-09-30T12:43:54Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-09-30T12:43:53Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-30T12:43:57Z",
+          "conclusion": "success",
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "number": 2,
+          "startedAt": "2026-09-30T12:43:54Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-30T12:43:58Z",
+          "conclusion": "success",
+          "name": "Run astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7",
+          "number": 3,
+          "startedAt": "2026-09-30T12:43:57Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-30T12:43:59Z",
+          "conclusion": "success",
+          "name": "Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+          "number": 4,
+          "startedAt": "2026-09-30T12:43:58Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-30T12:44:00Z",
+          "conclusion": "success",
+          "name": "Install locked desktop dependencies",
+          "number": 5,
+          "startedAt": "2026-09-30T12:43:59Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-30T12:44:00Z",
+          "conclusion": "success",
+          "name": "Fetch pinned Cubism Core for the complete application",
+          "number": 6,
+          "startedAt": "2026-09-30T12:44:00Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-30T12:44:01Z",
+          "conclusion": "success",
+          "name": "Desktop host unit tests",
+          "number": 7,
+          "startedAt": "2026-09-30T12:44:00Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-30T12:44:02Z",
+          "conclusion": "success",
+          "name": "Install locked Python from uv managed distributions",
+          "number": 8,
+          "startedAt": "2026-09-30T12:44:01Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-30T12:44:04Z",
+          "conclusion": "success",
+          "name": "Install locked dependencies",
+          "number": 9,
+          "startedAt": "2026-09-30T12:44:02Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-30T12:44:04Z",
+          "conclusion": "success",
+          "name": "Lint",
+          "number": 10,
+          "startedAt": "2026-09-30T12:44:04Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-30T12:44:04Z",
+          "conclusion": "success",
+          "name": "Check format",
+          "number": 11,
+          "startedAt": "2026-09-30T12:44:04Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-30T12:44:04Z",
+          "conclusion": "skipped",
+          "name": "Diagnose synthetic Windows compatibility regressions",
+          "number": 12,
+          "startedAt": "2026-09-30T12:44:04Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-30T12:44:08Z",
+          "conclusion": "success",
+          "name": "Verify frozen guide retrieval and injection corpus",
+          "number": 13,
+          "startedAt": "2026-09-30T12:44:04Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-30T12:44:12Z",
+          "conclusion": "success",
+          "name": "Measure production guide retrieval with 200 synthetic documents",
+          "number": 14,
+          "startedAt": "2026-09-30T12:44:08Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-30T12:46:11Z",
+          "conclusion": "success",
+          "name": "Run synthetic acceptance and save redacted evidence",
+          "number": 15,
+          "startedAt": "2026-09-30T12:44:12Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-30T12:46:12Z",
+          "conclusion": "success",
+          "name": "Preserve test evidence",
+          "number": 16,
+          "startedAt": "2026-09-30T12:46:11Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-30T12:46:12Z",
+          "conclusion": "success",
+          "name": "Post Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+          "number": 30,
+          "startedAt": "2026-09-30T12:46:12Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-30T12:46:12Z",
+          "conclusion": "success",
+          "name": "Post Run astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7",
+          "number": 31,
+          "startedAt": "2026-09-30T12:46:12Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-30T12:46:13Z",
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "number": 32,
+          "startedAt": "2026-09-30T12:46:12Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-30T12:46:13Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 33,
+          "startedAt": "2026-09-30T12:46:13Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/FrigidCrow/ai-neko/actions/runs/36716659417/job/109891134615"
+    },
+    {
+      "completedAt": "2026-09-30T12:59:12Z",
+      "conclusion": "success",
+      "databaseId": 109895289252,
+      "name": "Build and exercise Windows ZIP",
+      "startedAt": "2026-09-30T12:54:50Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-09-30T12:54:52Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-09-30T12:54:51Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-30T12:55:01Z",
+          "conclusion": "success",
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "number": 2,
+          "startedAt": "2026-09-30T12:54:52Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-30T12:55:03Z",
+          "conclusion": "success",
+          "name": "Run astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7",
+          "number": 3,
+          "startedAt": "2026-09-30T12:55:01Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-30T12:55:10Z",
+          "conclusion": "success",
+          "name": "Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+          "number": 4,
+          "startedAt": "2026-09-30T12:55:03Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-30T12:55:15Z",
+          "conclusion": "success",
+          "name": "Install locked desktop dependencies",
+          "number": 5,
+          "startedAt": "2026-09-30T12:55:10Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-30T12:55:16Z",
+          "conclusion": "success",
+          "name": "Fetch pinned Cubism Core for the complete application",
+          "number": 6,
+          "startedAt": "2026-09-30T12:55:15Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-30T12:55:18Z",
+          "conclusion": "success",
+          "name": "Desktop host unit tests",
+          "number": 7,
+          "startedAt": "2026-09-30T12:55:16Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-30T12:55:20Z",
+          "conclusion": "success",
+          "name": "Install locked Python from uv managed distributions",
+          "number": 8,
+          "startedAt": "2026-09-30T12:55:18Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-30T12:55:21Z",
+          "conclusion": "success",
+          "name": "Choose immutable build version",
+          "number": 9,
+          "startedAt": "2026-09-30T12:55:20Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-30T12:55:27Z",
+          "conclusion": "success",
+          "name": "Install locked build dependencies",
+          "number": 10,
+          "startedAt": "2026-09-30T12:55:21Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-30T12:55:33Z",
+          "conclusion": "success",
+          "name": "Ensure the locked Electron distribution is installed",
+          "number": 11,
+          "startedAt": "2026-09-30T12:55:27Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-30T12:56:24Z",
+          "conclusion": "success",
+          "name": "Build self-contained Windows package",
+          "number": 12,
+          "startedAt": "2026-09-30T12:55:33Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-30T12:56:46Z",
+          "conclusion": "success",
+          "name": "Exercise extracted executable",
+          "number": 13,
+          "startedAt": "2026-09-30T12:56:24Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-30T12:57:22Z",
+          "conclusion": "success",
+          "name": "Exercise actual desktop catgirl and streaming chat",
+          "number": 14,
+          "startedAt": "2026-09-30T12:56:46Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-30T12:58:12Z",
+          "conclusion": "success",
+          "name": "Exercise packaged persona memory vision and voice loop",
+          "number": 15,
+          "startedAt": "2026-09-30T12:57:22Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-30T12:58:59Z",
+          "conclusion": "success",
+          "name": "Exercise packaged guide persistence and continuous match context",
+          "number": 16,
+          "startedAt": "2026-09-30T12:58:12Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-30T12:59:01Z",
+          "conclusion": "success",
+          "name": "Preserve package evidence",
+          "number": 17,
+          "startedAt": "2026-09-30T12:58:59Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-30T12:59:08Z",
+          "conclusion": "success",
+          "name": "Upload verified Windows package",
+          "number": 18,
+          "startedAt": "2026-09-30T12:59:01Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-30T12:59:08Z",
+          "conclusion": "success",
+          "name": "Post Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+          "number": 34,
+          "startedAt": "2026-09-30T12:59:08Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-30T12:59:08Z",
+          "conclusion": "success",
+          "name": "Post Run astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7",
+          "number": 35,
+          "startedAt": "2026-09-30T12:59:08Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-30T12:59:10Z",
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "number": 36,
+          "startedAt": "2026-09-30T12:59:08Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-30T12:59:10Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 37,
+          "startedAt": "2026-09-30T12:59:10Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/FrigidCrow/ai-neko/actions/runs/36716659417/job/109895289252"
+    },
+    {
+      "completedAt": "2026-09-30T12:59:12Z",
+      "conclusion": "skipped",
+      "databaseId": 109897001972,
+      "name": "Publish tagged desktop catgirl preview",
+      "startedAt": "2026-09-30T12:59:13Z",
+      "status": "completed",
+      "steps": [],
+      "url": "https://github.com/FrigidCrow/ai-neko/actions/runs/36716659417/job/109897001972"
+    }
+  ],
+  "status": "completed",
+  "updatedAt": "2026-09-30T12:59:13Z",
+  "url": "https://github.com/FrigidCrow/ai-neko/actions/runs/36716659417"
+}

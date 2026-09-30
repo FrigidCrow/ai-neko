@@ -708,3 +708,17 @@ CI36709092334完整Windows结果：1580 collected，1575 passed/5 failed，547.9
 CI36713526928打包已构建成功，解压后端16/16与桌宠9/9通过；陪伴第4项在companion.smoke.cjs:160 GET /api/memories失败，未开始G6、没有上传Windows ZIP。失败时persona-status仍显示版本2的上次成功提示，第二次提交后等待“下一轮”可立即通过。runtime.memory_api对并发人格变更期间读取有409保护；CI日志未保留实际status，故409只作推断，不冒称已采集。先在PLAN登记，再修harness等待本次新版本，添加显式闸门证明旧提示的竞态，保留产品保护与所有原验收。
 
 `node --check desktop/tests/companion.smoke.cjs`通过；`node desktop/tests/companion.smoke.cjs --output artifacts/mvp2/persona-save-wait-companion-final.json > artifacts/mvp2/persona-save-wait-companion-final.txt 2>&1`实际Electron21/21 PASS、renderer_errors=[]，报告harness SHA与当前文件一致。闸门处于真实form→IPC→原OwnedBackend.request路径，旧提示谓词在PUT尚未执行时true，新版本完成谓词false；释放后新名字与version2→3持久化核对。entered等待有10秒失败保护、finally清timer并释放/恢复包装，无固定延时补丁。合成模型18/ASR3/TTS29，真实服务和用户采集0。独立复核没有删除/放宽21个原case；后端并发保护不改。摘要见docs/evidence/mvp2/persona-save-wait.json。文档39份/526链接检查PASS，206参考文件指纹未变；随后仅补待验证报告的最新失败状态，下一次CI重跑全套。
+
+修正与证据提交50227627e8d4c7c5574b4c52ebc12189d63988f9，`git push origin codex/companion-five-capabilities`成功，触发CI36716659417。独立只读审查确认21个原case名字/顺序及快照恢复/遗忘断言保持，进入闸门有界且包装finally恢复。继续监控准确SHA并在成功后执行实际下载、来源/摘要/运行报告核对；不创建tag或Release。
+
+CI36716659417源码门禁全部通过：Linux1580 passed/1平台skip，118.407秒、200篇p95 26.84471ms；Windows1581 passed/0skip，521.5秒、p95 80.3016ms。两平台宿主92、冻结30题及150ms固定性能门槛通过；包开始构建，尚待同一ZIP的16/9/21/8实际程序验证与下载核对。
+
+CI36716659417所有必需job及G6均success，tagged发布按设计skipped。Root实际查看Windows截图companion-smoke-free-search.png与g6-acceptance-A01-new-process-new-chat.png：AnySearch免费选择、无需Key/禁用Key输入、官方基础地址及保存入口可见；新进程新聊天保留合成攻略采用/版本与S1本地来源，YUI渲染正常。这里只证明截图中的布局/呈现，不扩展为Windows11游戏、其它DPI或真实回答质量验收。下载ZIP独立验证继续。
+
+最终实际下载命令由验证工作者执行：`.venv/bin/python artifacts/mvp2/verify_windows_download.py --run 36716659417 --sha 50227627e8d4c7c5574b4c52ebc12189d63988f9 --linux-passed 1580 --windows-passed 1581`，PASS。gh下载外层产物191,712,553字节，应用ZIP192,076,777字节，后者SHA256 a79b04b543dd61ba7b36f990d8f4456edacff847a0398ca275251e038a240edc。验证210源码输入、两锁、AMD64、66许可、79素材、16截图及16/9/21/8镜像报告，并确认persona_save_wait五项true及2→3。G6两个不同PID、25完成问题零搜索/取页；Windows20次WebAudio软件停止p95约0.20ms，不冒充硬件指标。
+
+产物11096433755，2026-10-14 12:59:01 UTC到期。原始ZIP/日志留artifacts/mvp2/ci-36716659417；33份便携证据（约11MiB）归档docs/evidence/mvp2/windows，含完整运行/评测/基准报告、所有截图、构建和下载摘要、核对脚本与Root目视记录。README/CI下载入口、PLAN/HANDOFF/NEXT/REVIEW及G6历史边界同步；最终仅文档/证据更新，构建源码仍5022762，不另创建版本tag或Release。
+
+最终文档检查`python3 docs/diagrams/tools/validate-docs.py > artifacts/mvp2/windows-delivery-docs-final.json`通过：39份Markdown、558本地链接、206参考文件，issues为空、参考工程指纹未变。独立交付文档复核发现NEXT历史句误指MVP1为新提交证据，已明确改为该历史提交；最新链接指向新Windows报告。相对已验证5022762，全部未提交变更仅README/REVIEW/WORKLOG及docs/证据，产品/测试/构建/依赖文件完全未变；最终提交使用[skip ci]，不重复构建未变化产品。
+
+便携Windows证据增加目录内`.gitattributes`（仅docs/evidence/mvp2/windows/作用域）以保留报告字节摘要；34份文件逐个执行`git -c core.autocrlf=true hash-object --path=...`与`--no-filters`比较全部一致。它不改变产品或冻结测试的Git属性；两平台报告的原始换行与已记录SHA均保留。

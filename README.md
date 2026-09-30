@@ -2,15 +2,19 @@
 
 独立的个人 AI 伴侣项目：主体是 Windows 11 x64 桌面上的可见猫娘桌宠，文字聊天、流式回复和查攻略围绕她展开。LangGraph 负责对话编排，会话保存在本机，允许调用自己配置的云模型。
 
-**MVP1工程收尾完成，最新Windows修复包为 `0.4.0-dev.748bab516488`。** 保留参考 N.E.K.O. 的白裙 **YUI Lolita 猫娘**和本项目 Electron 宿主，提供透明角色、待机、拖动/缩放/置顶、伴随聊天、托盘找回和退出。未配置模型时也能显示猫娘，收起聊天后她仍留在桌面。
+**最新 MVP2 Windows 开发包为 `0.4.0-dev.50227627e8d4`，已通过 Windows CI 和实际下载核对。** 保留参考 N.E.K.O. 的白裙 **YUI Lolita 猫娘**和本项目 Electron 宿主，提供透明角色、待机、拖动/缩放/置顶、伴随聊天、托盘找回和退出。未配置模型时也能显示猫娘，收起聊天后她仍留在桌面。
 
-本版加入可编辑人格、选定窗口的当轮视觉、按键语音输入与按句朗读、跨兼容模型共享的按需搜索，以及本地长期记忆的保存、召回、依据、纠正、遗忘和快照管理。已完整听完的句子可进入后续上下文。N.E.K.O. 分词/BM25组件的来源和许可已保留，使用与验收见[五项能力说明](docs/COMPANION-IMPLEMENTATION.md)。
+本版加入攻略库、本地资料复用与当前对局管理：保存并采用攻略后，可在后续提问和新聊天中引用同一份原文；切换攻略、新开一局和明确历史复盘各有边界。已有可编辑人格、当轮视觉、按键语音、按句朗读、共享搜索及长期记忆；已完整听完的句子可进入后续上下文。N.E.K.O. 分词/BM25组件的来源和许可已保留，使用与验收见[五项能力说明](docs/COMPANION-IMPLEMENTATION.md)。
 
-下载[最新Windows桌面修复包（Actions产物）](https://github.com/FrigidCrow/ai-neko/actions/runs/36316166347/artifacts/10931091498)，解开产物容器，再完整解压其中的 **`ai-neko-0.4.0-dev.748bab516488-windows-x64.zip`，双击根目录 `ai-neko.exe`**。通常需登录GitHub，产物保留至2026-10-11。[本次CI](https://github.com/FrigidCrow/ai-neko/actions/runs/36316166347)已通过：Windows641项、Linux640项及1项平台跳过、宿主64项、冻结后端16项、桌宠9项、陪伴20项；实际下载摘要核对也通过，详见[MVP1收尾报告](docs/MVP1-CLOSEOUT.md)。包内包含Electron、Python、猫娘和运行依赖，无需另装Python、Node或uv。首次接受Live2D条款后加载角色；在猫娘设置中配置模型、搜索和ASR/TTS，看图需使用支持图片输入的模型。
+下载[最新 MVP2 Windows 开发包（Actions 产物）](https://github.com/FrigidCrow/ai-neko/actions/runs/36716659417/artifacts/11096433755)，解开产物容器，再完整解压其中的 **`ai-neko-0.4.0-dev.50227627e8d4-windows-x64.zip`，双击根目录 `ai-neko.exe`**。通常需登录 GitHub，产物保留至 **2026-10-14 12:59:01 UTC**。包内包含 Electron、Python、猫娘和运行依赖，无需另装 Python、Node 或 uv。首次接受 Live2D 条款后加载角色；模型、ASR 和 TTS 分别在设置中配置，看图需使用支持图片输入的模型。
 
-已有[v0.4.0-alpha.1 Release](https://github.com/FrigidCrow/ai-neko/releases/tag/v0.4.0-alpha.1)继续保留，**不包含本次取消、遗忘与升级修复**。本轮交付分支开发包，没有创建新Release；历史发布与校验见[CI/CD记录](docs/CI-RELEASES.md)。
+免费搜索入口：**设置 → 共享联网搜索 → AnySearch（免费免 Key）**，核对基础地址 `https://api.anysearch.com/v1` 后保存。切换时已有自定义地址不会自动覆盖；模型与语音仍需各自配置。额度和实测边界见[免费服务说明](docs/FREE-SERVICES-AND-WINDOWS-VM.md)。
 
-**真实云模型/搜索/语音质量、Windows11游戏真机及p95性能仍待验收。** CI使用合成窗口、麦克风和服务；应用的公开网页读取已另行实测。M0/M1等阶段的完整验收不因发布而转为完成，最新证据见[REVIEW](REVIEW.md)。免按键语音、角色扩展和主动陪伴仍属后续范围，当前不做键鼠代操作。
+[本次 CI](https://github.com/FrigidCrow/ai-neko/actions/runs/36716659417)通过 Windows 1,581 项、Linux 1,580 项及 1 项平台跳过，两平台桌面单测各 92 项；实际解压包通过后端 16 项、桌宠 9 项、陪伴 21 项、G6 联合 8 项。200 篇攻略、100 个样本的本地检索 p95 为 Windows **80.3016ms**、Linux **26.84471ms**，均低于 150ms 门槛。包摘要及完整证据见[Windows 验证报告](docs/MVP2-WINDOWS-VERIFICATION.md)和[下载与校验](docs/CI-RELEASES.md)。
+
+**Windows 11 x64 真实游戏、真实模型/语音质量、端到端冷暖性能及硬件停止延迟仍待验收，完整 MVP2 尚未完成。** Windows Server 2022 CI 使用合成窗口、麦克风和服务；公开 AnySearch 搜索与网页正文读取已单独实测，不代表完整带来源模型问答质量。本地资料复用仍使用所配置的模型。最新边界见[REVIEW](REVIEW.md)；免按键语音、角色扩展和主动陪伴仍属后续范围，当前不做键鼠代操作。
+
+历史 [MVP1 收尾包](docs/MVP1-CLOSEOUT.md)和 [v0.4.0-alpha.1 Release](https://github.com/FrigidCrow/ai-neko/releases/tag/v0.4.0-alpha.1)继续保留，均不包含本次 MVP2 攻略、对局与免费搜索能力。本轮交付分支开发包，没有创建新 Release；历史发布与校验见[CI/CD 记录](docs/CI-RELEASES.md)。
 
 [v0.3.0-alpha.1](https://github.com/FrigidCrow/ai-neko/releases/tag/v0.3.0-alpha.1)是历史基础桌宠版；[v0.2.0-alpha.1](https://github.com/FrigidCrow/ai-neko/releases/tag/v0.2.0-alpha.1)是网页预览，`v0.1.0-alpha.1`为基础诊断包。旧版本保留。
 
@@ -27,11 +31,11 @@
 
 工程位置：`/Users/frigidcrow/Dev/ai-neko`。N.E.K.O 参考工程是 `/Users/frigidcrow/Dev/neko-companion`，二者独立维护。
 
-## MVP1 与后续路线
+## 当前进展与后续验收
 
 [MVP1工程收尾](docs/MVP1-CLOSEOUT.md)已完成：取消、遗忘、升级和桌面生命周期问题已修复，对应提交的Windows构建与下载产物已验证。真实云服务和Windows11体验仍按实际证据单独验收。
 
-MVP2已实现G1–G5，并补齐G6的本机联合验收与测量工具，最新证据见[G6报告](docs/MVP2-G6-REPORT.md)：Python1,538通过/1平台跳过、桌面91、实际Electron20+5+17+8通过。聊天中的“攻略库”和“管理本局”可采用/切换资料、管理快照与当前对局；文字或语音明确控制后播放独立确认，新局隔离旧状态并停止旧声音，重启后局势待更新。G6进一步验证旧版升级、退出后新聊天复用、连续五问零搜索、长文与来源隔离。**新Windows包和真实服务/游戏验收仍待完成，MVP2尚未完整通过；现有下载包不含这些未提交变更。** [真实验收记录工具](docs/MVP2-LIVE-ACCEPTANCE.md)保留有效语音、费用和真机证据缺口；范围见[连续陪玩计划](docs/NEXT-GUIDE-COMPANION.md)，接点见[交接单](docs/HANDOFF-G1.md)。
+MVP2 的攻略与对局能力、本机联合验收和测量工具已进入上述 Windows 开发包。[G6 报告](docs/MVP2-G6-REPORT.md)记录阶段证据，[Windows 验证报告](docs/MVP2-WINDOWS-VERIFICATION.md)记录本次交付。聊天中的“攻略库”和“管理本局”可采用/切换资料、管理快照与当前对局；文字或语音明确控制后播放独立确认，新局隔离旧状态并停止旧声音，重启后局势待更新。本次实际 Windows 程序验证了采用后退出、新进程新聊天复用、配置搜索和禁用搜索各连续五问，以及旧局/新局/明确复盘隔离。[真实验收记录工具](docs/MVP2-LIVE-ACCEPTANCE.md)继续保留有效语音、费用和真机证据缺口；范围见[连续陪玩计划](docs/NEXT-GUIDE-COMPANION.md)，接点见[交接单](docs/HANDOFF-G1.md)。
 
 当前闭环为：启动见猫娘 → 点击输入 → 身旁流式回复 → 停止/继续聊天/查攻略 → 重开续接会话。实现范围见 [MVP1 规格](docs/MVP1-DESKTOP-PET.md)，本版已扩展人格、视觉、按键语音与长期记忆。接下来继续 Windows 11 真机和真实服务验收；免按键对话、角色表现扩展与主动陪伴仍属后续范围。
 

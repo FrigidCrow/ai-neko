@@ -1,8 +1,8 @@
 # MVP2 实施计划：记住攻略，连续陪玩
 
-日期：2026-09-26；状态更新：2026-09-30。**用户已授权作为MVP2实施，G1–G5实现及本机合成验收通过，G6本机联合验证和记录工具通过；G6真实服务、新Windows包与Windows11真机仍Pending。** 分阶段证据见[G1报告](MVP2-G1-REPORT.md)、[G2报告](MVP2-G2-REPORT.md)、[G3报告](MVP2-G3-REPORT.md)、[G4报告](MVP2-G4-REPORT.md)、[G5报告](MVP2-G5-REPORT.md)和[G6报告](MVP2-G6-REPORT.md)。执行范围仍包含六项能力、自动化验收和Windows构建交付；真实服务与Windows11验收单独留证。WorkBuddy代码已合入原项目目录，MVP1工程收尾完成；不将本机合成结果计作MVP2完整通过。
+日期：2026-09-26；状态更新：2026-09-30。**用户已授权作为MVP2实施，G1–G5实现及本机合成验收通过，G6本机联合验证和记录工具、Windows开发包及实际下载核对通过；真实模型/语音与Windows11真机仍Pending。** 分阶段证据见[G1报告](MVP2-G1-REPORT.md)、[G2报告](MVP2-G2-REPORT.md)、[G3报告](MVP2-G3-REPORT.md)、[G4报告](MVP2-G4-REPORT.md)、[G5报告](MVP2-G5-REPORT.md)和[G6报告](MVP2-G6-REPORT.md)。执行范围仍包含六项能力、自动化验收和Windows构建交付；真实服务与Windows11验收单独留证。WorkBuddy代码已合入原项目目录，MVP1工程收尾完成；不将本机合成结果计作MVP2完整通过。
 
-接手基线为MVP1修复提交 `748bab5164882c044b4108d41a7fa8df82a99a32`，新提交的CI和下载核对以[MVP1收尾报告](MVP1-CLOSEOUT.md)为准。已有[v0.4.0-alpha.1 Release](https://github.com/FrigidCrow/ai-neko/releases/tag/v0.4.0-alpha.1)仍保留，源提交为`f359826bd60139a6a9efcef8d959f56c385228ba`，不包含本轮修复。Windows Server合成构建/运行不代替本阶段或Windows11真实陪玩验收。
+最新Windows开发包源码为`50227627e8d4c7c5574b4c52ebc12189d63988f9`，见[构建与下载核对](MVP2-WINDOWS-VERIFICATION.md)。历史接手基线为MVP1修复提交 `748bab5164882c044b4108d41a7fa8df82a99a32`，该历史提交的CI和下载核对见[MVP1收尾报告](MVP1-CLOSEOUT.md)。已有[v0.4.0-alpha.1 Release](https://github.com/FrigidCrow/ai-neko/releases/tag/v0.4.0-alpha.1)仍保留，源提交为`f359826bd60139a6a9efcef8d959f56c385228ba`，不包含本轮修复。Windows Server合成构建/运行不代替本阶段或Windows11真实陪玩验收。
 
 本增量连接M1查询、M2本地管理和M5视觉陪玩，不重编号M0–M6。候选交付版本为`v0.5.0-alpha.1`，正式版本号在实施收尾时确定。上阶段人格、语音及真实服务的未完成验收继续保留。
 
@@ -152,7 +152,7 @@ flowchart TD
 
 ## 8. 实施关卡与文件责任
 
-全部关卡已进入MVP2实施队列；G1–G5及G6本机联合验收通过，G6真实服务、Windows构建与真机交付尚未通过。组件结果不能替代下述整体验收，细分证据见各阶段报告。
+全部关卡已进入MVP2实施队列；G1–G5及G6本机联合验收通过，Windows构建/包与下载核对已通过，G6真实服务和真机体验尚未通过。组件结果不能替代下述整体验收，细分证据见各阶段报告。
 
 | 关卡 | 依赖 | 工作与主要文件范围 | 可审阅产出/完成门槛 |
 | --- | --- | --- | --- |
@@ -211,4 +211,4 @@ G5的首个可靠入口为来源卡片按钮。语音支持“按这份攻略/�
 
 继续使用现有双平台测试→Windows冻结包→实际桌宠/陪伴闭环→版本tag发布门禁。下一次发布需按届时授权执行，不因本轮写plan就推送或打tag。Release标记工程预览时可明确真实项未完成；只有本计划自动化和真实验收均达到要求，才可将此连续陪玩增量记为完整PASS。
 
-2026-09-30实施进度：G1–G5本机合成验收通过；G6补真实旧程序资料升级、实际Electron重启/同聊天五问对照、长文/证据时效/网络指令联合场景，并提供20对后端探针与[真实验收记录工具](MVP2-LIVE-ACCEPTANCE.md)。最终统一源码、计数和A01–A11范围见[G6报告](MVP2-G6-REPORT.md)。工作流已接新Windows包门禁，但本批次未推送或执行Windows构建；真实服务冷暖/语音/费用、公开来源三次和Windows11十轮及20次停止仍Pending。完整MVP2不因本机合成结果提升为PASS。
+2026-09-30实施进度：G1–G5本机合成验收通过；G6补真实旧程序资料升级、实际Electron重启/同聊天五问对照、长文/证据时效/网络指令联合场景，并提供20对后端探针与[真实验收记录工具](MVP2-LIVE-ACCEPTANCE.md)。最终统一源码、计数和A01–A11范围见[G6报告](MVP2-G6-REPORT.md)。用户后续明确授权推送与CI，5022762/CI36716659417及Windows包实际下载核对全部通过，见[Windows报告](MVP2-WINDOWS-VERIFICATION.md)；真实服务冷暖/语音/费用、公开来源三次和Windows11十轮及20次停止仍Pending。完整MVP2不因本机合成结果提升为PASS。

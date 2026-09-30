@@ -1,5 +1,7 @@
 # MVP2 G6：联合验收与交付证据
 
+后续同日已按用户授权完成推送、Windows包门禁与下载核对，见[Windows交付报告](MVP2-WINDOWS-VERIFICATION.md)。下文保留本机G6结束时的源码、计数和当时Pending状态，不冒充最新Windows结果。
+
 日期：2026-09-30。**G6本机联合验证及测量/记录工具通过；真实服务与新Windows交付待验，完整MVP2未完成。** 最终全量为Python1,538通过/1平台跳过、桌面91通过、实际Electron四套20+5+17+8通过。基线HEAD仍为`e83073018abd60fc02be7e5188f68fc87ca4d90f`，G1–G6未提交源码以284份文件SHA-256标识；没有新推送、tag或发布。
 
 实施范围来自[PLAN第17.8节](PLAN.md)与[完整计划第9节](NEXT-GUIDE-COMPANION.md)。此前G1–G5结果保留在各阶段报告中；[G5报告](MVP2-G5-REPORT.md)的计数不作为本轮最终计数。

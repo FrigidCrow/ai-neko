@@ -1,0 +1,14 @@
+{
+  "source_commit": "50227627e8d4c7c5574b4c52ebc12189d63988f9",
+  "ci_run": 36716659417,
+  "scope": "Root inspected the actual downloaded Windows CI screenshots; this is not real Windows 11, game, other DPI, or model quality acceptance",
+  "images": {
+    "companion-smoke-free-search.png": "4df76613cd77b2bf623e9e8c5514a722292c193e825f6e1c90918deae544e47a",
+    "g6-acceptance-A01-new-process-new-chat.png": "d3e259674e494f333da720860f94bf48773f486619df6911ec709ef1eba76532"
+  },
+  "observations": [
+    "AnySearch anonymous option, official base URL, no-key state and save control visible",
+    "New process/new chat retains adopted synthetic guide and local S1 source",
+    "YUI renderer visible alongside both panels"
+  ]
+}
