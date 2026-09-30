@@ -662,3 +662,5 @@ README、PLAN、NEXT、ARCHITECTURE、HANDOFF、G6报告、真实记录手册和
 桌面VM测试新增匿名保存不传/不删除旧Key、默认地址切换和自定义地址保留；第一次仅因mock缺既有clearKeys方法失败，补mock后`npm --prefix desktop test`92/92。实际Electron陪伴脚本新增免费搜索选项保存、后端就绪、重新打开和切回Tavily的真实UI场景。完整Python/实际Electron及静态回归随后执行，结果另记。
 
 最终`uv run --locked pytest -q --basetemp=/tmp/ai-neko-free-search-final-20260930 --junitxml=artifacts/mvp2/free-search-pytest.xml`：1578通过/1 Windows凭据skip，69.34秒；`ruff check`/`ruff format --check`124份Python通过，三份JS语法与文档验证通过。`node desktop/tests/companion.smoke.cjs --output artifacts/mvp2/free-search-companion.json`21/21，renderer_errors为空；已目视核对免费设置截图，仅改匿名输入框占位提示后重跑桌面92及该实际Electron脚本。Python源码/结果未变。旧G6完整结果仍为历史冻结快照；本次新增40项Python、1桌面unit、1实际Electron场景单独记录在[免费服务机器证据](docs/evidence/mvp2/free-services/local-verification.json)。
+
+免费搜索及Windows换行修复已提交推送为`5732eaaa01e2479c521a115f3a503ba263f4eebc`，触发CI36705026368。独立UI审查确认匿名Key隔离/设置恢复/地址切换/状态正确；仅发现网页备用入口仍有旧搜索配置门控，新提示不应承诺此入口在无搜索配置时可直接提交本地资料问题，删去该句。桌宠本地资料路径不受影响。这是单句提示修正，`node --check src/ai_neko/web/app.js`通过，不重复未变产品测试；对应源码摘要单独更新，真实测量手册补AnySearch CLI选项。

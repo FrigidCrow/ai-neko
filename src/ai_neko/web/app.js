@@ -144,7 +144,7 @@
     if (!modelReady()) {
       showNotice("先连接一个对话模型，就可以开始使用。", { label: "前往设置", action: openSettings });
     } else if (state.guide && !searchReady()) {
-      showNotice("需要联网时请先配置搜索，可选 AnySearch 免费搜索；已采用资料仍可使用。", { label: "设置搜索", action: openSettings });
+      showNotice("需要联网时请先配置搜索，可选 AnySearch 免费搜索。", { label: "设置搜索", action: openSettings });
     } else showNotice("");
   }
 

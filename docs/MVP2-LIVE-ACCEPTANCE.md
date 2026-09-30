@@ -59,13 +59,15 @@ Windows 使用 `.venv\Scripts\python.exe`。空模板审核为 **PENDING**。`in
 uv run --locked python scripts/measure_guides.py --output artifacts/live-guides/synthetic-probe-01.json
 ```
 
-真实后端测量需要先明确项目模型、Tavily兼容搜索配置，以及20个保留顺序的同题对照计划。`plan-20.json`顶层仅含`network_conditions`和`pairs`；pairs恰好20项，每项填写`question`、计划读取的公开`url`、`game`、`platform`、`mode`，所有字段非空。模型必须自行实际搜索并读取计划来源，脚本不会把计划URL直接当成功证据。输出保留失败组；每组临时空库用于冷问，采用真实保存版本后，在新会话中暖问。
+真实后端测量需要先明确项目模型、Tavily或AnySearch匿名搜索配置，以及20个保留顺序的同题对照计划。`plan-20.json`顶层仅含`network_conditions`和`pairs`；pairs恰好20项，每项填写`question`、计划读取的公开`url`、`game`、`platform`、`mode`，所有字段非空。模型必须自行实际搜索并读取计划来源，脚本不会把计划URL直接当成功证据。输出保留失败组；每组临时空库用于冷问，采用真实保存版本后，在新会话中暖问。
 
 显式设置本工程`AI_NEKO_MODEL_API_KEY`和`AI_NEKO_SEARCH_API_KEY`环境变量后，使用已确认的模型与地址执行：
 
 ```sh
 uv run --locked python scripts/measure_guides.py --live --plan artifacts/live-guides/plan-20.json --model "已确认的模型ID" --model-base-url "已确认的模型地址" --search-base-url "https://api.tavily.com" --output artifacts/live-guides/live-probe-01.json
 ```
+
+选择免Key搜索时，将搜索参数换为`--search-provider anysearch`即可使用官方默认地址，不要求`AI_NEKO_SEARCH_API_KEY`；模型Key和20对计划仍必需。匿名限额/失败保留，不自动注册或付费，配置与已运行的单次探测见[免费服务记录](FREE-SERVICES-AND-WINDOWS-VM.md)。
 
 `--live`会实际调用所配置服务并可能计费。脚本不读取正常应用资料根或其他项目Key，不自动重试失败组；供应商不报告usage时保留unknown。当前此入口使用键入问题，不能单独完成含ASR/实际语音的20对验收。它测实际图与Runtime，但不经过ProviderStore共享缓存/条件读取包装，也不测桌面渲染；完整应用现场证据另填以下记录。
 

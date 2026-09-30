@@ -59,7 +59,7 @@
     "scripts/measure_guides.py": "cf8fe373f32ab48c03b5fb11a37c7014676230a3ae5896c8100593e6f5e946c3",
     "src/ai_neko/config/providers.py": "4e909ada9f2388531a4ef67b5ddf654bb1130a25b93b8829f1f1e554758a24e8",
     "src/ai_neko/tools/web.py": "2f7ff35dca764c7612ee1471af275c244617851c4eb18d8ae2bb86f24a6e9895",
-    "src/ai_neko/web/app.js": "71fd6f8fe1801b8f07557bad134f8ec41973fef7d97ea4941d05abcb618df448",
+    "src/ai_neko/web/app.js": "849394be8d36a6fb6f525206314b071a7539e11c30f14b61050bcc5f3195c2e7",
     "src/ai_neko/web/index.html": "1fda9c0b09eda374c0165732c8370d7e3cbc99a17a0106f768a1c6358d9169b9",
     "src/ai_neko/web/style.css": "d87b2257bcacdda75114538ea6916dec32f1deea288dc3895ecd81f2d073ac6a",
     "tests/test_anysearch.py": "4958afdbf5b5c06f09f77090095e69e4174712e59be0884703ff55bdaf4d4dd0",
@@ -79,5 +79,11 @@
     "Corrected Windows CI and package",
     "Real model/ASR/TTS and game acceptance",
     "Windows 11 VM: insufficient local disk, no installed hypervisor"
-  ]
+  ],
+  "post_test_copy_fix": {
+    "file": "src/ai_neko/web/app.js",
+    "reason": "Remove an unsupported local-guide promise from the legacy web setup hint; no logic changed",
+    "syntax_check": "PASS",
+    "previous_sha256": "71fd6f8fe1801b8f07557bad134f8ec41973fef7d97ea4941d05abcb618df448"
+  }
 }
