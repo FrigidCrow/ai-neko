@@ -674,3 +674,7 @@ CI36705331960的Windows在600.281秒总超时（exit124）：诊断529项已完�
 网络策略公共路径变化后重新运行完整`uv run --locked pytest -q --basetemp=/tmp/ai-neko-dns-cancel-final-20260930 --junitxml=artifacts/mvp2/dns-cancel-pytest.xml`，输出`dns-cancel-pytest.txt`；ruff检查/124文件格式及diff检查通过。此次未改桌面源码，不重复桌面实际Electron验证；Windows重新构建将覆盖相同21+8场景。
 
 取消修复后的完整回归：1579 passed / 1 Windows凭据skip，60.32秒；机器记录`docs/evidence/mvp2/dns-cancellation-fix.json`固定修前失败、修后99专项、完整回归及两份改动源码摘要。准备正常提交推送并重新运行Windows门禁。
+
+CI36707083966失败：Linux1579/1skip、冻结30题通过、200篇p95 53.760353ms；Windows原DNS及新coarse-clock用例已通过，600.188秒时1358项完成（1357通过、1失败）。按setup/call/teardown重算594.024秒，之前finish重复汇总不采用。唯一失败为合成媒体持久化联合用例，现有脱敏输出无失败行，尚不能断言根因。PLAN登记后将smoke预算1200秒/job25分钟并保留严格完整JUnit门禁，新增Windows该用例短traceback前置诊断；它只处理合成媒体/临时资料，无真实服务或凭据。
+
+`uv run --locked pytest tests/test_m0_progress.py tests/test_guides_integrated.py -q --tb=short`：12 passed/8.90秒；两份Python Ruff/格式、文档及diff检查通过。此提交用于准确定位Windows失败，尚未修复未知根因，不声称Windows通过。

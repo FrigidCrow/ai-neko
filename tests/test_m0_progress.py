@@ -178,7 +178,7 @@ def test_timeout_keeps_main_status_failed_despite_completed_progress(
     evidence = json.loads(output.read_text(encoding="utf-8"))
     assert evidence["status"] == "FAILED"
     assert evidence["tests"]["timed_out"] is True
-    assert evidence["tests"]["timeout_seconds"] == 600
+    assert evidence["tests"]["timeout_seconds"] == 1200
     assert evidence["tests"]["passed"] == 0
     assert evidence["tests"]["progress"]["completed_counts"]["passed"] == 10
 

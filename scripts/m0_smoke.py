@@ -23,7 +23,7 @@ from importlib import metadata
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-TEST_TIMEOUT_SECONDS = 600
+TEST_TIMEOUT_SECONDS = 1200
 
 
 def expected_platform_skips(results: dict, system: str) -> bool:
