@@ -1,0 +1,51 @@
+{
+  "status": "LOCAL_PASS",
+  "base_commit": "9184c119f063462291d97a1bc8191ac9486ff7bf",
+  "ci_failure": {
+    "run": 36705331960,
+    "windows_seconds": 600.281,
+    "timed_out": true,
+    "completed_diagnostic_cases": 529,
+    "failed_diagnostic_cases": 0,
+    "active_case": "test_direct_conditional_read_has_a_total_deadline_and_releases_http_request",
+    "full_suite_pass": false
+  },
+  "root_cause": "Python 3.11 wait_for can return a completed DNS child result after external cancellation; the page deadline is consumed and a later HTTP wait can remain pending. Reproduced at 0.015625 second event-loop clock resolution.",
+  "fix": "Keep DNS under asyncio.timeout(5) in the current task; preserve external cancellation. No deadline increase or skips.",
+  "regression_before": {
+    "failed": 1,
+    "seconds": 0.17,
+    "failure": "Old code returned ok after expired deadline"
+  },
+  "regression_after": {
+    "passed": 99,
+    "standalone_child_exit_code": 0,
+    "http_released": true,
+    "page_error": "timeout"
+  },
+  "python_full": {
+    "name": "pytest",
+    "errors": "0",
+    "failures": "0",
+    "skipped": "1",
+    "tests": "1580",
+    "time": "60.305",
+    "timestamp": "2026-09-30T20:10:03.194153+09:00",
+    "hostname": "FrigidCrowdeMac-mini.local"
+  },
+  "format": "ruff check and 124-file format check passed",
+  "changed_source_sha256": {
+    "src/ai_neko/tools/network.py": "b238be5c860045f4a1fcd4aed736b942533783d5adc17668da6848b5a0f590cb",
+    "tests/test_guide_refresh.py": "bd08b0049089c614afe99283a3f28619c59c827e5e6ee4cb5bf4bda6090e397e"
+  },
+  "evidence_sha256": {
+    "windows-dns-race-before.txt": "2771fd81cbf6729f4e50456e88acd3d90b2d9e38186a1107f2b3c455021d0974",
+    "windows-dns-race-after.txt": "28d7c8b4ee5e75d205334d5738ab1e51405a2048ce212788e22436ebbc0f5a35",
+    "dns-cancel-pytest.txt": "21c4477a1e2d60e38bd400737254afcc8864caf53bb961aded2d5334adfa55d9",
+    "dns-cancel-pytest.xml": "c8f4362828b01e4d3e5301facd6bc8641630f92662d15eb31e113086645fd2d7",
+    "ci-36705331960/reproduce_dns_cancel.py": "f8939fb1fdf244afe455485960b69ba551161a7a31ad78b2fb07351f3445b41f",
+    "ci-36705331960/coarse-clock-reproduction-before.txt": "3468c7e5f5a1eb6612499034606bcf7412d97cb6062617639626376f8890e189",
+    "ci-36705331960/coarse-clock-reproduction-after.txt": "a594b74d3aacb35dc4f9c706af7e1927721aae069920c5eb36d73dd750dabd87"
+  },
+  "windows_rerun": "PENDING"
+}

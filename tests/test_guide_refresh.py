@@ -196,3 +196,28 @@ def test_direct_conditional_read_has_a_total_deadline_and_releases_http_request(
         assert outcome["sources"][0]["status"] == "unreadable"
 
     asyncio.run(scenario())
+
+
+def test_completed_dns_does_not_swallow_deadline_with_windows_clock_resolution(web_http):
+    async def scenario():
+        loop = asyncio.get_running_loop()
+        previous = loop._clock_resolution
+        # Windows 3.11 may run the 10ms deadline in the same loop iteration as
+        # an already-completed DNS task. A finite body keeps a regression bounded.
+        loop._clock_resolution = 0.015625
+
+        async def handle(request):
+            await asyncio.sleep(0.1)
+            return reply("late public guide body " * 10)
+
+        web_http(handle)
+        adapter = WebTools({}, None)
+        adapter.TIMEOUT = 0.01
+        try:
+            outcome = await adapter.read(URL, validators={"url": URL, "etag": '"v1"'})
+            assert outcome["status"] == "error" and outcome["error"] == "timeout"
+            assert outcome["sources"][0]["text"] == ""
+        finally:
+            loop._clock_resolution = previous
+
+    asyncio.run(scenario())

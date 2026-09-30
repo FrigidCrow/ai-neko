@@ -75,14 +75,15 @@ async def pin_url(value: str, *, allow_local: bool = False) -> tuple[httpx.URL, 
     if url.scheme == "http" and allow_local and not local:
         raise NetworkPolicyError("insecure_endpoint")
     try:
-        addresses = await asyncio.wait_for(
-            asyncio.get_running_loop().getaddrinfo(
+        # Keep DNS in this task: Python 3.11 wait_for can swallow external
+        # cancellation when its child has just completed, losing the outer
+        # provider/page deadline on a coarse-resolution event-loop clock.
+        async with asyncio.timeout(5):
+            addresses = await asyncio.get_running_loop().getaddrinfo(
                 url.host,
                 url.port or (443 if url.scheme == "https" else 80),
                 type=socket.SOCK_STREAM,
-            ),
-            timeout=5,
-        )
+            )
     except (OSError, TimeoutError):
         raise NetworkPolicyError("dns_failed") from None
     ips = {item[4][0] for item in addresses}

@@ -664,3 +664,13 @@ README、PLAN、NEXT、ARCHITECTURE、HANDOFF、G6报告、真实记录手册和
 最终`uv run --locked pytest -q --basetemp=/tmp/ai-neko-free-search-final-20260930 --junitxml=artifacts/mvp2/free-search-pytest.xml`：1578通过/1 Windows凭据skip，69.34秒；`ruff check`/`ruff format --check`124份Python通过，三份JS语法与文档验证通过。`node desktop/tests/companion.smoke.cjs --output artifacts/mvp2/free-search-companion.json`21/21，renderer_errors为空；已目视核对免费设置截图，仅改匿名输入框占位提示后重跑桌面92及该实际Electron脚本。Python源码/结果未变。旧G6完整结果仍为历史冻结快照；本次新增40项Python、1桌面unit、1实际Electron场景单独记录在[免费服务机器证据](docs/evidence/mvp2/free-services/local-verification.json)。
 
 免费搜索及Windows换行修复已提交推送为`5732eaaa01e2479c521a115f3a503ba263f4eebc`，触发CI36705026368。独立UI审查确认匿名Key隔离/设置恢复/地址切换/状态正确；仅发现网页备用入口仍有旧搜索配置门控，新提示不应承诺此入口在无搜索配置时可直接提交本地资料问题，删去该句。桌宠本地资料路径不受影响。这是单句提示修正，`node --check src/ai_neko/web/app.js`通过，不重复未变产品测试；对应源码摘要单独更新，真实测量手册补AnySearch CLI选项。
+
+提示与手册修正提交`9184c119f063462291d97a1bc8191ac9486ff7bf`已推送，最终CI36705331960；旧36705026368因同分支新提交按工作流取消，不计产品失败。最终run的Linux1578通过/1平台skip，138.02秒；冻结30题24/24+6/6，200篇100次检索p95 54.252796ms，0网络。Windows结果及产物仍等实际执行。
+
+CI36705331960的Windows在600.281秒总超时（exit124）：诊断529项已完成全passed，第530项`test_direct_conditional_read_has_a_total_deadline_and_releases_http_request`停在call；未生成完整JUnit/Windows包。进度不是整套通过。独立子进程将事件循环`_clock_resolution`设0.015625复现挂起，3秒外部watchdog终止；DNS已完成、HTTP进入时`current_task.cancelling()==1`。另一路源码/确定性取消审查确认Python3.11.15的`asyncio.wait_for`在子任务已done时可返回结果吞掉父任务取消。
+
+先登记PLAN，再补有界coarse-clock回归（HTTP最多0.1秒返回，避免测试自身无限等待）：`uv run --locked pytest tests/test_guide_refresh.py::test_completed_dns_does_not_swallow_deadline_with_windows_clock_resolution -q`在旧代码1 failed/0.17秒，错误返回ok，证据`windows-dns-race-before.txt`。`network.pin_url`将DNS5秒门限改为`asyncio.timeout(5)`内直接await，保留网络策略和外部CancelledError。相关`test_guide_refresh/test_web_tools/test_anysearch`99/99通过；同一独立脚本快速退出，HTTP进入时cancelling=0、随后正确释放并返回timeout（`coarse-clock-reproduction-after.txt`）。没有扩大600秒时限或跳过Windows测试。
+
+网络策略公共路径变化后重新运行完整`uv run --locked pytest -q --basetemp=/tmp/ai-neko-dns-cancel-final-20260930 --junitxml=artifacts/mvp2/dns-cancel-pytest.xml`，输出`dns-cancel-pytest.txt`；ruff检查/124文件格式及diff检查通过。此次未改桌面源码，不重复桌面实际Electron验证；Windows重新构建将覆盖相同21+8场景。
+
+取消修复后的完整回归：1579 passed / 1 Windows凭据skip，60.32秒；机器记录`docs/evidence/mvp2/dns-cancellation-fix.json`固定修前失败、修后99专项、完整回归及两份改动源码摘要。准备正常提交推送并重新运行Windows门禁。
