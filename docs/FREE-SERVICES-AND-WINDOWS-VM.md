@@ -23,9 +23,11 @@
 | 中文TTS | 本地Kokoro-FastAPI | 无云API账单，仍需下载模型和计算资源；支持中文与`/audio/speech` MP3。本轮未安装、测速或确认听感 |
 | 既有搜索 | Tavily免费层 | 仍可使用现有适配，需注册Key；官方列每月1,000 credits，basic搜索每次1credit |
 
-AnySearch操作入口：设置→共享联网搜索→“AnySearch（免费免 Key）”；官方基础地址为`https://api.anysearch.com/v1`。匿名模式不会发送已保存的Tavily Key，不自动清除旧Key；切换回Tavily可继续使用原凭据。按IP限流和每日匿名额度，不把价格页的per-key数字当作匿名额度承诺；额度耗尽明确报错，不读取/保存可能含自动账号密码的402正文，不自动注册或续付费请求。
+AnySearch操作入口：设置→共享联网搜索→“AnySearch（免费免 Key）”；官方基础地址为`https://api.anysearch.com/v1`，核对后点击保存；切换时已有自定义地址不会自动覆盖。匿名模式不会发送已保存的Tavily Key，不自动清除旧Key；切换回Tavily可继续使用原凭据。按IP限流和每日匿名额度，不把价格页的per-key数字当作匿名额度承诺；额度耗尽明确报错，不读取/保存可能含自动账号密码的402正文，不自动注册或续付费请求。
 
 本轮真实产品探测：独立临时数据根只配置AnySearch，查询公开的`Python official documentation pathlib`，搜索成功5条/3,399.813ms；其中[Python官方正文](https://docs.python.org/3/library/pathlib.html)读取成功，提取57,980字符、保留50,000字符，正确标记`images_unread/body_limit`部分读取。最初记录器误取旧字段，已删去无效字符数并注明；另一次正文读取228.648ms记录正确统计。累计独立httpx搜索1次、产品搜索1次、产品读页2次，没有真实模型/ASR/TTS调用或用户采集。这证明匿名搜索和正文读取可用，不证明完整攻略回答质量、持续稳定性或语音延迟。
+
+另补中文实际使用查询“王者万象棋 新手 攻略”，`zh-CN`匿名搜索成功5条/4,438.54ms，首条为腾讯官方新手指引；产品读取该页成功3,294字符/679.277ms，图片内容未读取，明确保持`partial/images_unread`。此次新增1次搜索、1次取页，没有调用模型或推断攻略正确性；[中文探测记录](evidence/mvp2/free-services/anysearch-chinese-live.json)保留来源与实际结果。全轮累计3次搜索、3次取页，不能计为三次完整带来源模型问答。
 
 Groq接入参数：模型与ASR基础地址均为`https://api.groq.com/openai/v1`，分别在模型设置和语音识别设置中填写对应模型ID及自己的Key。Key只填应用设置或项目专用环境变量，不提交到仓库或聊天。本项目的模型、ASR和TTS仍是独立配置；Groq现有TTS文档只列英语/阿拉伯语，不能据此承诺中文猫娘声音。免费模型8,000 TPM等限额可能限制长攻略冷暖评测，失败应保留。
 

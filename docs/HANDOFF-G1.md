@@ -7,7 +7,7 @@
 - 唯一开发目录为 `/Users/frigidcrow/Dev/ai-neko`，当前分支 `codex/companion-five-capabilities`。WorkBuddy提交已合入，旧副本仅供回溯，不从旧副本继续开发。
 - MVP1工程收尾、G1正文入库、G2采用管理和G3本地检索是历史基线，分别见 [MVP1收尾报告](MVP1-CLOSEOUT.md)、[G1报告](MVP2-G1-REPORT.md)、[G2报告](MVP2-G2-REPORT.md)和[G3报告](MVP2-G3-REPORT.md)。历史测试数量、源码摘要及Windows产物不能证明当前工作区。
 - G4已落地Runtime持久对局、严格回合绑定、图内单次视觉观察、有效上下文注入、历史隔离与清理依赖；历史数字见[G4报告](MVP2-G4-REPORT.md)。G5已接入来源采用、攻略/快照与对局管理、文字/语音明确控制及独立确认，沿同一Runtime/媒体机制执行；全量最终计数与边界见[G5报告](MVP2-G5-REPORT.md)，实现及本机合成验收通过。
-- G6已补真实旧版资料升级、实际Electron重启/连续五问对照、长文与证据时效联合场景、A01–A11证据矩阵及可执行测量工具；最终统一验证与具体边界见[G6报告](MVP2-G6-REPORT.md)。真实模型/搜索/音频、新Windows构建及Windows11真机仍待验，当前不是MVP2完整交付声明。
+- G6已补真实旧版资料升级、实际Electron重启/连续五问对照、长文与证据时效联合场景、A01–A11证据矩阵及可执行测量工具；最终统一验证与具体边界见[G6报告](MVP2-G6-REPORT.md)。完整带来源回答及语音质量、新Windows构建及Windows11真机仍待验；匿名搜索和公开正文已另行实测，当前不是MVP2完整交付声明。
 - 用户于2026-09-30明确确认提交推送及Windows CI，当前按PLAN§17.9执行；不创建tag或Release。既有Release不等于MVP2交付，远端验证结果随后单独留证。
 - 历史桌面WIP在 `artifacts/mvp2-deferred/desktop-guides-wip.patch`，保护stash为 `3e77be31a370800c2759dac10f6ce6b6ddcbbbda`，仅当前本机保留。它是未完成草稿，不直接套回现有取消与来源流程。
 
@@ -70,7 +70,7 @@ PLAN§17.8先登记再实现。G6实际Electron新增采用→退出→新进程
 
 仍需完成以下实际环境核查与执行，禁止扩大到持续录屏或键鼠控制：
 
-1. 本项目指定模型/搜索/ASR/TTS配置。当前Mac正常配置与项目专用Key未就绪，不能借用参考工程或其他项目Key。先确定真实服务与20组同题计划，再运行live并核对用量/费用/有效建议和实际听到语音。
+1. 本项目指定模型/ASR/TTS配置仍待就绪，不能借用参考工程或其他项目Key。搜索已支持AnySearch匿名API并实测产品搜索/正文路径，live probe可指定`--search-provider anysearch`，无需`AI_NEKO_SEARCH_API_KEY`；仍需模型Key和真实20组同题计划，再核对用量/费用/有效建议及实际听到语音。服务选择与设置入口见[免费服务核查](FREE-SERVICES-AND-WINDOWS-VM.md)。
 2. Windows11用户真机：同一攻略至少10轮，含切换、新局与重启；3公开来源流程含一次明确最新；跨生成/合成/播放20次停止。保留所有失败，不能用本机合成计时替代。
 3. 新Windows包：工作流已接冻结30题、200篇基准和`g6-acceptance.smoke.cjs --archive`，静态通过不等于新构建通过。脚本仅在Windows x64使用实际解压exe，检查包commit、进程和摘要。用户已确认推送及CI，按PLAN§17.9执行并留证；旧MVP1包不作MVP2交付，不创建新tag/Release。
 

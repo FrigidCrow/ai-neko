@@ -14,7 +14,7 @@
 
 [v0.3.0-alpha.1](https://github.com/FrigidCrow/ai-neko/releases/tag/v0.3.0-alpha.1)是历史基础桌宠版；[v0.2.0-alpha.1](https://github.com/FrigidCrow/ai-neko/releases/tag/v0.2.0-alpha.1)是网页预览，`v0.1.0-alpha.1`为基础诊断包。旧版本保留。
 
-使用说明：[五项能力与配置](docs/COMPANION-IMPLEMENTATION.md)、[Windows 下载与 CI/CD](docs/CI-RELEASES.md)；[v0.3 历史试用与验收](docs/M1-QUICKSTART.md)。
+使用说明：[免费搜索、模型/语音与VM条件](docs/FREE-SERVICES-AND-WINDOWS-VM.md)、[五项能力与配置](docs/COMPANION-IMPLEMENTATION.md)、[Windows 下载与 CI/CD](docs/CI-RELEASES.md)；[v0.3 历史试用与验收](docs/M1-QUICKSTART.md)。
 
 ## 从这里进入
 

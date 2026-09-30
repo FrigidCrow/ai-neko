@@ -50,9 +50,9 @@ jobs:
         run: uv run --locked ruff check src tests scripts packaging
       - name: Check format
         run: uv run --locked ruff format --check src tests scripts packaging
-      - name: Diagnose synthetic media persistence on Windows
+      - name: Diagnose synthetic Windows compatibility regressions
         if: runner.os == 'Windows'
-        run: uv run --locked pytest tests/test_guides_integrated.py::test_persistent_match_observations_voice_and_restart_leave_no_media_bytes -q --tb=short --no-header
+        run: uv run --locked pytest tests/test_guides_integrated.py tests/test_search_cache.py tests/test_v04_upgrade.py -q --tb=short --no-header
       - name: Run synthetic acceptance and save redacted evidence
         run: uv run --locked python scripts/m0_smoke.py --output artifacts/m0/${{ runner.os }}-smoke.json
       - name: Verify frozen guide retrieval and injection corpus

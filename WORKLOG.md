@@ -682,3 +682,7 @@ CI36707083966失败：Linux1579/1skip、冻结30题通过、200篇p95 53.760353m
 诊断提交5896e491348230ddbd1ce0f346942f14f1e8a683触发CI36708814272；Windows定向失败明确在`test_guides_integrated.py:493`运行中扫描→346`Path.read_bytes()`→PermissionError，原异常不含路径。filelock3.32.7 Windows实现对进程锁offset0独占，与Mac advisory flock不同。PLAN登记后仅对已确认持有的`.conversation.lock`严格断言stat大小0，避免跨句柄读空锁；全部数据/WAL/日志仍读字节，关闭后无例外全量扫描。其余OS错误附相对路径后失败，不做泛化PermissionError忽略。下一次Windows运行确认；产品代码未改。
 
 修正后本地12项联合/进度测试通过，Ruff/格式和文档/diff检查通过。仅测试扫描方法变化，远端全套将重新验证；没有调整产品隔离、持久化或媒体字节断言。
+
+修正提交18e1dcc19a58b0e125719d69223bc1a71b43cb37已推送，CI36709092334的Windows定向媒体用例通过，完整套件继续运行。等待时复核免费服务说明，补当前入口、Tavily条件和旧Release区别。另用生产WebTools/网络策略验证中文关键词“王者万象棋 新手 攻略”/zh-CN：匿名5条成功4,438.54ms；读取首条腾讯官方新手指引3,294字符成功679.277ms，保留images_unread。此次1搜索/1取页，无模型；全轮累计3搜索/3取页，不算真实三次问答验收，结果存免费服务证据目录。
+
+CI36709092334完整Windows结果：1580 collected，1575 passed/5 failed，547.953秒，JUnit完整且非timeout。媒体用例已通过；失败分别为搜索HTTP合并/短等待者独立超时1项，以及冻结v0.4原程序读取、新进程升级、两个迁移恢复参数共4项。未打包；扩展Windows前置短traceback至三个合成文件定位，不以部分进度或Linux通过替代Windows通过。

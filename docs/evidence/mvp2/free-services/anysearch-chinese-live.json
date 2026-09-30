@@ -1,0 +1,60 @@
+{
+  "provider": "anysearch",
+  "anonymous": true,
+  "query": "王者万象棋 新手 攻略",
+  "locale": "zh-CN",
+  "status": "ok",
+  "error": null,
+  "elapsed_ms": 4438.54,
+  "sources": [
+    {
+      "title": "王者万象棋新手指引-万象启航入门指南/基础规则/入门阵容教学",
+      "url": "https://wxq.qq.com/cp/a202609xszy/",
+      "status": "snippet"
+    },
+    {
+      "title": "【王者万象棋】入坑必玩的3套阵容？保姆级新手攻略+香香/常小娥/ ...",
+      "url": "https://www.bilibili.com/video/BV1h9Y86WEgp/",
+      "status": "snippet"
+    },
+    {
+      "title": "王者万象棋新手攻略 - 游侠手游",
+      "url": "https://m.ali213.net/news/gl2609/1807691.html",
+      "status": "snippet"
+    },
+    {
+      "title": "[Honor of Kings: Chess] Must-Watch for Beginners! Chang Xiao'e",
+      "url": "https://www.youtube.com/watch?v=BLfELI9nlow",
+      "status": "snippet"
+    },
+    {
+      "title": "新手快速入门攻略，万象棋和自走棋有什么区别",
+      "url": "https://m.4399youpai.com/video/5299082.html",
+      "status": "snippet"
+    }
+  ],
+  "real_search_calls": 1,
+  "real_model_calls": 0,
+  "real_page_reads": 1,
+  "official_page_read": {
+    "status": "ok",
+    "error": null,
+    "elapsed_ms": 679.277,
+    "sources": [
+      {
+        "title": "王者万象棋新手指引-万象启航入门指南/基础规则/入门阵容教学-腾讯游戏",
+        "url": "https://wxq.qq.com/cp/a202609xszy/",
+        "status": "read",
+        "extracted_characters": 3294,
+        "retained_characters": 3294,
+        "completeness": "partial",
+        "completeness_reasons": [
+          "images_unread"
+        ]
+      }
+    ]
+  },
+  "source_commit": "18e1dcc19a58b0e125719d69223bc1a71b43cb37",
+  "checked_at_utc": "2026-09-30T11:38:02.313981+00:00",
+  "source_changes_since_commit": "Documentation only"
+}
