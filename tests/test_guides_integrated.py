@@ -328,7 +328,7 @@ def test_webpage_whole_control_sentences_cannot_change_adoption_facts_persona_or
     asyncio.run(run())
 
 
-def assert_no_media(root, payloads):
+def assert_no_media(root, payloads, *, held_empty_lock=None):
     files = [path for path in root.rglob("*") if path.is_file()]
     names = {path.name for path in files}
     assert {
@@ -343,7 +343,15 @@ def assert_no_media(root, payloads):
         *(item for payload in payloads for item in (payload, base64.b64encode(payload))),
     ]
     for path in files:
-        content = path.read_bytes()
+        if path == held_empty_lock:
+            # Windows denies a second handle reading the held byte-range lock.
+            # Require this exact lock to be empty; never exempt data/WAL/logs.
+            assert path.stat().st_size == 0, str(path.relative_to(root))
+            continue
+        try:
+            content = path.read_bytes()
+        except OSError as exc:
+            raise AssertionError(f"media scan could not read {path.relative_to(root)}") from exc
         assert not any(needle in content for needle in needles), str(path.relative_to(root))
     return sorted(str(path.relative_to(root)) for path in files)
 
@@ -490,7 +498,10 @@ def test_persistent_match_observations_voice_and_restart_leave_no_media_bytes(
             for request, raw in zip(model.observer_messages, payloads[2:], strict=True):
                 assert base64.b64encode(raw).decode() in json.dumps(request)
             assert len(voice_calls) == 2
-            live_files = assert_no_media(paths.root, payloads)
+            assert runtime._file_lock.is_locked
+            live_files = assert_no_media(
+                paths.root, payloads, held_empty_lock=paths.runtime / ".conversation.lock"
+            )
         finally:
             await runtime.close()
         fresh_model = VisualModel([[{"name": "位置", "value": "南门"}]])
@@ -520,6 +531,7 @@ def test_persistent_match_observations_voice_and_restart_leave_no_media_bytes(
             scanned_files=sorted(set(live_files + files)),
             media_payloads=len(payloads),
             persisted_media_hits=0,
+            live_conversation_lock_verified_empty=True,
             restart_kind="Runtime close/reopen; independent process recovery covered by test_match_boundaries",
         )
 

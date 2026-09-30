@@ -678,3 +678,7 @@ CI36705331960的Windows在600.281秒总超时（exit124）：诊断529项已完�
 CI36707083966失败：Linux1579/1skip、冻结30题通过、200篇p95 53.760353ms；Windows原DNS及新coarse-clock用例已通过，600.188秒时1358项完成（1357通过、1失败）。按setup/call/teardown重算594.024秒，之前finish重复汇总不采用。唯一失败为合成媒体持久化联合用例，现有脱敏输出无失败行，尚不能断言根因。PLAN登记后将smoke预算1200秒/job25分钟并保留严格完整JUnit门禁，新增Windows该用例短traceback前置诊断；它只处理合成媒体/临时资料，无真实服务或凭据。
 
 `uv run --locked pytest tests/test_m0_progress.py tests/test_guides_integrated.py -q --tb=short`：12 passed/8.90秒；两份Python Ruff/格式、文档及diff检查通过。此提交用于准确定位Windows失败，尚未修复未知根因，不声称Windows通过。
+
+诊断提交5896e491348230ddbd1ce0f346942f14f1e8a683触发CI36708814272；Windows定向失败明确在`test_guides_integrated.py:493`运行中扫描→346`Path.read_bytes()`→PermissionError，原异常不含路径。filelock3.32.7 Windows实现对进程锁offset0独占，与Mac advisory flock不同。PLAN登记后仅对已确认持有的`.conversation.lock`严格断言stat大小0，避免跨句柄读空锁；全部数据/WAL/日志仍读字节，关闭后无例外全量扫描。其余OS错误附相对路径后失败，不做泛化PermissionError忽略。下一次Windows运行确认；产品代码未改。
+
+修正后本地12项联合/进度测试通过，Ruff/格式和文档/diff检查通过。仅测试扫描方法变化，远端全套将重新验证；没有调整产品隔离、持久化或媒体字节断言。
