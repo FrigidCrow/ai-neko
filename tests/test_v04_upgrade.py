@@ -55,13 +55,18 @@ def copy_fixture(destination):
     return initialize_data_root(destination)
 
 
-def child_environment():
+def child_environment(work):
+    home = work / "isolated-home"
+    home.mkdir(exist_ok=True)
     return {
         **{
             key: os.environ[key]
             for key in ("PATH", "SYSTEMROOT", "TEMP", "TMP")
             if key in os.environ
         },
+        "HOME": str(home),
+        "USERPROFILE": str(home),
+        "LOCALAPPDATA": str(home / "AppData" / "Local"),
         "PYTHONUTF8": "1",
     }
 
@@ -79,23 +84,46 @@ def legacy_verify(paths, work):
             target = old / name
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_bytes(payload)
+    # Preserve the frozen driver bytes. Windows needs its local wakeup socket
+    # before the driver's strict network guard, but old application imports and
+    # every application operation still occur only after that guard is installed.
+    bootstrap = """
+import argparse, asyncio, runpy, sys
+from pathlib import Path
+driver = runpy.run_path(sys.argv[1])
+args = argparse.Namespace(mode="verify", source=Path(sys.argv[2]),
+                          data=Path(sys.argv[3]), expected=Path(sys.argv[4]))
+assert not any(name == "ai_neko" or name.startswith("ai_neko.") for name in sys.modules)
+with asyncio.Runner() as runner:
+    runner.get_loop()
+    sys.addaudithook(driver["deny_network"])
+    for event in ("socket.connect", "socket.getaddrinfo", "socket.gethostbyname"):
+        try:
+            sys.audit(event)
+        except AssertionError:
+            pass
+        else:
+            raise AssertionError("legacy network audit guard was not installed")
+    runner.run(driver["run"](args))
+"""
     result = subprocess.run(
         [
             sys.executable,
             "-I",
+            "-X",
+            "utf8",
+            "-c",
+            bootstrap,
             str(FIXTURE / "legacy_driver.py"),
-            "verify",
-            "--source",
             str(old / "src"),
-            "--data",
             str(paths.root),
-            "--expected",
             str(FIXTURE / "expected.json"),
         ],
         cwd=work,
-        env=child_environment(),
+        env=child_environment(work),
         capture_output=True,
         text=True,
+        encoding="utf-8",
         timeout=30,
     )
     assert result.returncode == 0, result.stderr
@@ -226,6 +254,8 @@ print('candidate-upgrade-preserved-and-injected')
         [
             sys.executable,
             "-I",
+            "-X",
+            "utf8",
             "-c",
             script,
             str(ROOT / "src"),
@@ -233,9 +263,10 @@ print('candidate-upgrade-preserved-and-injected')
             str(paths.root),
         ],
         cwd=tmp_path,
-        env=child_environment(),
+        env=child_environment(tmp_path),
         capture_output=True,
         text=True,
+        encoding="utf-8",
         timeout=30,
     )
     assert result.returncode == 0, result.stderr

@@ -375,6 +375,8 @@ def test_provider_key_rotation_and_failed_update_cache_boundaries(tmp_path, monk
 
 def test_real_search_http_is_coalesced_and_short_waiter_timeout_is_independent(web_http):
     async def scenario():
+        loop = asyncio.get_running_loop()
+        loop._clock_resolution = max(loop._clock_resolution, 0.015625)
         cache = SearchCache()
         entered, release = asyncio.Event(), asyncio.Event()
         requests = []
@@ -395,8 +397,12 @@ def test_real_search_http_is_coalesced_and_short_waiter_timeout_is_independent(w
         first.TIMEOUT = 0.01
         second = WebTools({}, "synthetic-key", search_cache=cache, scope="scope-a")
         short = asyncio.create_task(first.execute("search_web", {"query": "guide"}))
-        await entered.wait()
         long = asyncio.create_task(second.execute("search_web", {"query": "guide"}))
+        # Both waiters must attach before a coarse Windows timer can expire.
+        await asyncio.sleep(0)
+        assert len(cache._flights) == 1
+        assert next(iter(cache._flights.values())).waiters == 2
+        await entered.wait()
         assert (await short)["error"] == "timeout"
         assert not long.done()
         release.set()

@@ -686,3 +686,9 @@ CI36707083966失败：Linux1579/1skip、冻结30题通过、200篇p95 53.760353m
 修正提交18e1dcc19a58b0e125719d69223bc1a71b43cb37已推送，CI36709092334的Windows定向媒体用例通过，完整套件继续运行。等待时复核免费服务说明，补当前入口、Tavily条件和旧Release区别。另用生产WebTools/网络策略验证中文关键词“王者万象棋 新手 攻略”/zh-CN：匿名5条成功4,438.54ms；读取首条腾讯官方新手指引3,294字符成功679.277ms，保留images_unread。此次1搜索/1取页，无模型；全轮累计3搜索/3取页，不算真实三次问答验收，结果存免费服务证据目录。
 
 CI36709092334完整Windows结果：1580 collected，1575 passed/5 failed，547.953秒，JUnit完整且非timeout。媒体用例已通过；失败分别为搜索HTTP合并/短等待者独立超时1项，以及冻结v0.4原程序读取、新进程升级、两个迁移恢复参数共4项。未打包；扩展Windows前置短traceback至三个合成文件定位，不以部分进度或Linux通过替代Windows通过。
+
+诊断提交7673440529844533f7285af524cc2e61f85fcb54/CI36710350044的Windows定向34通过/5失败，17.86秒，取得完整短traceback。缓存用例实际返回miss：独立粗时钟重放证明第二waiter注册太晚、第一已超时回收flight；测试先预排两个Task、sleep(0)后明确断言同flight.waiters==2，固定15.625ms再检原10ms超时、long继续、单HTTP/coalesced/后续hit，生产缓存未改。
+
+旧版三个路径在driver禁网钩子拦截Windows asyncio内部socketpair；candidate路径在Path.home因精简环境无USERPROFILE失败。保持冻结driver/source/database/manifest完全不动（fixture diff为空），当前测试bootstrap用runpy加载driver，只先创建Runner事件循环，再装原deny_network并用sys.audit确认三类事件拒绝，最后运行旧程序。运行代码仍须来自原source目录。两个子进程用测试目录中的isolated-home作HOME/USERPROFILE/LOCALAPPDATA，未继承实际用户配置；-I配显式-X utf8和UTF-8输出解码。
+
+`uv run --locked pytest tests/test_guides_integrated.py tests/test_search_cache.py tests/test_v04_upgrade.py -q --tb=short --junitxml=artifacts/mvp2/windows-fixture-fixes.xml`：39 passed/2.10秒，日志同名txt；Ruff/两文件格式及diff通过。完整suite由下一Windows/Linux CI重跑；不把Mac专项当Windows证明。
