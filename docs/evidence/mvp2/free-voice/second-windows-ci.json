@@ -1,0 +1,46 @@
+{
+  "ci_run": 37130603228,
+  "source_commit": "9fe98b5d129645784843c4254a951898402b8d28",
+  "status": "FAILED",
+  "source_tests": {
+    "Windows": {
+      "passed": 1646,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "timed_out": false,
+      "duration_seconds": 629.875
+    },
+    "Linux": {
+      "passed": 1645,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 1,
+      "timed_out": false,
+      "duration_seconds": 129.935
+    }
+  },
+  "previous_package_reports": {
+    "package-smoke": {
+      "status": "PASS"
+    },
+    "desktop-smoke": {
+      "status": "PASS"
+    },
+    "companion-smoke": {
+      "status": "PASS"
+    },
+    "g6-acceptance": {
+      "status": "PASS"
+    }
+  },
+  "free_voice_failure": {
+    "stage": "explicit_install_reaches_ready",
+    "http_status": 400,
+    "code": "local_voice_unsupported",
+    "cases_passed": 4,
+    "cases_total": 11,
+    "model_inference": "NOT_RUN",
+    "app_artifact_uploaded": false
+  }
+}

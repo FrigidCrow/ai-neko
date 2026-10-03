@@ -444,3 +444,15 @@ Mac实际固定模型已能合成中文并识别回读，短句有“也”识�
 Windows首次语音CI37128978935未通过：Windows1642通过/2失败/1错误、Linux1644/1既有skip。已修复新增测试的超长WAV参数ID和Windows行尾差异，并修复原生eSpeak/kaldifst在非UTF-8系统代码页下的中文路径风险。实际锁定Python归档manifest与固定源码支持该路径风险判断；新worker仅在独立进程内改用ASCII相对路径，保留中文用户目录和主应用cwd。Mac全量1645通过/1既有skip、引擎39项及真实短句均通过；新Windows包待下一CI，失败报告完整保留，没有把Mac结果提升为Windows通过。
 
 最新Unicode worker再跑真实应用API9/9通过：固定24字中文TTS7.223秒、ASR0.748秒、CER0；取消0.006秒返回时实际PID24090已退出、原请求409、无子进程残留，关闭正常。报告source-api-smoke-unicode.json与测试音频单独保留，旧报告不覆盖；没有新增下载/用户麦克风/付费调用。
+
+
+2026-10-04（CI记录为UTC 10月3日）：9fe98b5/CI37130603228的Windows1646通过/0skip、629.875秒；Linux1645/1既有skip、129.935秒，桌面106、冻结30题及200篇基准通过（Windows79.3816ms/Linux24.595147ms）。既有同ZIP16/9/21/8包门禁通过，但新增免费语音第5项安装HTTP400 local_voice_unsupported，前4项过、推理未运行、应用包未上传。失败机器记录second-windows-ci及second-windows-ci-free-voice-failure完整保留。
+
+固定CPython3.11.15源码确认Windows platform.machine只读PROCESSOR_ARCHITEW6432/PROCESSOR_ARCHITECTURE，而包验收的最小进程环境刻意不含二者。这使实际AMD64冻结程序误判为不支持。PLAN先登记后修正，使用编译期ABI判断而不扩大环境继承，补无两变量及不支持平台回归；具体结果另记。此次未生成可交付新包，README旧下载入口保持。
+
+
+平台兼容修正完成：Windows安装器改用sysconfig的编译期win-amd64标识，原CPython Windows machine helper在实际scrubbed环境确实返回空，ARM64/32bit/unknown仍拒绝，证据windows-platform-selection.json。按PyInstaller6.22.3官方外部进程说明，新增frozen Windows spawn共享锁，临时清空DLL目录，仅创建完成前保持清空，finally恢复。外层shield保持；恢复失败时先kill+wait已创建进程，不丢失句柄。独立只读审查未发现必须修项，不将此继承机制冒称上次400的根因。
+
+引擎专项52/52通过，包括5个平台ABI回归与8个DLL成功/异常/取消/并发/旁路用例；真实子进程取消回收包含在专项中。`uv run --locked ruff check src tests scripts packaging`及131文件格式通过，完整pytest记录为artifacts/free-voice/pytest-frozen-fix.xml/.txt，结果另记。桌面和native worker未改，沿用本次已验证的UI/实际模型证据；源码新增Windows分支将在下一实际包再次验证。
+
+冻结兼容修复后的全量本机回归1658 passed / 1既有Windows凭据skip，63.67秒，零失败/错误。机器记录frozen-fixes-local-verification.json；下一Windows CI与真实安装/推理待实际结果。

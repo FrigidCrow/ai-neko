@@ -1,0 +1,39 @@
+{
+  "kind": "fixed_cpython_windows_machine_helper_with_actual_scrubbed_environment",
+  "ci_failure_run": "37130603228",
+  "ci_route": "/api/voice/local/install",
+  "ci_http_status": 400,
+  "ci_error_code": "local_voice_unsupported",
+  "reproduction_host": "darwin",
+  "stdlib_version": "3.11.15",
+  "processor_variables_present": [],
+  "previous_windows_helper_machine": "",
+  "new_actual_stdlib_get_platform_with_simulated_windows_compiler_facts": [
+    {
+      "compiled_version": "3.11.15 [MSC v.1944 64 bit (AMD64)]",
+      "tag": "win-amd64",
+      "supported": true
+    },
+    {
+      "compiled_version": "3.11.15 [MSC v.1944 64 bit (ARM64)]",
+      "tag": "win-arm64",
+      "supported": false
+    },
+    {
+      "compiled_version": "3.11.15 [MSC v.1944 32 bit (Intel)]",
+      "tag": "win32",
+      "supported": false
+    },
+    {
+      "compiled_version": "unknown-interpreter",
+      "tag": "win32",
+      "supported": false
+    }
+  ],
+  "uv_arch_source": "https://github.com/astral-sh/uv/blob/0.11.8/crates/uv-platform/src/arch.rs#L76-L87",
+  "uv_arch_behavior": "compile-time target_lexicon::HOST.architecture, no PROCESSOR environment lookup",
+  "worker_arch_behavior": "sys.platform chooses fixed site-packages layout; no platform.machine call",
+  "test_count": 44,
+  "scope": "local_voice.py platform selection and tests only; no environment allowlist expansion",
+  "local_voice_sha256": "6d8d9f158a649760709a9e5a2d702e4b7ec3bbf34f973c6065e2974808897bef"
+}

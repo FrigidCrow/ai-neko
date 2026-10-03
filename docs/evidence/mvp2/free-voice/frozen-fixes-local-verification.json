@@ -1,0 +1,25 @@
+{
+  "date_local": "2026-10-04",
+  "kind": "Mac regression for frozen Windows platform and DLL spawn isolation",
+  "baseline_commit": "9fe98b5d129645784843c4254a951898402b8d28",
+  "python": {
+    "collected": 1659,
+    "passed": 1658,
+    "skipped": 1,
+    "failures": 0,
+    "errors": 0,
+    "seconds": 62.607,
+    "junit_sha256": "97bf2966ba97f11fe641d24026a74d8d970a4e2941225f12baa0b31d1bbfda42",
+    "log_sha256": "ebd4f62fdb351487c49f8c7f189a661dcda1017e6ba28493df63863005331298"
+  },
+  "engine_cases": 52,
+  "lint": "Ruff and format pass; 131 files",
+  "source_sha256": {
+    "src/ai_neko/media/local_voice.py": "88f3a098d24ecff97444d053cb1d3ef8e826c7e1a1c3777c77f3c144457d97c6",
+    "tests/test_local_voice.py": "3f7a11214de87eab6d97a744c1b8b37199ac11c5a7b96cd8f5a0b98d17b6b24d",
+    "docs/FREE-VOICE-SOURCES.md": "ddc9eae7e6551a94aeed23d0ec310f58e10111fa741048d2a3de085741abafe9"
+  },
+  "native_worker_sha256": "0a35004f9c11d6bfbf8f7d676a1374f3b62b792d74743193d3467c7337cb37e1",
+  "actual_model_evidence": "unchanged worker and non-Windows spawn behavior; source-api-smoke-unicode.json retained",
+  "windows": "pending next CI; failure37130603228 retained"
+}

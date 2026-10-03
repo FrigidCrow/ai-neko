@@ -529,3 +529,240 @@ def test_native_paths_are_ascii_relative_under_unicode_root_without_changing_app
         "relative_ascii_paths": True,
     }
     assert Path.cwd() == app_cwd
+
+
+@pytest.mark.parametrize("frozen", [False, True])
+def test_windows_download_selection_uses_compiled_abi_with_processor_environment_absent(
+    monkeypatch, frozen
+):
+    from types import SimpleNamespace
+
+    for name in ("PROCESSOR_ARCHITECTURE", "PROCESSOR_ARCHITEW6432"):
+        monkeypatch.delenv(name, raising=False)
+    # This is the actual fixed CPython 3.11 Windows helper, not a mock:
+    # platform.machine() loses its only machine source in a scrubbed child.
+    assert local_voice.platform._get_machine_win32() == ""
+    interpreter = SimpleNamespace(platform="win32", version="3.11.15 [MSC v.1944 64 bit (AMD64)]")
+    if frozen:
+        interpreter.frozen = True
+    monkeypatch.setattr(local_voice, "sys", interpreter)
+    # Keep the actual sysconfig.get_platform implementation; replace only its
+    # OS/compiler facts so this Windows regression runs on every CI platform.
+    monkeypatch.setattr(local_voice.sysconfig, "os", SimpleNamespace(name="nt"))
+    monkeypatch.setattr(local_voice.sysconfig, "sys", interpreter)
+    assert local_voice._download_spec() == local_voice.UV_DOWNLOADS[("win32", "amd64")]
+
+
+@pytest.mark.parametrize(
+    "version",
+    [
+        "3.11.15 [MSC v.1944 64 bit (ARM64)]",
+        "3.11.15 [MSC v.1944 32 bit (Intel)]",
+        "unknown-interpreter",
+    ],
+)
+def test_windows_download_selection_rejects_unsupported_abi_even_with_amd64_environment(
+    monkeypatch, version
+):
+    from types import SimpleNamespace
+
+    monkeypatch.setenv("PROCESSOR_ARCHITECTURE", "AMD64")
+    monkeypatch.setenv("PROCESSOR_ARCHITEW6432", "AMD64")
+    interpreter = SimpleNamespace(platform="win32", version=version, frozen=True)
+    monkeypatch.setattr(local_voice, "sys", interpreter)
+    monkeypatch.setattr(local_voice.sysconfig, "os", SimpleNamespace(name="nt"))
+    monkeypatch.setattr(local_voice.sysconfig, "sys", interpreter)
+    assert local_voice._download_spec() is None
+
+
+class FakeDllDirectory:
+    def __init__(self, *, fail_restore=False):
+        self.original = r"C:\synthetic-app\_internal"
+        self.current = self.original
+        self.events = []
+        self.fail_restore = fail_restore
+
+    def get(self):
+        self.events.append(("get", self.current))
+        return self.current
+
+    def set(self, value):
+        self.events.append(("set", value))
+        if self.fail_restore and value == self.original:
+            raise OSError("synthetic restore failure")
+        self.current = value
+
+
+def frozen_windows_dll_guard(monkeypatch, api):
+    from types import SimpleNamespace
+
+    monkeypatch.setattr(local_voice, "sys", SimpleNamespace(platform="win32", frozen=True))
+    monkeypatch.setattr(local_voice, "_WindowsDllDirectory", lambda: api)
+    monkeypatch.setattr(local_voice, "_DLL_SPAWN_LOCK", asyncio.Lock())
+
+
+def test_frozen_windows_spawn_restores_dll_directory_before_return(monkeypatch):
+    async def run():
+        api = FakeDllDirectory()
+        frozen_windows_dll_guard(monkeypatch, api)
+        child = object()
+
+        async def create(*args, **kwargs):
+            assert api.current is None
+            await asyncio.sleep(0)
+            return child
+
+        monkeypatch.setattr(asyncio, "create_subprocess_exec", create)
+        assert await local_voice._spawn_external("synthetic") is child
+        assert api.current == api.original
+        assert api.events == [("get", api.original), ("set", None), ("set", api.original)]
+
+    asyncio.run(run())
+
+
+def test_frozen_windows_spawn_restores_dll_directory_on_creation_failure(monkeypatch):
+    async def run():
+        api = FakeDllDirectory()
+        frozen_windows_dll_guard(monkeypatch, api)
+
+        async def create(*args, **kwargs):
+            assert api.current is None
+            raise OSError("synthetic CreateProcess failure")
+
+        monkeypatch.setattr(asyncio, "create_subprocess_exec", create)
+        with pytest.raises(OSError, match="CreateProcess failure"):
+            await local_voice._spawn_external("synthetic")
+        assert api.current == api.original
+        assert not local_voice._DLL_SPAWN_LOCK.locked()
+
+    asyncio.run(run())
+
+
+def test_frozen_windows_cancel_during_spawn_restores_dll_directory_and_reaps_child(
+    tmp_path, monkeypatch
+):
+    async def run():
+        voice = engine(tmp_path)
+        voice._owned(create=True)
+        native_python = str(Path(sys._base_executable).resolve())
+        original_create = asyncio.create_subprocess_exec
+        api = FakeDllDirectory()
+        frozen_windows_dll_guard(monkeypatch, api)
+        created, release = asyncio.Event(), asyncio.Event()
+        children = []
+
+        async def create(*args, **kwargs):
+            assert api.current is None
+            # The DLL API is synthetic but lifecycle uses a real native child.
+            # Only Windows supports CREATE_NO_WINDOW, so ignore it on this host.
+            if sys.platform != "win32":
+                kwargs["creationflags"] = 0
+            child = await original_create(*args, **kwargs)
+            children.append(child)
+            created.set()
+            await release.wait()
+            return child
+
+        monkeypatch.setattr(asyncio, "create_subprocess_exec", create)
+        task = asyncio.create_task(
+            voice._command([native_python, "-I", "-c", "import time;time.sleep(60)"], timeout=60)
+        )
+        await created.wait()
+        task.cancel()
+        await asyncio.sleep(0)
+        assert not task.done()
+        release.set()
+        result = await asyncio.gather(task, return_exceptions=True)
+        assert isinstance(result[0], asyncio.CancelledError)
+        assert api.current == api.original
+        assert children[0].returncode is not None
+        assert not voice._processes
+        assert not local_voice._DLL_SPAWN_LOCK.locked()
+
+    asyncio.run(run())
+
+
+def test_failed_dll_restore_does_not_lose_live_spawn_result(tmp_path, monkeypatch):
+    async def run():
+        original_create = asyncio.create_subprocess_exec
+        native_python = str(Path(sys._base_executable).resolve())
+        api = FakeDllDirectory(fail_restore=True)
+        frozen_windows_dll_guard(monkeypatch, api)
+        children = []
+
+        async def create(*args, **kwargs):
+            child = await original_create(*args, **kwargs)
+            children.append(child)
+            return child
+
+        monkeypatch.setattr(asyncio, "create_subprocess_exec", create)
+        with pytest.raises(LocalVoiceError) as error:
+            await local_voice._spawn_external(
+                native_python,
+                "-I",
+                "-c",
+                "import time;time.sleep(60)",
+                stdin=asyncio.subprocess.PIPE,
+            )
+        assert error.value.code == "local_voice_spawn"
+        assert children[0].returncode is not None
+        assert not local_voice._DLL_SPAWN_LOCK.locked()
+
+    asyncio.run(run())
+
+
+def test_concurrent_frozen_spawns_do_not_overwrite_dll_restore_order(monkeypatch):
+    async def run():
+        api = FakeDllDirectory()
+        frozen_windows_dll_guard(monkeypatch, api)
+        active = 0
+
+        async def create(name):
+            nonlocal active
+            active += 1
+            assert active == 1 and api.current is None
+            api.events.append(("spawn-start", name))
+            await asyncio.sleep(0)
+            api.events.append(("spawn-end", name))
+            active -= 1
+            return name
+
+        monkeypatch.setattr(asyncio, "create_subprocess_exec", create)
+        assert await asyncio.gather(
+            local_voice._spawn_external("first"), local_voice._spawn_external("second")
+        ) == ["first", "second"]
+        assert api.current == api.original
+        assert api.events == [
+            ("get", api.original),
+            ("set", None),
+            ("spawn-start", "first"),
+            ("spawn-end", "first"),
+            ("set", api.original),
+            ("get", api.original),
+            ("set", None),
+            ("spawn-start", "second"),
+            ("spawn-end", "second"),
+            ("set", api.original),
+        ]
+
+    asyncio.run(run())
+
+
+@pytest.mark.parametrize("system,frozen", [("win32", False), ("darwin", True), ("linux", True)])
+def test_dll_directory_is_untouched_outside_frozen_windows(monkeypatch, system, frozen):
+    from types import SimpleNamespace
+
+    async def run():
+        monkeypatch.setattr(local_voice, "sys", SimpleNamespace(platform=system, frozen=frozen))
+
+        def api():
+            raise AssertionError("must not call Windows DLL APIs on this platform")
+
+        async def create(*args, **kwargs):
+            return "created"
+
+        monkeypatch.setattr(local_voice, "_WindowsDllDirectory", api)
+        monkeypatch.setattr(asyncio, "create_subprocess_exec", create)
+        assert await local_voice._spawn_external("synthetic") == "created"
+
+    asyncio.run(run())

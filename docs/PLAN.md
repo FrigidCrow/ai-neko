@@ -496,6 +496,10 @@ Windows兼容复验登记：82eef4b的CI37128978935中Linux1644/1平台skip通�
 
 中文路径兼容登记：固定kaldifst/eSpeak代码确有窄字符ifstream/stat/fopen；实际锁定Windows PBS包SHA校验及PE manifest检查确认无activeCodePage UTF-8，不能依赖用户的系统代码页。仅独立worker进入本模型目录，向native库传固定ASCII相对模型/词典/FST路径；主进程cwd与数据根不变。补隔离子进程的中文路径回归及实际本地模型重跑，Windows包仍在真实中文/空格路径安装和执行，不改为纯英文验收路径。
 
+Windows包实测修复登记（2026-10-04）：9fe98b5/CI37130603228双平台完整测试通过、既有包16/9/21/8通过，但免费语音安装HTTP400 local_voice_unsupported，4/11后停止、未上传应用包。后台在最小环境运行，platform.machine依赖Windows进程环境信息；需以实际解释器/系统架构可靠识别支持的x64平台，不能通过继承整套用户环境或跳过包安装验收规避。先独立确认固定Python实现与最小环境下结果，再补不依赖PROCESSOR_*环境变量的识别及有界回归，重新验证实际包安装/推理。
+
+冻结子进程兼容补充登记：PyInstaller官方文档与6.22.3 bootloader确认Windows SetDllDirectoryW设置会被外部子进程继承，env清洗不能隔离。此机制不是上次HTTP400根因，也未声称已出现具体DLL冲突；可选语音运行环境应在创建外部uv/Python进程时保存并临时清空此目录，完成或失败后恢复，范围仅frozen Windows，保持spawn取消后回收的原边界。补成功、失败及取消时恢复的合成回归，下一真实Windows包共同验证。
+
 ## 18. MVP1 收尾与CI/CD（2026-09-27，已授权）
 
 用户要求“取消问题修复 + 所有问题收束，CICD，MVP1正式结束，然后准备进入MVP2”。本批次完成MVP1工程缺陷收尾、明确剩余验收边界、推送并验证现有CI/CD和Windows下载产物；不实施G1–G6。正式收尾不得把缺少真实服务或Windows11证据的验收写成通过。

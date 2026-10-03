@@ -70,7 +70,7 @@ PLAN§17.8先登记再实现。G6实际Electron新增采用→退出→新进程
 
 仍需完成以下实际环境核查与执行，禁止扩大到持续录屏或键鼠控制：
 
-1. 本项目指定模型/ASR/TTS配置仍待就绪，不能借用参考工程或其他项目Key。搜索已支持AnySearch匿名API并实测产品搜索/正文路径，live probe可指定`--search-provider anysearch`，无需`AI_NEKO_SEARCH_API_KEY`；仍需模型Key和真实20组同题计划，再核对用量/费用/有效建议及实际听到语音。服务选择与设置入口见[免费服务核查](FREE-SERVICES-AND-WINDOWS-VM.md)。
+1. 本项目对话模型仍需单独配置，不能借用参考工程或其他项目Key。语音已新增免Key本地SenseVoice识别与Kokoro朗读，设置和真实固定样本证据见[免费语音](FREE-VOICE.md)；无需再为ASR/TTS寻找收费服务。搜索已支持AnySearch匿名API并实测产品搜索/正文路径，live probe可指定`--search-provider anysearch`，无需`AI_NEKO_SEARCH_API_KEY`；仍需真实20组同题计划，再核对模型用量/费用/有效建议及实际听到语音。服务选择与设置入口见[免费服务核查](FREE-SERVICES-AND-WINDOWS-VM.md)。
 2. Windows11用户真机：同一攻略至少10轮，含切换、新局与重启；3公开来源流程含一次明确最新；跨生成/合成/播放20次停止。保留所有失败，不能用本机合成计时替代。
 3. Windows包交付已完成：[新包与核对报告](MVP2-WINDOWS-VERIFICATION.md)记录Windows1581、宿主92、16/9/21/8实际程序门禁；冻结30题及200篇p95 80.3016ms通过。G6使用实际解压exe和两个独立进程，下载来源/摘要已核对。后续用该包补Win11游戏与实际音频证据，当前M4仅约32GiB空闲、无VM，先落实存储；ARM VM与原生x64分列。
 

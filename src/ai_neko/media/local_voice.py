@@ -10,6 +10,7 @@ from __future__ import annotations
 import asyncio
 import base64
 import contextlib
+import ctypes
 import hashlib
 import io
 import json
@@ -17,6 +18,7 @@ import os
 import platform
 import stat
 import sys
+import sysconfig
 import tarfile
 import wave
 import zipfile
@@ -35,6 +37,9 @@ PYTHON_VERSION = "3.11.15"
 UV_VERSION = "0.11.8"
 RUNTIME_SOURCE = Path(__file__).with_name("local_runtime")
 OWNER = {"app": "ai-neko-local-voice", "schema": 1}
+# The application owns one asyncio runtime. This shared lock also serializes
+# installs and inference from different LocalVoice instances on that runtime.
+_DLL_SPAWN_LOCK = asyncio.Lock()
 
 
 @dataclass(frozen=True)
@@ -88,11 +93,90 @@ class LocalVoiceError(RuntimeError):
         super().__init__(message)
 
 
+class _WindowsDllDirectory:
+    """Narrow wrapper for PyInstaller's process-wide Windows DLL directory."""
+
+    def __init__(self):
+        from ctypes import wintypes
+
+        self.kernel = ctypes.WinDLL("kernel32", use_last_error=True)
+        self.kernel.GetDllDirectoryW.argtypes = [wintypes.DWORD, wintypes.LPWSTR]
+        self.kernel.GetDllDirectoryW.restype = wintypes.DWORD
+        self.kernel.SetDllDirectoryW.argtypes = [wintypes.LPCWSTR]
+        self.kernel.SetDllDirectoryW.restype = wintypes.BOOL
+
+    def get(self) -> str:
+        ctypes.set_last_error(0)
+        needed = self.kernel.GetDllDirectoryW(0, None)
+        if not needed and ctypes.get_last_error():
+            raise OSError("cannot read DLL directory")
+        buffer = ctypes.create_unicode_buffer(needed + 1)
+        ctypes.set_last_error(0)
+        copied = self.kernel.GetDllDirectoryW(len(buffer), buffer)
+        if copied >= len(buffer) or (not copied and ctypes.get_last_error()):
+            raise OSError("cannot read DLL directory")
+        return buffer.value
+
+    def set(self, value: str | None) -> None:
+        if not self.kernel.SetDllDirectoryW(value):
+            raise OSError("cannot set DLL directory")
+
+
+async def _reap_spawn_result(process) -> None:
+    """Reap even when a setup failure prevents handing the child to its owner."""
+    if process.returncode is None:
+        with contextlib.suppress(ProcessLookupError):
+            process.kill()
+    reaped = asyncio.create_task(process.wait())
+    while not reaped.done():
+        try:
+            await asyncio.shield(reaped)
+        except asyncio.CancelledError:
+            continue
+    if process.stdin:
+        process.stdin.close()
+
+
+async def _spawn_external(*args, **kwargs):
+    if sys.platform != "win32" or not getattr(sys, "frozen", False):
+        return await asyncio.create_subprocess_exec(*args, **kwargs)
+    # Clearing environment variables cannot undo SetDllDirectoryW inherited
+    # from a frozen app. Clear only during creation, then immediately restore
+    # the host before inference or network installation continues. The caller
+    # shields this entire operation, retaining children created during cancel.
+    async with _DLL_SPAWN_LOCK:
+        api = _WindowsDllDirectory()
+        process = None
+        try:
+            previous = api.get()
+            api.set(None)
+        except OSError:
+            raise LocalVoiceError("local_voice_spawn", "无法准备独立语音运行环境。") from None
+        try:
+            process = await asyncio.create_subprocess_exec(*args, **kwargs)
+        finally:
+            try:
+                api.set(previous)
+            except OSError:
+                # Never lose a live child because restoring the host DLL path
+                # failed after CreateProcess had already succeeded.
+                if process is not None:
+                    await _reap_spawn_result(process)
+                raise LocalVoiceError("local_voice_spawn", "无法恢复应用运行环境。") from None
+        return process
+
+
 def _download_spec() -> Download | None:
-    machine = platform.machine().lower()
-    if sys.platform == "win32" and machine == "x86_64":
-        machine = "amd64"
-    return UV_DOWNLOADS.get((sys.platform, machine))
+    if sys.platform == "win32":
+        # CPython 3.11 platform.machine() reads PROCESSOR_* environment
+        # variables on Windows; our intentionally scrubbed child environment
+        # omits them. sysconfig's Windows tag derives from the interpreter's
+        # compiled sys.version instead, including in a frozen CPython process.
+        # Select the actual process ABI, not a possibly different host ISA.
+        if sysconfig.get_platform() != "win-amd64":
+            return None
+        return UV_DOWNLOADS[("win32", "amd64")]
+    return UV_DOWNLOADS.get((sys.platform, platform.machine().lower()))
 
 
 def _child(root: Path, relative: str) -> Path:
@@ -492,7 +576,7 @@ class LocalVoice:
         self, args: list[str], *, timeout: float, payload: bytes | None = None
     ) -> bytes:
         spawn = asyncio.create_task(
-            asyncio.create_subprocess_exec(
+            _spawn_external(
                 *args,
                 cwd=str(self.root),
                 env=_environment(self.root),

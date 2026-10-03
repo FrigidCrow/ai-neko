@@ -45,8 +45,10 @@ Python API 使用官方 [offline-tts 示例](https://github.com/k2-fsa/sherpa-on
 
 ## 当前验证
 
-本地引擎 39 项确定性测试由 [test_local_voice.py](../tests/test_local_voice.py) 执行，不下载大模型；覆盖只读状态、外来目录、环境隔离、归档路径、下载 hash/大小/跳转、取消与真实子进程回收、正常退出父管道保持打开、缺失资源重装和 WAV 完整性。根工程的服务/API/桌面与 Windows CI 证据由主验证报告另行汇总。
+本地引擎的确定性测试由 [test_local_voice.py](../tests/test_local_voice.py) 执行，不下载大模型；覆盖只读状态、外来目录、环境隔离、归档路径、下载 hash/大小/跳转、取消与真实子进程回收、正常退出父管道保持打开、缺失资源重装和 WAV 完整性。根工程的服务/API/桌面与 Windows CI 证据由主验证报告另行汇总。
 
 2026-10-03 在本机 Mac M4 / Python 3.11.15 完成实际固定资源安装与短句推理。`artifacts/free-voice/sample.wav` 为合成测试音频，`artifacts/free-voice/probe.json` 为测量，不采用户麦克风。最终配置短句“你好，我是小猫。今天也一起学习吧。”生成 24000 Hz、224740 B、4.681 秒 WAV，冷启动朗读约 4.939 秒，重采样到 16 kHz 后识别约 0.799 秒，识别文本为“你好，我是小猫，今天来一起学习吧。”，存在“也→来”识别差异。它证明实际本地 ASR/TTS 链路工作，不代表真人、嘈杂环境、游戏负载或 Windows 11 音频体验已通过。
 
 Windows 窄字符路径兼容修复后，在同一私有环境再次运行真实短句，原报告保留；`artifacts/free-voice/unicode-path-probe.json` 记录 worker SHA-256 `0a35004f9c11d6bfbf8f7d676a1374f3b62b792d74743193d3467c7337cb37e1`、TTS 约 4.947 秒、ASR 约 0.732 秒。该复测在 Mac 完成；中文根路径下的相对路径解析另有无模型子进程回归，Windows 实际 native 验证仍以 Windows CI 结果为准。
+
+Windows 冻结程序使用编译期 `win-amd64` ABI 选择安装器，不依赖 `PROCESSOR_*` 环境变量。创建独立 uv/Python 子进程期间，按 [PyInstaller 外部进程说明](https://pyinstaller.org/en/stable/common-issues-and-pitfalls.html#launching-external-programs-from-the-frozen-application)临时清空继承的 DLL 搜索目录并立即恢复，避免专用运行组件加载主程序的同名库；成功、创建失败与取消回收均有回归覆盖。第一次实际包失败发生在架构判断阶段，尚不能将 DLL 继承机制说成当时已发生的冲突。
