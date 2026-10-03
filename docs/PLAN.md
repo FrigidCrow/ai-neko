@@ -492,6 +492,10 @@ Windows桌面等待修正登记：42c3aad/CI36713526928双平台源码门禁全�
 
 17.10本机结果：V1–V4已实现并验证。最终Python1644通过/1既有平台skip，桌面106、Mac实际Electron21通过；真实本地API9项通过，包括中文TTS→16k回识别、官方中文样例和实际worker取消回收。24字测试句回识别完全一致，另一短句有一字差异；均不代表真人准确率。38项引擎测试包括Windows launcher绕过、native PID一致、取消发生于spawn期间、总120秒时限包含排队、资源缺失重装等。完整版本/许可与模型摘要留证，V5 Windows独立安装/包推理门禁已接工作流，等新CI实际结果。[本机机器记录](evidence/mvp2/free-voice/local-verification.json)与[来源说明](FREE-VOICE-SOURCES.md)分开记录确定性测试、合成服务和实际本地模型。
 
+Windows兼容复验登记：82eef4b的CI37128978935中Linux1644/1平台skip通过，Windows1642通过/2失败/1错误，未打包。失败集中于新增本地语音测试的两个stdout行尾断言及大WAV参数用例；先核对CRLF和Windows环境变量长度限制，不放宽产品停止/资源边界。测试改用明确短参数名、实际基础解释器及二进制控制输出，并将本地语音文件加入Windows前置短traceback诊断；再次完整源码和包门禁通过才交付。
+
+中文路径兼容登记：固定kaldifst/eSpeak代码确有窄字符ifstream/stat/fopen；实际锁定Windows PBS包SHA校验及PE manifest检查确认无activeCodePage UTF-8，不能依赖用户的系统代码页。仅独立worker进入本模型目录，向native库传固定ASCII相对模型/词典/FST路径；主进程cwd与数据根不变。补隔离子进程的中文路径回归及实际本地模型重跑，Windows包仍在真实中文/空格路径安装和执行，不改为纯英文验收路径。
+
 ## 18. MVP1 收尾与CI/CD（2026-09-27，已授权）
 
 用户要求“取消问题修复 + 所有问题收束，CICD，MVP1正式结束，然后准备进入MVP2”。本批次完成MVP1工程缺陷收尾、明确剩余验收边界、推送并验证现有CI/CD和Windows下载产物；不实施G1–G6。正式收尾不得把缺少真实服务或Windows11证据的验收写成通过。

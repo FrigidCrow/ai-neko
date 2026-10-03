@@ -1,0 +1,24 @@
+{
+  "kind": "Mac regression after Windows fixtures and native Unicode paths fix",
+  "date": "2026-10-03",
+  "baseline_commit": "82eef4b84749bf0d214b9de26b578b26b6830b52",
+  "python": {
+    "tests": 1646,
+    "passed": 1645,
+    "skipped": 1,
+    "failures": 0,
+    "errors": 0,
+    "seconds": 62.988,
+    "junit_sha256": "6fc1c5ab35b54e339fcb6bc8d0c9830f46b2d9dc85cbed844ecad39b064ff644",
+    "log_sha256": "071363124241df56cca20604749c0e7a59302260fbf6966176dd4a31cd287840"
+  },
+  "source_sha256": {
+    "src/ai_neko/media/local_runtime/worker.py": "0a35004f9c11d6bfbf8f7d676a1374f3b62b792d74743193d3467c7337cb37e1",
+    "tests/test_local_voice.py": "ddd95a3e86c1f30de47396bf94db27d80d834dcf4ef31cdf5469c328679673c6",
+    ".github/workflows/windows-preview.yml": "895b3acee5d5ab7f8ec848f441133853c7ae5b03b0273529fc5113fdc7422391",
+    "docs/FREE-VOICE-SOURCES.md": "979af39cca24f712935728623045390000edaa2761eae48174457483bcf16682"
+  },
+  "lint": "Ruff and format pass; 131 Python files",
+  "windows_result": "pending new CI; first failed run retained separately",
+  "ui_evidence": "Unchanged desktop implementation; previous 106 Node tests and 21 actual Electron scenarios retained without recounting"
+}

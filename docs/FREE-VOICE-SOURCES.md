@@ -41,10 +41,12 @@ Python API 使用官方 [offline-tts 示例](https://github.com/k2-fsa/sherpa-on
 
 所有下载校验固定大小和 SHA；解包逐项拒绝绝对路径、`..`、Windows 路径、符号链接、硬链接和特殊设备文件，并限制文件总数与膨胀大小。失败/取消没有 ready 标记，缺少模型必需文件重新变为 missing，可以重装。推理使用独立进程的有界 stdin/stdout JSON/base64，不开启 HTTP 端口、不写入用户录音、输入文字或输出音频文件。
 
-每次推理最多两条 CPU 线程，初版每请求冷启动；并行请求串行处理以限制内存；120 秒总时限包含锁等待和推理，排队超时后不会再启动推理。识别接受 60 秒以内、16 kHz 单声道 PCM16 WAV，最大 8 MiB；朗读最多 600 字，返回单声道 PCM16 WAV，最大 8 MiB。请求超时、取消、关闭均终止并等待子进程退出，包括取消发生在进程创建过程的情况。运行实际 managed Python 解释器并仅显式加载私有 venv 的 site-packages，绕过 Windows venv launcher 的二级进程；每次协议返回的原生 PID 必须等于启动并等待的 PID。父进程保留所有者管道；worker 通过管道关闭检测退出，Linux 另设内核 parent-death signal，Windows 持父进程 HANDLE 防 PID 重用。native constructor/decode/generate 释放 Python GIL，使监控线程能在推理中运行。推理 worker 安装 socket 审计拒绝网络请求。
+每次推理最多两条 CPU 线程，初版每请求冷启动；并行请求串行处理以限制内存；120 秒总时限包含锁等待和推理，排队超时后不会再启动推理。识别接受 60 秒以内、16 kHz 单声道 PCM16 WAV，最大 8 MiB；朗读最多 600 字，返回单声道 PCM16 WAV，最大 8 MiB。请求超时、取消、关闭均终止并等待子进程退出，包括取消发生在进程创建过程的情况。运行实际 managed Python 解释器并仅显式加载私有 venv 的 site-packages，绕过 Windows venv launcher 的二级进程；每次协议返回的原生 PID 必须等于启动并等待的 PID。父进程保留所有者管道；worker 通过管道关闭检测退出，Linux 另设内核 parent-death signal，Windows 持父进程 HANDLE 防 PID 重用。native constructor/decode/generate 释放 Python GIL，使监控线程能在推理中运行。推理 worker 安装 socket 审计拒绝网络请求。 Windows 原生 eSpeak/kaldifst 文件读取仍使用窄字符接口，因此仅在独立 worker 内用 Python 切换到模型目录，再向 native 库传固定 ASCII 相对路径；中文用户目录保留原位，主应用工作目录不变。
 
 ## 当前验证
 
-本地引擎 38 项确定性测试由 [test_local_voice.py](../tests/test_local_voice.py) 执行，不下载大模型；覆盖只读状态、外来目录、环境隔离、归档路径、下载 hash/大小/跳转、取消与真实子进程回收、正常退出父管道保持打开、缺失资源重装和 WAV 完整性。根工程的服务/API/桌面与 Windows CI 证据由主验证报告另行汇总。
+本地引擎 39 项确定性测试由 [test_local_voice.py](../tests/test_local_voice.py) 执行，不下载大模型；覆盖只读状态、外来目录、环境隔离、归档路径、下载 hash/大小/跳转、取消与真实子进程回收、正常退出父管道保持打开、缺失资源重装和 WAV 完整性。根工程的服务/API/桌面与 Windows CI 证据由主验证报告另行汇总。
 
 2026-10-03 在本机 Mac M4 / Python 3.11.15 完成实际固定资源安装与短句推理。`artifacts/free-voice/sample.wav` 为合成测试音频，`artifacts/free-voice/probe.json` 为测量，不采用户麦克风。最终配置短句“你好，我是小猫。今天也一起学习吧。”生成 24000 Hz、224740 B、4.681 秒 WAV，冷启动朗读约 4.939 秒，重采样到 16 kHz 后识别约 0.799 秒，识别文本为“你好，我是小猫，今天来一起学习吧。”，存在“也→来”识别差异。它证明实际本地 ASR/TTS 链路工作，不代表真人、嘈杂环境、游戏负载或 Windows 11 音频体验已通过。
+
+Windows 窄字符路径兼容修复后，在同一私有环境再次运行真实短句，原报告保留；`artifacts/free-voice/unicode-path-probe.json` 记录 worker SHA-256 `0a35004f9c11d6bfbf8f7d676a1374f3b62b792d74743193d3467c7337cb37e1`、TTS 约 4.947 秒、ASR 约 0.732 秒。该复测在 Mac 完成；中文根路径下的相对路径解析另有无模型子进程回归，Windows 实际 native 验证仍以 Windows CI 结果为准。

@@ -65,6 +65,19 @@ def deny_network(event, args):
         raise RuntimeError("offline voice cannot access network")
 
 
+def prepare_native_paths(models: Path) -> tuple[Path, Path]:
+    """Use wide-character Python chdir, then ASCII-only native resource paths.
+
+    Windows dependencies such as eSpeak and kaldifst still use narrow fopen /
+    ifstream. Passing a UTF-8 absolute user directory is unsafe under a legacy
+    Windows code page. This change is confined to this short-lived worker.
+    """
+    if not models.is_absolute() or not models.is_dir():
+        raise ValueError("model directory unavailable")
+    os.chdir(models.resolve(strict=True))
+    return Path(ASR_NAME), Path(TTS_NAME)
+
+
 def run(request: dict) -> dict:
     sys.addaudithook(deny_network)
     # The parent runs the actual managed interpreter, not a Windows venv
@@ -85,9 +98,9 @@ def run(request: dict) -> dict:
     import numpy as np
     import sherpa_onnx
 
-    models = Path(request["models"])
-    asr = models / ASR_NAME
-    tts = models / TTS_NAME
+    # packages and models remain absolute for Python's Unicode-safe checks.
+    # Every native path below is formed from these fixed ASCII model names.
+    asr, tts = prepare_native_paths(models)
     operation = request.get("operation")
     if operation == "check":
         needed = json.loads(Path(__file__).with_name("model_files.json").read_text())

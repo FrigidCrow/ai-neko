@@ -1,0 +1,39 @@
+{
+  "status": "FAILED",
+  "ci_run": 37128978935,
+  "source_commit": "82eef4b84749bf0d214b9de26b578b26b6830b52",
+  "windows": {
+    "passed": 1642,
+    "failed": 2,
+    "errors": 1,
+    "skipped": 0,
+    "timed_out": false
+  },
+  "failed_cases": [
+    {
+      "name": "test_wav_rejects_invalid_or_unbounded",
+      "class": "tests.test_local_voice",
+      "seconds": 0.019,
+      "outcome": "errors"
+    },
+    {
+      "name": "test_worker_owner_pipe_ends_process_before_inference",
+      "class": "tests.test_local_voice",
+      "seconds": 0.085,
+      "outcome": "failed"
+    },
+    {
+      "name": "test_worker_can_finish_normally_while_owner_pipe_stays_open",
+      "class": "tests.test_local_voice",
+      "seconds": 0.062,
+      "outcome": "failed"
+    }
+  ],
+  "duration_seconds": 558.219,
+  "linux": {
+    "passed": 1644,
+    "skipped": 1,
+    "gate": "PASS"
+  },
+  "package": "SKIPPED"
+}

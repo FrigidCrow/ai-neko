@@ -439,3 +439,8 @@ Windows后续CI36705331960在第530项超时回归挂起，600.281秒总超时�
 Mac实际固定模型已能合成中文并识别回读，短句有“也”识别偏差；这证明真实本地模型运行，不代表真实用户麦克风、噪声、游戏术语或主观音色通过。第一轮Python1616/1平台skip、桌面106、实际Electron21通过，后续补充边界和Windows包测试结果继续单列。Windows打包与真实安装/推理验收尚待新的CI，不把新功能算入历史5022762旧包。模型对话、20对真实问答和Win11游戏/硬件停止仍Pending，完整MVP2未完成。
 
 最终本机回归为Python1644通过/1既有平台skip、桌面106、实际Electron21；真实免费语音API9项通过，[机器记录](docs/evidence/mvp2/free-voice/local-verification.json)固定本次源码摘要。38项引擎测试和15项包工具测试均包含于Python计数，不重复累计。24字合成句回识CER0、官方样例ASR成功但无golden不评分、真实Mac worker取消返回前PID已消失；未实测扬声器。已修正常退出锁崩溃、ready漏文件、停止提前确认、Windows解释器launcher和排队越过请求期限的问题。Windows已增加从同一解压包真实安装/中文推理/重启11项门禁，当前仍待CI；真人/Win11与完整对话评测继续Pending。
+
+
+Windows首次语音CI37128978935未通过：Windows1642通过/2失败/1错误、Linux1644/1既有skip。已修复新增测试的超长WAV参数ID和Windows行尾差异，并修复原生eSpeak/kaldifst在非UTF-8系统代码页下的中文路径风险。实际锁定Python归档manifest与固定源码支持该路径风险判断；新worker仅在独立进程内改用ASCII相对路径，保留中文用户目录和主应用cwd。Mac全量1645通过/1既有skip、引擎39项及真实短句均通过；新Windows包待下一CI，失败报告完整保留，没有把Mac结果提升为Windows通过。
+
+最新Unicode worker再跑真实应用API9/9通过：固定24字中文TTS7.223秒、ASR0.748秒、CER0；取消0.006秒返回时实际PID24090已退出、原请求409、无子进程残留，关闭正常。报告source-api-smoke-unicode.json与测试音频单独保留，旧报告不覆盖；没有新增下载/用户麦克风/付费调用。

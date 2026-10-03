@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import io
 import json
+import os
 import subprocess
 import sys
 import tarfile
@@ -69,7 +70,9 @@ def test_environment_scrubs_credentials_indexes_and_python(monkeypatch, tmp_path
 
 
 @pytest.mark.parametrize(
-    "data", [b"broken", wav(rate=8000), wav(channels=2), wav(seconds=60.1), wav()[:-4]]
+    "data",
+    [b"broken", wav(rate=8000), wav(channels=2), wav(seconds=60.1), wav()[:-4]],
+    ids=["malformed", "wrong-sample-rate", "stereo", "over-60-seconds", "truncated"],
 )
 def test_wav_rejects_invalid_or_unbounded(data):
     with pytest.raises(LocalVoiceError):
@@ -246,10 +249,10 @@ def test_worker_owner_pipe_ends_process_before_inference(tmp_path):
     worker = local_voice.RUNTIME_SOURCE / "worker.py"
     script = (
         "import runpy,os,time; m=runpy.run_path(" + repr(str(worker)) + ");"
-        "m['guard_parent'](os.getppid());print('guard-ready',flush=True);time.sleep(60)"
+        f"m['guard_parent']({os.getpid()});os.write(1,b'guard-ready\\n');time.sleep(60)"
     )
     child = subprocess.Popen(
-        [sys.executable, "-I", "-c", script],
+        [str(Path(sys._base_executable).resolve()), "-I", "-c", script],
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
         stderr=subprocess.DEVNULL,
@@ -277,10 +280,10 @@ def test_worker_can_finish_normally_while_owner_pipe_stays_open():
     worker = local_voice.RUNTIME_SOURCE / "worker.py"
     script = (
         "import runpy,os; m=runpy.run_path(" + repr(str(worker)) + ");"
-        "m['guard_parent'](os.getppid());print('completed',flush=True)"
+        f"m['guard_parent']({os.getpid()});os.write(1,b'completed\\n')"
     )
     child = subprocess.Popen(
-        [sys.executable, "-I", "-c", script],
+        [str(Path(sys._base_executable).resolve()), "-I", "-c", script],
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
@@ -491,3 +494,38 @@ def test_inference_deadline_includes_queue_and_never_starts_expired_request(tmp_
         assert calls == []
 
     asyncio.run(run())
+
+
+def test_native_paths_are_ascii_relative_under_unicode_root_without_changing_app_cwd(tmp_path):
+    worker = local_voice.RUNTIME_SOURCE / "worker.py"
+    models = tmp_path / "中文 用户" / "assets" / "voice" / "models"
+    required = json.loads((local_voice.RUNTIME_SOURCE / "model_files.json").read_text())
+    for name in required:
+        path = models / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(b"synthetic resource")
+    app_cwd = Path.cwd()
+    script = (
+        "import json,runpy,sys;from pathlib import Path;"
+        "m=runpy.run_path(sys.argv[1]);models=Path(sys.argv[2]);"
+        "asr,tts=m['prepare_native_paths'](models);"
+        "names=json.loads(Path(sys.argv[1]).with_name('model_files.json').read_text());"
+        "assert not asr.is_absolute() and not tts.is_absolute();"
+        "assert str(asr).isascii() and str(tts).isascii();"
+        "assert Path.cwd()==models.resolve();"
+        "assert all(name.isascii() and not Path(name).is_absolute() "
+        "and Path(name).resolve()==models.resolve()/name "
+        "and Path(name).read_bytes()==b'synthetic resource' for name in names);"
+        "print(json.dumps({'checked_resources':len(names),'relative_ascii_paths':True}))"
+    )
+    child = subprocess.run(
+        [str(Path(sys._base_executable).resolve()), "-I", "-c", script, str(worker), str(models)],
+        capture_output=True,
+        check=True,
+        timeout=5,
+    )
+    assert json.loads(child.stdout) == {
+        "checked_resources": len(required),
+        "relative_ascii_paths": True,
+    }
+    assert Path.cwd() == app_cwd

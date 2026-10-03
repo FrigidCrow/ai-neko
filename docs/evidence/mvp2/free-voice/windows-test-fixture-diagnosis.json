@@ -1,0 +1,15 @@
+{
+  "kind": "synthetic_test_fixture_diagnosis",
+  "windows_ci": "37128978935",
+  "collected_tests": 38,
+  "largest_nodeid_characters": 7692982,
+  "windows_environment_string_limit": 32767,
+  "forced_windows_newline_stdout_hex": "67756172642d72656164790d0a",
+  "previous_lf_assert_would_pass": false,
+  "normal_exit_code": 0,
+  "product_changes": false,
+  "after_collected_tests": 38,
+  "after_largest_nodeid_characters": 110,
+  "after_local_tests_passed": 38,
+  "fix_scope": "tests only: short ids, native base Python, explicit owning PID, binary protocol newlines"
+}

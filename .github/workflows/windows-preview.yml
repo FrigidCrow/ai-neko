@@ -52,7 +52,7 @@ jobs:
         run: uv run --locked ruff format --check src tests scripts packaging
       - name: Diagnose synthetic Windows compatibility regressions
         if: runner.os == 'Windows'
-        run: uv run --locked pytest tests/test_guides_integrated.py tests/test_search_cache.py tests/test_v04_upgrade.py -q --tb=short --no-header
+        run: uv run --locked pytest tests/test_local_voice.py tests/test_voice_local_integration.py tests/test_free_voice_smoke.py tests/test_guides_integrated.py tests/test_search_cache.py tests/test_v04_upgrade.py -q --tb=short --no-header
       - name: Verify frozen guide retrieval and injection corpus
         run: uv run --locked python scripts/evaluate_guides.py --output artifacts/mvp2/${{ runner.os }}-guide-evaluation.json
       - name: Measure production guide retrieval with 200 synthetic documents

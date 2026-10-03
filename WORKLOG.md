@@ -734,3 +734,12 @@ CI36716659417所有必需job及G6均success，tagged发布按设计skipped。Roo
 最终解释器直接启动和native PID一致性已落实。总时限也修为排队与推理合计120秒，过期请求不会稍后启动；引擎38/38、包工具15/15通过，无新增skip。`uv run --locked pytest -q --tb=short --junitxml=artifacts/free-voice/pytest-final.xml`完整1644通过/1既有Windows凭据skip，68.41秒；`ruff check src tests scripts packaging`、`ruff format --check`131文件、文档42份及diff通过。独立source API脚本在本项目已安装的测试profile执行实际9项，通过合成中文回识、官方zh.wav、真实native PID取消及正常退出；24字TTS6.915秒、回识0.878秒且CER0，取消返回前PID已消失（6毫秒），后续短句仍可合成。未采用户麦克风、未播放扬声器、未调用模型或付费服务。
 
 测试harness最初把默认模型基础地址误判成已配置模型，在推理前失败，保留初步报告；修为检查实际模型ID/Key为空并补回归后最终通过。开发profile安装早于最终worker冻结，实际运行的是当前打包源；仅该专用profile内的worker/许可/model_files来源副本作显式同步，模型、venv、ready未变，最终报告逐项留前后摘要。最终source API之后的小改动仅增加排队总时限，由新增边界测试验证；Windows将对准确提交从零安装。便携报告、设置截图及源码摘要写入docs/evidence/mvp2/free-voice，全部测试数和限制分开列明。
+
+
+2026-10-03 Windows首次免费语音CI37128978935：Linux1644/1既有平台skip；Windows1642通过/2失败/1错误，完整JUnit且未超时，未打包。原60.1秒WAV参数的自动pytest ID达7,692,982字符，Windows PYTEST_CURRENT_TEST环境变量超限；另两项控制输出用print导致CRLF与二进制LF断言不同。改用明确短ID（最长110）、实际base interpreter、明确owner PID与os.write二进制输出；保持退出91/0等原断言。证据保留于free-voice/first-windows-ci.json及windows-test-fixture-diagnosis.json。
+
+独立源码与锁定Windows Python归档的PE manifest检查发现kaldifst/eSpeak使用窄字符路径，解释器没有activeCodePage UTF-8。先登记PLAN后，仅worker切换至模型目录向native传ASCII相对路径，主应用cwd不变、中文资料目录不迁移。新增中文根目录17资源子进程回归；引擎39项通过。真实Mac短句TTS4.947秒/ASR0.732秒成功，原一字偏差保留；worker SHA见unicode-path-probe.json，不冒充Windows运行。
+
+最终`uv run --locked pytest -q --tb=short --junitxml=artifacts/free-voice/pytest-windows-fix.xml`：1645 passed / 1既有Windows凭据skip，63.08秒；Ruff/131文件格式及diff检查通过。机器摘要见free-voice/windows-fixes-local-verification.json。桌面源码未变，沿用本次已跑106 Node/21实际Electron证据；下一Windows全套和真实包安装门禁重新运行，不增加skip或降低标准。
+
+最新Unicode worker再跑真实应用API9/9通过：固定24字中文TTS7.223秒、ASR0.748秒、CER0；取消0.006秒返回时实际PID24090已退出、原请求409、无子进程残留，关闭正常。报告source-api-smoke-unicode.json与测试音频单独保留，旧报告不覆盖；没有新增下载/用户麦克风/付费调用。

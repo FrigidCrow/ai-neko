@@ -1,0 +1,25 @@
+{
+  "worker_sha256": "0a35004f9c11d6bfbf8f7d676a1374f3b62b792d74743193d3467c7337cb37e1",
+  "path_strategy": "worker chdir plus fixed ASCII native relative paths; Unicode-root resolution separately unit-tested",
+  "platform": "darwin",
+  "python": "3.11.15",
+  "input_kind": "synthetic_tts_no_microphone",
+  "text": "你好，我是小猫。今天也一起学习吧。",
+  "transcript": "你好，我是小猫，今天来一起学习吧。",
+  "tts_seconds": 4.947233832906932,
+  "asr_seconds": 0.7317348329816014,
+  "audio_duration_seconds": 4.67575,
+  "sample_rate": 24000,
+  "audio_bytes": 224480,
+  "setup_and_probe_seconds": 5.684240208938718,
+  "network_inference": "worker socket audit denies network; resources already downloaded",
+  "status": {
+    "state": "ready",
+    "message": "免费本地语音已就绪，无需 API Key。",
+    "stage": "idle",
+    "downloaded_bytes": 0,
+    "total_bytes": 330834269,
+    "supported": true,
+    "closed": false
+  }
+}
