@@ -1,0 +1,15 @@
+{
+  "ci_run": 37134902832,
+  "source_commit": "2bde251bbbe5ec0653a9629c9f327aadfa4dbd71",
+  "stage": "Windows native import preflight dependency installation argument parsing",
+  "status": "FAILED",
+  "error": "the argument --managed-python cannot be used with --python-preference",
+  "global_environment": {
+    "UV_PYTHON_PREFERENCE": "only-managed"
+  },
+  "native_probe": "NOT_RUN",
+  "windows_full_suite": "NOT_RUN",
+  "windows_package": "NOT_RUN",
+  "product_change_required": false,
+  "raw_log": "artifacts/mvp2/ci-37134902832/windows-job.log"
+}

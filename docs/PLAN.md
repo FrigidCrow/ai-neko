@@ -504,6 +504,8 @@ Windows包实测修复登记（2026-10-04）：9fe98b5/CI37130603228双平台完
 
 原生导入边界修正登记：NumPy官方#24290与Microsoft同步句柄说明提供相同Windows机制：后台阻塞stdin读取会阻塞后续native CRT初始化/GetFileType；单纯换ReadFile不解决。Windows保留已有父进程HANDLE监控，将owner管道改为非阻塞PeekNamedPipe以保留EOF退出边界，正常完成停止监测，其他平台机制保持。前置CI增加固定独立三wheel、合成资源文件的完整worker.check原生导入回归（不下载模型、不计真实推理），保留5/60秒有界诊断与原取消要求，再执行真实包安装/推理。
 
+前置CI参数修复登记：2bde251/CI37134902832在uv参数解析阶段失败，工作流全局UV_PYTHON_PREFERENCE=only-managed与新步骤显式--managed-python互斥；尚未执行native probe或完整Windows测试。只删除该步骤的冗余CLI标志，保留全局only-managed、固定Python/锁、no-python-downloads及独立venv。用相同环境验证准确命令，不更改产品实现或放宽导入/模型门禁。
+
 ## 18. MVP1 收尾与CI/CD（2026-09-27，已授权）
 
 用户要求“取消问题修复 + 所有问题收束，CICD，MVP1正式结束，然后准备进入MVP2”。本批次完成MVP1工程缺陷收尾、明确剩余验收边界、推送并验证现有CI/CD和Windows下载产物；不实施G1–G6。正式收尾不得把缺少真实服务或Windows11证据的验收写成通过。

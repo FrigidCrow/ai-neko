@@ -769,3 +769,7 @@ Windows管道已改PeekNamedPipe，不留下阻塞stdin读；50ms检查EOF/异�
 增加Windows源码job前置native导入检查scripts/voice_import_smoke.py：固定uv/Python和独立中文空格profile的三个锁定wheel，使用18个一字节占位资源跑完整worker.main(check)，保持stdin开放且20秒内必须自然退出；仅固定阶段/验证后协议/版本，stderr丢弃。报告单列mvp2，既有全套/包11项门禁不变；不是模型推理。本机全新专属profile实跑1.3086秒、5阶段齐全、exit0，8个脚本回归通过。初次Mac preflight仅因/var与/private/var规范路径比较失败，修正后通过且旧FAILED保留，不将它说成native故障。
 
 管道修复及前置检查的本机全量1672 passed / 1既有Windows凭据skip，63.73秒，零失败/错误；Ruff/133文件格式通过。最终机器摘要pipe-fixes-local-verification.json固定6份本批源码/构建输入，实际模型9项与native导入检查分别记录。随后推送新候选，Windows结果待实际验证。
+
+CI37134902832 Windows前置新增命令在uv参数解析失败：全局UV_PYTHON_PREFERENCE=only-managed与--managed-python互斥。native probe/Windows全量/包均未执行，不能记通过；job独立日志已取得（gh api actions/jobs/111237346632/logs）。只删冗余显式标志，保留全局managed选择/锁/独立环境。该失败是CI接线，不是新worker native失败。
+
+已从修正后的workflow提取完整native安装命令，以CI相同UV_PYTHON_PREFERENCE=only-managed、uv0.11.8和全新中文空格profile实际执行，exit0并安装三项锁定wheel，无模型下载；只修改一处workflow标志，diff检查通过，不重复未改变的产品全量。本机此前1672/1skip与真实API9证据仍对应同一产品代码。
