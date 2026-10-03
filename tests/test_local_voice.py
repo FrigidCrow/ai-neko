@@ -766,3 +766,67 @@ def test_dll_directory_is_untouched_outside_frozen_windows(monkeypatch, system, 
         assert await local_voice._spawn_external("synthetic") == "created"
 
     asyncio.run(run())
+
+
+def test_worker_main_finishes_after_guard_pipe_is_blocked(tmp_path):
+    worker = local_voice.RUNTIME_SOURCE / "worker.py"
+    script = "\n".join(
+        [
+            "import os,runpy,time",
+            "namespace=runpy.run_path(" + repr(str(worker)) + ")",
+            "def synthetic_run(request):",
+            "    assert request['operation']=='check'",
+            "    os.write(2,b'run-entered\\n')",
+            "    time.sleep(0.2)",
+            "    os.write(2,b'run-returned\\n')",
+            "    return {'ok':True,'phase':'synthetic-run-returned'}",
+            "namespace['main'].__globals__['run']=synthetic_run",
+            "namespace['main']()",
+        ]
+    )
+    child = subprocess.Popen(
+        [str(Path(sys._base_executable).resolve()), "-I", "-B", "-c", script],
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    timed_out = False
+    try:
+        request = {"parent": os.getpid(), "operation": "check"}
+        child.stdin.write(json.dumps(request).encode("utf-8") + b"\n")
+        child.stdin.flush()
+        # Do not communicate(input): owner stdin must remain open while the
+        # worker completes its full normal main/JSON/interpreter-exit path.
+        try:
+            child.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            timed_out = True
+            child.kill()
+            child.wait(timeout=5)
+        protocol = child.stdout.read(1024)
+        stages = [
+            line.decode("ascii")
+            for line in child.stderr.read(4096).splitlines()
+            if line in {b"run-entered", b"run-returned"}
+        ]
+        diagnostic = {
+            "timed_out": timed_out,
+            "exit_code": child.returncode,
+            "fixed_stages": stages,
+            "protocol": protocol.decode("utf-8", errors="replace"),
+        }
+        assert not timed_out, diagnostic
+        assert child.returncode == 0, diagnostic
+        assert stages == ["run-entered", "run-returned"], diagnostic
+        assert json.loads(protocol) == {
+            "ok": True,
+            "phase": "synthetic-run-returned",
+            "pid": child.pid,
+        }
+    finally:
+        if child.poll() is None:
+            child.kill()
+        child.wait(timeout=5)
+        child.stdin.close()
+        child.stdout.close()
+        child.stderr.close()

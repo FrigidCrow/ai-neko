@@ -1,0 +1,158 @@
+{
+  "schema_version": 1,
+  "app_id": "ai-neko",
+  "stage": "windows-packaged-free-voice",
+  "status": "FAILED",
+  "started_at_utc": "2026-10-03T15:30:32.470911+00:00",
+  "archive": "D:\\a\\ai-neko\\ai-neko\\artifacts\\package\\ai-neko-0.4.0-dev.e383fb4f3e1c-windows-x64.zip",
+  "archive_sha256": "54a81d226248dad6cd6719e7c02bcbc11e0a1e616d2933c7357e814b53b172e5",
+  "executable_sha256": "2b9ff9270a16b8f51aa3712326c3a2499762c0dec7be80b51708a726f6c24766",
+  "source_commit": "e383fb4f3e1c3fad7cdd7edcd642b532a90c3315",
+  "environment": {
+    "system": "Windows",
+    "release": "10",
+    "version": "10.0.20348",
+    "machine": "AMD64",
+    "harness_python": "3.11.15",
+    "harness_pointer_bits": 64,
+    "windows_product_type": 3,
+    "windows_build": 20348,
+    "application_runtime": "extracted_executable_only",
+    "application_path": "windows_system_directories_only"
+  },
+  "tests": {
+    "kind": "real_local_voice_with_fixed_synthetic_text",
+    "cases": [
+      {
+        "name": "windows_x64_execution_environment",
+        "outcome": "PASS"
+      },
+      {
+        "name": "archive_layout_and_safe_extraction",
+        "outcome": "PASS"
+      },
+      {
+        "name": "authenticated_packaged_backend",
+        "outcome": "PASS"
+      },
+      {
+        "name": "voice_routes_reject_missing_auth",
+        "outcome": "PASS"
+      },
+      {
+        "name": "explicit_install_reaches_ready",
+        "outcome": "FAILED"
+      },
+      {
+        "name": "installed_model_and_runtime_provenance",
+        "outcome": "NOT_RUN"
+      },
+      {
+        "name": "local_selection_preserves_cloud_configuration",
+        "outcome": "NOT_RUN"
+      },
+      {
+        "name": "real_local_chinese_tts_without_chat_model",
+        "outcome": "NOT_RUN"
+      },
+      {
+        "name": "real_local_asr_recognizes_synthesized_chinese",
+        "outcome": "NOT_RUN"
+      },
+      {
+        "name": "restart_preserves_ready_resources",
+        "outcome": "NOT_RUN"
+      },
+      {
+        "name": "graceful_stop_and_unchanged_archive",
+        "outcome": "NOT_RUN"
+      }
+    ]
+  },
+  "scope": {
+    "actual_user_microphone_captures": 0,
+    "paid_api_calls": 0,
+    "conversational_model_calls": 0,
+    "real_voice_inference": "NOT_VERIFIED",
+    "network_during_installation": "public_pinned_runtime_and_models",
+    "speaker_playback": "NOT_TESTED",
+    "windows_11_device_acceptance": "NOT_TESTED"
+  },
+  "desktop_executable_sha256": "bd14928e0728366fd3f41499cb398ff3f4304dab259a3e605077899a6f8c748e",
+  "execution": {
+    "backend_executable": "C:\\Users\\runneradmin\\AppData\\Local\\Temp\\ai-neko 免费语音 验证 vstnr0w6\\解压 程序\\ai-neko-0.4.0-dev.e383fb4f3e1c-windows-x64\\resources\\backend\\ai-neko.exe",
+    "working_directory": "C:\\Users\\runneradmin\\AppData\\Local\\Temp\\ai-neko 免费语音 验证 vstnr0w6\\解压 程序\\ai-neko-0.4.0-dev.e383fb4f3e1c-windows-x64",
+    "data_root": "C:\\Users\\runneradmin\\AppData\\Local\\Temp\\ai-neko 免费语音 验证 vstnr0w6\\免费语音 合成数据",
+    "source_application_imports": false
+  },
+  "installation": {
+    "timeout_seconds": 900,
+    "explicit_confirmation": true,
+    "transitions": [
+      {
+        "state": "installing",
+        "stage": "prepare",
+        "downloaded_bytes": 0,
+        "total_bytes": 333564297,
+        "supported": true,
+        "elapsed_seconds": 0.047
+      },
+      {
+        "state": "installing",
+        "stage": "runtime",
+        "downloaded_bytes": 23530194,
+        "total_bytes": 333564297,
+        "supported": true,
+        "elapsed_seconds": 1.234
+      },
+      {
+        "state": "installing",
+        "stage": "asr",
+        "downloaded_bytes": 85658322,
+        "total_bytes": 333564297,
+        "supported": true,
+        "elapsed_seconds": 11.266
+      },
+      {
+        "state": "installing",
+        "stage": "tts",
+        "downloaded_bytes": 201475285,
+        "total_bytes": 333564297,
+        "supported": true,
+        "elapsed_seconds": 24.469
+      },
+      {
+        "state": "installing",
+        "stage": "verify",
+        "downloaded_bytes": 333564297,
+        "total_bytes": 333564297,
+        "supported": true,
+        "elapsed_seconds": 37.328
+      },
+      {
+        "state": "error",
+        "stage": "verify",
+        "downloaded_bytes": 333564297,
+        "total_bytes": 333564297,
+        "supported": true,
+        "elapsed_seconds": 96.594
+      }
+    ],
+    "last_status": {
+      "state": "error",
+      "stage": "verify",
+      "downloaded_bytes": 333564297,
+      "total_bytes": 333564297,
+      "supported": true
+    },
+    "elapsed_seconds": 96.594
+  },
+  "failure": {
+    "stage": "explicit_install_reaches_ready",
+    "error_class": "VoiceSmokeError",
+    "code": "local_voice_install_failed"
+  },
+  "finished_at_utc": "2026-10-03T15:32:17.674437+00:00",
+  "duration_seconds": 105.203,
+  "failure_detail_policy": "No raw application logs, stdout, stderr, tokens, request headers or tracebacks."
+}

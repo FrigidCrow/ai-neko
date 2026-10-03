@@ -755,3 +755,7 @@ CI36716659417所有必需job及G6均success，tagged发布按设计skipped。Roo
 引擎专项52/52通过，包括5个平台ABI回归与8个DLL成功/异常/取消/并发/旁路用例；真实子进程取消回收包含在专项中。`uv run --locked ruff check src tests scripts packaging`及131文件格式通过，完整pytest记录为artifacts/free-voice/pytest-frozen-fix.xml/.txt，结果另记。桌面和native worker未改，沿用本次已验证的UI/实际模型证据；源码新增Windows分支将在下一实际包再次验证。
 
 冻结兼容修复后的全量本机回归1658 passed / 1既有Windows凭据skip，63.67秒，零失败/错误。机器记录frozen-fixes-local-verification.json；下一Windows CI与真实安装/推理待实际结果。
+
+CI37132525584：Windows1659通过/0skip（615.703秒）、Linux1658/1平台skip（135.272秒），桌面106、冻结30题及200篇基准通过（75.2115ms/22.801428ms），同ZIP既有16/9/21/8通过。免费语音已接受安装、固定组件/模型333564297字节下载完成，verify从37.328秒至96.594秒失败，符合60秒worker check超时；4/11后停止，推理未跑、未上传应用包。third-windows-ci及原始free-voice失败报告保留，正在做有界完整worker协议诊断，不扩大超时。
+
+已新增完整worker.main合成协议回归：真实base Python发送JSON后保持父stdin打开，在run中等待watchdog读操作已进入，再做0.2秒固定工作；子进程必须5秒内自然退出。超时先kill+wait，再只输出固定阶段/协议/退出码以定位是否已返回而退出卡住。Mac引擎53/53通过（0.65秒）、Ruff/格式通过；本次只增加诊断测试，产品代码不变，等待Windows前置结果，不宣称原因已证实。

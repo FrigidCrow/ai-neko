@@ -1,0 +1,23 @@
+{
+  "ci_run": 37132525584,
+  "source_commit": "e383fb4f3e1c3fad7cdd7edcd642b532a90c3315",
+  "status": "FAILED",
+  "windows_source_passed": 1659,
+  "linux_source_passed": 1658,
+  "linux_platform_skips": 1,
+  "previous_package_reports": "16/9/21/8 passed",
+  "voice_installation": {
+    "timeout_seconds": 900,
+    "explicit_confirmation": true,
+    "last_status": {
+      "state": "error",
+      "stage": "verify",
+      "downloaded_bytes": 333564297,
+      "total_bytes": 333564297,
+      "supported": true
+    },
+    "elapsed_seconds": 96.594
+  },
+  "inference": "NOT_RUN",
+  "application_artifact_uploaded": false
+}
