@@ -47,6 +47,7 @@ def install_api(app: FastAPI, connection, authorize, runtime, providers, bootstr
     pending_bootstrap = bootstrap_code
     web_root = Path(__file__).resolve().parents[1] / "web"
     voice = VoiceService(runtime.paths)
+    app.state.voice = voice
 
     @app.middleware("http")
     async def security_headers(request, call_next):
@@ -679,9 +680,44 @@ def install_api(app: FastAPI, connection, authorize, runtime, providers, bootstr
     async def set_voice_config(request: Request):
         auth(request)
         try:
-            return voice.update(await body(request))
+            value = await body(request)
+            previous_provider = voice.public_config()["voice_provider"]
+            result = voice.update(value)
         except ValueError:
             raise HTTPException(400, "语音配置未保存，请检查字段。") from None
+        if result["voice_provider"] != previous_provider:
+            tasks = tuple(runtime.voice_tasks.values())
+            for task in tasks:
+                task.cancel()
+            await asyncio.gather(*tasks, return_exceptions=True)
+        return result
+
+    @app.get("/api/voice/local")
+    async def local_voice_status(request: Request):
+        auth(request)
+        return voice.local.status()
+
+    @app.post("/api/voice/local/install")
+    async def install_local_voice(request: Request):
+        auth(request)
+        value = await body(request)
+        if set(value) != {"confirm"} or value["confirm"] is not True:
+            raise HTTPException(400, "请确认下载免费语音资源。")
+        if runtime._closing or runtime._closed:
+            raise HTTPException(409, "应用正在关闭。")
+        from ai_neko.media.local_voice import LocalVoiceError
+
+        try:
+            return voice.local.start_install()
+        except LocalVoiceError as exc:
+            raise VoiceError(exc.code, exc.message) from None
+
+    @app.post("/api/voice/local/cancel")
+    async def cancel_local_voice_install(request: Request):
+        auth(request)
+        if await body(request):
+            raise HTTPException(400, "请检查取消下载的参数。")
+        return await voice.local.cancel_install()
 
     async def voice_request(request: Request, kind: str):
         auth(request)
@@ -761,4 +797,5 @@ def install_api(app: FastAPI, connection, authorize, runtime, providers, bootstr
         task = runtime.voice_tasks.get(identifier)
         if task is not None:
             task.cancel()
+            await asyncio.gather(task, return_exceptions=True)
         return {"cancelled": task is not None}

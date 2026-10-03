@@ -33,7 +33,7 @@ function validateRequest(value) {
   const matchSessionId = '[a-f0-9]{32}';
   const matchId = 'match-[a-f0-9]{32}';
   const routes = {
-    GET: [ /^\/api\/(?:persona|memories|memory\/(?:config|backups)|voice\/config)$/, /^\/api\/config$/, /^\/api\/sessions$/,
+    GET: [ /^\/api\/(?:persona|memories|memory\/(?:config|backups)|voice\/(?:config|local))$/, /^\/api\/config$/, /^\/api\/sessions$/,
       /^\/api\/guides$/, /^\/api\/guide-backups$/,
       new RegExp(`^/api/guides/${guideId}(?:\\?revision_id=${guideRevisionId})?$`),
       new RegExp(`^/api/guide-operations/${guideRequestId}$`),
@@ -45,7 +45,7 @@ function validateRequest(value) {
     PUT: [ /^\/api\/(?:config|persona|memory\/config|voice\/config|guide-selection)$/, new RegExp(`^/api/memories/${id}$`) ],
     DELETE: [ new RegExp(`^/api/memories/${id}$`), new RegExp(`^/api/memory/backups/${backupId}$`),
       new RegExp(`^/api/guides/${guideId}$`), new RegExp(`^/api/guide-backups/${guideBackupId}$`) ],
-    POST: [ /^\/api\/memories$/, /^\/api\/memory\/backups$/, new RegExp(`^/api/memory/backups/${backupId}/restore$`), /^\/api\/voice\/(?:transcribe|synthesize|cancel)$/, /^\/api\/sessions$/, new RegExp(`^/api/sessions/${id}/turns$`),
+    POST: [ /^\/api\/memories$/, /^\/api\/memory\/backups$/, new RegExp(`^/api/memory/backups/${backupId}/restore$`), /^\/api\/voice\/(?:transcribe|synthesize|cancel)$/, /^\/api\/voice\/local\/(?:install|cancel)$/, /^\/api\/sessions$/, new RegExp(`^/api/sessions/${id}/turns$`),
       /^\/api\/guides$/, /^\/api\/guide-backups$/,
       new RegExp(`^/api/guides/${guideId}/refresh$`),
       new RegExp(`^/api/guide-operations/${guideRequestId}/cancel$`),

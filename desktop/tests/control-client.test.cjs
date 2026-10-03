@@ -85,6 +85,7 @@ async function harness({ request, selectedSource = () => null, realMedia = false
   }
   const context = vm.createContext({
     window, document, URL, DOMException, AbortController, Event, performance, AudioContext, atob,
+    MutationObserver: class { observe() {} disconnect() {} },
     crypto: { randomUUID }, navigator: { mediaDevices: {} },
     localStorage: { setItem: (key, value) => storage.set(key, value), getItem: (key) => storage.get(key), removeItem: (key) => storage.delete(key) },
     setTimeout: (callback, milliseconds) => { const timer = setTimeout(callback, milliseconds); if (milliseconds > 1000) timer.unref(); return timer; },

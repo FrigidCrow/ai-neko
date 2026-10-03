@@ -1,0 +1,20 @@
+[
+  "sherpa-onnx-sense-voice-zh-en-ja-ko-yue-int8-2024-07-17/model.int8.onnx",
+  "sherpa-onnx-sense-voice-zh-en-ja-ko-yue-int8-2024-07-17/tokens.txt",
+  "kokoro-int8-multi-lang-v1_1/model.int8.onnx",
+  "kokoro-int8-multi-lang-v1_1/voices.bin",
+  "kokoro-int8-multi-lang-v1_1/tokens.txt",
+  "kokoro-int8-multi-lang-v1_1/lexicon-zh.txt",
+  "kokoro-int8-multi-lang-v1_1/lexicon-us-en.txt",
+  "kokoro-int8-multi-lang-v1_1/date-zh.fst",
+  "kokoro-int8-multi-lang-v1_1/number-zh.fst",
+  "kokoro-int8-multi-lang-v1_1/phone-zh.fst",
+  "kokoro-int8-multi-lang-v1_1/dict/jieba.dict.utf8",
+  "kokoro-int8-multi-lang-v1_1/dict/hmm_model.utf8",
+  "kokoro-int8-multi-lang-v1_1/dict/user.dict.utf8",
+  "kokoro-int8-multi-lang-v1_1/espeak-ng-data/phondata",
+  "kokoro-int8-multi-lang-v1_1/espeak-ng-data/phonindex",
+  "kokoro-int8-multi-lang-v1_1/espeak-ng-data/phontab",
+  "kokoro-int8-multi-lang-v1_1/espeak-ng-data/en_dict",
+  "kokoro-int8-multi-lang-v1_1/espeak-ng-data/cmn_dict"
+]

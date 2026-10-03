@@ -18,12 +18,18 @@ hidden = collect_submodules("langchain_core") + [
 metadata = []
 for name in ("langgraph", "langgraph-checkpoint-sqlite", "fastapi", "uvicorn", "websockets", "filelock", "httpx"):
     metadata += copy_metadata(name, recursive=True)
+voice_runtime = repo / "src" / "ai_neko" / "media" / "local_runtime"
+voice_sources = [
+    (str(path), str(Path("ai_neko/media/local_runtime") / path.relative_to(voice_runtime).parent))
+    for path in voice_runtime.rglob("*")
+    if path.is_file() and "__pycache__" not in path.parts
+]
 
 a = Analysis(
     [str(repo / "packaging" / "entry.py")],
     pathex=[str(repo / "src")],
     binaries=[],
-    datas=metadata + [
+    datas=metadata + voice_sources + [
         (str(repo / "src" / "ai_neko" / "web"), "ai_neko/web"),
         (str(repo / "src" / "ai_neko" / "memory" / "licenses"), "ai_neko/memory/licenses"),
     ],

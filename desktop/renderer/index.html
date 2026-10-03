@@ -139,7 +139,14 @@
           <p id="vision-status" class="field-help" role="status">观察已关闭</p>
         </section>
         <form id="voice-form" class="companion-settings" autocomplete="off">
-          <h3>语音输入与输出</h3><p class="field-help">选择供应商实际提供的音频接口。对话模型、语音识别和语音合成可以使用不同服务。</p>
+          <h3>语音输入与输出</h3><p class="field-help">免费语音负责听写和朗读。聊天回答仍需在上方连接对话模型；试听不需要对话模型。</p>
+          <label for="voice-provider">语音方案</label><select id="voice-provider"><option value="local">免费本地语音（无需 Key）</option><option value="openai" selected>兼容云语音服务</option></select>
+          <div id="local-voice-settings" hidden>
+            <p class="field-help">中文识别与中文女声，在本机运行。首次需下载约310MB模型，运行环境另需少量空间；之后语音不消耗云服务额度。</p>
+            <p id="local-voice-status" class="settings-message" role="status" aria-live="polite">正在读取资源状态…</p>
+            <button id="install-local-voice" type="button" class="soft-button">下载并启用免费语音</button><button id="cancel-local-voice" type="button" class="text-button" hidden>取消下载</button>
+          </div>
+          <div id="cloud-voice-settings">
           <label for="asr-base-url">识别 API 基础地址</label><input id="asr-base-url" type="url" placeholder="https://供应商/v1">
           <label for="asr-model">识别模型</label><input id="asr-model" maxlength="200">
           <label for="asr-api-key">识别 Key <span id="asr-key-state"></span></label><input id="asr-api-key" type="password" autocomplete="new-password">
@@ -149,6 +156,7 @@
           <label for="tts-voice">音色名称</label><input id="tts-voice" maxlength="200">
           <label for="tts-api-key">合成 Key <span id="tts-key-state"></span></label><input id="tts-api-key" type="password" autocomplete="new-password">
           <label class="check-label"><input id="clear-tts-key" type="checkbox">清除已保存合成 Key</label>
+          </div>
           <p id="voice-config-status" class="settings-message" role="status"></p><button type="submit" class="primary-button">保存语音设置</button>
         </form>
         <section class="companion-settings" aria-label="声音设备">

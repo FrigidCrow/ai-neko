@@ -722,3 +722,15 @@ CI36716659417所有必需job及G6均success，tagged发布按设计skipped。Roo
 最终文档检查`python3 docs/diagrams/tools/validate-docs.py > artifacts/mvp2/windows-delivery-docs-final.json`通过：39份Markdown、558本地链接、206参考文件，issues为空、参考工程指纹未变。独立交付文档复核发现NEXT历史句误指MVP1为新提交证据，已明确改为该历史提交；最新链接指向新Windows报告。相对已验证5022762，全部未提交变更仅README/REVIEW/WORKLOG及docs/证据，产品/测试/构建/依赖文件完全未变；最终提交使用[skip ci]，不重复构建未变化产品。
 
 便携Windows证据增加目录内`.gitattributes`（仅docs/evidence/mvp2/windows/作用域）以保留报告字节摘要；34份文件逐个执行`git -c core.autocrlf=true hash-object --path=...`与`--no-filters`比较全部一致。它不改变产品或冻结测试的Git属性；两平台报告的原始换行与已记录SHA均保留。
+
+## 2026-10-03 — 免费本地语音实施
+
+用户要求语音使用免费方案。只读核对现有VoiceService、取消/播放/对局绑定与打包入口，并查官方sherpa/SenseVoice/Kokoro资料：SenseVoice INT8压缩163,002,883 B，Kokoro v1.1-zh INT8压缩147,031,220 B，普通话女声先用sid3。本机空闲约36GiB，足够本次约310MB模型及独立运行环境，不下载Windows VM。本批次PLAN§17.10先登记再实现；两模型和库许可证分层记录，原生引擎作为可选独立运行环境从官方安装，不混进现有主venv/冻结包。语音不需账户或Key；模型问答配置仍独立。
+
+免费设置和WAV录音接入后，`uv run --locked pytest tests/test_voice.py tests/test_voice_local_integration.py -q --tb=short`为81通过；`npm --prefix desktop test`为106通过，实际Mac Electron companion为21/21。免费UI保存保留旧Key且未自动下载；3次真实浏览器录音转换后上传合成ASR服务的内容确为16kHz/mono/PCM16 WAV，用户麦克风采集为0。最终选择Kokoro sid46普通话女声，替代初选sid3。首次完整后端回归1616通过/1已知Windows凭据平台跳过，随后继续加入安装/进程边界与包脚本测试，最终计数另记。
+
+真实引擎安装初次遇uv管理Python参数与环境字段互斥，修正后通过。独立审查实际复现worker正常退出时守护线程持BufferedReader锁导致SIGABRT，改为raw os.read并加入回归；资源ready检查补齐词典/FST/eSpeak必需文件；停止API改为等待worker清理后才确认。进一步核对Windows venv launcher会二次创建解释器，正在改为直接应用专用基础Python加显式私有site-packages，避免只等待launcher的误判。所有修复先保留实际失败再验证，不把Mac推理当作Windows实测。
+
+最终解释器直接启动和native PID一致性已落实。总时限也修为排队与推理合计120秒，过期请求不会稍后启动；引擎38/38、包工具15/15通过，无新增skip。`uv run --locked pytest -q --tb=short --junitxml=artifacts/free-voice/pytest-final.xml`完整1644通过/1既有Windows凭据skip，68.41秒；`ruff check src tests scripts packaging`、`ruff format --check`131文件、文档42份及diff通过。独立source API脚本在本项目已安装的测试profile执行实际9项，通过合成中文回识、官方zh.wav、真实native PID取消及正常退出；24字TTS6.915秒、回识0.878秒且CER0，取消返回前PID已消失（6毫秒），后续短句仍可合成。未采用户麦克风、未播放扬声器、未调用模型或付费服务。
+
+测试harness最初把默认模型基础地址误判成已配置模型，在推理前失败，保留初步报告；修为检查实际模型ID/Key为空并补回归后最终通过。开发profile安装早于最终worker冻结，实际运行的是当前打包源；仅该专用profile内的worker/许可/model_files来源副本作显式同步，模型、venv、ready未变，最终报告逐项留前后摘要。最终source API之后的小改动仅增加排队总时限，由新增边界测试验证；Windows将对准确提交从零安装。便携报告、设置截图及源码摘要写入docs/evidence/mvp2/free-voice，全部测试数和限制分开列明。

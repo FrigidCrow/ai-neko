@@ -1,0 +1,293 @@
+{
+  "schema_version": 1,
+  "app_id": "ai-neko",
+  "stage": "source-free-voice-api-smoke",
+  "status": "PASS",
+  "started_at_utc": "2026-10-03T14:08:45.218645+00:00",
+  "environment": {
+    "system": "Darwin",
+    "machine": "arm64",
+    "backend": "source_backend",
+    "packaged_executable": false,
+    "windows": false,
+    "python": "3.11.15"
+  },
+  "source_commit": "da4e57449b40f363fda4421b675ca5483d9184ad",
+  "source_dirty": true,
+  "resources_reused": "/Users/frigidcrow/Dev/ai-neko/artifacts/free-voice/data/assets/voice",
+  "development_snapshot_refresh": {
+    "reason": "This dedicated development test profile was installed before the final source freeze. Runtime copies are installation-time snapshots; the source backend executes the current bundled worker. Refresh only snapshots for consistent evidence. Fresh Windows installation requires no manual copying.",
+    "changed_runtime_snapshots": [
+      {
+        "name": "worker.py",
+        "before_sha256": "44702b9509759aa4f04940d51132f0ac854e732615331ba45b336fba16e98244",
+        "after_sha256": "29fe7e765e12f5b4fb45960b80e3d4f1d88e8e9a76dfde389db04767ab3b1d85"
+      },
+      {
+        "name": "LICENSES.md",
+        "before_sha256": "e652f4c24565f167222f715be48dfd9c04b173418f251871786fa002f04d5f48",
+        "after_sha256": "06b74a903d671f786a11ebccd7da67255f40cc70bca76dde83199e4a51acd9a6"
+      },
+      {
+        "name": "model_files.json",
+        "before_sha256": null,
+        "after_sha256": "843a37bf3ef29efc1496b0b2c70ec0a10aed73bf3b51e01fbfc7bdc5be067ea6"
+      }
+    ],
+    "venv_models_ready_unchanged": true
+  },
+  "actual_source_worker_sha256": "29fe7e765e12f5b4fb45960b80e3d4f1d88e8e9a76dfde389db04767ab3b1d85",
+  "scope": {
+    "download_requests": 0,
+    "install_requests": 0,
+    "paid_api_calls": 0,
+    "conversational_model_calls": 0,
+    "user_microphone_captures": 0,
+    "speaker_playback": "NOT_TESTED",
+    "windows_11": "NOT_TESTED"
+  },
+  "tests": {
+    "cases": [
+      {
+        "name": "source_backend_ready_using_installed_models_without_download",
+        "outcome": "PASS"
+      },
+      {
+        "name": "api_rejects_missing_token",
+        "outcome": "PASS"
+      },
+      {
+        "name": "installed_model_and_runtime_provenance",
+        "outcome": "PASS"
+      },
+      {
+        "name": "local_selection_preserves_cloud_configuration",
+        "outcome": "PASS"
+      },
+      {
+        "name": "fixed_chinese_sentence_tts",
+        "outcome": "PASS"
+      },
+      {
+        "name": "synthesized_sentence_asr_roundtrip",
+        "outcome": "PASS"
+      },
+      {
+        "name": "official_chinese_sample_asr",
+        "outcome": "PASS"
+      },
+      {
+        "name": "real_worker_cancel_reaps_pid_before_return",
+        "outcome": "PASS"
+      },
+      {
+        "name": "short_tts_still_works_after_cancel",
+        "outcome": "PASS"
+      }
+    ]
+  },
+  "backend_pid": 15698,
+  "local_initial_status": {
+    "state": "ready",
+    "message": "免费本地语音已就绪，无需 API Key。",
+    "stage": "idle",
+    "downloaded_bytes": 0,
+    "total_bytes": 330834269,
+    "supported": true,
+    "closed": false
+  },
+  "installed_resources": {
+    "manifest": {
+      "schema": 1,
+      "lock": "9d90e79fe7d57e9ec71e5ee3c72a9cbc1d4f2e645d58962d575d1245cf209143",
+      "asr": "7d1efa2138a65b0b488df37f8b89e3d91a60676e416f515b952358d83dfd347e",
+      "tts": "a1e94694776049035c4f2c6529f003aaece993c76aae9a78995831c3c4dcafc6",
+      "python": "3.11.15"
+    },
+    "runtime_packages": [
+      {
+        "name": "numpy",
+        "version": "2.4.4"
+      },
+      {
+        "name": "sherpa-onnx",
+        "version": "1.13.8"
+      },
+      {
+        "name": "sherpa-onnx-core",
+        "version": "1.13.8"
+      }
+    ],
+    "runtime_packages_source": "uv.lock_declarations",
+    "installed_packages": [
+      {
+        "name": "numpy",
+        "version": "2.4.4"
+      },
+      {
+        "name": "sherpa-onnx",
+        "version": "1.13.8"
+      },
+      {
+        "name": "sherpa-onnx-core",
+        "version": "1.13.8"
+      }
+    ],
+    "installed_packages_source": "private_venv_dist_info_METADATA",
+    "installed_packages_match_lock": true,
+    "download_archives": [
+      {
+        "name": "kokoro-int8-multi-lang-v1_1.tar.bz2",
+        "bytes": 147031220,
+        "sha256": "a1e94694776049035c4f2c6529f003aaece993c76aae9a78995831c3c4dcafc6"
+      },
+      {
+        "name": "sherpa-onnx-sense-voice-zh-en-ja-ko-yue-int8-2024-07-17.tar.bz2",
+        "bytes": 163002883,
+        "sha256": "7d1efa2138a65b0b488df37f8b89e3d91a60676e416f515b952358d83dfd347e"
+      },
+      {
+        "name": "uv-aarch64-apple-darwin.tar.gz",
+        "bytes": 20800166,
+        "sha256": "c729adb365114e844dd7f9316313a7ed6443b89bb5681d409eebac78b0bd06c8"
+      }
+    ],
+    "models": [
+      {
+        "name": "kokoro-int8-multi-lang-v1_1",
+        "model_bytes": 114299010,
+        "model_sha256": "bda15858163726a492d02a9a727bc263551b86ac77f90812c4b30ff41d380e26"
+      },
+      {
+        "name": "sherpa-onnx-sense-voice-zh-en-ja-ko-yue-int8-2024-07-17",
+        "model_bytes": 239233841,
+        "model_sha256": "c71f0ce00bec95b07744e116345e33d8cbbe08cef896382cf907bf4b51a2cd51"
+      }
+    ],
+    "worker_sha256": "29fe7e765e12f5b4fb45960b80e3d4f1d88e8e9a76dfde389db04767ab3b1d85",
+    "model_files_sha256": "843a37bf3ef29efc1496b0b2c70ec0a10aed73bf3b51e01fbfc7bdc5be067ea6"
+  },
+  "configuration": {
+    "voice_provider": "local",
+    "cloud_voice_keys_set": false,
+    "prior_cloud_voice_fields_preserved": true,
+    "chat_model_configured": false
+  },
+  "synthesis": {
+    "text": "你好，我是小猫。今天我们一起学习，让生活更有趣。",
+    "characters": 24,
+    "elapsed_seconds": 6.915,
+    "timeout_seconds": 120,
+    "audio": {
+      "mime_type": "audio/wav",
+      "channels": 1,
+      "sample_rate": 24000,
+      "bits_per_sample": 16,
+      "frames": 158756,
+      "duration_seconds": 6.6148,
+      "bytes": 317556,
+      "sha256": "6c0d871203eb32006642a0efd0a0731125e5432d94f86fba9c5e32fde40a054e",
+      "peak": 13597,
+      "rms": 2225.4274,
+      "file": "source-api-smoke-final-speech.wav"
+    }
+  },
+  "recognition": {
+    "text": "你好，我是小猫。今天我们一起学习，让生活更有趣。",
+    "characters": 24,
+    "elapsed_seconds": 0.878,
+    "timeout_seconds": 120,
+    "input_audio": {
+      "mime_type": "audio/wav",
+      "channels": 1,
+      "sample_rate": 16000,
+      "bits_per_sample": 16,
+      "frames": 105837,
+      "duration_seconds": 6.6148,
+      "bytes": 211718,
+      "sha256": "1f4980f883026d36d9b99a1e6e28fa8a6f0a352133168228356cb3703a1ddb7d",
+      "peak": 13559,
+      "rms": 2192.8555
+    },
+    "match": {
+      "expected_normalized_characters": 20,
+      "recognized_normalized_characters": 20,
+      "edit_distance": 0,
+      "character_error_rate": 0.0,
+      "maximum_character_error_rate": 0.35,
+      "passed": true,
+      "scope": "one_fixed_synthesized_chinese_sentence_not_microphone_quality"
+    }
+  },
+  "official_sample_recognition": {
+    "source": "official model archive test_wavs/zh.wav",
+    "relative_path": "models/sherpa-onnx-sense-voice-zh-en-ja-ko-yue-int8-2024-07-17/test_wavs/zh.wav",
+    "audio": {
+      "mime_type": "audio/wav",
+      "channels": 1,
+      "sample_rate": 16000,
+      "bits_per_sample": 16,
+      "frames": 89472,
+      "duration_seconds": 5.592,
+      "bytes": 178988,
+      "sha256": "b77f1794fe374a0ba1ee1dc458bfaf9349496cbbfc32780c50ba3c5a7ad8e373",
+      "peak": 27611,
+      "rms": 4330.1057
+    },
+    "text": "开饭时间早上9点至下午5点。",
+    "characters": 14,
+    "elapsed_seconds": 0.764,
+    "timeout_seconds": 120,
+    "user_audio": false,
+    "reference_transcript_available": false,
+    "accuracy_grade": "NOT_MEASURED"
+  },
+  "cancellation": {
+    "text_characters": 360,
+    "native_worker_seen": true,
+    "worker_gone_when_cancel_returned": true,
+    "inference_request_completed": true,
+    "timeout_seconds": 120,
+    "worker_observation": {
+      "pid": 15777,
+      "ppid": 15698,
+      "rss_kib": 273728,
+      "cpu_time": "0:00.29"
+    },
+    "rss_observation_target_kib": 220000,
+    "cancel_response": {
+      "cancelled": true
+    },
+    "cancel_elapsed_seconds": 0.006,
+    "remaining_direct_child_pids": [],
+    "inference_http_status": 409
+  },
+  "post_cancel_synthesis": {
+    "text": "你好，我还在这里陪你。",
+    "audio": {
+      "mime_type": "audio/wav",
+      "channels": 1,
+      "sample_rate": 24000,
+      "bits_per_sample": 16,
+      "frames": 71893,
+      "duration_seconds": 2.9955,
+      "bytes": 143830,
+      "sha256": "4cbb850ee9fe9cd0f3d083e345b24711e5c63bc0fdb0b9da6a98c093b3c83fc6",
+      "peak": 16018,
+      "rms": 2323.1559,
+      "file": "source-api-smoke-final-reuse.wav"
+    },
+    "elapsed_seconds": 3.242,
+    "backend_still_alive": true,
+    "remaining_direct_child_pids": []
+  },
+  "shutdown": {
+    "owned_backend_pid": 15698,
+    "http_status": 202,
+    "exit_code": 0,
+    "descriptor_removed": true
+  },
+  "duration_seconds": 13.452,
+  "finished_at_utc": "2026-10-03T14:08:58.670683+00:00",
+  "failure_detail_policy": "No bearer token, raw headers, backend logs, stdout, stderr or unrelated process command lines."
+}

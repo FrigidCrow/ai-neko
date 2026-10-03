@@ -4,7 +4,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
-const { SpeechQueue } = require('../renderer/media.js');
+const { SpeechQueue, encodeVoiceWav } = require('../renderer/media.js');
 const source = fs.readFileSync(path.join(__dirname, '../renderer/companion.js'), 'utf8');
 const tick = async () => { for (let i = 0; i < 4; i++) await new Promise((resolve) => setImmediate(resolve)); };
 const deferred = () => { let resolve, reject; const promise = new Promise((yes, no) => { resolve = yes; reject = no; }); return { promise, resolve, reject }; };
@@ -13,7 +13,7 @@ const deferred = () => { let resolve, reject; const promise = new Promise((yes, 
 // is synthetic; these tests never request an operating-system media permission.
 function fixture(overrides = {}) {
   const nodes = new Map(), streams = [], recorders = [], timers = new Map(), listeners = new Map();
-  const calls = { cancel: 0, asr: 0, submitted: [], microphone: [], vision: [], api: [] };
+  const calls = { cancel: 0, asr: 0, decoded: 0, submitted: [], microphone: [], vision: [], api: [] };
   const el = (id) => {
     if (!nodes.has(id)) nodes.set(id, { value: '', checked: false, hidden: false, textContent: '', attributes: {},
       setAttribute(key, value) { this.attributes[key] = value; }, removeAttribute(key) { delete this[key]; }, replaceChildren() {}, focus() {}, add() {} });
@@ -29,8 +29,14 @@ function fixture(overrides = {}) {
     start() { this.state = 'recording'; }
     stop() { this.state = 'inactive'; queueMicrotask(() => { this.ondataavailable?.({ data: new Blob(['synthetic']) }); void this.onstop?.(); }); }
   }
-  class Reader { readAsDataURL() { this.result = 'data:audio/webm;base64,c3ludGhldGlj'; queueMicrotask(() => this.onload()); } }
-  class Context { async resume() { if (overrides.resume) await overrides.resume(); } }
+  class Reader { async readAsDataURL(blob) { this.result = `data:${blob.type};base64,${Buffer.from(await blob.arrayBuffer()).toString('base64')}`; this.onload(); } }
+  const decoded = () => ({ sampleRate: 48000, length: 480, numberOfChannels: 1, getChannelData: () => new Float32Array(480).fill(0.2) });
+  class Context {
+    async resume() { if (overrides.resume) await overrides.resume(); }
+    async decodeAudioData(value) { calls.decoded++; return overrides.decode ? overrides.decode(value, decoded) : decoded(); }
+  }
+  let observer;
+  class Observer { constructor(callback) { observer = callback; } observe() {} disconnect() {} }
   const chat = {
     canRecord: () => true,
     captureBinding: async () => overrides.binding ? overrides.binding() : ({ sessionId: 'a'.repeat(32), contextEpoch: 0, match: { match_id: null, expected_revision: 0 } }),
@@ -38,7 +44,7 @@ function fixture(overrides = {}) {
     cancelControlConfirmation: async () => {},
     closeObservation: async () => overrides.closeObservation?.(),
     cancelTurn: async () => { calls.cancel++; if (overrides.cancel) await overrides.cancel(calls.cancel); },
-    api: async (route, options) => { calls.api.push({ route, options }); if (route === '/api/voice/transcribe') { calls.asr++; return overrides.transcribe ? overrides.transcribe(options) : { text: '合成问题' }; } return {}; },
+    api: async (route, options) => { calls.api.push({ route, options }); if (route === '/api/voice/transcribe') { calls.asr++; return overrides.transcribe ? overrides.transcribe(options) : { text: '合成问题' }; } return overrides.api ? overrides.api(route, options) : {}; },
     invalidatePending: async () => overrides.invalidate?.(),
     refreshAfterForget: async () => {},
     submitText: async (text, options) => { calls.submitted.push({ text, options }); if (overrides.submit) await overrides.submit(text, options); },
@@ -55,16 +61,18 @@ function fixture(overrides = {}) {
   };
   let timerId = 0;
   const scope = {
-    window: { aiNeko: bridge, aiNekoChat: chat, aiNekoMedia: { SpeechQueue }, addEventListener(name, callback) { listeners.set(name, callback); } },
+    window: { aiNeko: bridge, aiNekoChat: chat, aiNekoMedia: { SpeechQueue, encodeVoiceWav }, dispatchEvent() {}, addEventListener(name, callback) { listeners.set(name, callback); } },
     document: { body: { dataset: {} }, getElementById: el, querySelector: () => null, querySelectorAll: () => [] },
     navigator: { mediaDevices: { getUserMedia: async (constraints) => overrides.media ? overrides.media(constraints, makeStream) : makeStream(constraints.audio.deviceId?.exact || 'default') } },
-    MediaRecorder: Recorder, FileReader: Reader, AudioContext: Context, Blob, AbortController, DOMException, crypto: globalThis.crypto,
-    setTimeout(callback) { const id = ++timerId; timers.set(id, callback); return id; }, clearTimeout(id) { timers.delete(id); },
+    MediaRecorder: Recorder, FileReader: Reader, AudioContext: Context, MutationObserver: Observer, CustomEvent: class {}, Blob, AbortController, DOMException, crypto: globalThis.crypto,
+    setTimeout(callback) { const id = ++timerId; timers.set(id, () => { timers.delete(id); return callback(); }); return id; }, clearTimeout(id) { timers.delete(id); },
   };
   vm.runInNewContext(source, scope, { filename: 'companion.js' });
   return { el, calls, streams, recorders, timers, bridge, chat, frame, companion: scope.window.aiNekoCompanion,
     recording: () => scope.document.body.dataset.recording === 'true', close: () => listeners.get('pagehide')(),
     start: () => el('record-voice').onclick(), stop: () => el('stop-audio').onclick(),
+    openSettings: () => { el('settings-panel').hidden = false; listeners.get('ai-neko-settings')(); },
+    closeSettings: () => { el('settings-panel').hidden = true; observer(); },
     enable: (id) => { el('vision-source').value = id; el('vision-enabled').checked = true; return el('vision-enabled').onchange({ target: el('vision-enabled') }); },
     disable: () => { el('vision-enabled').checked = false; return el('vision-enabled').onchange({ target: el('vision-enabled') }); },
   };
@@ -164,6 +172,12 @@ test('a normal utterance reaches submit once with a live cancellation token', as
   assert.equal(f.calls.asr, 1); assert.equal(f.calls.submitted.length, 1);
   assert.equal(f.calls.submitted[0].text, '合成问题'); assert.equal(f.calls.submitted[0].options.signal.aborted, false);
   assert.equal(f.streams[0].track.stopped, true); assert.equal(f.recording(), false);
+  const request = f.calls.api.find((item) => item.route === '/api/voice/transcribe');
+  assert.equal(request.options.body.mime_type, 'audio/wav');
+  const wav = Buffer.from(request.options.body.audio_base64, 'base64');
+  assert.equal(wav.toString('ascii', 0, 4), 'RIFF'); assert.equal(wav.toString('ascii', 8, 12), 'WAVE');
+  assert.equal(wav.readUInt32LE(24), 16000); assert.equal(wav.readUInt16LE(22), 1); assert.equal(wav.readUInt16LE(34), 16);
+  assert.equal(f.calls.decoded, 1);
 });
 
 test('vision disables immediately, revokes image turns, and waits before enabling a source', async () => {
@@ -251,4 +265,130 @@ test('a stale match invalidates a delayed ASR result before a user turn is submi
   assert.equal(f.calls.submitted.length, 0);
   f.stop(); await tick();
   assert.ok(f.streams.every((stream) => stream.track.stopped));
+});
+
+for (const interruption of ['stop', 'new recording', 'match change']) {
+  test(`delayed WAV conversion sends no obsolete audio after ${interruption}`, async () => {
+    const wait = deferred(); let valid = true;
+    const f = fixture({ decode: async (_value, decoded) => { await wait.promise; return decoded(); }, bindingCurrent: () => valid });
+    f.start(); await tick(); f.start(); await tick();
+    assert.equal(f.calls.decoded, 1); assert.equal(f.calls.asr, 0);
+    if (interruption === 'match change') valid = false;
+    else { f.stop(); if (interruption === 'new recording') { f.start(); await tick(); } }
+    wait.resolve(); await tick();
+    assert.equal(f.calls.asr, 0); assert.equal(f.calls.submitted.length, 0);
+    if (interruption === 'new recording') { assert.equal(f.recording(), true); assert.equal(f.streams[1].track.stopped, false); }
+    f.stop(); await tick();
+  });
+}
+
+test('recording refreshes provider before microphone and refuses a missing local engine', async () => {
+  const f = fixture({ api: async (route) => route === '/api/voice/config' ? { voice_provider: 'local', local: { state: 'missing' } } : {} });
+  f.start(); await tick();
+  assert.equal(f.streams.length, 0); assert.equal(f.calls.asr, 0);
+  assert.match(f.el('media-status').textContent, /下载并启用免费语音/);
+  const wait = deferred();
+  const g = fixture({ api: async (route) => route === '/api/voice/config' ? wait.promise : {} });
+  g.start(); await tick(); g.stop(); wait.resolve({ voice_provider: 'local', local: { state: 'ready' } }); await tick();
+  assert.equal(g.streams.length, 0); assert.equal(g.calls.asr, 0);
+});
+
+test('local utterances also carry actual PCM WAV and keep their original binding', async () => {
+  const f = fixture({ api: async (route) => route === '/api/voice/config' ? { voice_provider: 'local', local: { state: 'ready' } } : {} });
+  f.start(); await tick(); f.start(); await tick();
+  const request = f.calls.api.find((item) => item.route === '/api/voice/transcribe');
+  assert.equal(request.options.body.mime_type, 'audio/wav');
+  assert.equal(Buffer.from(request.options.body.audio_base64, 'base64').readUInt32LE(24), 16000);
+  assert.equal(f.calls.submitted.length, 1);
+});
+
+test('decoder failure or excessive decoded duration never uploads partial recording', async () => {
+  for (const decode of [async () => { throw new Error('unsupported recording'); }, async () => ({ sampleRate: 16000, length: 960001, numberOfChannels: 1 })]) {
+    const f = fixture({ decode }); f.start(); await tick(); f.start(); await tick();
+    assert.equal(f.calls.asr, 0); assert.equal(f.calls.submitted.length, 0);
+    assert.match(f.el('media-status').textContent, /语音识别未完成/);
+  }
+});
+
+test('local settings preserve cloud credentials and require explicit download', async () => {
+  const cloud = { voice_provider: 'openai', asr_base_url: 'https://speech.example/v1', tts_base_url: 'https://speech.example/v1', asr_key_set: true, tts_key_set: true, local: { state: 'missing' } };
+  let saved = { ...cloud };
+  const f = fixture({ api: async (route, options) => {
+    if (route === '/api/voice/config') { if (options?.method === 'PUT') saved = { ...saved, ...options.body }; return saved; }
+    return {};
+  } });
+  f.openSettings(); await tick();
+  assert.equal(f.el('voice-provider').value, 'openai');
+  f.el('asr-api-key').value = 'unsaved-secret'; f.el('clear-asr-key').checked = true;
+  f.el('voice-provider').value = 'local'; f.el('voice-provider').onchange();
+  assert.equal(f.el('cloud-voice-settings').hidden, true); assert.equal(f.el('local-voice-settings').hidden, false);
+  assert.equal(f.el('asr-api-key').value, ''); assert.equal(f.el('clear-asr-key').checked, false);
+  await f.el('voice-form').onsubmit({ preventDefault() {} });
+  const put = f.calls.api.find((item) => item.route === '/api/voice/config' && item.options?.method === 'PUT');
+  assert.equal(JSON.stringify(put.options.body), JSON.stringify({ voice_provider: 'local' }));
+  assert.equal(saved.asr_base_url, cloud.asr_base_url); assert.equal(saved.asr_key_set, true);
+  assert.equal(f.el('test-voice').disabled, true);
+  assert.equal(f.calls.api.some((item) => item.route === '/api/voice/local/install'), false);
+});
+
+test('explicit local install polls, supports cancellation and refreshes after reopening settings', async () => {
+  let local = { state: 'missing' }, provider = 'openai';
+  const f = fixture({ api: async (route, options) => {
+    if (route === '/api/voice/config') { if (options?.method === 'PUT') provider = options.body.voice_provider; return { voice_provider: provider, local }; }
+    if (route === '/api/voice/local/install') { local = { state: 'installing', downloaded_bytes: 5, total_bytes: 10 }; return local; }
+    if (route === '/api/voice/local/cancel') { local = { state: 'missing', message: '已取消下载。' }; return local; }
+    if (route === '/api/voice/local') return local;
+    return {};
+  } });
+  f.openSettings(); await tick(); f.el('voice-provider').value = 'local'; f.el('voice-provider').onchange();
+  await f.el('install-local-voice').onclick();
+  const mutations = f.calls.api.filter((item) => item.options?.method);
+  assert.equal(mutations[0].route, '/api/voice/config'); assert.equal(JSON.stringify(mutations[0].options.body), '{"voice_provider":"local"}');
+  assert.equal(mutations[1].route, '/api/voice/local/install'); assert.equal(JSON.stringify(mutations[1].options.body), '{"confirm":true}');
+  assert.equal(f.el('cancel-local-voice').hidden, false); assert.match(f.el('local-voice-status').textContent, /50%/);
+  assert.equal(f.timers.size, 1);
+  f.closeSettings(); assert.equal(f.timers.size, 0);
+  f.openSettings(); await tick(); assert.equal(f.timers.size, 1);
+  await f.el('cancel-local-voice').onclick(); assert.equal(f.timers.size, 0); assert.equal(f.el('cancel-local-voice').hidden, true);
+  await f.el('install-local-voice').onclick();
+  local = { state: 'ready' };
+  await [...f.timers.values()][0](); await tick();
+  assert.equal(f.el('test-voice').disabled, false); assert.equal(f.el('install-local-voice').hidden, true);
+  f.close(); assert.equal(f.timers.size, 0);
+});
+
+test('closed settings ignore an in-flight local status result and pagehide clears polling', async () => {
+  const wait = deferred();
+  const f = fixture({ api: async (route) => {
+    if (route === '/api/voice/config') return { voice_provider: 'local', local: { state: 'installing' } };
+    if (route === '/api/voice/local') return wait.promise;
+    return {};
+  } });
+  f.openSettings(); await tick();
+  const polling = [...f.timers.values()][0]();
+  f.closeSettings(); wait.resolve({ state: 'ready' }); await polling;
+  assert.equal(f.el('test-voice').disabled, true);
+  f.openSettings(); await tick(); assert.equal(f.timers.size, 1);
+  f.close(); assert.equal(f.timers.size, 0);
+});
+
+test('failed local download shows a retry and keeps cloud fields disabled until selected', async () => {
+  let local = { state: 'missing' }, installs = 0;
+  const f = fixture({ api: async (route) => {
+    if (route === '/api/voice/config') return { voice_provider: 'local', local };
+    if (route === '/api/voice/local/install') { installs++; return { state: 'installing' }; }
+    if (route === '/api/voice/local') return local;
+    return {};
+  } });
+  f.openSettings(); await tick();
+  assert.equal(f.el('asr-base-url').disabled, true); assert.equal(f.el('clear-tts-key').disabled, true);
+  await f.el('install-local-voice').onclick();
+  local = { state: 'error', message: '资源校验失败，请重试。' };
+  await [...f.timers.values()][0](); await tick();
+  assert.match(f.el('local-voice-status').textContent, /校验失败/);
+  assert.match(f.el('install-local-voice').textContent, /重试/); assert.equal(f.el('install-local-voice').disabled, false);
+  await f.el('install-local-voice').onclick(); assert.equal(installs, 2);
+  f.el('voice-provider').value = 'openai'; f.el('voice-provider').onchange();
+  assert.equal(f.el('asr-base-url').disabled, false); assert.equal(f.el('clear-tts-key').disabled, false);
+  f.close(); assert.equal(f.timers.size, 0);
 });

@@ -2,7 +2,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { VisionCapture, microphonePermission } = require('../lib/vision.cjs');
-const { SpeechQueue } = require('../renderer/media.js');
+const { SpeechQueue, encodeVoiceWav } = require('../renderer/media.js');
 const { validateRequest, ENTRY_URL } = require('../lib/security.cjs');
 const tick = () => new Promise((resolve) => setImmediate(resolve));
 const deferred = () => { let resolve; const promise = new Promise((done) => { resolve = done; }); return { promise, resolve }; };
@@ -99,6 +99,40 @@ test('new media and memory routes remain closed and payload bounds stay route sp
   assert.throws(() => validateRequest({ method: 'PUT', path: '/api/persona', body: { text: 'a'.repeat(100000) } }));
   assert.throws(() => validateRequest({ method: 'POST', path: '/api/voice/transcribe', body: { audio_base64: 'a'.repeat(12 * 1024 * 1024) } }));
   for (const route of ['/api/voice/arbitrary', '/api/memories/id/../config', '/api/memories?all=true']) assert.throws(() => validateRequest({ method: 'POST', path: route }));
+});
+
+test('local voice IPC exposes only status, install and cancel with exact methods', () => {
+  for (const [method, path] of [['GET', '/api/voice/local'], ['POST', '/api/voice/local/install'], ['POST', '/api/voice/local/cancel']]) assert.doesNotThrow(() => validateRequest({ method, path }));
+  for (const method of ['GET', 'POST', 'PUT', 'DELETE']) {
+    for (const path of ['/api/voice/local/arbitrary', '/api/voice/local/install?url=https://example.com', '/api/voice/local/../config', '/api/voice/local/install/']) assert.throws(() => validateRequest({ method, path }));
+  }
+  for (const [method, path] of [['POST', '/api/voice/local'], ['PUT', '/api/voice/local'], ['GET', '/api/voice/local/install'], ['GET', '/api/voice/local/cancel'], ['DELETE', '/api/voice/local/cancel']]) assert.throws(() => validateRequest({ method, path }));
+});
+
+const audioBuffer = (sampleRate, ...data) => ({ sampleRate, length: data[0].length, numberOfChannels: data.length, getChannelData: (channel) => Float32Array.from(data[channel]) });
+test('voice WAV has a truthful mono 16 kHz PCM header and mixes before downsampling', () => {
+  const result = Buffer.from(encodeVoiceWav(audioBuffer(48000, [1, 0, -1, 1, 1, 1], [-1, 0, 1, 0, 0, 0])));
+  assert.equal(result.toString('ascii', 0, 4), 'RIFF'); assert.equal(result.readUInt32LE(4), result.length - 8);
+  assert.equal(result.toString('ascii', 8, 16), 'WAVEfmt '); assert.equal(result.readUInt32LE(16), 16);
+  assert.equal(result.readUInt16LE(20), 1); assert.equal(result.readUInt16LE(22), 1);
+  assert.equal(result.readUInt32LE(24), 16000); assert.equal(result.readUInt32LE(28), 32000);
+  assert.equal(result.readUInt16LE(32), 2); assert.equal(result.readUInt16LE(34), 16);
+  assert.equal(result.toString('ascii', 36, 40), 'data'); assert.equal(result.readUInt32LE(40), 4);
+  assert.deepEqual([result.readInt16LE(44), result.readInt16LE(46)], [0, 16384]);
+});
+test('voice WAV clips safely and handles non-finite samples and lower source rates', () => {
+  const wav = Buffer.from(encodeVoiceWav(audioBuffer(16000, [-2, 2, NaN, Infinity, -0.5, 0.5])));
+  assert.deepEqual(Array.from({ length: 6 }, (_, i) => wav.readInt16LE(44 + i * 2)), [-32768, 32767, 0, 0, -16384, 16384]);
+  const upsampled = Buffer.from(encodeVoiceWav(audioBuffer(8000, [0, 1])));
+  assert.deepEqual(Array.from({ length: 4 }, (_, i) => upsampled.readInt16LE(44 + i * 2)), [0, 16384, 32767, 32767]);
+});
+test('voice WAV rejects empty, oversized and over-duration inputs before allocating output', () => {
+  assert.throws(() => encodeVoiceWav(audioBuffer(16000, [])), /格式/);
+  assert.throws(() => encodeVoiceWav({ sampleRate: 16000, length: 960001, numberOfChannels: 1 }), /60秒/);
+  assert.throws(() => encodeVoiceWav(audioBuffer(16000, [1, 2]), { maxBytes: 47 }), /8MB/);
+  assert.throws(() => encodeVoiceWav(audioBuffer(0, [1])), /格式/);
+  const max = Buffer.from(encodeVoiceWav({ sampleRate: 16000, length: 960000, numberOfChannels: 1, getChannelData: () => new Float32Array(960000) }));
+  assert.equal(max.length, 44 + 60 * 16000 * 2);
 });
 
 test('superseded selection failure cannot revoke a newer successful selection', async () => {

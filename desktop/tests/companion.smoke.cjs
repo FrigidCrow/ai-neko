@@ -22,7 +22,7 @@ const report = { status: 'RUNNING', platform: process.platform, node: process.ve
   actual_user_microphone_captures: 0, actual_desktop_captures: 0, windows_11: 'pending', cases: [] };
 const save = () => fs.writeFileSync(output, JSON.stringify(report, null, 2));
 const pause = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-const calls = { models: [], asr: 0, tts: 0 };
+const calls = { models: [], asr: 0, tts: 0, wav_uploads: 0 };
 let asrText = '合成语音问题，请看当前棋盘。';
 let failHistoricalQuestion = false;
 let releaseVisualResponse;
@@ -30,7 +30,13 @@ let releaseTextResponse;
 const mp3 = fs.readFileSync(path.join(__dirname, 'fixtures/synthetic-tone.mp3'));
 const server = http.createServer((req, res) => {
   const chunks = []; req.on('data', (chunk) => chunks.push(chunk)); req.on('end', async () => {
-    if (req.url === '/v1/audio/transcriptions') { calls.asr++; res.writeHead(200, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ text: asrText })); return; }
+    if (req.url === '/v1/audio/transcriptions') {
+      calls.asr++; const body = Buffer.concat(chunks), offset = body.indexOf(Buffer.from('RIFF'));
+      if (offset < 0 || body.toString('ascii', offset + 8, offset + 12) !== 'WAVE' || body.readUInt32LE(offset + 24) !== 16000 || body.readUInt16LE(offset + 22) !== 1 || body.readUInt16LE(offset + 34) !== 16) {
+        res.writeHead(400, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ error: 'synthetic ASR requires actual mono 16 kHz PCM WAV' })); return;
+      }
+      calls.wav_uploads++; res.writeHead(200, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ text: asrText })); return;
+    }
     if (req.url === '/v1/audio/speech') { calls.tts++; res.writeHead(200, { 'Content-Type': 'audio/mpeg' }); res.end(mp3); return; }
     if (req.url !== '/v1/chat/completions') { res.writeHead(404); res.end(); return; }
     const body = JSON.parse(Buffer.concat(chunks)); calls.models.push(body);
@@ -282,6 +288,25 @@ report.executable_sha256 = crypto.createHash('sha256').update(fs.readFileSync(ex
     assert.equal((await page.evaluate(() => window.aiNekoChat.api('/api/memory/backups'))).backups.length, 0);
   });
   await check('configure_independent_model_and_audio_services', async () => {
+    const before = await page.evaluate(() => window.aiNekoChat.api('/api/voice/config'));
+    await page.locator('#voice-provider').selectOption('local');
+    assert.equal(await page.locator('#cloud-voice-settings').isHidden(), true);
+    assert.equal(await page.locator('#local-voice-settings').isVisible(), true);
+    assert.equal(await page.locator('#test-voice').isDisabled(), true);
+    await page.locator('#voice-form').evaluate((form) => form.requestSubmit());
+    await page.waitForFunction(() => document.querySelector('#voice-config-status').textContent.includes('已保存'));
+    const local = await page.evaluate(() => window.aiNekoChat.api('/api/voice/config'));
+    assert.equal(local.voice_provider, 'local'); assert.equal(local.local.state, 'missing');
+    for (const field of ['asr_base_url', 'tts_base_url', 'asr_key_set', 'tts_key_set']) assert.equal(local[field], before[field]);
+    const settingsImage = screenshotPath.replace(/\.png$/, '-free-voice.png');
+    await page.locator('#local-voice-settings').scrollIntoViewIfNeeded();
+    await page.screenshot({ path: settingsImage, omitBackground: true });
+    report.voice_settings_screenshot = path.basename(settingsImage);
+    report.voice_settings_screenshot_sha256 = crypto.createHash('sha256').update(fs.readFileSync(settingsImage)).digest('hex');
+    report.local_voice_ui = { selected_and_saved: true, state: local.local.state, download_requested: false, prior_cloud_config_preserved: true };
+    await page.locator('#voice-provider').selectOption('openai');
+    // Remove the previous save message so this wait belongs to the new save.
+    await page.locator('#voice-config-status').evaluate((node) => { node.textContent = ''; });
     for (const [id, value] of [['asr-base-url', endpoint], ['asr-model', 'synthetic-asr'], ['tts-base-url', endpoint], ['tts-model', 'synthetic-tts'], ['tts-voice', 'synthetic-voice']]) await page.locator(`#${id}`).fill(value);
     await page.locator('#voice-form').evaluate((form) => form.requestSubmit());
     await page.waitForFunction(() => document.querySelector('#voice-config-status').textContent.includes('已保存'));
@@ -591,12 +616,13 @@ report.executable_sha256 = crypto.createHash('sha256').update(fs.readFileSync(ex
     } finally { await page.evaluate(() => window.restoreSyntheticAudioStop()); }
     await page.locator('#close-settings').click();
   });
-  assert.deepEqual(errors, []); report.status = 'PASS';
+  assert.deepEqual(errors, []); assert.equal(calls.wav_uploads, calls.asr); report.status = 'PASS';
 })().catch(async (error) => { report.status = 'FAIL'; report.error = error.stack; if (page && !page.isClosed()) { report.ui_state = await page.evaluate(() => Object.fromEntries(['memory-status', 'persona-status', 'voice-config-status', 'media-status', 'notice-text'].map((id) => [id, document.getElementById(id)?.textContent]))).catch(() => ({})); } process.exitCode = 1; console.error(error.stack); }).finally(async () => {
   if (application) await application.close().catch(() => {});
   server.closeAllConnections(); await new Promise((resolve) => server.close(resolve));
   report.screenshot = path.basename(screenshotPath);
   if (fs.existsSync(screenshotPath)) report.screenshot_sha256 = crypto.createHash('sha256').update(fs.readFileSync(screenshotPath)).digest('hex');
   report.synthetic_calls = { model: calls.models.length, asr: calls.asr, tts: calls.tts }; report.renderer_errors = errors; save();
+  report.recording_transport = { decoded_browser_recordings: calls.wav_uploads, validated_synthetic_asr_uploads: calls.wav_uploads, mime_type: 'audio/wav', sample_rate: 16000, channels: 1, bits_per_sample: 16, user_microphone_captures: 0 }; save();
   fs.rmSync(temporary, { recursive: true, force: true }); console.log(JSON.stringify(report));
 });

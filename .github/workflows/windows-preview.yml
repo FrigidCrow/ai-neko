@@ -133,6 +133,10 @@ jobs:
         env:
           PREVIEW_VERSION: ${{ steps.version.outputs.value }}
         run: node desktop/tests/g6-acceptance.smoke.cjs --archive "artifacts/package/ai-neko-$env:PREVIEW_VERSION-windows-x64.zip" --output artifacts/package/g6-acceptance.json
+      - name: Install and exercise real free voice through the packaged backend
+        env:
+          PREVIEW_VERSION: ${{ steps.version.outputs.value }}
+        run: uv run --locked --no-dev --group build python scripts/free_voice_smoke.py --archive "artifacts/package/ai-neko-$env:PREVIEW_VERSION-windows-x64.zip" --output artifacts/package/free-voice-smoke.json
       - name: Preserve package evidence
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -141,6 +145,7 @@ jobs:
           path: |
             artifacts/package/*.json
             artifacts/package/*.png
+            artifacts/package/*.wav
           if-no-files-found: warn
           retention-days: 14
       - name: Upload verified Windows package
@@ -190,15 +195,15 @@ jobs:
 
           下载 `ai-neko-…-windows-x64.zip` 后解压到独立目录，阅读包内 README，双击 `ai-neko.exe`。包内包含 Electron、Python、猫娘与运行依赖，无需安装 Python、Node 或 uv。首次使用请阅读 Live2D 条款并选择是否接受。
 
-          本版提供可见猫娘桌宠、流式文字聊天、可编辑人格、明确选源后每次提问截图、按键语音输入与按句朗读，以及共享 Tavily 搜索和网页正文/来源。长期记忆本地保存，支持查看依据、纠正、遗忘与快照恢复；自动整理对话需显式开启。猫娘使用参考 N.E.K.O 的默认 YUI Lolita，来源与许可随包提供。请配置自己的模型、搜索和语音服务，调用按相应服务商计费；观察画面需要支持图片的模型。**不含免按键语音唤醒、多角色导入或键鼠控制。**
+          本版提供可见猫娘桌宠、流式文字聊天、可编辑人格、明确选源后每次提问截图、按键语音输入与按句朗读，以及共享搜索和网页正文/来源（AnySearch 免费免 Key，Tavily 可选）。长期记忆本地保存，支持查看依据、纠正、遗忘与快照恢复；自动整理对话需显式开启。猫娘使用参考 N.E.K.O 的默认 YUI Lolita，来源与许可随包提供。请配置自己的聊天模型；语音可在设置中选择 SenseVoice + Kokoro 本地免费方案，首次下载约 310 MB 模型及独立运行组件，之后无需语音 Key。云服务按相应服务商计费；观察画面需要支持图片的模型。**不含免按键语音唤醒、多角色导入或键鼠控制。**
 
-          首次试用：在猫娘设置中保存人格和模型配置；需要看图时选择游戏窗口并启用观察；配置ASR/TTS并勾选“朗读回复”后点击“说话”，说完再次点击，猫娘将按句朗读回复。默认按需联网，搜索凭据由兼容模型共用；没有搜索Key仍可普通聊天。
+          首次试用：在猫娘设置中保存人格和模型配置；需要看图时选择游戏窗口并启用观察；下载并启用本地免费语音（或配置自有ASR/TTS）并勾选“朗读回复”后点击“说话”，说完再次点击，猫娘将按句朗读回复。默认按需联网，搜索凭据由兼容模型共用；AnySearch 不需要搜索 Key，普通聊天仍由所配置模型生成。
 
           聊天中的“攻略库”可保存公开网页正文、采用固定版本、刷新核查、切换/删除和管理攻略快照；有适用本地依据时可直接复用，缺口再补查。“管理本局”提供目标、版本、新局与明确复盘；新局隔离旧动态状态，重启后等待新的观察。明确文字/语音控制成功后使用独立确认，切换或删除会停止旧建议。截图只在当轮内存使用；关闭观察取消相关视觉请求，超过120秒的截图停止继续使用。旧版本继续保留。
 
           本版本在 GitHub Windows Server 2022 x64 runner 构建，并用解压后的 exe 实际验证启动、鉴权、退出、图恢复以及人格/记忆/视觉/语音合成闭环，另验攻略采用后重启新聊天、两轮五问零搜索和新局/复盘隔离。Windows 11 x64 用户真机、真实服务冷暖性能与游戏建议质量仍待完成，工程预览不代表完整MVP2验收；尚未签名。
 
-          `build-info.json` 记录源码 commit、锁文件、依赖和构建环境，`SHA256SUMS.txt` 可核对 ZIP；`package-smoke.json`、`desktop-smoke.json`、`companion-smoke.json`、`g6-acceptance.json` 与各平台 smoke、guide-evaluation、guide-benchmark 报告为合成验证证据。CI 使用本地合成模型、画面和音频服务，真实云模型/搜索/语音质量未包含在这些合成报告中；未提供真实凭据时真实测试数为 0。Windows 11 真机和真实攻略质量仍需单独验收。旧版本保留，可按版本下载，不自动迁移数据。
+          `build-info.json` 记录源码 commit、锁文件、依赖和构建环境，`SHA256SUMS.txt` 可核对 ZIP；`package-smoke.json`、`desktop-smoke.json`、`companion-smoke.json`、`g6-acceptance.json` 与各平台 smoke、guide-evaluation、guide-benchmark 报告为合成验证证据。另有 `free-voice-smoke.json`：从同一解压包下载免费语音组件并执行真实本地中文合成和识别，输入是固定测试句和合成音频，不使用用户麦克风。实际云模型/搜索问答与真人声音质量未包含在这些报告中。Windows 11 真机和真实攻略质量仍需单独验收。旧版本保留，可按版本下载，不自动迁移数据。
           NOTES
           printf '\nSource: `%s`\nWorkflow: %s/%s/actions/runs/%s\n' "$GITHUB_SHA" "$GITHUB_SERVER_URL" "$GITHUB_REPOSITORY" "$GITHUB_RUN_ID" >> release-notes.md
       - name: Create new prerelease (never overwrite an existing version)

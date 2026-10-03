@@ -216,6 +216,7 @@ def input_hashes() -> dict[str, str]:
     files = [
         ROOT / name for name in ("pyproject.toml", "uv.lock", ".python-version", ".gitattributes")
     ]
+    files.append(ROOT / "docs" / "FREE-VOICE-SOURCES.md")
     for name in ("src", "scripts", "packaging", "desktop", ".github/workflows"):
         files += [
             path
@@ -414,6 +415,9 @@ def main(argv: list[str] | None = None) -> int:
                     source.read_text(encoding="utf-8"), encoding="utf-8", newline="\r\n"
                 )
             copy_licenses(package / "third-party-licenses", dependencies)
+            shutil.copyfile(
+                ROOT / "docs" / "FREE-VOICE-SOURCES.md", package / "FREE-VOICE-SOURCES.md"
+            )
             info["memory_reuse"] = copy_memory_notices(
                 package / "third-party-licenses" / "neko-memory"
             )

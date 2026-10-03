@@ -23,6 +23,7 @@ from ai_neko.config.providers import endpoint
 from ai_neko.tools import network
 
 DEFAULTS = {
+    "voice_provider": "openai",
     "asr_base_url": "https://api.openai.com/v1",
     "asr_model": "",
     "tts_base_url": "https://api.openai.com/v1",
@@ -60,9 +61,14 @@ class VoiceError(RuntimeError):
 
 
 def _validate(config):
-    if not isinstance(config, dict) or set(config) != set(DEFAULTS):
+    if not isinstance(config, dict):
         raise ValueError("invalid_voice_config")
-    result = {}
+    # Existing schema-1 files have exactly the original five cloud fields.
+    if set(config) == set(DEFAULTS) - {"voice_provider"}:
+        config = {"voice_provider": "openai", **config}
+    if set(config) != set(DEFAULTS) or config["voice_provider"] not in ("openai", "local"):
+        raise ValueError("invalid_voice_config")
+    result = {"voice_provider": config["voice_provider"]}
     try:
         for name in ("asr_base_url", "tts_base_url"):
             result[name] = endpoint(config[name], model=True)
@@ -131,7 +137,10 @@ def _decode_audio(audio_base64, mime_type):
 
 class VoiceService:
     def __init__(self, paths: DataPaths):
+        from ai_neko.media.local_voice import LocalVoice
+
         self.paths = paths
+        self.local = LocalVoice(paths)
         self._lock = threading.RLock()
         self._credentials = Credentials(paths.root)
         self._config = dict(DEFAULTS)
@@ -160,6 +169,7 @@ class VoiceService:
                 "asr_key_set": bool(self._credentials.get("asr")),
                 "tts_key_set": bool(self._credentials.get("tts")),
                 "credential_storage": self._credentials.storage,
+                "local": self.local.status(),
             }
 
     def update(self, changes: dict) -> dict:
@@ -233,6 +243,8 @@ class VoiceService:
     def _snapshot(self, kind):
         with self._lock:
             config = dict(self._config)
+            if config["voice_provider"] == "local":
+                return config, None
             if not config[kind + "_model"] or (kind == "tts" and not config["tts_voice"]):
                 raise VoiceError(kind + "_not_configured", "请先设置语音服务的地址、模型和音色。")
             key = self._credentials.get(kind)
@@ -294,18 +306,31 @@ class VoiceService:
     async def transcribe(self, audio_base64: str, mime_type: str) -> dict:
         data, mime, extension = _decode_audio(audio_base64, mime_type)
         config, key = self._snapshot("asr")
-        body = await self._request(
-            "asr",
-            config,
-            key,
-            "/audio/transcriptions",
-            MAX_TRANSCRIPT_RESPONSE,
-            ("application/json",),
-            data={"model": config["asr_model"], "response_format": "json"},
-            files={"file": ("recording." + extension, data, mime)},
-        )
+        if config["voice_provider"] == "local":
+            if extension != "wav":
+                raise VoiceError("local_wav_required", "本地语音需要 PCM WAV，请重新录音。")
+            from ai_neko.media.local_voice import LocalVoiceError
+
+            try:
+                result = {"text": await self.local.transcribe(data)}
+            except LocalVoiceError as exc:
+                raise VoiceError(exc.code, exc.message) from None
+        else:
+            body = await self._request(
+                "asr",
+                config,
+                key,
+                "/audio/transcriptions",
+                MAX_TRANSCRIPT_RESPONSE,
+                ("application/json",),
+                data={"model": config["asr_model"], "response_format": "json"},
+                files={"file": ("recording." + extension, data, mime)},
+            )
+            try:
+                result = json.loads(body)
+            except (ValueError, UnicodeError):
+                raise VoiceError("asr_invalid_response", "语音识别返回格式不正确。") from None
         try:
-            result = json.loads(body)
             if not isinstance(result, dict) or result.get("error"):
                 raise ValueError
             text = result["text"]
@@ -341,6 +366,21 @@ class VoiceService:
         if len(text) > MAX_SPEECH_CHARS:
             raise VoiceError("speech_text_too_long", "朗读文字过长，请按句发送。")
         config, key = self._snapshot("tts")
+        if config["voice_provider"] == "local":
+            from ai_neko.media.local_voice import LocalVoiceError
+
+            try:
+                body = await self.local.synthesize(text)
+            except LocalVoiceError as exc:
+                raise VoiceError(exc.code, exc.message) from None
+            if not isinstance(body, bytes) or len(body) > MAX_AUDIO_BYTES:
+                raise VoiceError("tts_output_limit", "本地语音超过大小限制，请缩短句子。")
+            if not _looks_like_audio(body, "wav"):
+                raise VoiceError("tts_invalid_response", "本地语音未返回有效的 WAV 音频。")
+            return {
+                "audio_base64": base64.b64encode(body).decode("ascii"),
+                "mime_type": "audio/wav",
+            }
         body = await self._request(
             "tts",
             config,
@@ -358,3 +398,6 @@ class VoiceService:
         if not _looks_like_audio(body, "mp3"):
             raise VoiceError("tts_invalid_response", "语音服务未返回有效的 MP3 音频。")
         return {"audio_base64": base64.b64encode(body).decode("ascii"), "mime_type": "audio/mpeg"}
+
+    async def close(self):
+        await self.local.close()

@@ -3,7 +3,7 @@
   const el = (id) => document.getElementById(id);
   const bridge = window.aiNeko;
   const chat = window.aiNekoChat;
-  const state = { vision: false, visionEpoch: 0, recording: null, recordingEpoch: 0, audioContext: null, voiceConfig: {}, pending: new Set(), speechTurn: null, speechContext: null };
+  const state = { vision: false, visionEpoch: 0, recording: null, recordingEpoch: 0, audioContext: null, voiceConfig: {}, localVoice: {}, voicePoll: null, voiceUIEpoch: 0, voiceBusy: false, pending: new Set(), speechTurn: null, speechContext: null };
   const status = (message) => { el('media-status').textContent = message; };
   const abortError = () => new DOMException('Cancelled', 'AbortError');
   const errorText = (error) => error.code ? `${chat.friendlyError(error)}${error.status ? `（${error.status}）` : ''}` : (error.message || '操作失败，请重试。');
@@ -115,6 +115,11 @@
     try {
       await chat.cancelTurn();
       if (!currentCapture(capture)) return;
+      capture.voiceConfig = await chat.api('/api/voice/config');
+      if (!currentCapture(capture)) return;
+      if (capture.voiceConfig.voice_provider === 'local' && capture.voiceConfig.local?.state !== 'ready') {
+        throw new Error('请先在语音设置中下载并启用免费语音。');
+      }
       capture.binding = await chat.captureBinding();
       if (!currentCapture(capture)) return;
       status('正在打开麦克风…');
@@ -138,9 +143,17 @@
         try {
           status('正在识别你的话…');
           const blob = new Blob(capture.chunks, { type: capture.recorder.mimeType });
-          const dataURL = await new Promise((resolve, reject) => { const reader = new FileReader(); reader.onerror = reject; reader.onload = () => resolve(reader.result); reader.readAsDataURL(blob); });
+          const compressed = await blob.arrayBuffer();
           if (!currentCapture(capture)) return;
-          const result = await voiceRequest('/api/voice/transcribe', { audio_base64: String(dataURL).split(',')[1], mime_type: blob.type, session_id: capture.binding.sessionId, match: capture.binding.match }, capture.controller.signal);
+          const ctx = await context();
+          if (!currentCapture(capture)) return;
+          const decoded = await ctx.decodeAudioData(compressed);
+          if (!currentCapture(capture)) return;
+          const wav = new Blob([window.aiNekoMedia.encodeVoiceWav(decoded)], { type: 'audio/wav' });
+          if (!currentCapture(capture)) return;
+          const dataURL = await new Promise((resolve, reject) => { const reader = new FileReader(); reader.onerror = reject; reader.onload = () => resolve(reader.result); reader.readAsDataURL(wav); });
+          if (!currentCapture(capture)) return;
+          const result = await voiceRequest('/api/voice/transcribe', { audio_base64: String(dataURL).split(',')[1], mime_type: 'audio/wav', session_id: capture.binding.sessionId, match: capture.binding.match }, capture.controller.signal);
           if (!currentCapture(capture)) return;
           const text = result.text?.trim();
           if (!text) { status('没有识别到文字，请再说一次。'); return; }
@@ -206,11 +219,56 @@
     const dockName = document.querySelector('.pet-name span:nth-child(2)'); if (dockName) dockName.textContent = value.name;
     window.dispatchEvent(new CustomEvent('ai-neko-persona', { detail: { name: value.name } }));
   }
+  function stopVoicePolling() {
+    clearTimeout(state.voicePoll); state.voicePoll = null; state.voiceUIEpoch += 1;
+  }
+  function showVoiceProvider() {
+    const local = el('voice-provider').value === 'local';
+    el('local-voice-settings').hidden = !local; el('cloud-voice-settings').hidden = local;
+    for (const id of ['asr-base-url', 'asr-model', 'asr-api-key', 'clear-asr-key', 'tts-base-url', 'tts-model', 'tts-voice', 'tts-api-key', 'clear-tts-key']) el(id).disabled = local;
+    el('test-voice').disabled = local && (state.voiceConfig.voice_provider !== 'local' || state.localVoice.state !== 'ready');
+  }
+  function showLocalVoice(value) {
+    state.localVoice = value || {};
+    const installing = state.localVoice.state === 'installing';
+    const labels = { missing: '尚未下载，点击下方按钮准备免费语音。', installing: '正在准备免费语音…', ready: '免费语音已准备好，可以试听中文女声。', error: '准备失败，可以重试。' };
+    const downloaded = Number(state.localVoice.downloaded_bytes), total = Number(state.localVoice.total_bytes);
+    const progress = installing && Number.isFinite(downloaded) && downloaded >= 0 && Number.isFinite(total) && total > 0
+      ? ` ${Math.min(100, Math.floor(downloaded / total * 100))}%（${(downloaded / 1048576).toFixed(1)} / ${(total / 1048576).toFixed(1)} MB）` : '';
+    el('local-voice-status').textContent = `${state.localVoice.message || labels[state.localVoice.state] || '正在读取资源状态…'}${progress}`;
+    el('install-local-voice').hidden = state.localVoice.state === 'ready';
+    el('install-local-voice').disabled = installing || state.voiceBusy;
+    el('install-local-voice').textContent = state.localVoice.state === 'error' ? '重试下载并启用免费语音' : '下载并启用免费语音';
+    el('cancel-local-voice').hidden = !installing; el('cancel-local-voice').disabled = state.voiceBusy;
+    showVoiceProvider();
+  }
+  function pollLocalVoice(epoch = state.voiceUIEpoch) {
+    clearTimeout(state.voicePoll); state.voicePoll = null;
+    if (epoch !== state.voiceUIEpoch || el('settings-panel').hidden || state.localVoice.state !== 'installing') return;
+    state.voicePoll = setTimeout(async () => {
+      state.voicePoll = null;
+      if (epoch !== state.voiceUIEpoch || el('settings-panel').hidden) return;
+      try {
+        const value = await chat.api('/api/voice/local');
+        if (epoch !== state.voiceUIEpoch || el('settings-panel').hidden) return;
+        showLocalVoice(value); pollLocalVoice(epoch);
+      } catch (error) {
+        if (epoch === state.voiceUIEpoch && !el('settings-panel').hidden) {
+          el('local-voice-status').textContent = `读取下载状态失败：${errorText(error)}。重新打开设置可刷新。`;
+          el('cancel-local-voice').disabled = false;
+        }
+      }
+    }, 1000);
+  }
   async function loadVoiceConfig() {
-    state.voiceConfig = await chat.api('/api/voice/config');
+    stopVoicePolling(); const epoch = state.voiceUIEpoch;
+    const value = await chat.api('/api/voice/config');
+    if (epoch !== state.voiceUIEpoch) return;
+    state.voiceConfig = value;
+    el('voice-provider').value = state.voiceConfig.voice_provider || 'openai';
     for (const key of ['asr_base_url', 'asr_model', 'tts_base_url', 'tts_model', 'tts_voice']) el(key.replaceAll('_', '-')).value = state.voiceConfig[key] || '';
     for (const kind of ['asr', 'tts']) { el(`${kind}-key-state`).textContent = state.voiceConfig[`${kind}_key_set`] ? '已设置，留空保留' : '尚未设置'; el(`clear-${kind}-key`).checked = false; }
-    clearKeys();
+    clearKeys(); showLocalVoice(state.voiceConfig.local); pollLocalVoice(epoch);
   }
   async function loadMemories() {
     const result = await chat.api('/api/memories');
@@ -329,12 +387,39 @@
     catch (error) { el('persona-status').textContent = errorText(error); }
   };
   el('voice-form').onsubmit = async (event) => {
-    event.preventDefault(); const payload = {};
-    for (const key of ['asr_base_url', 'asr_model', 'tts_base_url', 'tts_model', 'tts_voice', 'asr_api_key', 'tts_api_key']) payload[key] = el(key.replaceAll('_', '-')).value.trim();
-    for (const kind of ['asr', 'tts']) payload[`clear_${kind}_api_key`] = el(`clear-${kind}-key`).checked;
-    try { await chat.api('/api/voice/config', { method: 'PUT', body: payload }); await loadVoiceConfig(); el('voice-config-status').textContent = '语音配置已保存，可以试听。'; }
+    event.preventDefault(); if (state.voiceBusy) return;
+    const payload = { voice_provider: el('voice-provider').value };
+    if (payload.voice_provider !== 'local') {
+      for (const key of ['asr_base_url', 'asr_model', 'tts_base_url', 'tts_model', 'tts_voice', 'asr_api_key', 'tts_api_key']) payload[key] = el(key.replaceAll('_', '-')).value.trim();
+      for (const kind of ['asr', 'tts']) payload[`clear_${kind}_api_key`] = el(`clear-${kind}-key`).checked;
+    }
+    state.voiceBusy = true; stopRecording(true); stopSpeech();
+    try { await chat.api('/api/voice/config', { method: 'PUT', body: payload }); await loadVoiceConfig(); el('voice-config-status').textContent = payload.voice_provider === 'local' && state.localVoice.state !== 'ready' ? '免费语音已保存，请下载资源后试听。' : '语音配置已保存，可以试听。'; }
     catch (error) { el('voice-config-status').textContent = errorText(error); }
-    finally { clearKeys(); payload.asr_api_key = ''; payload.tts_api_key = ''; }
+    finally { state.voiceBusy = false; clearKeys(); for (const key of ['asr_api_key', 'tts_api_key']) if (key in payload) payload[key] = ''; showLocalVoice(state.localVoice); }
+  };
+  el('voice-provider').onchange = () => {
+    clearKeys();
+    for (const kind of ['asr', 'tts']) el(`clear-${kind}-key`).checked = false;
+    showVoiceProvider(); el('voice-config-status').textContent = '选择后请保存；免费语音也可直接点击下载并启用。';
+  };
+  el('install-local-voice').onclick = async () => {
+    if (state.voiceBusy || state.localVoice.state === 'installing') return;
+    state.voiceBusy = true; stopRecording(true); stopSpeech(); clearKeys(); showLocalVoice(state.localVoice);
+    try {
+      await chat.api('/api/voice/config', { method: 'PUT', body: { voice_provider: 'local' } });
+      state.voiceConfig.voice_provider = 'local'; el('voice-provider').value = 'local';
+      showLocalVoice(await chat.api('/api/voice/local/install', { method: 'POST', body: { confirm: true } }));
+      el('voice-config-status').textContent = '免费语音已启用，资源准备好后可试听。'; pollLocalVoice();
+    } catch (error) { el('local-voice-status').textContent = errorText(error); }
+    finally { state.voiceBusy = false; el('install-local-voice').disabled = state.localVoice.state === 'installing'; el('cancel-local-voice').disabled = false; showVoiceProvider(); }
+  };
+  el('cancel-local-voice').onclick = async () => {
+    if (state.voiceBusy) return;
+    state.voiceBusy = true; stopVoicePolling(); showLocalVoice(state.localVoice);
+    try { showLocalVoice(await chat.api('/api/voice/local/cancel', { method: 'POST', body: {} })); pollLocalVoice(); }
+    catch (error) { el('local-voice-status').textContent = errorText(error); }
+    finally { state.voiceBusy = false; el('install-local-voice').disabled = state.localVoice.state === 'installing'; el('cancel-local-voice').disabled = false; }
   };
   el('memory-form').onsubmit = async (event) => {
     event.preventDefault();
@@ -409,7 +494,9 @@
   };
   window.addEventListener('ai-neko-settings', loadSettings);
   window.addEventListener('ai-neko-connected', loadSettings);
-  window.addEventListener('pagehide', () => { stopRecording(true); stopSpeech(); void disableVision({ notify: false }).catch(() => {}); clearKeys(); });
+  const settingsObserver = new MutationObserver(() => { if (el('settings-panel').hidden) stopVoicePolling(); });
+  settingsObserver.observe(el('settings-panel'), { attributes: true, attributeFilter: ['hidden'] });
+  window.addEventListener('pagehide', () => { stopVoicePolling(); settingsObserver.disconnect(); stopRecording(true); stopSpeech(); void disableVision({ notify: false }).catch(() => {}); clearKeys(); });
   bridge?.onAction((action) => { if (action === 'voice-toggle') void toggleRecording(); });
   window.aiNekoCompanion = Object.freeze({
     captureForTurn, frameStillAllowed, stopSpeech, stopRecording, clearKeys, flushPlayback, disableVision,

@@ -300,8 +300,11 @@ def serve(
             try:
                 yield
             finally:
-                await runtime.close()
-                event("stopped")
+                try:
+                    await runtime.close()
+                finally:
+                    await _app.state.voice.close()
+                    event("stopped")
 
         def request_shutdown():
             server.should_exit = True

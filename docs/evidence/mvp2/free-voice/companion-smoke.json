@@ -1,0 +1,340 @@
+{
+  "status": "PASS",
+  "platform": "darwin",
+  "node": "v25.9.0",
+  "source_commit": "da4e57449b40f363fda4421b675ca5483d9184ad",
+  "source_dirty": true,
+  "harness_sha256": "921ba3810104d4defbd3c1bf666bf0326b85585c27c5c476a7fef25828179217",
+  "real_model_calls": 0,
+  "real_audio_service_calls": 0,
+  "actual_user_microphone_captures": 0,
+  "actual_desktop_captures": 0,
+  "windows_11": "pending",
+  "cases": [
+    {
+      "name": "native_permissions_deny_unarmed_microphone_camera_and_unselected_capture",
+      "status": "PASS"
+    },
+    {
+      "name": "persona_edit_and_versioned_reload",
+      "status": "PASS"
+    },
+    {
+      "name": "memory_save_correct_forget_and_auto_extract_setting",
+      "status": "PASS"
+    },
+    {
+      "name": "memory_snapshot_ui_requires_confirmation_and_preserves_corrections_and_forgetting",
+      "status": "PASS"
+    },
+    {
+      "name": "damaged_owned_snapshot_is_visible_deletable_and_cannot_restore",
+      "status": "PASS"
+    },
+    {
+      "name": "configure_independent_model_and_audio_services",
+      "status": "PASS"
+    },
+    {
+      "name": "anonymous_search_settings_save_without_a_key_and_restore_tavily",
+      "status": "PASS"
+    },
+    {
+      "name": "default_on_demand_mode_and_new_session_keep_explicit_choice",
+      "status": "PASS"
+    },
+    {
+      "name": "selected_synthetic_window_preview_and_per_turn_fresh_image",
+      "status": "PASS"
+    },
+    {
+      "name": "real_web_audio_playback_cancel_stops_queue",
+      "status": "PASS"
+    },
+    {
+      "name": "fake_microphone_asr_image_chat_sentence_tts_loop",
+      "status": "PASS"
+    },
+    {
+      "name": "default_voice_image_can_request_search_and_reports_actual_missing_key",
+      "status": "PASS"
+    },
+    {
+      "name": "opening_history_preserves_explicit_search_permission",
+      "status": "PASS"
+    },
+    {
+      "name": "failed_history_retry_uses_current_chat_only_permission",
+      "status": "PASS"
+    },
+    {
+      "name": "folded_panel_voice_keeps_playing_without_false_display_ack",
+      "status": "PASS"
+    },
+    {
+      "name": "hidden_complete_playback_confirms_both_sentences_without_display_ack",
+      "status": "PASS"
+    },
+    {
+      "name": "request_cancellation_through_real_bridge_rejects_late_image_acceptance",
+      "status": "PASS"
+    },
+    {
+      "name": "closing_observation_cancels_inflight_visual_turn_and_late_output",
+      "status": "PASS"
+    },
+    {
+      "name": "vision_off_revokes_capture_and_does_not_fallback",
+      "status": "PASS"
+    },
+    {
+      "name": "plain_text_unconfirmed_acceptance_cancel_uses_actual_ipc_tombstone",
+      "status": "PASS"
+    },
+    {
+      "name": "twenty_actual_web_audio_stop_samples",
+      "status": "PASS"
+    }
+  ],
+  "executable_sha256": "e06891704834df56f24489e1f971428161ae17312143624af13736255cc0ab34",
+  "runtime_versions": {
+    "node": "24.21.0",
+    "acorn": "8.18.0",
+    "ada": "4.0.0",
+    "amaro": "1.1.11",
+    "ares": "1.34.8",
+    "brotli": "1.2.0",
+    "cldr": "48.0",
+    "icu": "78.2",
+    "llhttp": "9.4.3",
+    "merve": "1.2.2",
+    "modules": "149",
+    "napi": "10",
+    "nbytes": "0.1.4",
+    "ncrypto": "0.0.1",
+    "nghttp2": "1.70.0",
+    "nghttp3": "",
+    "ngtcp2": "",
+    "openssl": "0.0.0",
+    "simdjson": "4.6.7",
+    "simdutf": "7.7.0",
+    "sqlite": "3.53.4",
+    "tz": "2025c",
+    "undici": "7.29.1",
+    "unicode": "17.0",
+    "uv": "1.52.1",
+    "uvwasi": "0.0.23",
+    "v8": "15.2.124.28-electron.0",
+    "zlib": "1.3.2.1-motley",
+    "zstd": "1.6.0",
+    "electron": "44.4.5",
+    "chrome": "152.0.7977.130"
+  },
+  "persona_save_wait": {
+    "explicit_promise_gate": true,
+    "actual_form_and_ipc": true,
+    "previous_version": 2,
+    "saved_version": 3,
+    "stale_success_predicate_passed_while_put_blocked": true,
+    "current_save_predicate_rejected_while_put_blocked": true,
+    "persisted_new_name_verified": true
+  },
+  "memory_snapshot_ui": {
+    "explicit_restore_confirmation": true,
+    "stale_revision_did_not_restore": true,
+    "restored_persona": true,
+    "correction_preserved": true,
+    "forgotten_fact_absent": true,
+    "explicit_delete_confirmation": true
+  },
+  "snapshot_screenshot": "free-voice-companion-smoke-snapshots.png",
+  "snapshot_screenshot_sha256": "3d181c56fdcd23d3eed832cf0f075cecae71fce088b5cd17dc48a031630e8d4c",
+  "voice_settings_screenshot": "free-voice-companion-smoke-free-voice.png",
+  "voice_settings_screenshot_sha256": "2d0a61435dd26426b8125f0347ff760c3ce69c3f6fbbe73cdf44e48e7769f45e",
+  "local_voice_ui": {
+    "selected_and_saved": true,
+    "state": "missing",
+    "download_requested": false,
+    "prior_cloud_config_preserved": true
+  },
+  "search_settings_screenshot": "free-voice-companion-smoke-free-search.png",
+  "search_settings_screenshot_sha256": "5e6677adfc8f8d2afa470c8ea50fccf18404457e52b57a52fa5f56b3b3fca73c",
+  "on_demand_plain_question": {
+    "tool_schemas_available": true,
+    "search_calls": 0,
+    "missing_search_key_did_not_block": true
+  },
+  "stop_observed_ms": 27,
+  "voice_search": {
+    "default_mode": "on_demand",
+    "image_and_tool_schemas": true,
+    "actual_tool_error": "search_key_missing"
+  },
+  "history_retry": {
+    "original_guide": true,
+    "retry_guide": false,
+    "tool_schemas_sent": false
+  },
+  "partial_heard_observation": {
+    "id": "032d804fd5854c8b82b3bcc19355daf7",
+    "turn_id": "032d804fd5854c8b82b3bcc19355daf7",
+    "session_id": "60921a5192bd47f1b850a2a898c8de72",
+    "kind": "chat",
+    "control_job_id": null,
+    "input": "合成实际听到测试",
+    "text": "合成实际听到测试",
+    "guide": true,
+    "context": {
+      "persona_version": 4,
+      "memory_revision": 15,
+      "guide_control": {
+        "revision": 0,
+        "selections": []
+      },
+      "guide_target": null,
+      "image": {
+        "frame_id": "70df59dd-6d7d-4b41-9eba-c1b180b83eb3",
+        "source_id": "window:98765:0",
+        "captured_at": 1791035324.436
+      },
+      "match": {
+        "match_id": null,
+        "expected_revision": 0,
+        "state_revision": 0,
+        "selection": null,
+        "request_binding": {
+          "match_id": null,
+          "expected_revision": 0
+        },
+        "input_origin": "voice",
+        "review_match_id": null,
+        "accepted_at": 1791035324.439011,
+        "delivered_at": 1791035328.965896
+      }
+    },
+    "status": "completed",
+    "created_at": 1791035324.438999,
+    "settled_at": 1791035325.19205,
+    "delivered_text": "**第一句🐾已经听完。**\n第二句还没有听完。",
+    "assistant_text": "**第一句🐾已经听完。**\n第二句还没有听完。",
+    "output": "**第一句🐾已经听完。**\n第二句还没有听完。",
+    "confirmed_text": "",
+    "heard_text": "第一句🐾已经听完。",
+    "heard_characters": 11,
+    "confirmed_characters": 11,
+    "audio_playback": [
+      {
+        "segment_id": "5b0f7215ced845bb98f72322921b3c53",
+        "state": "completed",
+        "updated_at": 1791035328.965869,
+        "text_start": 0,
+        "text_end": 11
+      },
+      {
+        "segment_id": "7d86378605a248e098344a5a992b47c9",
+        "state": "stopped",
+        "updated_at": 1791035329.031895,
+        "text_start": 11,
+        "text_end": 23
+      }
+    ],
+    "sources": [],
+    "ack_seq": 0,
+    "sent_seq": 6,
+    "last_sequence": 6,
+    "last_seq": 6,
+    "error": null
+  },
+  "heard_context": {
+    "first_sentence": "第一句🐾已经听完。",
+    "second_sentence_absent": true,
+    "display_ack": 0,
+    "actual_playback": [
+      {
+        "segment_id": "5b0f7215ced845bb98f72322921b3c53",
+        "state": "completed",
+        "updated_at": 1791035328.965869,
+        "text_start": 0,
+        "text_end": 11
+      },
+      {
+        "segment_id": "7d86378605a248e098344a5a992b47c9",
+        "state": "stopped",
+        "updated_at": 1791035329.031895,
+        "text_start": 11,
+        "text_end": 23
+      }
+    ]
+  },
+  "full_heard": {
+    "heard_text": "合成场景建议：先观察。再决定下一步。",
+    "display_ack": 0,
+    "completed_segments": 2
+  },
+  "request_revocation": {
+    "actual_bridge": true,
+    "delayed_image_rejected": true,
+    "no_new_turn": true
+  },
+  "active_vision_revocation": {
+    "cancelled": true,
+    "model_requests": 1,
+    "late_text_absent": true
+  },
+  "plain_request_revocation": {
+    "actual_bridge": true,
+    "held_after_backend_acceptance": true,
+    "cancelled": true,
+    "late_text_absent": true,
+    "draft_preserved": true
+  },
+  "audio_stop_benchmark": {
+    "samples": 20,
+    "measured_boundary": "renderer_stop_click_to_actual_AudioBufferSourceNode_stop_return",
+    "actual_web_audio": true,
+    "synthetic_tts": true,
+    "hardware_acoustic_measurement": false,
+    "milliseconds": [
+      0,
+      0.09999990463256836,
+      0,
+      0,
+      0.10000014305114746,
+      0.09999990463256836,
+      0,
+      0,
+      0.10000014305114746,
+      0,
+      0,
+      0.09999990463256836,
+      0,
+      0,
+      0.10000014305114746,
+      0.09999990463256836,
+      0.09999990463256836,
+      0.10000014305114746,
+      0.09999990463256836,
+      0
+    ],
+    "p95_ms": 0.10000014305114746,
+    "max_ms": 0.10000014305114746,
+    "target_ms": 300
+  },
+  "screenshot": "free-voice-companion-smoke.png",
+  "screenshot_sha256": "830e5fd424f63b239bda63d77cfa3169966864aa95b42f3c3d517e4ce4c7a5cb",
+  "synthetic_calls": {
+    "model": 18,
+    "asr": 3,
+    "tts": 29
+  },
+  "renderer_errors": [],
+  "recording_transport": {
+    "decoded_browser_recordings": 3,
+    "validated_synthetic_asr_uploads": 3,
+    "mime_type": "audio/wav",
+    "sample_rate": 16000,
+    "channels": 1,
+    "bits_per_sample": 16,
+    "user_microphone_captures": 0
+  }
+}

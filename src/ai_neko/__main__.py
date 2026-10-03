@@ -84,7 +84,7 @@ def main(argv: list[str] | None = None) -> int:
         print(
             "\nThis executable is the backend CLI. Launch the root ai-neko.exe for the "
             "desktop catgirl, or use 'npm --prefix desktop start' from the source checkout. "
-            "Voice is not implemented in this preview."
+            "Configure free local voice or your own speech services in desktop Settings."
         )
         return 0
     args = parser.parse_args(argv)
