@@ -23,7 +23,28 @@ ASR_NAME = "sherpa-onnx-sense-voice-zh-en-ja-ko-yue-int8-2024-07-17"
 TTS_NAME = "kokoro-int8-multi-lang-v1_1"
 
 
-def guard_parent(parent: int) -> None:
+def _watch_windows_pipe(kernel, pipe, stopped: threading.Event) -> None:
+    """Observe owner EOF without a pending read on the CRT stdin handle.
+
+    A blocking stdin read can deadlock NumPy's Windows native import when its
+    runtime inspects stdin. PeekNamedPipe leaves no pending read to hold that
+    handle; the separate parent HANDLE watcher still observes parent death.
+    """
+    from ctypes import wintypes
+
+    while not stopped.is_set():
+        available = wintypes.DWORD()
+        alive = kernel.PeekNamedPipe(pipe, None, 0, None, ctypes.byref(available), None)
+        if stopped.is_set():
+            return
+        if not alive or available.value:
+            # EOF, invalid pipe, or additional protocol data all fail closed.
+            os._exit(91)
+            return
+        stopped.wait(0.05)
+
+
+def guard_parent(parent: int):
     if type(parent) is not int or parent <= 0 or parent == os.getpid():
         raise ValueError("invalid owner")
     if sys.platform == "linux":
@@ -32,6 +53,7 @@ def guard_parent(parent: int) -> None:
         if libc.prctl(1, signal.SIGKILL, 0, 0, 0) != 0 or os.getppid() != parent:
             raise ValueError("owner unavailable")
     elif sys.platform == "win32":
+        import msvcrt
         from ctypes import wintypes
 
         kernel = ctypes.WinDLL("kernel32", use_last_error=True)
@@ -39,25 +61,73 @@ def guard_parent(parent: int) -> None:
         kernel.OpenProcess.restype = wintypes.HANDLE
         kernel.WaitForSingleObject.argtypes = [wintypes.HANDLE, wintypes.DWORD]
         kernel.WaitForSingleObject.restype = wintypes.DWORD
+        kernel.CloseHandle.argtypes = [wintypes.HANDLE]
+        kernel.CloseHandle.restype = wintypes.BOOL
+        kernel.PeekNamedPipe.argtypes = [
+            wintypes.HANDLE,
+            wintypes.LPVOID,
+            wintypes.DWORD,
+            ctypes.POINTER(wintypes.DWORD),
+            ctypes.POINTER(wintypes.DWORD),
+            ctypes.POINTER(wintypes.DWORD),
+        ]
+        kernel.PeekNamedPipe.restype = wintypes.BOOL
         handle = kernel.OpenProcess(0x00100000, False, parent)
-        if not handle or kernel.WaitForSingleObject(handle, 0) != 0x102:
+        if not handle:
             raise ValueError("owner unavailable")
+        try:
+            if kernel.WaitForSingleObject(handle, 0) != 0x102:
+                raise ValueError("owner unavailable")
+            pipe = msvcrt.get_osfhandle(sys.stdin.fileno())
+            if pipe == -1:
+                raise ValueError("owner pipe unavailable")
+        except Exception:
+            kernel.CloseHandle(handle)
+            raise
+        stopped = threading.Event()
 
         def watch_handle():
-            kernel.WaitForSingleObject(handle, 0xFFFFFFFF)
-            os._exit(91)
+            while not stopped.is_set():
+                outcome = kernel.WaitForSingleObject(handle, 50)
+                if stopped.is_set():
+                    return
+                if outcome != 0x102:
+                    os._exit(91)
+                    return
 
-        threading.Thread(target=watch_handle, daemon=True, name="voice-owner-handle").start()
+        watchers = [
+            threading.Thread(target=watch_handle, daemon=True, name="voice-owner-handle"),
+            threading.Thread(
+                target=_watch_windows_pipe,
+                args=(kernel, pipe, stopped),
+                daemon=True,
+                name="voice-owner-pipe",
+            ),
+        ]
+        for watcher in watchers:
+            watcher.start()
+
+        def close():
+            if stopped.is_set():
+                return
+            stopped.set()
+            # Neither watcher leaves pending stdin reads. Join before closing
+            # HANDLEs or normal interpreter shutdown can invalidate their I/O.
+            for watcher in watchers:
+                watcher.join()
+            kernel.CloseHandle(handle)
+
+        return close
     elif os.getppid() != parent:
         raise ValueError("owner unavailable")
 
     def watch_pipe():
-        # Parent retains this writer until inference is finished. Its death or
-        # cleanup closes the kernel pipe; no polling or PID reuse is involved.
+        # POSIX read does not involve Windows' CRT/file-handle import deadlock.
         os.read(sys.stdin.fileno(), 1)
         os._exit(91)
 
     threading.Thread(target=watch_pipe, daemon=True, name="voice-owner-pipe").start()
+    return lambda: None
 
 
 def deny_network(event, args):
@@ -189,6 +259,7 @@ def main() -> None:
     # never leak text or audio into the parent output or persistent logs.
     output_fd = os.dup(sys.stdout.fileno())
     os.dup2(sys.stderr.fileno(), sys.stdout.fileno())
+    close_guard = None
     try:
         wire = sys.stdin.buffer.readline(MAX_WIRE + 1)
         if len(wire) > MAX_WIRE or not wire.endswith(b"\n"):
@@ -196,10 +267,13 @@ def main() -> None:
         request = json.loads(wire)
         if not isinstance(request, dict):
             raise ValueError("request format")
-        guard_parent(request["parent"])
+        close_guard = guard_parent(request["parent"])
         result = run(request)
     except Exception:
         result = {"ok": False, "code": "inference_failed"}
+    finally:
+        if close_guard is not None:
+            close_guard()
     result["pid"] = os.getpid()
     wire = json.dumps(result, ensure_ascii=False).encode("utf-8")
     if len(wire) > MAX_WIRE:

@@ -46,6 +46,17 @@ jobs:
         run: uv python install
       - name: Install locked dependencies
         run: uv sync --locked
+      - name: Verify native voice imports with the owner stdin pipe kept open
+        if: runner.os == 'Windows'
+        timeout-minutes: 5
+        env:
+          UV_PROJECT_ENVIRONMENT: ${{ runner.temp }}\ai-neko-voice-import-中文 空格-${{ github.run_id }}-${{ github.run_attempt }}\venv
+          UV_CACHE_DIR: ${{ runner.temp }}\ai-neko-voice-import-中文 空格-${{ github.run_id }}-${{ github.run_attempt }}\cache
+        run: |
+          uv --no-config sync --project src/ai_neko/media/local_runtime --locked --no-build --no-sources --no-install-project --python 3.11.15 --managed-python --no-python-downloads --default-index https://pypi.org/simple --link-mode copy
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          & .venv/Scripts/python.exe scripts/voice_import_smoke.py --venv "$env:UV_PROJECT_ENVIRONMENT" --output artifacts/mvp2/Windows-voice-import-smoke.json
+          exit $LASTEXITCODE
       - name: Lint
         run: uv run --locked ruff check src tests scripts packaging
       - name: Check format

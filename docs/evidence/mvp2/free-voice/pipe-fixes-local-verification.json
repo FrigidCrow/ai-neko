@@ -1,0 +1,29 @@
+{
+  "date_local": "2026-10-04",
+  "kind": "Mac regression for nonblocking Windows stdin owner monitoring and native import preflight",
+  "baseline_commit": "9430408ad38bb7db798d44d75b0d1d8d7e80051d",
+  "python": {
+    "collected": 1673,
+    "passed": 1672,
+    "skipped": 1,
+    "failures": 0,
+    "errors": 0,
+    "seconds": 63.593,
+    "junit_sha256": "ff57be305c9df6dabcf2d2e72fa81860153d82edc928d4687bc1260d9705c94b",
+    "log_sha256": "382d0437c3800a23cd7dd53d3d9631bbaf6b80e0a0905e02f82ee322a76f71ae"
+  },
+  "engine_cases": 58,
+  "import_harness_cases": 8,
+  "lint": "Ruff and format pass; 133 files",
+  "source_sha256": {
+    "src/ai_neko/media/local_runtime/worker.py": "65655a6b29233dc1b59cf1275b93fae3c82c3728533252b297563e89a11e532c",
+    "tests/test_local_voice.py": "d81e2fad3c57d8c45832d4bc3fee2143efdd542244f97d676458a0c040461a20",
+    "scripts/voice_import_smoke.py": "5db9050aebeabc2b2076c56924f5ce488bc5863bb877d5525258e33360bae255",
+    "tests/test_voice_import_smoke.py": "f95a9627622c50e4ebc7414bc7b2c24451cef285ac906687c7c481d135cbe37e",
+    ".github/workflows/windows-preview.yml": "c340d4fdcd532ecc856ccd6aede52a7e8eae2764bd287f6fd7e593dba06a02f5",
+    "docs/FREE-VOICE-SOURCES.md": "5fb274976cde850eefbc18ce61a8ab25d12367ed1f002bc0cec78c947f38e5de"
+  },
+  "actual_mac_api": "source-api-smoke-pipe-fix.json; 9 passed",
+  "actual_mac_native_import": "Mac-voice-import-smoke-final.json; no models; pass",
+  "windows": "pending new CI; prior failure and cancelled diagnostic retained"
+}

@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "app_id": "ai-neko",
+  "stage": "local-voice-native-import-open-stdin",
+  "status": "FAILED",
+  "started_at_utc": "2026-10-03T15:50:01.924582+00:00",
+  "environment": {
+    "system": "Darwin",
+    "machine": "arm64",
+    "harness_python": "3.11.15"
+  },
+  "scope": {
+    "native_imports": true,
+    "worker_main_protocol": true,
+    "actual_model_inference": false,
+    "real_models_downloaded": 0,
+    "user_data_accessed": false,
+    "placeholder_resources_are_not_models": true
+  },
+  "worker_sha256": "65655a6b29233dc1b59cf1275b93fae3c82c3728533252b297563e89a11e532c",
+  "runtime_lock_sha256": "9d90e79fe7d57e9ec71e5ee3c72a9cbc1d4f2e645d58962d575d1245cf209143",
+  "model_files_sha256": "843a37bf3ef29efc1496b0b2c70ec0a10aed73bf3b51e01fbfc7bdc5be067ea6",
+  "failure": {
+    "stage": "inspect_private_locked_venv",
+    "error_class": "ValueError"
+  },
+  "duration_seconds": 0.0008,
+  "diagnostic_policy": "Only fixed import markers and validated result/identity; native stderr is discarded."
+}

@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "app_id": "ai-neko",
+  "stage": "local-voice-native-import-open-stdin",
+  "status": "PASS",
+  "started_at_utc": "2026-10-03T15:50:55.908071+00:00",
+  "environment": {
+    "system": "Darwin",
+    "machine": "arm64",
+    "harness_python": "3.11.15"
+  },
+  "scope": {
+    "native_imports": true,
+    "worker_main_protocol": true,
+    "actual_model_inference": false,
+    "real_models_downloaded": 0,
+    "user_data_accessed": false,
+    "placeholder_resources_are_not_models": true
+  },
+  "worker_sha256": "65655a6b29233dc1b59cf1275b93fae3c82c3728533252b297563e89a11e532c",
+  "runtime_lock_sha256": "9d90e79fe7d57e9ec71e5ee3c72a9cbc1d4f2e645d58962d575d1245cf209143",
+  "model_files_sha256": "843a37bf3ef29efc1496b0b2c70ec0a10aed73bf3b51e01fbfc7bdc5be067ea6",
+  "base_python": "/Users/frigidcrow/.local/share/uv/python/cpython-3.11.15-macos-aarch64-none/bin/python3.11",
+  "private_venv": "/private/var/folders/8x/r_vcd1b9087b2z66wcry685c0000gn/T/ai-neko-voice-import-中文 空格-nz580qnu/venv",
+  "private_site_packages": "/private/var/folders/8x/r_vcd1b9087b2z66wcry685c0000gn/T/ai-neko-voice-import-中文 空格-nz580qnu/venv/lib/python3.11/site-packages",
+  "installed_packages": [
+    {
+      "name": "numpy",
+      "version": "2.4.4"
+    },
+    {
+      "name": "sherpa-onnx",
+      "version": "1.13.8"
+    },
+    {
+      "name": "sherpa-onnx-core",
+      "version": "1.13.8"
+    }
+  ],
+  "placeholder_resources": {
+    "count": 18,
+    "bytes_per_file": 1
+  },
+  "worker": {
+    "status": "PASS",
+    "timeout_seconds": 20,
+    "timed_out": false,
+    "elapsed_seconds": 1.3086,
+    "pid": 39507,
+    "exit_code": 0,
+    "owner_stdin_kept_open_until_exit": true,
+    "natural_exit": true,
+    "fixed_stages": [
+      "numpy_before",
+      "numpy_after",
+      "sherpa_before",
+      "sherpa_after",
+      "main_returned"
+    ],
+    "stages_match": true,
+    "protocol_matches": true,
+    "fixed_result": {
+      "ok": true,
+      "pid": 39507
+    },
+    "runtime_identity": {
+      "python_version": "3.11.15",
+      "pointer_bits": 64,
+      "platform": "darwin",
+      "base_interpreter": true,
+      "pid": 39507
+    }
+  },
+  "duration_seconds": 1.3139,
+  "diagnostic_policy": "Only fixed import markers and validated result/identity; native stderr is discarded."
+}

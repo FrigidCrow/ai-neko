@@ -15,9 +15,9 @@
 
 ## 实测与边界
 
-Mac M4 上已下载固定版本组件并执行真实中文 TTS 与 ASR。[最新实际应用接口报告](evidence/mvp2/free-voice/source-api-smoke-unicode.json)记录最终中文路径修复后的9项实测：24字测试句的朗读约7.223秒、回识别约0.748秒且CER为0，另含官方样例、实际进程取消及正常退出；[短句引擎报告](evidence/mvp2/free-voice/engine-probe.json)保留另一短句的一字识别偏差。输入使用固定文本、模型合成音频及官方样例，没有采集用户麦克风。单段成功不能证明任意中文、游戏术语或噪声下的准确率。
+Mac M4 上已下载固定版本组件并执行真实中文 TTS 与 ASR。[最新实际应用接口报告](evidence/mvp2/free-voice/source-api-smoke-pipe-fix.json)记录最终管道修复后的9项实测：24字测试句的朗读约6.636秒、回识别约0.696秒且CER为0，另含官方样例、实际进程取消及正常退出；[短句引擎报告](evidence/mvp2/free-voice/engine-probe.json)保留另一短句的一字识别偏差。输入使用固定文本、模型合成音频及官方样例，没有采集用户麦克风。单段成功不能证明任意中文、游戏术语或噪声下的准确率。
 
-[中文女声测试音频](evidence/mvp2/free-voice/source-api-smoke-unicode-speech.wav)可单独试听；音频为本地模型真实合成，尚未做主观音色或硬件播放验收。
+[中文女声测试音频](evidence/mvp2/free-voice/source-api-smoke-pipe-fix-speech.wav)可单独试听；音频为本地模型真实合成，尚未做主观音色或硬件播放验收。
 
 每次请求独立启动推理进程，因此第一次和后续请求都包含模型加载时间。取消、切换语音模式和退出应用会取消相关任务，并等待推理进程结束；停止音频仍由已有播放器即时清空播放。模型推理取消、播放器停止和硬件真正静音是不同的测量，后者仍需真实设备验收。
 

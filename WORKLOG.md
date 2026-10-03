@@ -738,7 +738,7 @@ CI36716659417所有必需job及G6均success，tagged发布按设计skipped。Roo
 
 2026-10-03 Windows首次免费语音CI37128978935：Linux1644/1既有平台skip；Windows1642通过/2失败/1错误，完整JUnit且未超时，未打包。原60.1秒WAV参数的自动pytest ID达7,692,982字符，Windows PYTEST_CURRENT_TEST环境变量超限；另两项控制输出用print导致CRLF与二进制LF断言不同。改用明确短ID（最长110）、实际base interpreter、明确owner PID与os.write二进制输出；保持退出91/0等原断言。证据保留于free-voice/first-windows-ci.json及windows-test-fixture-diagnosis.json。
 
-独立源码与锁定Windows Python归档的PE manifest检查发现kaldifst/eSpeak使用窄字符路径，解释器没有activeCodePage UTF-8。先登记PLAN后，仅worker切换至模型目录向native传ASCII相对路径，主应用cwd不变、中文资料目录不迁移。新增中文根目录17资源子进程回归；引擎39项通过。真实Mac短句TTS4.947秒/ASR0.732秒成功，原一字偏差保留；worker SHA见unicode-path-probe.json，不冒充Windows运行。
+独立源码与锁定Windows Python归档的PE manifest检查发现kaldifst/eSpeak使用窄字符路径，解释器没有activeCodePage UTF-8。先登记PLAN后，仅worker切换至模型目录向native传ASCII相对路径，主应用cwd不变、中文资料目录不迁移。新增中文根目录18资源子进程回归；引擎39项通过。真实Mac短句TTS4.947秒/ASR0.732秒成功，原一字偏差保留；worker SHA见unicode-path-probe.json，不冒充Windows运行。
 
 最终`uv run --locked pytest -q --tb=short --junitxml=artifacts/free-voice/pytest-windows-fix.xml`：1645 passed / 1既有Windows凭据skip，63.08秒；Ruff/131文件格式及diff检查通过。机器摘要见free-voice/windows-fixes-local-verification.json。桌面源码未变，沿用本次已跑106 Node/21实际Electron证据；下一Windows全套和真实包安装门禁重新运行，不增加skip或降低标准。
 
@@ -758,4 +758,14 @@ CI36716659417所有必需job及G6均success，tagged发布按设计skipped。Roo
 
 CI37132525584：Windows1659通过/0skip（615.703秒）、Linux1658/1平台skip（135.272秒），桌面106、冻结30题及200篇基准通过（75.2115ms/22.801428ms），同ZIP既有16/9/21/8通过。免费语音已接受安装、固定组件/模型333564297字节下载完成，verify从37.328秒至96.594秒失败，符合60秒worker check超时；4/11后停止，推理未跑、未上传应用包。third-windows-ci及原始free-voice失败报告保留，正在做有界完整worker协议诊断，不扩大超时。
 
-已新增完整worker.main合成协议回归：真实base Python发送JSON后保持父stdin打开，在run中等待watchdog读操作已进入，再做0.2秒固定工作；子进程必须5秒内自然退出。超时先kill+wait，再只输出固定阶段/协议/退出码以定位是否已返回而退出卡住。Mac引擎53/53通过（0.65秒）、Ruff/格式通过；本次只增加诊断测试，产品代码不变，等待Windows前置结果，不宣称原因已证实。
+已新增完整worker.main合成协议回归：真实base Python发送JSON后保持父stdin打开，在run中做0.2秒固定工作，给watchdog执行机会（不声称已观测到读取进入）；子进程必须5秒内自然退出。超时先kill+wait，再只输出固定阶段/协议/退出码以定位是否已返回而退出卡住。Mac引擎53/53通过（0.65秒）、Ruff/格式通过；本次只增加诊断测试，产品代码不变，等待Windows前置结果，不宣称原因已证实。
+
+诊断提交9430408/CI37133974168的Windows前置包含完整main合成延迟用例并通过，不能证明native导入通过。上游NumPy#24290及Microsoft同步句柄说明更直接指向后台stdin阻塞读与native CRT初始化冲突；已登记非阻塞Windows ownerpipe与真实wheel早期check。为避免已知旧worker再等待全套及大模型下载，主动取消该已被新修复替代的诊断run，不记为产品回归失败，也不把未完成全套写通过。另核实model_files当前及e383均为18项，纠正WORKLOG中17项文字误计。
+
+Windows管道已改PeekNamedPipe，不留下阻塞stdin读；50ms检查EOF/异常额外数据，仍持父进程HANDLE。正常完成先停止/join监控再关闭自己的HANDLE，主动取消仍由父端kill+wait；其他平台保持原机制。独立审查未见must-fix；引擎58/58、Ruff/格式通过（0.66秒），完整main回归增加os.fstat(0)及stdin-inspected固定标记，覆盖Windows GetFileType路径，5秒外部watchdog保持。worker SHA65655a6b29233dc1b59cf1275b93fae3c82c3728533252b297563e89a11e532c。
+
+同一最终worker实际Mac API9/9再通过：固定24字符句TTS6.636秒、ASR0.696秒、CER0；实际PID37952在取消0.006秒返回前消失、原请求409、无残留，取消后仍可合成、后端正常退出。source-api-smoke-pipe-fix报告与新测试WAV保留旧报告，不覆盖历史；仅刷新本任务专属artifact profile运行源快照、模型/venv/ready不变，无新增下载或用户麦克风/付费调用。
+
+增加Windows源码job前置native导入检查scripts/voice_import_smoke.py：固定uv/Python和独立中文空格profile的三个锁定wheel，使用18个一字节占位资源跑完整worker.main(check)，保持stdin开放且20秒内必须自然退出；仅固定阶段/验证后协议/版本，stderr丢弃。报告单列mvp2，既有全套/包11项门禁不变；不是模型推理。本机全新专属profile实跑1.3086秒、5阶段齐全、exit0，8个脚本回归通过。初次Mac preflight仅因/var与/private/var规范路径比较失败，修正后通过且旧FAILED保留，不将它说成native故障。
+
+管道修复及前置检查的本机全量1672 passed / 1既有Windows凭据skip，63.73秒，零失败/错误；Ruff/133文件格式通过。最终机器摘要pipe-fixes-local-verification.json固定6份本批源码/构建输入，实际模型9项与native导入检查分别记录。随后推送新候选，Windows结果待实际验证。

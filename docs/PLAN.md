@@ -502,6 +502,8 @@ Windows包实测修复登记（2026-10-04）：9fe98b5/CI37130603228双平台完
 
 实际Windows初始化超时诊断登记（2026-10-04）：e383fb4/CI37132525584 Windows1659/0skip、Linux1658/1skip及既有四套包门禁通过；运行组件和333,564,297字节固定安装器/模型下载完成，但worker check在verify阶段约60秒超时，真实推理未跑。保持60秒检查门限，先区分输入管道、native import和正常退出阶段；补不下载模型的完整worker协议/延迟工作/父管道保持打开回归，放在已存在的Windows前置短traceback中尽早暴露。核实Windows CRT读锁及其他确切证据后修复，不把延长超时当作解决。
 
+原生导入边界修正登记：NumPy官方#24290与Microsoft同步句柄说明提供相同Windows机制：后台阻塞stdin读取会阻塞后续native CRT初始化/GetFileType；单纯换ReadFile不解决。Windows保留已有父进程HANDLE监控，将owner管道改为非阻塞PeekNamedPipe以保留EOF退出边界，正常完成停止监测，其他平台机制保持。前置CI增加固定独立三wheel、合成资源文件的完整worker.check原生导入回归（不下载模型、不计真实推理），保留5/60秒有界诊断与原取消要求，再执行真实包安装/推理。
+
 ## 18. MVP1 收尾与CI/CD（2026-09-27，已授权）
 
 用户要求“取消问题修复 + 所有问题收束，CICD，MVP1正式结束，然后准备进入MVP2”。本批次完成MVP1工程缺陷收尾、明确剩余验收边界、推送并验证现有CI/CD和Windows下载产物；不实施G1–G6。正式收尾不得把缺少真实服务或Windows11证据的验收写成通过。

@@ -778,6 +778,8 @@ def test_worker_main_finishes_after_guard_pipe_is_blocked(tmp_path):
             "    assert request['operation']=='check'",
             "    os.write(2,b'run-entered\\n')",
             "    time.sleep(0.2)",
+            "    os.fstat(0)",
+            "    os.write(2,b'stdin-inspected\\n')",
             "    os.write(2,b'run-returned\\n')",
             "    return {'ok':True,'phase':'synthetic-run-returned'}",
             "namespace['main'].__globals__['run']=synthetic_run",
@@ -807,7 +809,7 @@ def test_worker_main_finishes_after_guard_pipe_is_blocked(tmp_path):
         stages = [
             line.decode("ascii")
             for line in child.stderr.read(4096).splitlines()
-            if line in {b"run-entered", b"run-returned"}
+            if line in {b"run-entered", b"stdin-inspected", b"run-returned"}
         ]
         diagnostic = {
             "timed_out": timed_out,
@@ -817,7 +819,7 @@ def test_worker_main_finishes_after_guard_pipe_is_blocked(tmp_path):
         }
         assert not timed_out, diagnostic
         assert child.returncode == 0, diagnostic
-        assert stages == ["run-entered", "run-returned"], diagnostic
+        assert stages == ["run-entered", "stdin-inspected", "run-returned"], diagnostic
         assert json.loads(protocol) == {
             "ok": True,
             "phase": "synthetic-run-returned",
@@ -830,3 +832,119 @@ def test_worker_main_finishes_after_guard_pipe_is_blocked(tmp_path):
         child.stdin.close()
         child.stdout.close()
         child.stderr.close()
+
+
+@pytest.mark.parametrize(
+    "alive,available,expected_exit", [(True, 0, None), (False, 0, 91), (True, 1, 91)]
+)
+def test_windows_owner_pipe_uses_nonblocking_peek_and_fails_closed(
+    monkeypatch, alive, available, expected_exit
+):
+    import runpy
+    from types import SimpleNamespace
+
+    worker = runpy.run_path(str(local_voice.RUNTIME_SOURCE / "worker.py"))
+    exited, waited, calls = [], [], []
+
+    class Stop:
+        stopped = False
+
+        def is_set(self):
+            return self.stopped
+
+        def wait(self, timeout):
+            waited.append(timeout)
+            self.stopped = True
+
+    stopped = Stop()
+
+    def peek(pipe, buffer, size, read, pending, left):
+        assert (pipe, buffer, size, read, left) == (123, None, 0, None, None)
+        pending._obj.value = available
+        calls.append(True)
+        return alive
+
+    function = worker["_watch_windows_pipe"]
+    # No read API exists on this facade: a regression to os.read cannot pass.
+    monkeypatch.setitem(function.__globals__, "os", SimpleNamespace(_exit=exited.append))
+    function(SimpleNamespace(PeekNamedPipe=peek), 123, stopped)
+    assert calls == [True]
+    assert exited == ([] if expected_exit is None else [expected_exit])
+    assert waited == ([0.05] if expected_exit is None else [])
+
+
+def test_windows_owner_pipe_normal_stop_wins_over_concurrent_eof(monkeypatch):
+    import runpy
+    import threading
+    from types import SimpleNamespace
+
+    worker = runpy.run_path(str(local_voice.RUNTIME_SOURCE / "worker.py"))
+    stopped, exited = threading.Event(), []
+
+    def peek(*args):
+        stopped.set()
+        return False
+
+    function = worker["_watch_windows_pipe"]
+    monkeypatch.setitem(function.__globals__, "os", SimpleNamespace(_exit=exited.append))
+    function(SimpleNamespace(PeekNamedPipe=peek), 123, stopped)
+    assert exited == []
+
+
+def test_windows_owner_guard_stops_watchers_before_closing_parent_handle(monkeypatch):
+    import ctypes
+    import runpy
+    import time
+    from types import SimpleNamespace
+
+    worker = runpy.run_path(str(local_voice.RUNTIME_SOURCE / "worker.py"))
+    closed, exited = [], []
+    active_waits = []
+
+    class Function:
+        def __init__(self, call):
+            self.call = call
+
+        def __call__(self, *args):
+            return self.call(*args)
+
+    def wait(handle, milliseconds):
+        assert handle == 123
+        if milliseconds:
+            active_waits.append(handle)
+            time.sleep(0.001)
+            active_waits.remove(handle)
+        return 0x102
+
+    def close(handle):
+        assert not active_waits
+        closed.append(handle)
+        return True
+
+    def peek(pipe, buffer, size, read, available, left):
+        assert pipe == 456
+        available._obj.value = 0
+        return True
+
+    kernel = SimpleNamespace(
+        OpenProcess=Function(lambda *args: 123),
+        WaitForSingleObject=Function(wait),
+        CloseHandle=Function(close),
+        PeekNamedPipe=Function(peek),
+    )
+    function = worker["guard_parent"]
+    monkeypatch.setitem(
+        function.__globals__,
+        "sys",
+        SimpleNamespace(platform="win32", stdin=SimpleNamespace(fileno=lambda: 0)),
+    )
+    monkeypatch.setitem(
+        function.__globals__, "os", SimpleNamespace(getpid=lambda: 999, _exit=exited.append)
+    )
+    monkeypatch.setitem(sys.modules, "msvcrt", SimpleNamespace(get_osfhandle=lambda fd: 456))
+    monkeypatch.setattr(ctypes, "WinDLL", lambda *args, **kwargs: kernel, raising=False)
+    cleanup = function(321)
+    cleanup()
+    cleanup()
+    assert closed == [123]
+    assert exited == []

@@ -52,3 +52,5 @@ Python API 使用官方 [offline-tts 示例](https://github.com/k2-fsa/sherpa-on
 Windows 窄字符路径兼容修复后，在同一私有环境再次运行真实短句，原报告保留；`artifacts/free-voice/unicode-path-probe.json` 记录 worker SHA-256 `0a35004f9c11d6bfbf8f7d676a1374f3b62b792d74743193d3467c7337cb37e1`、TTS 约 4.947 秒、ASR 约 0.732 秒。该复测在 Mac 完成；中文根路径下的相对路径解析另有无模型子进程回归，Windows 实际 native 验证仍以 Windows CI 结果为准。
 
 Windows 冻结程序使用编译期 `win-amd64` ABI 选择安装器，不依赖 `PROCESSOR_*` 环境变量。创建独立 uv/Python 子进程期间，按 [PyInstaller 外部进程说明](https://pyinstaller.org/en/stable/common-issues-and-pitfalls.html#launching-external-programs-from-the-frozen-application)临时清空继承的 DLL 搜索目录并立即恢复，避免专用运行组件加载主程序的同名库；成功、创建失败与取消回收均有回归覆盖。第一次实际包失败发生在架构判断阶段，尚不能将 DLL 继承机制说成当时已发生的冲突。
+
+Windows owner 管道使用非阻塞 `PeekNamedPipe` 检查，避免在导入 NumPy/Sherpa 前留下阻塞的 stdin 读取；完成时停止监控并关闭自己持有的父进程句柄。依据为 [NumPy 的 Windows 同类问题](https://github.com/numpy/numpy/issues/24290)及 [Microsoft 同步句柄说明](https://devblogs.microsoft.com/oldnewthing/20111202-00/?p=8983/)。独立 CI 前置检查仅安装固定三个 wheel、使用18个占位资源验证完整 worker 协议与实际 native 导入，不下载模型，也不计为真实语音推理；真正的模型安装/中文合成/识别仍由解压 Windows 包的11项报告单独验证。
