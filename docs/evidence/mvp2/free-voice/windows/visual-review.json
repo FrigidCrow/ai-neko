@@ -1,0 +1,21 @@
+{
+  "date_local": "2026-10-04",
+  "ci_run": 37135192000,
+  "source_commit": "b443768df012fa4c88036f2fc13321b1e79d1d84",
+  "reviewer": "root assistant, actual view_image inspection",
+  "screenshots": [
+    {
+      "file": "companion-smoke-free-voice.png",
+      "sha256": "14bb87390d95576561212e7f61de1af963b746b24b2e071bd80c8aecb6f2d3ba"
+    },
+    {
+      "file": "g6-acceptance-A01-new-process-new-chat.png",
+      "sha256": "f7557f708c8479313c4652332ae9aed577f1131a80e24251cb722faf937810cd"
+    }
+  ],
+  "findings": [
+    "Free local voice option, download button, first-use prompt and microphone controls visible alongside YUI; no cloud key fields in selected local mode.",
+    "New-process new-chat retains adopted guide and cited original content; catgirl and controls render."
+  ],
+  "scope": "Two CI screenshots only; not all DPI, game windows, microphone or acoustic validation."
+}

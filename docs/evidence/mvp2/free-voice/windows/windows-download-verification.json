@@ -1,0 +1,1083 @@
+{
+  "status": "PASS",
+  "verified_utc": "2026-10-03T16:18:13.274214+00:00",
+  "source_commit": "b443768df012fa4c88036f2fc13321b1e79d1d84",
+  "source_clean": true,
+  "ci_run": 37135192000,
+  "ci_url": "https://github.com/FrigidCrow/ai-neko/actions/runs/37135192000",
+  "workflow_conclusion": "success",
+  "jobs": [
+    {
+      "name": "Synthetic tests (ubuntu-24.04)",
+      "conclusion": "success"
+    },
+    {
+      "name": "Synthetic tests (windows-2022)",
+      "conclusion": "success"
+    },
+    {
+      "name": "Build and exercise Windows ZIP",
+      "conclusion": "success"
+    },
+    {
+      "name": "Publish tagged desktop catgirl preview",
+      "conclusion": "skipped"
+    }
+  ],
+  "download_kind": "GitHub Actions artifact; tagged release publication was skipped in this run",
+  "verifier": {
+    "path": "artifacts/free-voice/verify_windows_download.py",
+    "sha256": "cbaf7f36d271ecd21d01aa19a947e72fb4b8dd9ac2b138c28f256b5cd6b05414"
+  },
+  "artifact": {
+    "id": 11278787928,
+    "url": "https://github.com/FrigidCrow/ai-neko/actions/runs/37135192000/artifacts/11278787928",
+    "expires_at": "2026-10-17T16:14:17Z",
+    "requires_github_login": true
+  },
+  "version": "0.4.0-dev.b443768df012",
+  "archive": "ai-neko-0.4.0-dev.b443768df012-windows-x64.zip",
+  "archive_bytes": 192176491,
+  "archive_sha256": "f5035842285b15c4009485556a56d38862ce352588ffa31a0bf5caeb8776fb91",
+  "zip_crc": "PASS",
+  "inner_outer_build_info_match": true,
+  "source_inputs_verified_with_windows_checkout_line_endings": true,
+  "source_input_count": 226,
+  "windows_crlf_inputs": [
+    ".gitattributes",
+    ".github/workflows/desktop-diagnostics.yml",
+    ".github/workflows/windows-preview.yml",
+    ".python-version",
+    "desktop/consent/app.js",
+    "desktop/consent/index.html",
+    "desktop/consent/preload.cjs",
+    "desktop/consent/style.css",
+    "desktop/lib/backend.cjs",
+    "desktop/lib/consent.cjs",
+    "desktop/lib/preferences.cjs",
+    "desktop/lib/security.cjs",
+    "desktop/lib/tray-icon.cjs",
+    "desktop/lib/vision.cjs",
+    "desktop/main.cjs",
+    "desktop/package-lock.json",
+    "desktop/package.json",
+    "desktop/preload.cjs",
+    "desktop/renderer/app.js",
+    "desktop/renderer/companion.js",
+    "desktop/renderer/guide-panel.js",
+    "desktop/renderer/index.html",
+    "desktop/renderer/media.js",
+    "desktop/renderer/pet.js",
+    "desktop/renderer/style.css",
+    "desktop/tests/backend.test.cjs",
+    "desktop/tests/companion-lifecycle.test.cjs",
+    "desktop/tests/companion.smoke.cjs",
+    "desktop/tests/companion.test.cjs",
+    "desktop/tests/control-client.test.cjs",
+    "desktop/tests/fixtures/README.md",
+    "desktop/tests/g5-management.smoke.cjs",
+    "desktop/tests/g6-acceptance.smoke.cjs",
+    "desktop/tests/guide-local.smoke.cjs",
+    "desktop/tests/guide-panel.test.cjs",
+    "desktop/tests/guide-security.test.cjs",
+    "desktop/tests/match-security.test.cjs",
+    "desktop/tests/preferences.test.cjs",
+    "desktop/tests/request-lifecycle.test.cjs",
+    "desktop/tests/security.test.cjs",
+    "docs/FREE-VOICE-SOURCES.md",
+    "packaging/Check foundation.cmd",
+    "packaging/README-WINDOWS.txt",
+    "packaging/Start ai-neko.cmd",
+    "packaging/Start service.cmd",
+    "packaging/Stop service.cmd",
+    "packaging/ai-neko.spec",
+    "packaging/entry.py",
+    "pyproject.toml",
+    "scripts/benchmark_guides.py",
+    "scripts/build_windows.py",
+    "scripts/desktop_smoke.cjs",
+    "scripts/electron_boot_probe.cjs",
+    "scripts/evaluate_guides.py",
+    "scripts/free_voice_smoke.py",
+    "scripts/generate_v04_fixture.py",
+    "scripts/m0_smoke.py",
+    "scripts/m1_live.py",
+    "scripts/measure_guides.py",
+    "scripts/package_smoke.py",
+    "scripts/record_guides_acceptance.py",
+    "scripts/synthetic_model.py",
+    "scripts/voice_import_smoke.py",
+    "scripts/windows-m0.ps1",
+    "src/ai_neko/__init__.py",
+    "src/ai_neko/__main__.py",
+    "src/ai_neko/app/__init__.py",
+    "src/ai_neko/app/api.py",
+    "src/ai_neko/app/server.py",
+    "src/ai_neko/chat/__init__.py",
+    "src/ai_neko/chat/control_intent.py",
+    "src/ai_neko/chat/extraction.py",
+    "src/ai_neko/chat/graph.py",
+    "src/ai_neko/chat/match_observation.py",
+    "src/ai_neko/chat/vision.py",
+    "src/ai_neko/config/__init__.py",
+    "src/ai_neko/config/credentials.py",
+    "src/ai_neko/config/memory.py",
+    "src/ai_neko/config/paths.py",
+    "src/ai_neko/config/providers.py",
+    "src/ai_neko/config/schema.py",
+    "src/ai_neko/config/settings.py",
+    "src/ai_neko/config/telemetry.py",
+    "src/ai_neko/diagnostics.py",
+    "src/ai_neko/graph/__init__.py",
+    "src/ai_neko/graph/__main__.py",
+    "src/ai_neko/graph/service.py",
+    "src/ai_neko/media/__init__.py",
+    "src/ai_neko/media/local_runtime/LICENSES.md",
+    "src/ai_neko/media/local_runtime/model_files.json",
+    "src/ai_neko/media/local_runtime/pyproject.toml",
+    "src/ai_neko/media/local_runtime/uv.lock",
+    "src/ai_neko/media/local_runtime/worker.py",
+    "src/ai_neko/media/local_voice.py",
+    "src/ai_neko/media/voice.py",
+    "src/ai_neko/memory/__init__.py",
+    "src/ai_neko/memory/guide_retrieval.py",
+    "src/ai_neko/memory/guide_snapshots.py",
+    "src/ai_neko/memory/guides.py",
+    "src/ai_neko/memory/recall.py",
+    "src/ai_neko/memory/script_fold.py",
+    "src/ai_neko/memory/service.py",
+    "src/ai_neko/providers.py",
+    "src/ai_neko/retrieval.py",
+    "src/ai_neko/runtime/__init__.py",
+    "src/ai_neko/runtime/controls.py",
+    "src/ai_neko/runtime/erasure.py",
+    "src/ai_neko/runtime/guide_query.py",
+    "src/ai_neko/runtime/guides.py",
+    "src/ai_neko/runtime/lifecycle.py",
+    "src/ai_neko/runtime/match_store.py",
+    "src/ai_neko/runtime/matches.py",
+    "src/ai_neko/runtime/service.py",
+    "src/ai_neko/tools/__init__.py",
+    "src/ai_neko/tools/network.py",
+    "src/ai_neko/tools/search_cache.py",
+    "src/ai_neko/tools/web.py",
+    "src/ai_neko/web/app.js",
+    "src/ai_neko/web/index.html",
+    "src/ai_neko/web/style.css",
+    "uv.lock"
+  ],
+  "lockfiles": {
+    "uv.lock": "c2fdc00e96b933310cd08a9651e0c900d37d23664073b7eaf9c352a1b3108787",
+    "desktop/package-lock.json": "fa9c1afc228fba4855df49fba2b84286f3aad5ee775e21c94d1f5520239b3629"
+  },
+  "build_environment": {
+    "created_utc": "2026-10-03T16:09:40.338444+00:00",
+    "platform": "Windows-10-10.0.20348-SP0",
+    "architecture": "AMD64",
+    "python": "3.11.15",
+    "pyinstaller": "6.22.3",
+    "pyinstaller_hooks_contrib": "2026.7",
+    "runner_os": "Windows",
+    "runner_image": "win22",
+    "runner_image_version": "20260927.320.1",
+    "github_run_id": "37135192000",
+    "github_run_attempt": "1"
+  },
+  "source_tests": [
+    {
+      "name": "Windows-smoke.json",
+      "sha256": "89b5ea36d6ef856cc10d2a170017b1f4a478d6f78fbd849e3cf4de18ba8ff14e",
+      "passed": 1673,
+      "skipped": 0,
+      "ci_gate": "PASS",
+      "status": "PASS",
+      "environment": {
+        "system": "Windows",
+        "release": "10",
+        "version": "10.0.20348",
+        "machine": "AMD64",
+        "python": "3.11.15",
+        "python_implementation": "CPython",
+        "python_pointer_bits": 64,
+        "pinned_python": "3.11.15",
+        "python_matches_pin": true
+      }
+    },
+    {
+      "name": "Linux-smoke.json",
+      "sha256": "8dfd7ee098c83cefe9bef3534821bf0634f6c88727826fa3978d0a1872d070e4",
+      "passed": 1672,
+      "skipped": 1,
+      "ci_gate": "PASS",
+      "status": "PARTIAL",
+      "environment": {
+        "system": "Linux",
+        "release": "6.17.0-1022-azure",
+        "version": "#22-Ubuntu SMP Mon Jul 27 17:24:03 UTC 2026",
+        "machine": "x86_64",
+        "python": "3.11.15",
+        "python_implementation": "CPython",
+        "python_pointer_bits": 64,
+        "pinned_python": "3.11.15",
+        "python_matches_pin": true
+      }
+    }
+  ],
+  "desktop_unit_passed": 106,
+  "packaged_reports": {
+    "package-smoke.json": {
+      "sha256": "d46357ef83737840c6bb9314873a56d48419db818d8f64e625049a168ec547c9",
+      "passed": 16
+    },
+    "desktop-smoke.json": {
+      "sha256": "487e7927e12527547398e953f2a901fc90838ec71b998da33ebd105324797ca3",
+      "passed": 9
+    },
+    "companion-smoke.json": {
+      "sha256": "8be0981e6e5b488041356e62d07bf4d991863a25c6a397c03eec67415fdb188c",
+      "passed": 21
+    },
+    "g6-acceptance.json": {
+      "sha256": "322465c88bce556a6f34545f1a1e7e404602dee5fb240f36d9bd7509ef1cb67b",
+      "passed": 8
+    },
+    "free-voice-smoke.json": {
+      "sha256": "24421aaca42c9fb438934cd6aed934cf9c2518b4e9f6a68a07a0951ec377bd20",
+      "passed": 11
+    }
+  },
+  "guide_reports": {
+    "Windows-guide-evaluation.json": {
+      "sha256": "29a471b33c3c110f3e61bcf7d5af5a78ce0c6d215aa616a46ed387f53482057a",
+      "summary": {
+        "answerable_questions": 24,
+        "top3_evidence_hits": 24,
+        "absent_questions": 6,
+        "absent_rejections": 6,
+        "wrong_game_hits": 0,
+        "known_conflicting_version_hits": 0,
+        "prohibited_hits": 0,
+        "source_identity_errors": 0,
+        "ingestion_errors": 0,
+        "maximum_injected_count": 6,
+        "maximum_injected_characters": 5798,
+        "answerable_zero_network": 24,
+        "answerable_skipped_planning": 24,
+        "withheld_or_previous_match_leaks": 0,
+        "status": "PASS",
+        "plain_chat_checks_passed": true,
+        "source_files_unchanged": true
+      },
+      "environment": {
+        "system": "Windows-10-10.0.20348-SP0",
+        "python": "3.11.15",
+        "dependencies": {
+          "langgraph": "1.2.12",
+          "langgraph-checkpoint-sqlite": "3.1.1",
+          "httpx": "0.28.1"
+        }
+      }
+    },
+    "Windows-guide-benchmark.json": {
+      "sha256": "0bb0f1aaa21f3cd6c966ddc7c6e2679856bdbcee36ec87297814d009b3ba7ba5",
+      "summary": {
+        "status": "PASS",
+        "p95_ms": 66.5625,
+        "p95_target_ms": 150,
+        "sample_count": 100,
+        "retrieval_verification_failures": [],
+        "source_files_unchanged": true,
+        "network_attempts": 0,
+        "temporary_data_removed": true,
+        "adopted_result": {
+          "guide_id": "guide-4278625e25d84acdb0ee532e806fca90",
+          "revision_id": "revision-64ef53b6fb37493ab4fa742d9c485eb7",
+          "control_revision": 1,
+          "chunks_returned": 6,
+          "characters_returned": 5440,
+          "top3_starts": [
+            49400,
+            988,
+            1976
+          ]
+        }
+      },
+      "environment": {
+        "system": "Windows-10-10.0.20348-SP0",
+        "os": "Windows",
+        "os_release": "10",
+        "machine": "AMD64",
+        "cpu": "AMD64 Family 25 Model 1 Stepping 1, AuthenticAMD",
+        "logical_cpu_count": 4,
+        "python": "3.11.15",
+        "python_implementation": "CPython",
+        "sqlite": "3.50.4",
+        "installed_versions": {
+          "ai-neko": "0.4.0",
+          "langgraph": "1.2.12",
+          "langgraph-checkpoint-sqlite": "3.1.1",
+          "httpx": "0.28.1"
+        },
+        "lockfile": "uv.lock",
+        "locked_versions": {
+          "ai-neko": "0.4.0",
+          "aiosqlite": "0.22.1",
+          "altgraph": "0.17.5",
+          "annotated-doc": "0.0.5",
+          "annotated-types": "0.8.0",
+          "anyio": "4.15.1",
+          "certifi": "2026.7.22",
+          "charset-normalizer": "3.5.1",
+          "click": "8.5.0",
+          "colorama": "0.4.6",
+          "distro": "1.9.0",
+          "fastapi": "0.141.1",
+          "filelock": "3.32.7",
+          "h11": "0.16.0",
+          "httpcore": "1.0.9",
+          "httpcore2": "2.13.1",
+          "httpx": "0.28.1",
+          "httpx2": "2.13.1",
+          "idna": "3.20",
+          "iniconfig": "2.3.0",
+          "jsonpatch": "1.33",
+          "jsonpointer": "3.1.1",
+          "langchain-core": "1.6.5",
+          "langchain-protocol": "0.0.19",
+          "langgraph": "1.2.12",
+          "langgraph-checkpoint": "4.2.0",
+          "langgraph-checkpoint-sqlite": "3.1.1",
+          "langgraph-prebuilt": "1.1.0",
+          "langgraph-sdk": "0.4.5",
+          "langsmith": "0.14.0",
+          "macholib": "1.16.4",
+          "orjson": "3.12.0",
+          "ormsgpack": "1.12.2",
+          "packaging": "26.3",
+          "pefile": "2024.8.26",
+          "pluggy": "1.6.0",
+          "pydantic": "2.13.5",
+          "pydantic-core": "2.46.5",
+          "pygments": "2.21.0",
+          "pyinstaller": "6.22.3",
+          "pyinstaller-hooks-contrib": "2026.7",
+          "pytest": "9.1.1",
+          "pywin32-ctypes": "0.2.3",
+          "pyyaml": "6.0.3",
+          "requests": "2.34.2",
+          "requests-toolbelt": "1.0.0",
+          "ruff": "0.16.9",
+          "setuptools": "84.0.0",
+          "sniffio": "1.3.1",
+          "sqlite-vec": "0.1.9",
+          "starlette": "1.7.0",
+          "tenacity": "9.1.4",
+          "truststore": "0.10.4",
+          "typing-extensions": "4.16.0",
+          "typing-inspection": "0.4.4",
+          "urllib3": "2.8.0",
+          "uuid-utils": "0.17.1",
+          "uvicorn": "0.54.0",
+          "websockets": "16.1.1",
+          "xxhash": "4.0.1",
+          "zstandard": "0.25.0"
+        },
+        "git_head": "b443768df012fa4c88036f2fc13321b1e79d1d84",
+        "source_hashes_are_authoritative_for_uncommitted_work": true,
+        "clock": {
+          "name": "perf_counter_ns",
+          "monotonic": true,
+          "resolution_seconds": 1e-07
+        }
+      }
+    },
+    "Linux-guide-evaluation.json": {
+      "sha256": "50c8f8bf35238452cdc150a759ef687a76eb3bddc8a19e8d15965bbfedf69551",
+      "summary": {
+        "answerable_questions": 24,
+        "top3_evidence_hits": 24,
+        "absent_questions": 6,
+        "absent_rejections": 6,
+        "wrong_game_hits": 0,
+        "known_conflicting_version_hits": 0,
+        "prohibited_hits": 0,
+        "source_identity_errors": 0,
+        "ingestion_errors": 0,
+        "maximum_injected_count": 6,
+        "maximum_injected_characters": 5798,
+        "answerable_zero_network": 24,
+        "answerable_skipped_planning": 24,
+        "withheld_or_previous_match_leaks": 0,
+        "status": "PASS",
+        "plain_chat_checks_passed": true,
+        "source_files_unchanged": true
+      },
+      "environment": {
+        "system": "Linux-6.17.0-1022-azure-x86_64-with-glibc2.39",
+        "python": "3.11.15",
+        "dependencies": {
+          "langgraph": "1.2.12",
+          "langgraph-checkpoint-sqlite": "3.1.1",
+          "httpx": "0.28.1"
+        }
+      }
+    },
+    "Linux-guide-benchmark.json": {
+      "sha256": "0cbc46ea8f5f6254334ba7050c5ebd38f61005acd8fac757ea2dc0b81c7df212",
+      "summary": {
+        "status": "PASS",
+        "p95_ms": 12.566144,
+        "p95_target_ms": 150,
+        "sample_count": 100,
+        "retrieval_verification_failures": [],
+        "source_files_unchanged": true,
+        "network_attempts": 0,
+        "temporary_data_removed": true,
+        "adopted_result": {
+          "guide_id": "guide-aac655b972184caea81c5ea16a96626e",
+          "revision_id": "revision-431618814d9c435ea67e85097a44dcd9",
+          "control_revision": 1,
+          "chunks_returned": 6,
+          "characters_returned": 5440,
+          "top3_starts": [
+            49400,
+            988,
+            1976
+          ]
+        }
+      },
+      "environment": {
+        "system": "Linux-6.17.0-1022-azure-x86_64-with-glibc2.39",
+        "os": "Linux",
+        "os_release": "6.17.0-1022-azure",
+        "machine": "x86_64",
+        "cpu": "AMD EPYC 9V45 96-Core Processor",
+        "logical_cpu_count": 4,
+        "python": "3.11.15",
+        "python_implementation": "CPython",
+        "sqlite": "3.50.4",
+        "installed_versions": {
+          "ai-neko": "0.4.0",
+          "langgraph": "1.2.12",
+          "langgraph-checkpoint-sqlite": "3.1.1",
+          "httpx": "0.28.1"
+        },
+        "lockfile": "uv.lock",
+        "locked_versions": {
+          "ai-neko": "0.4.0",
+          "aiosqlite": "0.22.1",
+          "altgraph": "0.17.5",
+          "annotated-doc": "0.0.5",
+          "annotated-types": "0.8.0",
+          "anyio": "4.15.1",
+          "certifi": "2026.7.22",
+          "charset-normalizer": "3.5.1",
+          "click": "8.5.0",
+          "colorama": "0.4.6",
+          "distro": "1.9.0",
+          "fastapi": "0.141.1",
+          "filelock": "3.32.7",
+          "h11": "0.16.0",
+          "httpcore": "1.0.9",
+          "httpcore2": "2.13.1",
+          "httpx": "0.28.1",
+          "httpx2": "2.13.1",
+          "idna": "3.20",
+          "iniconfig": "2.3.0",
+          "jsonpatch": "1.33",
+          "jsonpointer": "3.1.1",
+          "langchain-core": "1.6.5",
+          "langchain-protocol": "0.0.19",
+          "langgraph": "1.2.12",
+          "langgraph-checkpoint": "4.2.0",
+          "langgraph-checkpoint-sqlite": "3.1.1",
+          "langgraph-prebuilt": "1.1.0",
+          "langgraph-sdk": "0.4.5",
+          "langsmith": "0.14.0",
+          "macholib": "1.16.4",
+          "orjson": "3.12.0",
+          "ormsgpack": "1.12.2",
+          "packaging": "26.3",
+          "pefile": "2024.8.26",
+          "pluggy": "1.6.0",
+          "pydantic": "2.13.5",
+          "pydantic-core": "2.46.5",
+          "pygments": "2.21.0",
+          "pyinstaller": "6.22.3",
+          "pyinstaller-hooks-contrib": "2026.7",
+          "pytest": "9.1.1",
+          "pywin32-ctypes": "0.2.3",
+          "pyyaml": "6.0.3",
+          "requests": "2.34.2",
+          "requests-toolbelt": "1.0.0",
+          "ruff": "0.16.9",
+          "setuptools": "84.0.0",
+          "sniffio": "1.3.1",
+          "sqlite-vec": "0.1.9",
+          "starlette": "1.7.0",
+          "tenacity": "9.1.4",
+          "truststore": "0.10.4",
+          "typing-extensions": "4.16.0",
+          "typing-inspection": "0.4.4",
+          "urllib3": "2.8.0",
+          "uuid-utils": "0.17.1",
+          "uvicorn": "0.54.0",
+          "websockets": "16.1.1",
+          "xxhash": "4.0.1",
+          "zstandard": "0.25.0"
+        },
+        "git_head": "b443768df012fa4c88036f2fc13321b1e79d1d84",
+        "source_hashes_are_authoritative_for_uncommitted_work": true,
+        "clock": {
+          "name": "perf_counter_ns",
+          "monotonic": true,
+          "resolution_seconds": 1e-09
+        }
+      }
+    }
+  },
+  "desktop_unit_logs": {
+    "Windows": {
+      "sha256": "ec128b8dd63d397188c58683c6047477e1fc189520dbf5a02b2a8fe95377a84b",
+      "passed": 106,
+      "failed": 0
+    },
+    "Linux": {
+      "sha256": "b2e4a052e628bff62f3acf8337199244eca6dfc71e89e2dc671e7af9885afd25",
+      "passed": 106,
+      "failed": 0
+    }
+  },
+  "license_files_verified": {
+    "aiosqlite-0.22.1/00-LICENSE": "ab0c171dc3ef8bf325a84bb77d855421f2611335ddf6e08816b2922c4edc0f76",
+    "annotated-doc-0.0.5/00-LICENSE": "fff170779a6acbf65abdb405c087f1cee1786691e4a96a4034517e4a504a0cdf",
+    "annotated-types-0.8.0/00-LICENSE": "fe1049884b1a0d9342901e88e07f32925d24b3121d9972b6a6805fb9824b095d",
+    "anyio-4.15.1/00-LICENSE": "5361ac9dc58f2ef5fd2e9b09c68297c17f04950909bbc8023bdb82eacf22c2b0",
+    "certifi-2026.7.22/00-LICENSE": "e93716da6b9c0d5a4a1df60fe695b370f0695603d21f6f83f053e42cfc10caf7",
+    "charset-normalizer-3.5.1/00-LICENSE": "18577485d3704f1a479ded8e573c0976cfed315fd2fd17983fa988da4c2f70d1",
+    "click-8.5.0/00-LICENSE.txt": "9a8ad106a394e853bfe21f42f4e72d592819a22805d991b5f3275029292b658d",
+    "distro-1.9.0/00-LICENSE": "cb5e8e7e5f4a3988e1063c142c60dc2df75605f4c46515e776e3aca6df976e14",
+    "fastapi-0.141.1/00-LICENSE": "4ec89ffc81485b97fec584b2d4a961032eeffe834453894fd9c1274906cc744e",
+    "filelock-3.32.7/00-LICENSE": "608c89d5060ae9921adccf3236695bc654a9946e12323ef6c021dfa04e294d48",
+    "h11-0.16.0/00-LICENSE.txt": "37db5bb85926db28a427a25867f10b1232003aea1be69ccb851138adb8e6f361",
+    "httpcore-1.0.9/00-LICENSE.md": "fdcb59154c74cbaba16a11242f7740bea9f23d6feb5547917d8c5f94a80392a5",
+    "httpcore2-2.13.1/00-LICENSE.md": "c4df125c807b0613501e943a5c92496dd11d2c16604ce396097a8dde396304d9",
+    "httpx-0.28.1/00-LICENSE.md": "4ec59d544f12b5f539a3a716fd321ac58ccd8030b465221f2c880200cdf28d8d",
+    "httpx2-2.13.1/00-LICENSE.md": "7e7d6dbaf7fe160d39fd6e84fd02c33cab96bcbea34d36998d545bceb4a19c30",
+    "idna-3.20/00-LICENSE.md": "1a9a4f0e3d479a27240ddd59a9137a66ab4a0f9dfdc8ca6188cc0bfd85187f04",
+    "jsonpatch-1.33/00-LICENSE": "4393eb6733fa1e367f41769b382f4f1be7bf0daeb1e243ed92b3f5d8bafd236f",
+    "jsonpointer-3.1.1/00-LICENSE.txt": "d8b24f15d472885f788a2d6e985850f264627b86012a17bb242c83f310d907e5",
+    "langchain-core-1.6.5/00-LICENSE": "4ec67e4ca6e6721dba849b2ca82261597c86a61ee214bbf21416006b7b2d0478",
+    "langchain-protocol-0.0.19/00-LICENSE": "893e6e30275896912c21c77f9f7c112aba85fd985d05b26a29424cf7e511d177",
+    "langgraph-1.2.12/00-LICENSE": "d9bb52f2e3540d60ff50d8f0f5b6ba649b7fd346948c4c3d086c8afb120763c7",
+    "langgraph-checkpoint-4.2.0/00-LICENSE": "d9bb52f2e3540d60ff50d8f0f5b6ba649b7fd346948c4c3d086c8afb120763c7",
+    "langgraph-checkpoint-sqlite-3.1.1/00-LICENSE": "d9bb52f2e3540d60ff50d8f0f5b6ba649b7fd346948c4c3d086c8afb120763c7",
+    "langgraph-prebuilt-1.1.0/00-LICENSE": "d9bb52f2e3540d60ff50d8f0f5b6ba649b7fd346948c4c3d086c8afb120763c7",
+    "langgraph-sdk-0.4.5/00-LICENSE": "d9bb52f2e3540d60ff50d8f0f5b6ba649b7fd346948c4c3d086c8afb120763c7",
+    "langsmith-0.14.0/langsmith-0.14.0-LICENSE": "34e0b9842c7a31d34e53bc7eb224e81e07a34996106e029bbc72dea2d449f496",
+    "orjson-3.12.0/00-LICENSE-APACHE": "7cfd738c53d61c79f07e348f622bf7707c9084237054d37fbe07788a75f5881c",
+    "orjson-3.12.0/01-LICENSE-MIT": "36516aefdc84c5d5a1e7485425913a22dbda69eb1930c5e84d6ae4972b5194b9",
+    "orjson-3.12.0/02-LICENSE-MPL-2.0": "9303ea1cfbf049945652668089d753fb1a7e1f2e52c680615c3d2cea7515c118",
+    "ormsgpack-1.12.2/00-LICENSE-APACHE": "7cfd738c53d61c79f07e348f622bf7707c9084237054d37fbe07788a75f5881c",
+    "ormsgpack-1.12.2/01-LICENSE-MIT": "36516aefdc84c5d5a1e7485425913a22dbda69eb1930c5e84d6ae4972b5194b9",
+    "packaging-26.3/00-LICENSE": "cad1ef5bd340d73e074ba614d26f7deaca5c7940c3d8c34852e65c4909686c48",
+    "packaging-26.3/01-LICENSE.APACHE": "0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e94594",
+    "packaging-26.3/02-LICENSE.BSD": "b70e7e9b742f1cc6f948b34c16aa39ffece94196364bc88ff0d2180f0028fac5",
+    "pydantic-2.13.5/00-LICENSE": "a9e186f3ca16b5eef84318e7a701721351a00cb7b8ae3a4394b67b49e3529ef3",
+    "pydantic-core-2.46.5/00-LICENSE": "fbe7f615f18d135c07000e5a86325db27f42c7729699ef166ac1f7a3f4586bf4",
+    "pyinstaller-6.22.3/00-COPYING.txt": "0598064c7d2718e38d7914a7d08343b2fa008e3bea9ebba2aa7a6ffa5900dd64",
+    "pyyaml-6.0.3/00-LICENSE": "8d3928f9dc4490fd635707cb88eb26bd764102a7282954307d3e5167a577e8a4",
+    "requests-2.34.2/00-LICENSE": "09e8a9bcec8067104652c168685ab0931e7868f9c8284b66f5ae6edae5f1130b",
+    "requests-2.34.2/01-NOTICE": "f5110972dedad2b4e9d314518daf3b7d72d6e02e499acd802181de6f74571dcc",
+    "requests-toolbelt-1.0.0/00-LICENSE": "1f8cf8bdacd98ed6d36d0fec0c07f7765acebd6e81205962ab5146023b3c858d",
+    "sniffio-1.3.1/00-LICENSE": "652c878488d1456361e08c3f8607fd7ba59892a14103d15cce4ff93c85b5cc8b",
+    "sniffio-1.3.1/01-LICENSE.APACHE2": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+    "sniffio-1.3.1/02-LICENSE.MIT": "3e6dae555eb92787fc82d1d48355677f454c7f65aeb38d3f9e72bf9a3daf034b",
+    "sqlite-vec-0.1.9/sqlite-vec-0.1.9-LICENSE-MIT": "6ce72bbe12d975bd5286e5ab0a064c069693300c47bccbc57bec18485f1621ea",
+    "sqlite-vec-0.1.9/sqlite-vec-0.1.9-LICENSE-APACHE": "a38070a94d4afd9cd710e3ce67bd1de78097cfe1784c1f0109ac95d3c196bfdc",
+    "starlette-1.7.0/00-LICENSE.md": "dcb95677a02240243187e964f941847d19b17821cf99e5afae684fab328c19bf",
+    "tenacity-9.1.4/00-LICENSE": "58d1e17ffe5109a7ae296caafcadfdbe6a7d176f0bc4ab01e12a689b0499d8bd",
+    "truststore-0.10.4/00-LICENSE": "33be7b7e8fa4fd19b1760e1a8ed8a668bdab852c91b692dd41424bcb725a9fca",
+    "typing-extensions-4.16.0/00-LICENSE": "3b2f81fe21d181c499c59a256c8e1968455d6689d269aa85373bfb6af41da3bf",
+    "typing-inspection-0.4.4/00-LICENSE": "804b59b25f2c31bd278f9202a19ae49a3945aa2664387e2d0a128c7cacc61ec3",
+    "urllib3-2.8.0/00-LICENSE.txt": "130e3a64d5fdd5d096a752694634a7d9df284469de86e5732100268041e3d686",
+    "uuid-utils-0.17.1/00-LICENSE.md": "209330e81d3a89860e9ec79e9bf894be705f0755a3869d77aa091fc4a2f91903",
+    "uvicorn-0.54.0/00-LICENSE.md": "efe1acf3e62fb99c288b0ec73e5a773b7268ef4320fe757ea994214e4b63c371",
+    "websockets-16.1.1/00-LICENSE": "0f44514998aca209d3482d10204a8adf2aa4296ff157a36a5c0922f2280632d3",
+    "xxhash-4.0.1/00-LICENSE": "b76e99529f3e47372029e11914a8f4b95d6313463ed5a1a5c9afe96c3e015114",
+    "zstandard-0.25.0/00-LICENSE": "c15b28f8866500bd3d607c739e87710aa5c47627aa30a0573948414564ff1da2",
+    "windows-runtime/pbs-20260414-LICENSE.bzip2.txt": "bd5628cc76fb0ebf9c657d1dd4d1a240a1a7b216c31663e7bbf1131c0b70a910",
+    "windows-runtime/pbs-20260414-LICENSE.expat.txt": "8a9cfe4b5924f4b25881aa0c9f5e4561c5f31065d0c4a13cdcdbcf917edf39aa",
+    "windows-runtime/pbs-20260414-LICENSE.libffi.txt": "9afb8970cd29fc1031fa647278e4bef613399e2e3468a1e3a397f4d158c6101c",
+    "windows-runtime/pbs-20260414-LICENSE.liblzma.txt": "d87d218dd908b3243ec4cbc72af400e5b7437513ea9d9229291d0812b8464fec",
+    "windows-runtime/pbs-20260414-LICENSE.libuuid.txt": "cbccaa3efe07a9a602751375085be572d4410a250b996716fbe8c5255c7ec6f2",
+    "windows-runtime/pbs-20260414-LICENSE.mpdecimal.txt": "f094277cd46e1f6e4d87916cc4b51e22f613d45eb81f48231c3cb7caf8fc8a6a",
+    "windows-runtime/pbs-20260414-LICENSE.openssl-3.txt": "ed72ce2b51ee58f117e5a021e2e04af158857f40269fbc03491f0b2a99dbcc96",
+    "windows-runtime/pbs-20260414-LICENSE.sqlite.txt": "d8eb9aba7ef6b5ed06cb3ec19a7242316af2e5933c638eb67fb781c13884e01d",
+    "windows-runtime/pbs-20260414-LICENSE.zlib.txt": "365e36720db366054863235aea5d6f440142ab968834bfaf81fa9d187c99b9b8"
+  },
+  "desktop_assets_verified": 79,
+  "g6_packaged": {
+    "status": "PASS",
+    "case_count": 8,
+    "processes": 2,
+    "questions_observed": 25,
+    "synthetic_calls": {
+      "model": 36,
+      "search": 0
+    }
+  },
+  "executables": {
+    "desktop": {
+      "sha256": "bd14928e0728366fd3f41499cb398ff3f4304dab259a3e605077899a6f8c748e",
+      "machine": "AMD64"
+    },
+    "backend": {
+      "sha256": "6b588a7560b203eb52472db2c92d4b4c7b5e08d80d64bbfc7a3ae44de13e68ec",
+      "machine": "AMD64"
+    }
+  },
+  "memory_reuse": {
+    "source_commit": "90ccf79c95e80f899b9bf3395fa8cd9a9bfe29be",
+    "notices": {
+      "NEKO-LICENSE.txt": "0d99b64baf1323c3a7f70a28075b14d573df6d773aa2d33d827053cc775062d8",
+      "NEKO-NOTICE.txt": "96199da23327c5086c4f562e4c1a05685e18643ab32ce896f13934b15b4a8aca"
+    }
+  },
+  "screenshots": {
+    "desktop-catgirl.png": "02ede7c38be66e2e7d8891d70b89a401c1dd5c1c4453b3a651e38f95d4c4c878",
+    "desktop-settings.png": "8b1af33e09124f861abc2dd250b4e6edf3f14376cf4c56cd74ab573b666b1e57",
+    "desktop-streaming.png": "a13151bab4612dfa2e66befc70bf630fe1d9a87c3e1501a92058dcc962b021f6",
+    "desktop-guide.png": "ae533fd27950b220dc996dd586166290c9c4283cd7cd1a23c2b0926f1e8dd1af",
+    "desktop-restored.png": "e9844042ac670a0eab7b91ac4bdcc05b49b872c6a32461806d234dc76f48d172",
+    "companion-smoke.png": "12b8d48496772e3a19ebf9d6c07c95c6b31cbc3bd9fc9a54e4019eff0c41d975",
+    "companion-smoke-snapshots.png": "7bb5eba1e73f0f9c39a783d1d1caf953c588a7f9a24f2e6bcf183e96821aeac4",
+    "companion-smoke-free-search.png": "9b73fcb0f8de1a80f57d8f9f26dcbb2eb50dac8b120340d751cba0e345cd9621",
+    "companion-smoke-free-voice.png": "14bb87390d95576561212e7f61de1af963b746b24b2e071bd80c8aecb6f2d3ba",
+    "g6-acceptance-A01-before-exit.png": "14a7e2b328e9600b89b2b8241ef640b804a0ee680a452f2997d8ac282c4a6ae8",
+    "g6-acceptance-A01-new-process-new-chat.png": "f7557f708c8479313c4652332ae9aed577f1131a80e24251cb722faf937810cd",
+    "g6-acceptance-A02-search-configured.png": "8e586481f71cc72c605b45a4a868a0251cc9290c9d01485fc8a33ccf52e9b8e2",
+    "g6-acceptance-A02-search-disabled.png": "de1b0f855c4bfddd5cfa573d6a51707d93989c2f2b6e8e480f28433794adbbd2",
+    "g6-acceptance-A07-ten-old-turns.png": "1b5e3793701b158d5841fb73395dae035d593d3d5823058fd886f61e092be721",
+    "g6-acceptance-A07-new-match.png": "ab971f1f7983fd6c6089607b169ad0feb4f81fbc6d0a3c671f97f66fb548d14c",
+    "g6-acceptance-A07-explicit-review.png": "cdeb98370e7887b6d4ea2f44fbf74eee682181c2e7456e6ad4be55df2ad2abad",
+    "g6-acceptance-A09-remapped-S1.png": "19f08262d5f80c6a1d4385f152d7b8777cbe7d926c5e2564325a38ccb855991a"
+  },
+  "plain_request_revocation": {
+    "actual_bridge": true,
+    "held_after_backend_acceptance": true,
+    "cancelled": true,
+    "late_text_absent": true,
+    "draft_preserved": true
+  },
+  "persona_save_wait": {
+    "explicit_promise_gate": true,
+    "actual_form_and_ipc": true,
+    "previous_version": 2,
+    "saved_version": 3,
+    "stale_success_predicate_passed_while_put_blocked": true,
+    "current_save_predicate_rejected_while_put_blocked": true,
+    "persisted_new_name_verified": true
+  },
+  "audio_stop_benchmark": {
+    "samples": 20,
+    "measured_boundary": "renderer_stop_click_to_actual_AudioBufferSourceNode_stop_return",
+    "actual_web_audio": true,
+    "synthetic_tts": true,
+    "hardware_acoustic_measurement": false,
+    "milliseconds": [
+      0.20000000001164153,
+      0.09999999997671694,
+      0,
+      0,
+      0.1000000000349246,
+      0.1000000000349246,
+      0.1000000000349246,
+      0.09999999997671694,
+      0.20000000001164153,
+      0,
+      0.1000000000349246,
+      0.5999999999767169,
+      0.19999999995343387,
+      0.09999999997671694,
+      0,
+      0.09999999997671694,
+      0.09999999997671694,
+      0.1000000000349246,
+      0.1000000000349246,
+      0
+    ],
+    "p95_ms": 0.20000000001164153,
+    "max_ms": 0.5999999999767169,
+    "target_ms": 300
+  },
+  "synthetic_calls": {
+    "model": 18,
+    "asr": 3,
+    "tts": 29
+  },
+  "real_cloud_service_calls": 0,
+  "actual_user_microphone_captures": 0,
+  "actual_desktop_captures": 0,
+  "windows_11": "NOT_VERIFIED",
+  "local_windows_executable_run": false,
+  "mvp2_g1_g6": "LOCAL_AND_WINDOWS_CI_VERIFIED; REAL_CHAT_SERVICES_AND_WINDOWS_11_NOT_VERIFIED",
+  "free_voice": {
+    "status": "PASS",
+    "cases": 11,
+    "scope": {
+      "actual_user_microphone_captures": 0,
+      "paid_api_calls": 0,
+      "conversational_model_calls": 0,
+      "real_voice_inference": "PASS",
+      "network_during_installation": "public_pinned_runtime_and_models",
+      "speaker_playback": "NOT_TESTED",
+      "windows_11_device_acceptance": "NOT_TESTED"
+    },
+    "environment": {
+      "system": "Windows",
+      "release": "10",
+      "version": "10.0.20348",
+      "machine": "AMD64",
+      "harness_python": "3.11.15",
+      "harness_pointer_bits": 64,
+      "windows_product_type": 3,
+      "windows_build": 20348,
+      "application_runtime": "extracted_executable_only",
+      "application_path": "windows_system_directories_only"
+    },
+    "installation": {
+      "timeout_seconds": 900,
+      "explicit_confirmation": true,
+      "transitions": [
+        {
+          "state": "installing",
+          "stage": "prepare",
+          "downloaded_bytes": 0,
+          "total_bytes": 333564297,
+          "supported": true,
+          "elapsed_seconds": 0.234
+        },
+        {
+          "state": "installing",
+          "stage": "runtime",
+          "downloaded_bytes": 23530194,
+          "total_bytes": 333564297,
+          "supported": true,
+          "elapsed_seconds": 1.25
+        },
+        {
+          "state": "installing",
+          "stage": "asr",
+          "downloaded_bytes": 100076242,
+          "total_bytes": 333564297,
+          "supported": true,
+          "elapsed_seconds": 11.281
+        },
+        {
+          "state": "installing",
+          "stage": "tts",
+          "downloaded_bytes": 238961877,
+          "total_bytes": 333564297,
+          "supported": true,
+          "elapsed_seconds": 24.531
+        },
+        {
+          "state": "ready",
+          "stage": "complete",
+          "downloaded_bytes": 333564297,
+          "total_bytes": 333564297,
+          "supported": true,
+          "elapsed_seconds": 37.5
+        }
+      ],
+      "last_status": {
+        "state": "ready",
+        "stage": "complete",
+        "downloaded_bytes": 333564297,
+        "total_bytes": 333564297,
+        "supported": true
+      },
+      "elapsed_seconds": 37.5
+    },
+    "installed_resources": {
+      "manifest": {
+        "schema": 1,
+        "lock": "40969ef42c9e38498e887af1016410a24cca58e0df34105e09adb38628a16083",
+        "asr": "7d1efa2138a65b0b488df37f8b89e3d91a60676e416f515b952358d83dfd347e",
+        "tts": "a1e94694776049035c4f2c6529f003aaece993c76aae9a78995831c3c4dcafc6",
+        "python": "3.11.15"
+      },
+      "runtime_packages": [
+        {
+          "name": "numpy",
+          "version": "2.4.4"
+        },
+        {
+          "name": "sherpa-onnx",
+          "version": "1.13.8"
+        },
+        {
+          "name": "sherpa-onnx-core",
+          "version": "1.13.8"
+        }
+      ],
+      "runtime_packages_source": "uv.lock_declarations",
+      "installed_packages": [
+        {
+          "name": "numpy",
+          "version": "2.4.4"
+        },
+        {
+          "name": "sherpa-onnx",
+          "version": "1.13.8"
+        },
+        {
+          "name": "sherpa-onnx-core",
+          "version": "1.13.8"
+        }
+      ],
+      "installed_packages_source": "private_venv_dist_info_METADATA",
+      "installed_packages_match_lock": true,
+      "download_archives": [
+        {
+          "name": "kokoro-int8-multi-lang-v1_1.tar.bz2",
+          "bytes": 147031220,
+          "sha256": "a1e94694776049035c4f2c6529f003aaece993c76aae9a78995831c3c4dcafc6"
+        },
+        {
+          "name": "sherpa-onnx-sense-voice-zh-en-ja-ko-yue-int8-2024-07-17.tar.bz2",
+          "bytes": 163002883,
+          "sha256": "7d1efa2138a65b0b488df37f8b89e3d91a60676e416f515b952358d83dfd347e"
+        },
+        {
+          "name": "uv-x86_64-pc-windows-msvc.zip",
+          "bytes": 23530194,
+          "sha256": "c84629a56e0706b69a47ea35862208af827cb6fbfa1d0ca763c52c67594637e8"
+        }
+      ],
+      "models": [
+        {
+          "name": "kokoro-int8-multi-lang-v1_1",
+          "model_bytes": 114299010,
+          "model_sha256": "bda15858163726a492d02a9a727bc263551b86ac77f90812c4b30ff41d380e26"
+        },
+        {
+          "name": "sherpa-onnx-sense-voice-zh-en-ja-ko-yue-int8-2024-07-17",
+          "model_bytes": 239233841,
+          "model_sha256": "c71f0ce00bec95b07744e116345e33d8cbbe08cef896382cf907bf4b51a2cd51"
+        }
+      ],
+      "worker_sha256": "e6ff99a934e61dd90ed03a37382b462b6ce173cc382608b49b2965cfe116aedb",
+      "model_files_sha256": "a6136bfec950e263944d94bca59b136c62787569791c0b9b99ee01e3a5d4c0ba"
+    },
+    "configuration": {
+      "voice_provider": "local",
+      "cloud_voice_keys_set": false,
+      "prior_cloud_voice_fields_preserved": true,
+      "chat_model_configured": false
+    },
+    "synthesis": {
+      "text": "你好，我是小猫。今天我们一起学习，让生活更有趣。",
+      "characters": 24,
+      "elapsed_seconds": 17.297,
+      "timeout_seconds": 120,
+      "audio": {
+        "mime_type": "audio/wav",
+        "channels": 1,
+        "sample_rate": 24000,
+        "bits_per_sample": 16,
+        "frames": 158627,
+        "duration_seconds": 6.6095,
+        "bytes": 317298,
+        "sha256": "93b6b316c951e1ad248bb4aa0097806df4f47f0ef690340492789bb741eec591",
+        "peak": 13793,
+        "rms": 2219.765,
+        "file": "free-voice-smoke-speech.wav"
+      }
+    },
+    "recognition": {
+      "text": "你好，，我是小猫。今天我们一起学习，让生活更有趣。",
+      "characters": 25,
+      "elapsed_seconds": 2.219,
+      "timeout_seconds": 120,
+      "input_audio": {
+        "mime_type": "audio/wav",
+        "channels": 1,
+        "sample_rate": 16000,
+        "bits_per_sample": 16,
+        "frames": 105751,
+        "duration_seconds": 6.6094,
+        "bytes": 211546,
+        "sha256": "d6d34fc2a617131091a0109b917f5845935f62425074535cc987708e021f04fe",
+        "peak": 13563,
+        "rms": 2188.2176
+      },
+      "match": {
+        "expected_normalized_characters": 20,
+        "recognized_normalized_characters": 20,
+        "edit_distance": 0,
+        "character_error_rate": 0.0,
+        "maximum_character_error_rate": 0.35,
+        "passed": true,
+        "scope": "one_fixed_synthesized_chinese_sentence_not_microphone_quality"
+      }
+    },
+    "restart": {
+      "first_pid": 3468,
+      "second_pid": 1112,
+      "ready_without_redownload": true
+    },
+    "wav_metadata_recomputed": true,
+    "asr_input_resampling_hash_recomputed": true,
+    "character_error_rate_recomputed": true
+  },
+  "native_voice_imports": {
+    "file": "evidence-Windows/mvp2/Windows-voice-import-smoke.json",
+    "sha256": "daa35e1b55a4341d77a1f996cf8a8972cb3a63302d8313e04eccfd0adae94746",
+    "status": "PASS",
+    "environment": {
+      "system": "Windows",
+      "machine": "AMD64",
+      "harness_python": "3.11.15"
+    },
+    "scope": {
+      "native_imports": true,
+      "worker_main_protocol": true,
+      "actual_model_inference": false,
+      "real_models_downloaded": 0,
+      "user_data_accessed": false,
+      "placeholder_resources_are_not_models": true
+    },
+    "package_input_sha256": {
+      "worker.py": "e6ff99a934e61dd90ed03a37382b462b6ce173cc382608b49b2965cfe116aedb",
+      "uv.lock": "40969ef42c9e38498e887af1016410a24cca58e0df34105e09adb38628a16083",
+      "model_files.json": "a6136bfec950e263944d94bca59b136c62787569791c0b9b99ee01e3a5d4c0ba"
+    },
+    "installed_packages": [
+      {
+        "name": "numpy",
+        "version": "2.4.4"
+      },
+      {
+        "name": "sherpa-onnx",
+        "version": "1.13.8"
+      },
+      {
+        "name": "sherpa-onnx-core",
+        "version": "1.13.8"
+      }
+    ],
+    "placeholder_resources": {
+      "count": 18,
+      "bytes_per_file": 1
+    },
+    "base_python": "D:\\a\\_temp\\uv-python-dir\\cpython-3.11.15-windows-x86_64-none\\python.exe",
+    "private_venv": "D:\\a\\_temp\\ai-neko-voice-import-中文 空格-37135192000-1\\venv",
+    "worker": {
+      "status": "PASS",
+      "timeout_seconds": 20,
+      "timed_out": false,
+      "elapsed_seconds": 0.391,
+      "pid": 7732,
+      "exit_code": 0,
+      "owner_stdin_kept_open_until_exit": true,
+      "natural_exit": true,
+      "fixed_stages": [
+        "numpy_before",
+        "numpy_after",
+        "sherpa_before",
+        "sherpa_after",
+        "main_returned"
+      ],
+      "stages_match": true,
+      "protocol_matches": true,
+      "fixed_result": {
+        "ok": true,
+        "pid": 7732
+      },
+      "runtime_identity": {
+        "python_version": "3.11.15",
+        "pointer_bits": 64,
+        "platform": "win32",
+        "base_interpreter": true,
+        "pid": 7732
+      }
+    }
+  },
+  "local_voice_runtime_package_members": {
+    "src/ai_neko/media/local_runtime/LICENSES.md": {
+      "entry": "ai-neko-0.4.0-dev.b443768df012-windows-x64/resources/backend/_internal/ai_neko/media/local_runtime/LICENSES.md",
+      "sha256": "e88c9f4c8cfda8c869c0f3507b1af01c6c996c3fd70268c15302b64f17d229ec",
+      "bytes": 2302
+    },
+    "src/ai_neko/media/local_runtime/licenses/ESPEAK-GPL-3.0.txt": {
+      "entry": "ai-neko-0.4.0-dev.b443768df012-windows-x64/resources/backend/_internal/ai_neko/media/local_runtime/licenses/ESPEAK-GPL-3.0.txt",
+      "sha256": "8ceb4b9ee5adedde47b31e975c1d90c73ad27b6b165a1dcd80c7c545eb65b903",
+      "bytes": 35147
+    },
+    "src/ai_neko/media/local_runtime/licenses/KOKORO-APACHE-2.0.txt": {
+      "entry": "ai-neko-0.4.0-dev.b443768df012-windows-x64/resources/backend/_internal/ai_neko/media/local_runtime/licenses/KOKORO-APACHE-2.0.txt",
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "bytes": 11358
+    },
+    "src/ai_neko/media/local_runtime/licenses/NUMPY-LICENSE.txt": {
+      "entry": "ai-neko-0.4.0-dev.b443768df012-windows-x64/resources/backend/_internal/ai_neko/media/local_runtime/licenses/NUMPY-LICENSE.txt",
+      "sha256": "649a589ab31076e79e9ce62ba24eae9959598124176640dbc95f87bd10f34fcf",
+      "bytes": 46826
+    },
+    "src/ai_neko/media/local_runtime/licenses/SENSEVOICE-MODEL-LICENSE.txt": {
+      "entry": "ai-neko-0.4.0-dev.b443768df012-windows-x64/resources/backend/_internal/ai_neko/media/local_runtime/licenses/SENSEVOICE-MODEL-LICENSE.txt",
+      "sha256": "7dba975a2069691db4992b0592d70828b330d2f8a30a71450f4e152a554e84f8",
+      "bytes": 5306
+    },
+    "src/ai_neko/media/local_runtime/licenses/SHERPA-APACHE-2.0.txt": {
+      "entry": "ai-neko-0.4.0-dev.b443768df012-windows-x64/resources/backend/_internal/ai_neko/media/local_runtime/licenses/SHERPA-APACHE-2.0.txt",
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "bytes": 11358
+    },
+    "src/ai_neko/media/local_runtime/licenses/UV-LICENSE-APACHE.txt": {
+      "entry": "ai-neko-0.4.0-dev.b443768df012-windows-x64/resources/backend/_internal/ai_neko/media/local_runtime/licenses/UV-LICENSE-APACHE.txt",
+      "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+      "bytes": 11357
+    },
+    "src/ai_neko/media/local_runtime/licenses/UV-LICENSE-MIT.txt": {
+      "entry": "ai-neko-0.4.0-dev.b443768df012-windows-x64/resources/backend/_internal/ai_neko/media/local_runtime/licenses/UV-LICENSE-MIT.txt",
+      "sha256": "860e3d7a86b84e6a7012c7a635fc64df475cebc6cce34dfeb73a5982ec58176c",
+      "bytes": 1077
+    },
+    "src/ai_neko/media/local_runtime/model_files.json": {
+      "entry": "ai-neko-0.4.0-dev.b443768df012-windows-x64/resources/backend/_internal/ai_neko/media/local_runtime/model_files.json",
+      "sha256": "a6136bfec950e263944d94bca59b136c62787569791c0b9b99ee01e3a5d4c0ba",
+      "bytes": 990
+    },
+    "src/ai_neko/media/local_runtime/pyproject.toml": {
+      "entry": "ai-neko-0.4.0-dev.b443768df012-windows-x64/resources/backend/_internal/ai_neko/media/local_runtime/pyproject.toml",
+      "sha256": "f198f7075fcce2303e24b5d6ba4846a32b449b5dbae2c93058a592f1204f9600",
+      "bytes": 233
+    },
+    "src/ai_neko/media/local_runtime/uv.lock": {
+      "entry": "ai-neko-0.4.0-dev.b443768df012-windows-x64/resources/backend/_internal/ai_neko/media/local_runtime/uv.lock",
+      "sha256": "40969ef42c9e38498e887af1016410a24cca58e0df34105e09adb38628a16083",
+      "bytes": 14221
+    },
+    "src/ai_neko/media/local_runtime/worker.py": {
+      "entry": "ai-neko-0.4.0-dev.b443768df012-windows-x64/resources/backend/_internal/ai_neko/media/local_runtime/worker.py",
+      "sha256": "e6ff99a934e61dd90ed03a37382b462b6ce173cc382608b49b2965cfe116aedb",
+      "bytes": 11460
+    }
+  },
+  "fixed_synthetic_voice_wav": {
+    "file": "free-voice-smoke-speech.wav",
+    "mime_type": "audio/wav",
+    "channels": 1,
+    "sample_rate": 24000,
+    "bits_per_sample": 16,
+    "frames": 158627,
+    "duration_seconds": 6.6095,
+    "bytes": 317298,
+    "sha256": "93b6b316c951e1ad248bb4aa0097806df4f47f0ef690340492789bb741eec591",
+    "peak": 13793,
+    "rms": 2219.765
+  }
+}

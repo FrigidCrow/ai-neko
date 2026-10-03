@@ -506,6 +506,8 @@ Windows包实测修复登记（2026-10-04）：9fe98b5/CI37130603228双平台完
 
 前置CI参数修复登记：2bde251/CI37134902832在uv参数解析阶段失败，工作流全局UV_PYTHON_PREFERENCE=only-managed与新步骤显式--managed-python互斥；尚未执行native probe或完整Windows测试。只删除该步骤的冗余CLI标志，保留全局only-managed、固定Python/锁、no-python-downloads及独立venv。用相同环境验证准确命令，不更改产品实现或放宽导入/模型门禁。
 
+17.10交付结果（2026-10-04）：V1–V5在上述范围完成。源码b443768df012fa4c88036f2fc13321b1e79d1d84、CI37135192000三个必需job成功，tag发布跳过。Windows1673/0skip（473.937秒）、Linux1672/1平台skip（105.268秒）、桌面106、冻结30题及200篇基准通过（66.5625ms/12.566144ms）。原生3wheel前置0.391秒自然退出；同ZIP既有16/9/21/8与实际模型免费语音11全部通过。真实安装37.5秒、固定句TTS17.297秒/ASR2.219秒、归一化CER0但原始标点有额外逗号；重启ready无需再下载。实际下载192176491字节ZIP及226源码输入/锁/许可/79素材/17截图摘要、native版本和测试音频独立核对PASS，见[最新报告](MVP2-WINDOWS-VERIFICATION.md)与[机器核验](evidence/mvp2/free-voice/windows/windows-download-verification.json)。语音免Key/不调用付费API，旧报告与失败保留，没有tag/Release。单次固定样本不证明真人噪声/术语/音色或低延迟；对话模型和完整MVP2真实服务、Windows11游戏/硬件仍Pending。
+
 ## 18. MVP1 收尾与CI/CD（2026-09-27，已授权）
 
 用户要求“取消问题修复 + 所有问题收束，CICD，MVP1正式结束，然后准备进入MVP2”。本批次完成MVP1工程缺陷收尾、明确剩余验收边界、推送并验证现有CI/CD和Windows下载产物；不实施G1–G6。正式收尾不得把缺少真实服务或Windows11证据的验收写成通过。

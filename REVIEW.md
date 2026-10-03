@@ -474,3 +474,16 @@ Windows管道已改PeekNamedPipe，不留下阻塞stdin读；50ms检查EOF/异�
 CI37134902832 Windows前置新增命令在uv参数解析失败：全局UV_PYTHON_PREFERENCE=only-managed与--managed-python互斥。native probe/Windows全量/包均未执行，不能记通过；job独立日志已取得（gh api actions/jobs/111237346632/logs）。只删冗余显式标志，保留全局managed选择/锁/独立环境。该失败是CI接线，不是新worker native失败。
 
 已从修正后的workflow提取完整native安装命令，以CI相同UV_PYTHON_PREFERENCE=only-managed、uv0.11.8和全新中文空格profile实际执行，exit0并安装三项锁定wheel，无模型下载；只修改一处workflow标志，diff检查通过，不重复未改变的产品全量。本机此前1672/1skip与真实API9证据仍对应同一产品代码。
+
+
+## 2026-10-04 — 免费本地语音 Windows 包交付通过
+
+最终产品源码b443768df012fa4c88036f2fc13321b1e79d1d84，CI37135192000三个必需job成功，tagged发布跳过。Windows1673/0skip、473.937秒；Linux1672/1既有平台skip、105.268秒；Node106、冻结30题、200篇基准通过（Windows66.5625ms/Linux12.566144ms）。固定三wheel早期native导入0.391秒，stdin全程开放且自然exit0，证明此前导入边界已实际跑通。
+
+同一应用ZIP的后端16、桌宠9、陪伴21、G6联合8，以及真实免费语音11项全部通过。中文/空格目录实际安装37.5秒；固定句TTS17.297秒生成24kHz/317298字节/6.6095秒WAV，ASR2.219秒，归一化CER0但原始文本多一个逗号；两个不同后端PID重启后ready且无重下。云模型/付费API/用户麦克风/用户桌面采集均0；它是固定文本的真实本地模型结果，不等于真实用户语音或低延迟达标。
+
+实际下载ZIP192176491字节，SHA256 f5035842285b15c4009485556a56d38862ce352588ffa31a0bf5caeb8776fb91。`uv run --locked python artifacts/free-voice/verify_windows_download.py --run 37135192000 --sha b443768df012fa4c88036f2fc13321b1e79d1d84 --linux-passed 1672 --windows-passed 1673 --desktop-passed 106` PASS：CRC、内外build-info、226源码输入与Windows检出字节、主/私有锁、AMD64、66许可文件、79素材、17截图摘要、实际wheel与模型/下载摘要、WAV/重采样/CER独立重算全通过。完整机器核验和报告归档docs/evidence/mvp2/free-voice/windows，原失败与旧包证据不覆盖。
+
+Root实际查看本轮免费语音设置及G6新进程聊天两图，入口/下载提示/麦克风区域/采用原文与YUI呈现正常，visual-review.json单列范围；没有声称所有DPI/真实游戏/声学通过。下载入口更新为0.4.0-dev.b443768df012，artifact11278787928到期2026-10-17 16:14:17 UTC，通常需GitHub登录；没有tag/Release。对话模型仍需单配，真实Windows11麦克风、噪声/术语/主观音色和完整MVP2质量/性能仍Pending。免费语音本批实现与Windows包交付范围完成。
+
+文档交付复核：`uv run --locked python docs/diagrams/tools/validate-docs.py > artifacts/free-voice/docs-final-delivery-validation.json` PASS（42 Markdown、613本地链接、20图，issues=[]，参考工程指纹保持不变）；`git diff --check`通过。便携归档逐字节核对下载报告、构建信息、WAV/截图和实际核验脚本SHA均一致，当前文档改动与包226份源码输入交集为空。只提交文档与证据并以`[skip ci]`推送，已验证产品仍为b443768，不因记录更新重新打包。

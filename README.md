@@ -2,21 +2,21 @@
 
 独立的个人 AI 伴侣项目：主体是 Windows 11 x64 桌面上的可见猫娘桌宠，文字聊天、流式回复和查攻略围绕她展开。LangGraph 负责对话编排，会话保存在本机，允许调用自己配置的云模型。
 
-**最新 MVP2 Windows 开发包为 `0.4.0-dev.50227627e8d4`，已通过 Windows CI 和实际下载核对。** 保留参考 N.E.K.O. 的白裙 **YUI Lolita 猫娘**和本项目 Electron 宿主，提供透明角色、待机、拖动/缩放/置顶、伴随聊天、托盘找回和退出。未配置模型时也能显示猫娘，收起聊天后她仍留在桌面。
+**最新 MVP2 Windows 开发包为 `0.4.0-dev.b443768df012`，已通过 Windows CI、真实免费语音测试和实际下载核对。** 保留参考 N.E.K.O. 的白裙 **YUI Lolita 猫娘**和本项目 Electron 宿主，提供透明角色、待机、拖动/缩放/置顶、伴随聊天、托盘找回和退出。未配置模型时也能显示猫娘，收起聊天后她仍留在桌面。
 
 本版加入攻略库、本地资料复用与当前对局管理：保存并采用攻略后，可在后续提问和新聊天中引用同一份原文；切换攻略、新开一局和明确历史复盘各有边界。已有可编辑人格、当轮视觉、按键语音、按句朗读、共享搜索及长期记忆；已完整听完的句子可进入后续上下文。N.E.K.O. 分词/BM25组件的来源和许可已保留，使用与验收见[五项能力说明](docs/COMPANION-IMPLEMENTATION.md)。
 
-下载[最新 MVP2 Windows 开发包（Actions 产物）](https://github.com/FrigidCrow/ai-neko/actions/runs/36716659417/artifacts/11096433755)，解开产物容器，再完整解压其中的 **`ai-neko-0.4.0-dev.50227627e8d4-windows-x64.zip`，双击根目录 `ai-neko.exe`**。通常需登录 GitHub，产物保留至 **2026-10-14 12:59:01 UTC**。包内包含 Electron、Python、猫娘和运行依赖，无需另装 Python、Node 或 uv。首次接受 Live2D 条款后加载角色；模型、ASR 和 TTS 分别在设置中配置，看图需使用支持图片输入的模型。
+下载[最新 MVP2 Windows 开发包（Actions 产物）](https://github.com/FrigidCrow/ai-neko/actions/runs/37135192000/artifacts/11278787928)，解开产物容器，再完整解压其中的 **`ai-neko-0.4.0-dev.b443768df012-windows-x64.zip`，双击根目录 `ai-neko.exe`**。通常需登录 GitHub，产物保留至 **2026-10-17 16:14:17 UTC**。包内包含 Electron、Python、猫娘和运行依赖，无需另装 Python、Node 或 uv。首次接受 Live2D 条款后加载角色；聊天模型单独配置，看图需使用支持图片输入的模型。免费语音组件在首次启用时下载。
 
-免费搜索入口：**设置 → 共享联网搜索 → AnySearch（免费免 Key）**，核对基础地址 `https://api.anysearch.com/v1` 后保存。切换时已有自定义地址不会自动覆盖；模型与语音仍需各自配置。额度和实测边界见[免费服务说明](docs/FREE-SERVICES-AND-WINDOWS-VM.md)。
+免费搜索入口：**设置 → 共享联网搜索 → AnySearch（免费免 Key）**，核对基础地址 `https://api.anysearch.com/v1` 后保存。切换时已有自定义地址不会自动覆盖；聊天模型仍需单独配置，语音可选下方免费方案。额度和实测边界见[免费服务说明](docs/FREE-SERVICES-AND-WINDOWS-VM.md)。
 
-源码现已加入**免费本地中文语音：SenseVoice 识别 + Kokoro 朗读**。设置中选择本地免费语音，首次下载约 310 MB 模型及运行组件，之后不需要语音 Key。详见[免费语音使用说明](docs/FREE-VOICE.md)；上方旧开发包尚不含此功能，新 Windows 包验证结果另行更新。
+本包已包含**免费本地中文语音：SenseVoice 识别 + Kokoro 朗读**。在 **设置 → 语音输入与输出 → 免费本地语音（无需 Key）** 中点击 **“下载并启用免费语音”**；首次下载约 310 MB 模型及额外运行组件，建议预留 2 GiB。准备完成后可点“试听已保存的音色”，无需聊天模型或语音 Key。语音在本机运行，不产生语音 API 费用；聊天模型仍需单独配置，详见[免费语音使用说明](docs/FREE-VOICE.md)。
 
-[本次 CI](https://github.com/FrigidCrow/ai-neko/actions/runs/36716659417)通过 Windows 1,581 项、Linux 1,580 项及 1 项平台跳过，两平台桌面单测各 92 项；实际解压包通过后端 16 项、桌宠 9 项、陪伴 21 项、G6 联合 8 项。200 篇攻略、100 个样本的本地检索 p95 为 Windows **80.3016ms**、Linux **26.84471ms**，均低于 150ms 门槛。包摘要及完整证据见[Windows 验证报告](docs/MVP2-WINDOWS-VERIFICATION.md)和[下载与校验](docs/CI-RELEASES.md)。
+[本次 CI](https://github.com/FrigidCrow/ai-neko/actions/runs/37135192000)通过 Windows 1,673 项、Linux 1,672 项及 1 项平台跳过，两平台桌面单测各 106 项；实际解压包通过后端 16 项、桌宠 9 项、陪伴 21 项、G6 联合 8 项及真实免费语音 11 项。固定短句的真实语音合成约 17.297 秒、识别约 2.219 秒；初版每次请求都加载模型，暂不承诺即时响应。包摘要及完整证据见[Windows 验证报告](docs/MVP2-WINDOWS-VERIFICATION.md)和[下载与校验](docs/CI-RELEASES.md)。
 
-**Windows 11 x64 真实游戏、真实模型/语音质量、端到端冷暖性能及硬件停止延迟仍待验收，完整 MVP2 尚未完成。** Windows Server 2022 CI 使用合成窗口、麦克风和服务；公开 AnySearch 搜索与网页正文读取已单独实测，不代表完整带来源模型问答质量。本地资料复用仍使用所配置的模型。最新边界见[REVIEW](REVIEW.md)；免按键语音、角色扩展和主动陪伴仍属后续范围，当前不做键鼠代操作。
+**Windows 11 x64 真实游戏、聊天模型建议质量、用户麦克风/音色、端到端冷暖性能及硬件停止延迟仍待验收，完整 MVP2 尚未完成。** Windows Server 2022 CI 的四套原有包测试使用合成窗口、麦克风和服务，新增免费语音测试则用真实本地模型处理固定文本与合成音频；公开 AnySearch 搜索与网页正文读取已单独实测，不代表完整带来源模型问答质量。本地资料复用仍使用所配置的模型。最新边界见[REVIEW](REVIEW.md)；免按键语音、角色扩展和主动陪伴仍属后续范围，当前不做键鼠代操作。
 
-历史 [MVP1 收尾包](docs/MVP1-CLOSEOUT.md)和 [v0.4.0-alpha.1 Release](https://github.com/FrigidCrow/ai-neko/releases/tag/v0.4.0-alpha.1)继续保留，均不包含本次 MVP2 攻略、对局与免费搜索能力。本轮交付分支开发包，没有创建新 Release；历史发布与校验见[CI/CD 记录](docs/CI-RELEASES.md)。
+此前 `50227627e8d4` 攻略与免费搜索开发包的[完整记录](docs/MVP2-WINDOWS-VERIFICATION.md#历史50227627e8d4-攻略与免费搜索开发包)继续保留，该包不含免费本地语音。历史 [MVP1 收尾包](docs/MVP1-CLOSEOUT.md)和 [v0.4.0-alpha.1 Release](https://github.com/FrigidCrow/ai-neko/releases/tag/v0.4.0-alpha.1)继续保留，均不包含本次 MVP2 攻略、对局与免费搜索能力。本轮交付分支开发包，没有创建新 Release；历史发布与校验见[CI/CD 记录](docs/CI-RELEASES.md)。
 
 [v0.3.0-alpha.1](https://github.com/FrigidCrow/ai-neko/releases/tag/v0.3.0-alpha.1)是历史基础桌宠版；[v0.2.0-alpha.1](https://github.com/FrigidCrow/ai-neko/releases/tag/v0.2.0-alpha.1)是网页预览，`v0.1.0-alpha.1`为基础诊断包。旧版本保留。
 

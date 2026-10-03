@@ -1,6 +1,6 @@
 # 五项能力的实施与验收
 
-日期：2026-09-26；使用说明更新：2026-10-03。状态：原五项能力的源码、合成闭环及Windows Server打包运行已通过；完整真实服务和Windows11真机验收未完成。历史`v0.4.0-alpha.1`已发布并包含原五项功能，可从[Release页](https://github.com/FrigidCrow/ai-neko/releases/tag/v0.4.0-alpha.1)下载。AnySearch为2026-09-30新增，免费本地语音为2026-10-03新增，需使用包含对应改动的[开发包](CI-RELEASES.md)，旧Release不含这些免费选项。
+日期：2026-09-26；使用说明更新：2026-10-04。状态：原五项能力的源码、合成闭环及Windows Server打包运行已通过；完整真实服务和Windows11真机验收未完成。历史`v0.4.0-alpha.1`已发布并包含原五项功能，可从[Release页](https://github.com/FrigidCrow/ai-neko/releases/tag/v0.4.0-alpha.1)下载。AnySearch为2026-09-30新增，免费本地语音为2026-10-03新增，最新[开发包](CI-RELEASES.md)已包含这些改动并通过真实本地语音安装/推理检查，旧Release不含这些免费选项。
 
 ## 可操作的功能
 

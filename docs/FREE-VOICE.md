@@ -1,6 +1,6 @@
 # 免费本地语音
 
-2026-10-03：按用户选择，ai-neko 新增无需账号或 API Key 的本地中文语音。SenseVoice Small INT8 负责录音转文字，Kokoro v1.1 中文 INT8 负责朗读，使用 CPU。下载完成后，语音推理不访问云端，不产生语音 API 费用；聊天大模型仍在模型设置中单独配置。
+2026-10-04：按用户选择，ai-neko 新增无需账号或 API Key 的本地中文语音。SenseVoice Small INT8 负责录音转文字，Kokoro v1.1 中文 INT8 负责朗读，使用 CPU。下载完成后，语音推理不访问云端，不产生语音 API 费用；聊天大模型仍在模型设置中单独配置。
 
 ## 使用
 
@@ -21,7 +21,9 @@ Mac M4 上已下载固定版本组件并执行真实中文 TTS 与 ASR。[最新
 
 每次请求独立启动推理进程，因此第一次和后续请求都包含模型加载时间。取消、切换语音模式和退出应用会取消相关任务，并等待推理进程结束；停止音频仍由已有播放器即时清空播放。模型推理取消、播放器停止和硬件真正静音是不同的测量，后者仍需真实设备验收。
 
-Windows Server CI 将从同一个应用 ZIP 解压后的后端触发安装，实测中文合成和回识别，报告为 `free-voice-smoke.json`。它与既有合成服务的陪伴测试分开计数；Mac 测试和 Windows Server 测试均不能代替 Windows 11 游戏、麦克风与音色试听。CI 完成前不将其记为通过。
+[Windows 开发包](https://github.com/FrigidCrow/ai-neko/actions/runs/37135192000/artifacts/11278787928)（`0.4.0-dev.b443768df012`）已通过真实免费语音11项检查及[实际下载核对](evidence/mvp2/free-voice/windows/windows-download-verification.json)。从同一 ZIP 解压后的程序在中文和空格目录中完成安装，约37.5秒；固定短句合成约17.297秒，音频约6.6095秒，识别约2.219秒。归一化文字CER为0，但原始识别多了一个逗号，不能称逐字完全一致。两个独立后端进程验证重启后资源就绪、无需重新下载，见[真实包语音报告](evidence/mvp2/free-voice/windows/free-voice-smoke.json)。
+
+[Windows 实际合成音频](evidence/mvp2/free-voice/windows/free-voice-smoke-speech.wav)可试听。上述耗时来自CI机器和单个固定样本，初版每请求加载模型，尚不适合承诺即时语音。免费语音与聊天模型的费用/响应分别计算，聊天模型仍需单独配置。真实免费语音报告与使用合成服务的桌面闭环分开计数；Mac和Windows Server均不替代Windows11游戏、用户麦克风、噪声/术语准确率与硬件音色试听。
 
 ## 来源与升级
 

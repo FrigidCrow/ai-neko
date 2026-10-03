@@ -1,0 +1,273 @@
+{
+  "schema_version": 1,
+  "app_id": "ai-neko",
+  "stage": "windows-packaged-free-voice",
+  "status": "PASS",
+  "started_at_utc": "2026-10-03T16:13:05.408036+00:00",
+  "archive": "D:\\a\\ai-neko\\ai-neko\\artifacts\\package\\ai-neko-0.4.0-dev.b443768df012-windows-x64.zip",
+  "archive_sha256": "f5035842285b15c4009485556a56d38862ce352588ffa31a0bf5caeb8776fb91",
+  "executable_sha256": "6b588a7560b203eb52472db2c92d4b4c7b5e08d80d64bbfc7a3ae44de13e68ec",
+  "source_commit": "b443768df012fa4c88036f2fc13321b1e79d1d84",
+  "environment": {
+    "system": "Windows",
+    "release": "10",
+    "version": "10.0.20348",
+    "machine": "AMD64",
+    "harness_python": "3.11.15",
+    "harness_pointer_bits": 64,
+    "windows_product_type": 3,
+    "windows_build": 20348,
+    "application_runtime": "extracted_executable_only",
+    "application_path": "windows_system_directories_only"
+  },
+  "tests": {
+    "kind": "real_local_voice_with_fixed_synthetic_text",
+    "cases": [
+      {
+        "name": "windows_x64_execution_environment",
+        "outcome": "PASS"
+      },
+      {
+        "name": "archive_layout_and_safe_extraction",
+        "outcome": "PASS"
+      },
+      {
+        "name": "authenticated_packaged_backend",
+        "outcome": "PASS"
+      },
+      {
+        "name": "voice_routes_reject_missing_auth",
+        "outcome": "PASS"
+      },
+      {
+        "name": "explicit_install_reaches_ready",
+        "outcome": "PASS"
+      },
+      {
+        "name": "installed_model_and_runtime_provenance",
+        "outcome": "PASS"
+      },
+      {
+        "name": "local_selection_preserves_cloud_configuration",
+        "outcome": "PASS"
+      },
+      {
+        "name": "real_local_chinese_tts_without_chat_model",
+        "outcome": "PASS"
+      },
+      {
+        "name": "real_local_asr_recognizes_synthesized_chinese",
+        "outcome": "PASS"
+      },
+      {
+        "name": "restart_preserves_ready_resources",
+        "outcome": "PASS"
+      },
+      {
+        "name": "graceful_stop_and_unchanged_archive",
+        "outcome": "PASS"
+      }
+    ]
+  },
+  "scope": {
+    "actual_user_microphone_captures": 0,
+    "paid_api_calls": 0,
+    "conversational_model_calls": 0,
+    "real_voice_inference": "PASS",
+    "network_during_installation": "public_pinned_runtime_and_models",
+    "speaker_playback": "NOT_TESTED",
+    "windows_11_device_acceptance": "NOT_TESTED"
+  },
+  "desktop_executable_sha256": "bd14928e0728366fd3f41499cb398ff3f4304dab259a3e605077899a6f8c748e",
+  "execution": {
+    "backend_executable": "C:\\Users\\runneradmin\\AppData\\Local\\Temp\\ai-neko 免费语音 验证 ze0bv4l_\\解压 程序\\ai-neko-0.4.0-dev.b443768df012-windows-x64\\resources\\backend\\ai-neko.exe",
+    "working_directory": "C:\\Users\\runneradmin\\AppData\\Local\\Temp\\ai-neko 免费语音 验证 ze0bv4l_\\解压 程序\\ai-neko-0.4.0-dev.b443768df012-windows-x64",
+    "data_root": "C:\\Users\\runneradmin\\AppData\\Local\\Temp\\ai-neko 免费语音 验证 ze0bv4l_\\免费语音 合成数据",
+    "source_application_imports": false
+  },
+  "installation": {
+    "timeout_seconds": 900,
+    "explicit_confirmation": true,
+    "transitions": [
+      {
+        "state": "installing",
+        "stage": "prepare",
+        "downloaded_bytes": 0,
+        "total_bytes": 333564297,
+        "supported": true,
+        "elapsed_seconds": 0.234
+      },
+      {
+        "state": "installing",
+        "stage": "runtime",
+        "downloaded_bytes": 23530194,
+        "total_bytes": 333564297,
+        "supported": true,
+        "elapsed_seconds": 1.25
+      },
+      {
+        "state": "installing",
+        "stage": "asr",
+        "downloaded_bytes": 100076242,
+        "total_bytes": 333564297,
+        "supported": true,
+        "elapsed_seconds": 11.281
+      },
+      {
+        "state": "installing",
+        "stage": "tts",
+        "downloaded_bytes": 238961877,
+        "total_bytes": 333564297,
+        "supported": true,
+        "elapsed_seconds": 24.531
+      },
+      {
+        "state": "ready",
+        "stage": "complete",
+        "downloaded_bytes": 333564297,
+        "total_bytes": 333564297,
+        "supported": true,
+        "elapsed_seconds": 37.5
+      }
+    ],
+    "last_status": {
+      "state": "ready",
+      "stage": "complete",
+      "downloaded_bytes": 333564297,
+      "total_bytes": 333564297,
+      "supported": true
+    },
+    "elapsed_seconds": 37.5
+  },
+  "installed_resources": {
+    "manifest": {
+      "schema": 1,
+      "lock": "40969ef42c9e38498e887af1016410a24cca58e0df34105e09adb38628a16083",
+      "asr": "7d1efa2138a65b0b488df37f8b89e3d91a60676e416f515b952358d83dfd347e",
+      "tts": "a1e94694776049035c4f2c6529f003aaece993c76aae9a78995831c3c4dcafc6",
+      "python": "3.11.15"
+    },
+    "runtime_packages": [
+      {
+        "name": "numpy",
+        "version": "2.4.4"
+      },
+      {
+        "name": "sherpa-onnx",
+        "version": "1.13.8"
+      },
+      {
+        "name": "sherpa-onnx-core",
+        "version": "1.13.8"
+      }
+    ],
+    "runtime_packages_source": "uv.lock_declarations",
+    "installed_packages": [
+      {
+        "name": "numpy",
+        "version": "2.4.4"
+      },
+      {
+        "name": "sherpa-onnx",
+        "version": "1.13.8"
+      },
+      {
+        "name": "sherpa-onnx-core",
+        "version": "1.13.8"
+      }
+    ],
+    "installed_packages_source": "private_venv_dist_info_METADATA",
+    "installed_packages_match_lock": true,
+    "download_archives": [
+      {
+        "name": "kokoro-int8-multi-lang-v1_1.tar.bz2",
+        "bytes": 147031220,
+        "sha256": "a1e94694776049035c4f2c6529f003aaece993c76aae9a78995831c3c4dcafc6"
+      },
+      {
+        "name": "sherpa-onnx-sense-voice-zh-en-ja-ko-yue-int8-2024-07-17.tar.bz2",
+        "bytes": 163002883,
+        "sha256": "7d1efa2138a65b0b488df37f8b89e3d91a60676e416f515b952358d83dfd347e"
+      },
+      {
+        "name": "uv-x86_64-pc-windows-msvc.zip",
+        "bytes": 23530194,
+        "sha256": "c84629a56e0706b69a47ea35862208af827cb6fbfa1d0ca763c52c67594637e8"
+      }
+    ],
+    "models": [
+      {
+        "name": "kokoro-int8-multi-lang-v1_1",
+        "model_bytes": 114299010,
+        "model_sha256": "bda15858163726a492d02a9a727bc263551b86ac77f90812c4b30ff41d380e26"
+      },
+      {
+        "name": "sherpa-onnx-sense-voice-zh-en-ja-ko-yue-int8-2024-07-17",
+        "model_bytes": 239233841,
+        "model_sha256": "c71f0ce00bec95b07744e116345e33d8cbbe08cef896382cf907bf4b51a2cd51"
+      }
+    ],
+    "worker_sha256": "e6ff99a934e61dd90ed03a37382b462b6ce173cc382608b49b2965cfe116aedb",
+    "model_files_sha256": "a6136bfec950e263944d94bca59b136c62787569791c0b9b99ee01e3a5d4c0ba"
+  },
+  "configuration": {
+    "voice_provider": "local",
+    "cloud_voice_keys_set": false,
+    "prior_cloud_voice_fields_preserved": true,
+    "chat_model_configured": false
+  },
+  "synthesis": {
+    "text": "你好，我是小猫。今天我们一起学习，让生活更有趣。",
+    "characters": 24,
+    "elapsed_seconds": 17.297,
+    "timeout_seconds": 120,
+    "audio": {
+      "mime_type": "audio/wav",
+      "channels": 1,
+      "sample_rate": 24000,
+      "bits_per_sample": 16,
+      "frames": 158627,
+      "duration_seconds": 6.6095,
+      "bytes": 317298,
+      "sha256": "93b6b316c951e1ad248bb4aa0097806df4f47f0ef690340492789bb741eec591",
+      "peak": 13793,
+      "rms": 2219.765,
+      "file": "free-voice-smoke-speech.wav"
+    }
+  },
+  "recognition": {
+    "text": "你好，，我是小猫。今天我们一起学习，让生活更有趣。",
+    "characters": 25,
+    "elapsed_seconds": 2.219,
+    "timeout_seconds": 120,
+    "input_audio": {
+      "mime_type": "audio/wav",
+      "channels": 1,
+      "sample_rate": 16000,
+      "bits_per_sample": 16,
+      "frames": 105751,
+      "duration_seconds": 6.6094,
+      "bytes": 211546,
+      "sha256": "d6d34fc2a617131091a0109b917f5845935f62425074535cc987708e021f04fe",
+      "peak": 13563,
+      "rms": 2188.2176
+    },
+    "match": {
+      "expected_normalized_characters": 20,
+      "recognized_normalized_characters": 20,
+      "edit_distance": 0,
+      "character_error_rate": 0.0,
+      "maximum_character_error_rate": 0.35,
+      "passed": true,
+      "scope": "one_fixed_synthesized_chinese_sentence_not_microphone_quality"
+    }
+  },
+  "restart": {
+    "first_pid": 3468,
+    "second_pid": 1112,
+    "ready_without_redownload": true
+  },
+  "finished_at_utc": "2026-10-03T16:14:14.302258+00:00",
+  "duration_seconds": 68.891,
+  "failure_detail_policy": "No raw application logs, stdout, stderr, tokens, request headers or tracebacks."
+}
