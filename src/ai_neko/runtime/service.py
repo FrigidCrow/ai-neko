@@ -43,6 +43,7 @@ from ai_neko.runtime.erasure import erasure_candidates, evidence_ids
 from ai_neko.runtime.guides import GuideRuntimeMixin, conversation_guides_v4
 from ai_neko.runtime.lifecycle import _finish_task, _settled_mutation
 from ai_neko.runtime.matches import MatchRuntimeMixin, conversation_match_bindings_v5
+from ai_neko.runtime.provider_usage import ProviderUsageMixin, conversation_provider_usage_v7
 
 TERMINAL = {"completed", "cancelled", "error", "interrupted"}
 ACTIVE = {"accepted", "running"}
@@ -93,6 +94,7 @@ _MIGRATIONS = [
     (4, conversation_guides_v4),
     (5, conversation_match_bindings_v5),
     (6, conversation_controls_v6),
+    (7, conversation_provider_usage_v7),
 ]
 
 
@@ -114,7 +116,7 @@ def _identifier(value: Any) -> str:
     return value
 
 
-class SessionRuntime(ControlRuntimeMixin, MatchRuntimeMixin, GuideRuntimeMixin):
+class SessionRuntime(ProviderUsageMixin, ControlRuntimeMixin, MatchRuntimeMixin, GuideRuntimeMixin):
     """Single local user/default persona runtime; no caller-supplied scope or DB paths."""
 
     def __init__(self, paths: DataPaths, provider_store: Any):
@@ -217,7 +219,7 @@ class SessionRuntime(ControlRuntimeMixin, MatchRuntimeMixin, GuideRuntimeMixin):
             apply_migrations(
                 self._db,
                 steps=_MIGRATIONS,
-                backup_path=safe_child(self.paths.backups, "conversation-pre-migration-v6.sqlite"),
+                backup_path=safe_child(self.paths.backups, "conversation-pre-migration-v7.sqlite"),
             )
             self.memory = MemoryService(paths)
             self.memory_preferences = MemoryPreferences(paths)
@@ -237,6 +239,7 @@ class SessionRuntime(ControlRuntimeMixin, MatchRuntimeMixin, GuideRuntimeMixin):
                 "conversation-pre-migration-v4.sqlite",
                 "conversation-pre-migration-v5.sqlite",
                 "conversation-pre-migration-v6.sqlite",
+                "conversation-pre-migration-v7.sqlite",
             ):
                 safe_child(paths.backups, name).unlink(missing_ok=True)
         except BaseException:
@@ -395,6 +398,7 @@ class SessionRuntime(ControlRuntimeMixin, MatchRuntimeMixin, GuideRuntimeMixin):
             return self._turn_summary(self._turn(session_id, turn_id))
 
     def _recover(self):
+        self._recover_provider_usage()
         # Constructor holds the exclusive process lock. Never replay network calls.
         rows = self._db.execute(
             "SELECT id,session_id FROM turns WHERE status IN ('accepted','running')"
@@ -506,6 +510,7 @@ class SessionRuntime(ControlRuntimeMixin, MatchRuntimeMixin, GuideRuntimeMixin):
             "last_sequence": row["sent_seq"],
             "last_seq": row["next_seq"] - 1,
             "error": row["error"],
+            "provider_usage": self._provider_usage_summary(row["id"]),
         }
 
     def _heard_prefix(self, turn_id: str, delivered_length: int) -> int:
@@ -769,6 +774,7 @@ class SessionRuntime(ControlRuntimeMixin, MatchRuntimeMixin, GuideRuntimeMixin):
                     "INSERT INTO turns(id,session_id,request_id,input,guide,status,created_at) VALUES(?,?,?,?,?,'accepted',?)",
                     (turn_id, session_id, request_id, text, int(guide), time.time()),
                 )
+                self._initialize_turn_usage(turn_id)
                 self._accept_match_turn(
                     session_id, turn_id, match_snapshot, match, input_origin, review_match_id, text
                 )
@@ -890,6 +896,8 @@ class SessionRuntime(ControlRuntimeMixin, MatchRuntimeMixin, GuideRuntimeMixin):
             from ai_neko.runtime.guide_query import LazyWebTools, local_query
 
             model = None if explicit_control(messages[-1]["content"]) else self.providers.model()
+            if model is not None:
+                self._observe_model_usage(model, turn_id, "chat_generation")
             web_tools = LazyWebTools(self)
             async with AsyncSqliteSaver.from_conn_string(
                 str(self.paths.checkpoints / "chat-graph.sqlite")
@@ -963,13 +971,28 @@ class SessionRuntime(ControlRuntimeMixin, MatchRuntimeMixin, GuideRuntimeMixin):
                 and not self._memory_mutating
                 and not self._closing
             ):
-                await self._memory_call(
-                    self.memory.enqueue_extraction,
-                    "turn:" + turn_id,
-                    messages[-1]["content"],
-                    turn_id=turn_id,
-                    expected_revision=memory_revision,
-                )
+                self._usage_state(turn_id, "memory_extraction", "queued")
+                enqueued = False
+
+                def enqueue():
+                    nonlocal enqueued
+                    result = self.memory.enqueue_extraction(
+                        "turn:" + turn_id,
+                        messages[-1]["content"],
+                        turn_id=turn_id,
+                        expected_revision=memory_revision,
+                    )
+                    # _memory_call drains its physical worker even on caller
+                    # cancellation. Preserve a job committed before that cancel.
+                    enqueued = True
+                    return result
+
+                try:
+                    await self._memory_call(enqueue)
+                except BaseException:
+                    if not enqueued:
+                        self._usage_state(turn_id, "memory_extraction", "not_scheduled")
+                    raise
                 self.start_memory_worker()
         except (asyncio.CancelledError, NodeCancelledError):
             if not self._closed:
@@ -985,6 +1008,8 @@ class SessionRuntime(ControlRuntimeMixin, MatchRuntimeMixin, GuideRuntimeMixin):
             if not self._closed:
                 self._settle(session_id, turn_id, "error", safe)
         finally:
+            self._usage_state(turn_id, "chat_generation", "settled")
+            self._usage_state(turn_id, "memory_extraction", "not_scheduled", pending_only=True)
             self._tasks.pop(turn_id, None)
             if control_job_id:
                 # The mutation worker may drain all chat tasks. Launch only
@@ -1314,12 +1339,71 @@ class SessionRuntime(ControlRuntimeMixin, MatchRuntimeMixin, GuideRuntimeMixin):
         if not self._closed and not self._closing and self.memory_preferences.value["auto_extract"]:
             self._memory_retry = asyncio.get_running_loop().call_later(30, self.start_memory_worker)
 
+    async def _settle_terminal_extraction_usage(self, job):
+        current = None
+
+        def read():
+            nonlocal current
+            current = self.memory.extraction_status(job["id"])
+
+        try:
+            await self._memory_call(read)
+        finally:
+            if current is not None:
+                terminal = current["status"] in {"completed", "cancelled", "failed"}
+                exhausted = current["attempts"] >= 3 and (
+                    current["status"] == "pending"
+                    or (
+                        current["status"] == "running"
+                        and current["lease_until"] is not None
+                        and current["lease_until"] <= time.time()
+                    )
+                )
+                # Keep known terminal observations even if their await is cancelled.
+                # A competing live lease still has an unknown eventual result.
+                if terminal or exhausted:
+                    self._usage_state(job.get("turn_id"), "memory_extraction", "settled")
+
+    async def _fail_extraction_attempt(self, claimed):
+        settled = None
+
+        def settle():
+            nonlocal settled
+            current = self.memory.extraction_status(claimed["id"])
+            # Completion may have committed before _memory_call rethrows the
+            # caller's cancellation. Never fail that job or regress its ledger.
+            if current["status"] == "running":
+                current = self.memory.fail_extraction(
+                    claimed["id"],
+                    lease_token=claimed["lease_token"],
+                    retry=claimed["attempts"] < 3,
+                )
+            settled = {key: current[key] for key in ("status", "attempts")}
+
+        try:
+            await self._memory_call(settle)
+        finally:
+            # A repeated cancellation still drains the physical settlement.
+            # Publish only its known durable outcome, never a presumed retry.
+            if settled is not None:
+                final = settled["status"] in {"completed", "cancelled", "failed"} or (
+                    settled["status"] == "pending" and settled["attempts"] >= 3
+                )
+                self._usage_state(
+                    claimed.get("turn_id"),
+                    "memory_extraction",
+                    "settled" if final else "retry_pending",
+                )
+
     async def _process_memories(self):
         # Durable leases survive a process crash; no chat or audio is replayed.
         # SQLite job-queue operations run off the event loop.
         attempted = set()
         while True:
             jobs = await self._memory_call(self.memory.pending_jobs)
+            for job in jobs:
+                if job["attempts"] >= 3:
+                    await self._settle_terminal_extraction_usage(job)
             candidates = [job for job in jobs if job["id"] not in attempted and job["attempts"] < 3]
             if not candidates:
                 return
@@ -1331,14 +1415,28 @@ class SessionRuntime(ControlRuntimeMixin, MatchRuntimeMixin, GuideRuntimeMixin):
                 or not self.memory_preferences.value["auto_extract"]
             ):
                 return
-            claimed = await self._memory_call(
-                functools.partial(self.memory.claim_extraction, job["id"], lease_seconds=180)
-            )
+            try:
+                claimed = await self._memory_call(
+                    functools.partial(self.memory.claim_extraction, job["id"], lease_seconds=180)
+                )
+            except asyncio.CancelledError:
+                # claim_extraction may have committed a stale job's cancellation
+                # before its waiting caller is cancelled. Reconcile that outcome.
+                await self._settle_terminal_extraction_usage(job)
+                raise
             if claimed is None:
+                await self._settle_terminal_extraction_usage(job)
                 continue
             try:
                 extraction_started = time.monotonic()
-                facts = await extract_facts(self.providers.model(), claimed["source_text"])
+                model = self._observe_model_usage(
+                    self.providers.model(),
+                    claimed.get("turn_id"),
+                    "memory_extraction",
+                    job_id=claimed["id"],
+                    job_attempt=claimed["attempts"],
+                )
+                facts = await extract_facts(model, claimed["source_text"])
                 self.metrics.record(
                     "memory_extraction_ms", (time.monotonic() - extraction_started) * 1000
                 )
@@ -1350,25 +1448,12 @@ class SessionRuntime(ControlRuntimeMixin, MatchRuntimeMixin, GuideRuntimeMixin):
                         lease_token=claimed["lease_token"],
                     )
                 )
+                self._usage_state(claimed.get("turn_id"), "memory_extraction", "settled")
             except asyncio.CancelledError:
-                await self._memory_call(
-                    functools.partial(
-                        self.memory.fail_extraction,
-                        job["id"],
-                        lease_token=claimed["lease_token"],
-                        retry=True,
-                    )
-                )
+                await self._fail_extraction_attempt(claimed)
                 raise
             except Exception:
-                await self._memory_call(
-                    functools.partial(
-                        self.memory.fail_extraction,
-                        job["id"],
-                        lease_token=claimed["lease_token"],
-                        retry=True,
-                    )
-                )
+                await self._fail_extraction_attempt(claimed)
 
     async def update_memory_preferences(self, value):
         result = self.memory_preferences.update(value)
@@ -1748,6 +1833,8 @@ class SessionRuntime(ControlRuntimeMixin, MatchRuntimeMixin, GuideRuntimeMixin):
                 )
                 for table in (
                     "events",
+                    "provider_requests",
+                    "turn_provider_tracking",
                     "turn_memory",
                     "turn_history",
                     "turn_user_history",

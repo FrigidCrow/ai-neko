@@ -3,11 +3,14 @@
 import importlib.util
 import json
 import os
+import runpy
+import shutil
 import subprocess
 import sys
 import zipfile
 from importlib.metadata import PackagePath
 from pathlib import Path
+from types import ModuleType, SimpleNamespace
 
 import pytest
 
@@ -17,6 +20,44 @@ ROOT = Path(__file__).resolve().parents[1]
 spec = importlib.util.spec_from_file_location("build_windows", ROOT / "scripts/build_windows.py")
 builder = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(builder)
+
+
+def test_freeze_datas_supply_both_standalone_voice_workers(tmp_path, monkeypatch):
+    """Exercise the actual spec and the Qwen worker's disk import in a fake bundle."""
+    hooks = ModuleType("PyInstaller.utils.hooks")
+    hooks.collect_submodules = lambda *_: []
+    hooks.copy_metadata = lambda *_, **__: []
+    for name in ("PyInstaller", "PyInstaller.utils"):
+        monkeypatch.setitem(sys.modules, name, ModuleType(name))
+    monkeypatch.setitem(sys.modules, "PyInstaller.utils.hooks", hooks)
+    analysis = SimpleNamespace(pure=[], scripts=[], binaries=[], datas=[])
+
+    def analyze(*_args, **kwargs):
+        analysis.datas = kwargs["datas"]
+        return analysis
+
+    runpy.run_path(
+        str(ROOT / "packaging/ai-neko.spec"),
+        init_globals={
+            "SPECPATH": str(ROOT / "packaging"),
+            "Analysis": analyze,
+            "PYZ": lambda *_args: None,
+            "EXE": lambda *_args, **_kwargs: None,
+            "COLLECT": lambda *_args, **_kwargs: None,
+        },
+    )
+    for source, destination in analysis.datas:
+        if Path(source).is_file():
+            assert "__pycache__" not in Path(source).parts
+            target = tmp_path / destination / Path(source).name
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(source, target)
+    worker = tmp_path / "ai_neko/media/qwen_runtime/worker.py"
+    assert worker.is_file()
+    assert (worker.parents[1] / "local_runtime/worker.py").is_file()
+    # Top-level import needs no model packages, registered paths, GPU or network.
+    namespace = runpy.run_path(str(worker))
+    assert callable(namespace["guard_parent"]) and callable(namespace["deny_network"])
 
 
 @pytest.mark.parametrize("value", ["0.1.0", "0.1.0-alpha.1", "0.1.0-dev.123abcd"])

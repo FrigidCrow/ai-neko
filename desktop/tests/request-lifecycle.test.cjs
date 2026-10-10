@@ -254,7 +254,9 @@ test('a late revoked response cannot clear or replace a newer submission', async
     assert.equal(app.calls.begin.length, 0);
     newResponse.resolve({ status: 202, body: { id: newTurn, context: { match: { match_id: null, expected_revision: 0 } } } });
     await current; await drain();
-    assert.deepEqual(app.calls.begin, [[newTurn, SID, { match_id: null, expected_revision: 0 }]]);
+    assert.equal(app.calls.begin.length, 1);
+    assert.deepEqual(app.calls.begin[0].slice(0, 4), [newTurn, SID, { match_id: null, expected_revision: 0 }, false]);
+    assert.ok(Number.isFinite(app.calls.begin[0][4].submittedAt));
     assert.equal(app.byId('message-input').value, '');
     assert.equal(app.calls.captures, 2);
   } finally { await app.dispose(); }

@@ -1,5 +1,21 @@
 # ai-neko 实施计划
 
+### 2026-10-04 麦克风设备刷新反馈修复（实施前登记）
+
+用户实际点击设备刷新后感觉没有反应。只读现场确认刷新已成功（麦克风下拉4项、扬声器5项），但成功提示位于隐藏聊天面板。将刷新中、完成设备数量及失败原因显示在声音设备区域内的 aria-live 元素，保持撤销/迟到结果的所有权约束。只做离线针对测试；当前桌宠不重启、不主动开麦、不改权限策略和OS设置。验收：设置页就近反馈成功/失败，迟到回调不覆盖新操作；当前运行页面加载补丁前不得称新反馈已上线。
+
+### 2026-10-04 Windows 真实媒体接通（实施前登记）
+
+- 复用现有独立本地语音安装器，从已固定的官方 k2-fsa/sherpa-onnx 发布下载 SenseVoice 与 Kokoro，核对摘要、许可和锁定运行依赖；不读取或复制已保存模型 Key。
+- 将现有应用语音配置切换为 local，先验证真实本地 TTS 输出和合成音频 ASR 回读；合成回读单独计数，不能替代用户真实麦克风输入或扬声器试听。
+- 复核 Windows 麦克风权限、录音上传、播放和停止行为。真实麦克风录音必须等待用户明确开始并说出测试短句。
+- 仅用专门创建的无敏感测试窗口验证屏幕选择、单帧上传及已配置 deepseek-flash 的图像回答；不发送私人屏幕，不切换供应商。已有官方图像能力可用时不另建 OCR/模型决策循环。
+- 在必要范围内修复发现的代码/配置问题；白盒、合成、真实 API、桌面黑盒各自记录。验收由现有 Sol 任务接手，交接前禁止并发修改配置。本轮不推送、不发布。
+
+验收：资源与运行时安装 ready；真实本地短句 TTS/ASR 的 WAV 参数、耗时和识别文本有证据；真实麦克风及可听输出和无敏感窗口截图回答逐项 PASS/FAIL/PENDING；未完成项不得写成通过。
+
+本轮实施结果：官方固定资源下载 333,564,297 bytes 并校验通过，local provider 已保存；真实本地 Kokoro/SenseVoice 固定合成句推理通过，桌面试听队列正常结束。修复扬声器选择影响录音、自动停止越过60秒整段丢弃、迟到设备刷新干扰新录音三项边界，桌面确定性测试 109/109 通过。真实麦克风、用户确认可听、原生受控窗口捕获和 DeepSeek 图像理解仍为 Pending，交现有 Sol 按 `reports/blackbox/windows-20261003-164747/e2e-prep-20261004-074104/TEST-PLAN.md` 验收。
+
 更新：2026-09-30。范围依据：用户要求独立建立项目，使用 LangGraph，具体实现参考已完成的 N.E.K.O 教程与源码，并优先复用已有交互模块。
 
 **当前基线：MVP1工程收尾完成，MVP2 G1–G6、免费搜索及Windows开发包合成验收/下载核对通过；真实模型/语音与Windows11游戏验收待完成。** 最新包源码`5022762`，详见[Windows交付报告](MVP2-WINDOWS-VERIFICATION.md)及第17.9节；[MVP1收尾报告](MVP1-CLOSEOUT.md)和v0.4.0-alpha.1是历史基线。完整MVP2未通过，真实环境边界见最新REVIEW。
@@ -520,3 +536,183 @@ Windows包实测修复登记（2026-10-04）：9fe98b5/CI37130603228双平台完
 - C6：更新MVP1收尾报告、README、HANDOFF/WORKLOG/REVIEW，并将MVP2保持在可接手的G1准备状态。发布标签或更改GitHub默认分支不作为本次收尾的前提。
 
 收尾结果：C1–C6完成。修复源码`748bab5164882c044b4108d41a7fa8df82a99a32`的CI36316166347通过，Windows641/0skip、Linux640/1平台skip，宿主64、冻结后端16、桌宠9、陪伴20通过；实际下载ZIP及源码/摘要核对PASS。详见[MVP1工程收尾](MVP1-CLOSEOUT.md)。G1工作单已备妥但尚未实施，真实服务/Windows11体验仍Pending，M0–M6完整路线的历史Partial/Pending不因此提升。
+
+## 19. Windows 本地语音延迟与音色（2026-10-04，实施前登记）
+
+用户授权针对每段冷加载和句间串行等待实施局部修复。保持当前 Sol 取证实例、配置、Key 和用户数据；收到取证完成通知前不重启或重新加载桌宠。不下载新模型、不换云 TTS、不推送。
+
+- L1：复用受控本地 worker 及按需加载的 ASR/TTS 模型；保留串行推理、包含排队时间的期限、取消后实际进程退出、父进程退出回收、崩溃后下一请求重建和关闭等待。协议有界，拒绝错误 PID/响应及过大数据，不自动重放失败请求。
+- L2：播放当前段时最多预取下一段；播放仍顺序执行，停止/换代/关闭/错误后不播放旧音频，预取失败无未处理拒绝，预取不冒充首音冷启动优化。
+- L3：增加本地 Kokoro v1.1 speaker ID 配置与必要界面；默认保持 ID46，校验合法整数范围，保存与读取闭环，不借用云端 tts_voice。用已安装模型的三条不同官方中文女声以相同短句、原始语速生成离线试听；不以女声标签保证年轻听感。
+- L4：独立离线基准比较同句旧实现冷启动、新实现冷/热合成耗时及进程内存，记录固定模型/依赖/源码摘要与资源回收证据；仅合成资料，云调用和麦克风采集均为零。
+- L5：完整相关白盒回归覆盖协议、复用、取消/排队超时/崩溃/关闭/父退出、声线配置及有界预取；运行桌面全套及 Python 全套适用检查。实际命令写 WORKLOG、测量与未完成项写 REVIEW。当前运行实例未加载新代码、真实用户听感及端到端首音延迟单列，不能以离线 WAV 或测试通过代替。
+
+L1–L5局部交付结果：代码、白盒与离线基准完成，Python1703/13符号链接权限skip、desktop121，Ruff/134文件格式通过。真实15次离线TTS独立计数，三条不同原声试听已生成；冷9.780秒、热中位8.628秒，加载被复用但纯推理仍8.5–8.7秒，语音慢尚未解决，不能标为体验通过。1/2/4线程有界比较后保留2线程；取消close实测worker已退出。11:04–11:06 UTC在重新确认空闲与已保存后正常重启为PID187040，原Key保留，新代码已加载，干净新会话/仅聊天/观察关闭。实际首音改善和主观音色仍Pending，见[本轮报告](../reports/voice-performance-20261004/REPORT.md)；未下载新模型、推送或发布。
+
+
+### 2026-10-04 — Qwen3-TTS VoiceDesign isolated audition
+
+User explicitly authorized official Qwen3-TTS 12Hz 1.7B VoiceDesign plus an isolated runtime. Scope: exactly three original adult-female Chinese styles (playful, soft companion, mildly tsundere), identical neutral text, seeded synthesis, raw WAV and timing/version records. No Base model, reference-audio cloning, paid API, microphone, screen capture, app integration, driver/global Python changes, or closing other apps. Install only official Qwen/Hugging Face/PyPI/PyTorch sources under reports/qwen3-voicedesign-20261004; use existing project-owned Python as base. Check memory before inference, GPU BF16/SDPA and sequential generation. Acceptance: all 3 WAV decode and contain non-silent finite samples; preserve prompts/seeds/model revision and environment versions; upload original audio to Library if supported; do not equate successful synthesis with user acceptance or low-end CPU suitability. Initial resources: D free 464390135808 B, RAM free 1467420 KiB, GPU free 5933 MiB / 8188 MiB. Repository .agents/skills and parent .agents/skills absent.
+
+Qwen audition local acceptance:3 real generations,3 valid non-silent exact-decode raw WAV, zero retries; GPUBF16/SDPA measured, user listening acceptance Pending. Library delivery Blocked:3 transfer_failed,0finalize,0Library IDs. Existing application unchanged.
+
+
+2026-10-04 user explicitly approved official Microsoft AzCopy to deliver the three existing Qwen audition WAVs through Library. Scope: portable x64 executable in experiment tools directory, official Microsoft source, process-local PATH only; retain original WAV hashes. Previous batch has three confirmed transfer_failed results, zero finalizations and zero Library IDs, so dependency-fix retry is authorized. Acceptance: each authoritative filename and successful library_file_id returned; uncertain submissions are never replayed. No new synthesis, footprint audit, application integration, global config changes or pushes.
+
+AzCopy-assisted Library delivery acceptance completed: three confirmed succeeded files with actual library_file_id; original WAV hashes unchanged. User listening preference remains Pending.
+
+
+### 2026-10-05 — Authorized 0.6B Base voice reuse experiment
+
+User selected original VoiceDesign audition01 and explicitly approved official Qwen3-TTS-12Hz-0.6B-Base installation and new-text testing. Reuse prior isolated Qwen Python environment; download only0.6B Base official fixed-revision snapshot; no1.7B Base, concurrent VoiceDesign model, driver or app integration changes. Verify reference SHA256/text from audition-manifest. Prepare a reusable clone prompt and4 fixed new Chinese utterances covering everyday response, mild emotion, numeric time and Chinese/English mixing. Actual generation/black-box validation must be delegated specifically to GPT-6.1 Sol after setup. Record cold-load/prompt time, full waveform generation times (not first-audio latency), raw WAVs, model revision/seeds/settings, device and memory peaks. Check finite/non-silent decoded waveforms and textual/truncation signs without claiming subjective timbre acceptance from file creation. Initial availableRAM705421312B, GPU5914MiB, D free453566103552B; conservative preflight required before native import/inference, do not close others apps. No Key/API/microphone/screenshot. Deliver4 original WAVs through existing official AzCopy and current Library skill; all unconfirmed statuses remain Pending/Blocked.
+
+Base06B outcome: setup complete; designated GPT-6.1 Sol blocked on two bounded available-RAM checks before model load. Four audio/clone prompt/Library deliverables remain Pending,0generated. Same prepared command resumes after memory becomes sufficient.
+
+2026-10-06 Base06B Library delivery completed4/4 after explicitly authorized scoped directory ACL repair; true Library IDs retained in library-delivery.json. Subjective listening acceptance remains Pending.
+
+
+### 2026-10-06 — Accepted Qwen voice integration and latency optimization
+
+User accepted all4 Base06B samples and explicitly requested continued implementation into real dynamic AI replies. Preserve all existing uncommitted media/UI fixes. Add a recognizable reversible local Qwen option, retaining SenseVoice ASR and existing Kokoro/cloud fallback choices. Reuse only installed Qwen0.6B Base/runtime and accepted original reference/cache; no new models/dependencies/drivers/WSL/autostart/permissions. LangGraph remains sole dialogue decision center; existing speech interface/player and ownership cancellation remain authoritative.
+
+Implementation/acceptance: white-box profile startup/autoregressive generation/decode/synchronization; capture identical-text baseline and optimized results, cold/warm timings and RAM/VRAM. Isolated app-owned lazy persistent child, reusable validated clone prompt, bounded input/protocol/timeout, cancel/interrupt kills or drains with stale-generation audio discarded, visible safe error/resource messages, graceful app exit/unload. No concurrent VoiceDesign model. UI must disclose GPU requirement and optional engine status, preserve old configuration and credentials without reading keys. Reasonable punctuation-aware segmentation and at most one successor prefetch; short segments are not genuine audio streaming and complete-synthesis time is not first-audio latency. Preserve accepted voice, no prerecorded-response substitution.
+
+Run targeted unit/lifecycle/cancellation regressions then appropriate full Python/desktop/lint checks, no paid API/key/microphone/screenshot. Astra Ultra owns white-box profiling/implementation/unit tests, GPT-6.1 Sol owns final controlled-text black-box AI-chain validation with existing configuration. Only staged local changes, no push. Record concrete files, comparable performance, resource limits and remaining issues; ordinary CPU/8GB suitability remains unproven.
+
+User priority refinement: companion speech must begin promptly and continue without avoidable gaps. Measure input end/submit, LLM first text, first synthesizable segment, first playable audio and actual player start on the same turn; separate cold and warm results. A warm 1–2 second first-audio target is not a commitment or a passed result. Use demand-driven prewarm, a reusable prompt, natural short first segments, streamed text triggers and at most one successor prefetch. Measure several consecutive sentences and RTF; no fixed filler recording or unrelated words to disguise latency. Keep accepted voice parameters. Unmeasured inference candidates stay out of production.
+
+
+### 2026-10-08 — Resume Qwen integration after usage-limit interruption
+
+User explicitly authorized continuation of the incomplete white-box integration and automatic regression. Preserve all existing working-tree changes and the October6 evidence. Current branch codex/companion-five-capabilities, source commit afb560f13995895afad7acb3c10ee327d037e3ab. No node/python/electron process entries observed in the initial process-name check; old PID/CDP must be considered stale until separately verified. Default sandbox executor fails before command start (setup refresh error); normally approved application-identity execution succeeds. Do not change filesystem permissions or evade approval.
+
+Remaining implementation acceptance: allow explicit model release during pending prewarm; ensure cancellation waits for cleanup and late load results cannot restore old UI state. Recheck three previously failing Windows tests under the real application identity, then run relevant complete regressions and lint. Repeat bounded fixed-text GPU profiling only after resource guards pass, preserving old failed evidence and keeping unvalidated optimizations out of production. Record cold/warm/full-waveform timing without claiming actual dynamic first-audio or gapless multi-sentence behavior. This phase ends with concrete local implementation status and a self-contained Sol blackbox handoff; parent will dispatch final blackbox. No paid API, keys, microphone, private screenshots, new models/dependencies/frameworks/drivers/autostart/permissions, other-app closure or push.
+
+
+2026-10-08 direct confirmation: after the concrete companion.js/api.py/test modification question, user answered “继续啊”. Original owners obtained normal approval and wrote both frontend and API fixes. Extend cancellation acceptance to a request delayed before body/admission: use bounded per-preload request IDs/cancel records; a late cancel for an old owner must not unload a new owner. UI operation identity must cover load success/failure/finally and asynchronous status/config responses; pending load can be explicitly released and cleanup awaited. Preserve all existing edits. Run new deterministic regressions before final Sol handoff; the earlier1834/137 counts are not post-fix evidence.
+
+
+2026-10-08 final white-box acceptance: cancellation/request ownership repair and completion-boundary UI fencing implemented and independently reviewed; final1861Python pass/13platform skips and155desktop pass, lint/format/diff pass. Existing accepted Qwen binding remains available, but real model/performance and parent-assigned Sol dynamic-chain acceptance remain Pending/Blocked according to resource evidence. Self-contained SOL-HANDOFF.md documents named request protocol, launch/ownership, guards, timing semantics, multi-sentence/cancellation/exit cases and evidence limits. No claim of completed Windows package or1–2second first-audio performance.
+
+
+### 2026-10-08 — Immediate Qwen resource failure explanation
+
+Sol source blackbox reports 10 PASS, 1 FAIL, 7 BLOCKED. The failed case is the initial preload error: UI shows a generic restart/retry message until manually refreshed. Continue the expressly authorized companion/API/test scope: map the existing stable safe Qwen error codes in companion.js and show validated public preflight requirements immediately. Preserve cancellation request identities, cleanup retry, resource guards and private-error filtering; unknown details must remain generic. API contract already supplies safe detail/code and does not currently require a product change. Add deterministic UI and HTTP regressions, then record current-source results separately from prior 1861/155 totals. No native import, model loading, real voice generation or guard reduction in this repair.
+
+Read-only audit will distinguish experimental guard choices from official minimums and compare historical per-stage resource evidence. Report approximate process-name memory totals without titles, commands or private documents; do not close applications or change paging. Handoff a minimal Sol retest for the initial failure explanation without refresh. Dynamic voice/latency cases remain Blocked until independently exercised.
+
+Immediate-error repair result: source implementation and deterministic acceptance complete (166desktop,93relatedPython; no full-Python rerun), independent review found no blocker. Safe code mapping shows current protection requirements immediately without refresh; API contract/guards/cancellation ownership unchanged. Resource audit and approximate process totals recorded. Actual Sol first-error retest remainsPending and7dynamic voice cases remainBlocked; use reports/qwen-integration-20261008/resource-error-fix/SOL-RETEST.md. No model/app launch or runtime configuration changes in this repair.
+
+
+### 2026-10-08 — Release idle local ASR when leaving local voice
+
+Parent reports Sol completed the first-error UI retest PASS, normally exited and restored prior settings. Continue the explicitly approved api.py and corresponding-test scope: when switching voice_provider from local to openai, release both app-owned local services (SenseVoice/Kokoro worker and Qwen worker), including a completed/idle ASR worker. Preserve admission locking, request ownership, cancellation records, cleanup-failure retry and current engine-switch behavior. Add a synthetic subprocess lifecycle regression for idle ASR plus Qwen, run related cancellation/lifecycle checks and required lint. This corrects a resource-release gap; it is not a throughput or memory-footprint performance claim. No native model load, app launch, dependency installation, guard reduction or system change.
+
+Separately inspect why Qwen preload remains disabled after a failed preload with error/loaded=false; report whether this is state-based gating or unfinished cleanup, without expanding into an unrequested UI change. Any deeper inference optimization remains a separate scope decision.
+
+
+Scope update from parent/user: explicitly fix the confirmed retry usability defect within companion.js and corresponding tests. After a recoverable failed preload with loaded=false, expose a clear manual retry operation using a new request ID and the unchanged backend resource checks; users must not need the semantically unrelated release-VRAM action first. Preserve saved-selection/support constraints, loading/release/cleanup exclusion, operation ownership/epoch fences and no automatic retry loops. Test resource-failure to simulated-resource-recovery to manual-success, retry identity and stale completion protection using mocks; no real model load. Complete alongside the API idle-ASR cleanup repair and rerun the affected full desktop suite. No engine/runtime file expansion.
+
+Release/manual-retry stage complete:1874Python passed/13symlink skips,177desktop passed; related159subset and independent reviews/lint pass. Frozen source manifest and reports in reports/qwen-integration-20261008/asr-release-retry-final. No real-model performance result. User subsequently explicitly authorizes necessary Qwen runtime/adapter, audio protocol, desktop media and tests for actual incremental audio; no new dependencies/models/frameworks or system changes. Implementation must follow the separate Chinese optimization plan and preserve this stage snapshot.
+
+
+### 2026-10-08 — Complete speech optimization and actual PCM streaming
+
+User explicitly requests a complete implementable optimization plan plus true generation/playback overlap, authorizing necessary runtime/adapter/API/audio transport/desktop player/test changes while retaining no-new-dependencies/models/frameworks/system-changes/push constraints. Chinese user-facing design is docs/QWEN-VOICE-OPTIMIZATION.md, covering baseline, evidence-based phase budgets, throughput, voice preservation, trusted bounded transport/player, cancellation and product acceptance.
+
+Latest direction makes candidate verification a prerequisite: review available upstream/GitHub implementations (including faster-qwen3-tts and MOSS-TTS-Nano) before selecting or expanding a custom incremental decoder. No candidate installed; proposed custom path remains read-only design, not a prototype or completed streaming feature. Preserve existing1874/177 stage snapshot. Do not lower guards without phase data, use whole-sentence WAV as a streaming substitute or quote external latency as local evidence.
+
+
+### 2026-10-08 — Authorized MOSS-TTS-Nano isolated CPU/ONNX trial
+
+User chooses an actual MOSS-TTS-Nano audition before selecting the app engine. Prepare an independent environment and reproducible scripts under reports/moss-tts-nano-20261008 using existing managedPython3.11.15/uv tools. Verify official OpenMOSS code/ONNX model repositories, fixed commits/revisions, code/model Apache2 and dependency terms, minimal actual file sizes and checksums before download. No faster-qwen, Qwen environment upgrade, default-app integration, new remote repository or push. Avoid unnecessary PyTorch dependencies; unexpected license prompts, unfamiliar binaries or system changes must be reported before proceeding.
+
+Use only accepted original01_playful_sweet.wav and manifest reference text; recover the exact four Base comparison texts and add one controlled longer utterance to inspect continuity/voice drift. Confirm official ort_cpu_runtime emits genuine stateful codec PCM during generation. Record runtime/provider/thread configuration, cold startup/load/reference time, warm firstPCM, each chunk, streaming playback scheduling, totalRTF, processRSS/privatecommit peaks and exit. A bounded Windows local PCM player must consume incoming chunks, not split an already completed WAV. Synthetic unit checks do not count as real generation or sound-quality evidence.
+
+Before actual inference, use resource guards grounded in this runtime and current host readings rather than copying Qwen constants; finite watchdogs and cleanup of only owned test processes. Known upstream ONNX footprint/voice-drift reports are hypotheses to verify, not measured local conclusions. No other-app closure, paging/driver/security changes, paidAPI/keys/microphone/screenshots. Initial availableRAM1105813504B andcommit6958002176B at10:42:39UTC; do not assume these suffice for model loading.
+
+Astra prepares/reviews installation and harness, then an explicitly GPT-6.1Sol agent performs real blackbox synthesis if prerequisites pass, or parent assigns it using a self-contained SOL-HANDOFF.md. Keep actual runtime/model result separate from setup. Preserve original WAVs without pitch/music and save successful audio deliverables to Library using the current skill and existing officialAzCopy. Record exact Library IDs only after confirmed success.
+
+MOSS isolated preparation completed: fixed official source/model revisions and every download size/hash verified; independent Python3.11.15 venv with8CPU packages and22license artifacts, noTorch. Reviewed genuine stateful PCM/WinMM supervisor and40/40synthetic checks complete; owned-worker Job/START/error cleanup defect fixed and independently confirmed. Explicit GPT-6.1Sol completed preparation check and single10:58:25UTC resource sample: RAM0.924686GiB, commit6.562508GiB; conditionalBlocked, no model sessions/generation/playback. Five canonical and2warm cases remain unexecuted,0newWAV/0LibraryIDs.4.25GiB startup budget is experimental, not official minimum; RAM also below1GiB runtime floor. Complete evidence and future CLI in reports/moss-tts-nano-20261008/{REPORT.md,SOL-HANDOFF.md,evidence.json,sol-result.json}. No app/default/Qwenenvironment integration or push.
+
+### 2026-10-09 — Non-voice settings and service recovery batch
+
+User explicitly pauses all voice integration/inference/download work and prioritizes non-voice usability. Preserve every existing uncommitted change; inspect local source rather than overwrite from remote afb560f. First batch: verify/fix settings font size and contrast, discoverable save controls, feedback inside settings, stale503/error state after service recovery. Acceptance:100/125/150percent layout, successful/failed/duplicate saves, restart recovery, no replacement of user-edited fields by late refresh/reconnection, and independent section errors that do not hide each other. Astra/Ultra implements and runs deterministic regression; Sol receives a separate actual desktop blackbox handoff, with controlled test content and no keys/private configurations/screens. No regression or simulation count substitutes for real Windows/DPI acceptance.
+
+Before edits freeze relevant desktop source/tests as reports/nonvoice-settings-20261009/baseline. Ownership: UI owner style.css/index.html/app.js and dedicated settings tests; recovery owner companion.js and corresponding tests, coordinating DOM changes with UI owner. Root maintains PLAN/WORKLOG/REVIEW and evidence. First batch complete must be reported before expanding to confirmed text-cancel/retry or native-desktop defects. No Qwen/MOSS/SenseVoice inference, audio API setup, dependency download, reset, remote overwrite or push.
+
+Parallel cleanup inventory only: enumerate dedicated VoiceDesign/Base/MOSS model/venv/cache/temp absolute paths, sizes, links/shared use under this project. Preserve code, reports, accepted WAVs/reference metadata, active SenseVoice/Kokoro/project dependencies and shared Python/uv/Node/AzCopy tools. Recycle deletion requires verified recoverable recycle-bin path; no permanent deletion or emptying bin. Any permanent-clean proposal needs exact list/sizes to parent first. Inventory must not block settings work.
+
+
+Non-voice first batch source acceptance complete:4renderer files plus2test files, preserving previous local voice patches. Node24.21.0 full desktop223/223PASS,0fail/skip; UI42 and companion28 are subsets. Independent Astra/Ultra narrow review and diff checks passed;28of33baseline files unchanged, batch-only.patch isolates this round. No Python/backend/voice inference changes. Actual Sol Windows100/125/150percent, native keyboard/restart/recovery acceptance remainsPending; self-contained SOL-HANDOFF.md ready. Cleanup inventory complete with13,368,076,554B unique candidate data after preservation; no deletion, recovery not yet verified, shared Qwen references disclosed. Report/evidence in reports/nonvoice-settings-20261009. First batch delivered before any follow-on text/native scope.
+
+### 2026-10-09 — Authorized recoverable voice-experiment cleanup
+
+First-batch settings/recovery source is frozen while Sol independently tests it. User now explicitly authorizes recoverable cleanup from the prior inventory. Revalidate exact project-contained targets, no reparse traversal, hardlink/preserved boundaries and candidate process executable use. First create unrelated canary files and demonstrate native Windows Recycle Bin transfer and normal Restore with byte/identity checks. Use explicit recycle-only native operation flags and per-item receipts, no permanent-delete fallback, ACL changes, system uninstall, bin emptying or other-process interruption. If recovery or recycle capacity/path guarantees cannot be established, stop at inventory. Preserve accepted WAVs/reference/prompt/model metadata/license/reports/code, project environment and all active shared tools/SenseVoice resources. Record each original/recycled path and restore method; moving into same-volume recycle bin is not freed disk space. No voice/model launch or frozen renderer/test edits.
+
+
+Recoverable cleanup acceptance complete (2026-10-09):22/22objects recycled after successful file+hardlinked-directory normal Restore proof. Independent post-checkPASS_COMPLETE/0issues;193preservedmetadatafiles,7acceptedWAVSHA and6frozen-sourceSHA unchanged.18,732,297,782logicalB/13,368,076,554uniqueidentityB remain allocated in Recycle Bin. Per-item receipts,22normalRestore probes and recovery instructions in reports/nonvoice-settings-20261009/voice-cleanup. No permanent delete, emptying, model/audio start or UI process interference. Existing Qwen resource references require restoration/revalidation before future use. Sol actual settings/native acceptance is a separate task and is not inferred from this cleanup.
+
+
+### 2026-10-09 — Sol-confirmed appearance persistence failure
+
+User authorizes one focused follow-up for ACTUAL-APPEARANCE-WRITE-DENIAL-FEEDBACK from sol-blackbox-20261009-1608/actual-appearance-write-denial-audit.json. Sol held a native read-only/share-read handle on synthetic desktop/preferences.json; independent r+ open returned EBUSY. UI100→105percent reported saved at700ms and5s while persisted scale remained1 and retry stayedhidden. Fix only the appearance IPC persistence acknowledgement/commit path; preserve other frozen renderer/recovery work and keep voice paused. Never change ACL/system settings or read Key.
+
+Before implementation, freeze main/preferences/preload/related renderer/tests under appearance-write-failure-fix/baseline. Acceptance: deterministic EBUSY/storage failure must reject the actual IPC save path, leave committed preferences unchanged, preserve renderer draft and expose retry; after storage recovery, explicit retry succeeds, hides retry and survives reload. Cover invalid input and background position-persistence behavior if the shared code path changes. Run relevant targeted regressions and necessary complete desktop suite; independent Sol real Windows handle-denial/retry/restart remains separate, pending after handoff. Preserve Sol23PASS/1FAIL/9BLOCKED history and report application device scale100/125/150 correctly; Windows OS DPI stayed96 and125/150OSDPI remainsBlocked. No expansion to other failed/pending areas.
+
+
+Appearance persistence implementation complete: main.cjs only production change (2deletions/9additions),5newmain tests; finaltargeted9/9 andfull desktop228/228PASS,0fail/skip; independentreview clear,6originalfrozenhashesunchanged. Initialredtest captured oldfalse-success. Failedcandidate doesnot entercommittedstate/backgroundpersists. NativepostfixSolEBUSY/manualretry/restart remainsPending with minimalhandoff in appearance-write-failure-fix/SOL-RETEST.md; preserve priorSolcountsandOSDPI96boundary. Noadditionalfeature scope orvoicework.
+
+
+### 2026-10-09 — Durable text-provider request and usage evidence
+
+User authorizes a narrow non-voice patch after reading current local implementation. Confirmed: ModelAdapter already parses bounded provider usage, but chat graph ignores non-text events; ordinary request/attempt counts are absent. No model HTTP auto-retry exists; graph planning/answer calls are distinct calls. Existing events are delivery data and may be truncated on cancellation, so cannot be the sole usage authority. Optional post-chat memory extraction has separate retries (max3jobs attempts), which must be distinguished to avoid undercounting ordinary-chat-associated calls.
+
+Implement optional synchronous lifecycle observer at ModelAdapter actual HTTP POST boundary; write fixed local call IDs, times, response status, outcome, safe error codes and numeric usage to a schema-migrated ledger in conversation.sqlite. Separate chat_graph and memory_extraction scopes, extraction job retry lineage and actual dispatch attempts. No new retry/fallback behavior or global include_usage requirement; request_usage compatibility stays unchanged. A local dispatch attempt is not proof of provider receipt/billing; preflight-only failures, missing/malformed usage, partial/cancelled/crash outcomes and legacy untracked turns must remain explicit unknown/partial. Store noKey,headers,URLs,prompts,replies,images orrawprovidererrors in the new ledger.
+
+Reuse turn summaries for read-only inspection without UI/API-route changes; repeated request_id, polling/ACK/reconnect and process restart must not create new request rows or add usage again. Preserve actualattempt records despite delivery-event truncation; update a stable ID rather than summing repeated snapshots. Recover pendingattempts asinterrupted/unknown without network replay; integrate existing turn erasure and bounded schema migration. Snapshot local relevant sources before edits and preserve all dirty UI/voice/APIwork.
+
+Acceptance: deterministic HTTP fixture count matches ledger; normal/absent/malformed/repeated/partial usage; no dispatch on invalid config or preflight error; HTTP errors/cancellation/streamclose; retry scopes; observer persistence failure before dispatch; cancellation/repeated reads/request_id/restart/crash/legacy migration/erasure/privacy coverage. Run appropriate provider/runtime/migration regressions plus required fullPython checks and independent review. No paidAPI, dependency install, voice/model load, UI/desktop interaction changes, push or globalmemory. Sol real text-chat usage validation handoff follows; real provider bill reconciliation remains separate.
+
+
+Text-provider source acceptance completed: optional HTTP-boundary observer + conversation schema7 ledger, separate chat_generation/memory_extraction, safe numeric usage persistence and honest incomplete/legacy/recovery semantics.3production/6testfiles changed;graph/extraction/factory/UI/voice/dependencies preserved. Final1917PythonPASS/13Windows-symlinkSKIP/0FAIL; provider48/storage90 subsets,43newtests, independent review+static+freeze checksPASS. Initialfullfailure from one stale schema6 test assertion retained and fixed before complete rerun. Scope and evidence reports/text-provider-usage-20261009/{REPORT.md,evidence.json,source-changes.patch}. Realpaidcalls0;Solrealtextusage验收Pending withSOL-HANDOFF, not a completed billing or packaged-app result.
+
+
+### 2026-10-09 — Existing-history schema6→7 isolated-copy safety validation
+
+After Sol's real usage acceptance and verified restoration, validate the existing schema6 history only on recoverable isolated copies. Use the four exact database paths and hashes in Sol's manifests; verify original and copy hashes, independent file identity and absent SQLite sidecars. Do not migrate originals, copy credentials/configuration, start provider/memory/voice services, print private records, push or alter prior uncommitted work.
+
+Use the production apply_migrations entry and complete runtime._MIGRATIONS chain. Compare all old table structures, row counts and complete type-aware row digests; check integrity/FK and the exact added usage schema. Confirm every historical turn remains legacy/unknown, repeat migration is a no-op, and failures preserve recoverable backups with successful retry. Verify original hashes again at completion; make a production fix only if a defect is demonstrated.
+
+Completed with PASS_COPY_ONLY:23 old tables,2738 rows and101 historical turns preserved; v7 structure and empty usage tables verified; idempotence, exception rollback, backup restoration and owned-process interruption/retry passed. Four originals and baseline copies retain matching hashes and file metadata. Independent review passed; five production source hashes are unchanged, no production fix was required, and real provider calls remain0. The initial guard failure and exact blocked urllib3 loopback-probe diagnosis are preserved; networking remained blocked throughout.
+
+Evidence: reports/text-provider-usage-20261009/migration-copy-validation-20261009-1915/{REPORT.md,result.json,INDEPENDENT-REVIEW.md,evidence.json}. Raw copies/recovery backups remain in a dedicated private temporary workspace, indexed by preserved-copy-manifest.json. Originals remain unmigrated; complete application recovery and physical power-loss behavior are outside this result.
+
+
+### 2026-10-09 — Strict selected-window capture boundary
+
+Sol preflight found capture-time desktopCapturer.getSources generating all window thumbnails before filtering. Fix this authorization defect before real controlled-window A/B or GUI provider checks. Every enumeration must request zero-size thumbnails and no icons. Electron44.4.5 / Chromium152 browser capture permits a cropping-window fallback, so use a Windows PrintWindow-only bounded owned helper for the exact selected HWND, with no desktop/screen/camera/browser capture fallback or relaxed renderer permissions. Bind full title, process identity and window handle using metadata only before selection; revalidate before/after capture and after each asynchronous boundary. Unsupported platforms/screen sources/black/minimized/gone windows fail explicitly.
+
+Acceptance: synthetic zero-image enumeration and exact-window frame tests; source disappearance/replacement/full-title changes; disable/cancel/stale selection and resource cleanup; bounded helper timeout/output; independent AstraUltra review. Preserve existing uncommitted appearance, UI, provider and voice work. No dependencies, real capture, paid provider calls, voice or packaging claims in this source-fix task. Native compile-only validation is allowed without targeting any window. Real two-window A/B acceptance remains Pending for Sol with a precise handoff and prior call budget.
+
+Build preflight amendment: the system rejects PowerShell -File before compilation. No execution policy was changed or bypassed. Replace the script launcher with a standalone C# console helper built by the existing system .NET Framework compiler; runtime launches only the fixed hash-verified EXE. Add explicit dev prestart/build and fresh packaged helper compilation with manifest hashes. Actual screenshot/packaged acceptance remains Pending.
+
+
+Capture source acceptance complete:18 source/test/build files changed relative to preserved dirty baseline. Zero-pixel enumeration + exact-HWND PrintWindow helper, identity/epoch/abort/close lifecycle, fixed EXE/source manifest validation, supported-platform dev build and fresh package build integration implemented. UI now states Windows window-only limits. Desktop288/288PASS, packaging33/33PASS (including8new assembly fixtures), native pre-Win32 invalid-input11/11PASS; real compiler/validate-onlyPASS. Independent AstraUltra review/follow-upPASS, scopedlint/format/diffchecksPASS. Eight baseline files, microphone/permission/appearance blocks and three accepted provider sources unchanged. No realwindowcapture/provider/voice/appstart/fullpackage. RealA/B andGUI acceptancePending via reports/controlled-screen-20261009/capture-scope-fix/SOL-HANDOFF.md.
+
+
+### 2026-10-10 — Release readiness, complete pending-change review and frozen functional candidate
+
+The user authorized code review, full unit/integration and real functional tests, then push and release to FrigidCrow/ai-neko. This stage reviews ALL pending source changes and relevant integration boundaries, preserves the current dirty checkout, and prepares a reproducible frozen candidate. Do not push or create a release until the coordinating thread has GPT-6.1 Sol functional acceptance. Voice development stays paused; existing voice code receives deterministic regression/security review without new providers/model downloads.
+
+Inspect repository instructions/local skills, exact remote/version/release workflow and outstanding code inventory. Snapshot pending source before edits. Parallel reviews cover secrets/configuration exposure, SQLite schema/recovery and provider accounting, cancellation/concurrency, renderer/IPC/native capture privacy, voice-worker lifecycle, and Windows assembly/provenance. Fix evidenced blockers, then run repository-required lint/static and full Python/desktop suites plus appropriate integration/build checks. Keep synthetic and real functional evidence separate.
+
+Prepare a curated source-only commit allowlist, exclude reports/private chat/screenshots/databases/secrets/caches/environments/models, release notes, version/branch/artifact recommendation, source hash manifest and a Sol execution handoff. No reset/remote-default overwrite, push/release, system DPI/security changes, recycle-bin emptying or global memory. Candidate artifacts must record commit/source state, environment and hashes. Remote exact commit/CI/artifact validation is required at the later publishing stage.
+
+Review findings approved for correction after stable initial full regression: serialize/coalesce auto-memory setting writes so late ON cannot override later OFF; commit saved voice state independently of closed settings UI and unlock controls after cancel; refresh memory deletion independently of unrelated edit generation; preserve settings/key draft during initial existing-session restoration; close voice owner stdin promptly if child termination fails, then drain/reap; settle provider-usage memory scope according to durable enqueue and exhausted retry outcomes. Add deterministic regression cases for each, including owned standard-library process cleanup, then rerun full suites. Adjust CI real voice import/model tests to explicit opt-in with truthful paused evidence, leaving synthetic/nonvoice release gates intact. Initial Python1925PASS/13Windows-symlinkSKIP/0FAIL and desktop288PASS, lint/formatPASS; source unchanged during run. Missing optional PyInstaller prevents immediate build and will be addressed in an isolated locked build environment without any model downloads.
+
+Adjacent proven race/finality acceptance added: serialize persona and same-memory-row mutations, including pre-request cancellation barriers, so an older queued write cannot overwrite the latest acknowledged value; settle extraction usage when a durable job is cancelled/invalidated after memory correction, while preserving active leases and valid retries as nonfinal. A metadata-only job-status boundary may be added if no existing equivalent exists; capture any newly touched source baseline before edits.
+
+Completion-commit cancellation cross-review extends the same durable-finality acceptance: if extraction completion or failure settlement commits in its owned worker before cancellation reaches the caller, publish the durable terminal/retry outcome without rewriting completed jobs or leaving usage permanently nonfinal. Add commit-barrier regressions; retain active-lease protection.
+
+Release-readiness source stage complete: all confirmed review blockers fixed and independently verified; final1942PythonPASS/13knownWindows-symlinkSKIP/0FAIL,306desktopPASS, full lint/format and37Node syntax checksPASS, source stable. Guide evaluation24+6PASS and100sample retrieval p95=22.321msPASS. Candidate build/packaged checks, Sol functional feedback and later exact-commit CI/push/release remain separately pending; source results do not complete those gates.

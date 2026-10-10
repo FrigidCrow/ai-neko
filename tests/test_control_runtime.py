@@ -388,9 +388,9 @@ def test_v5_migration_and_uncommitted_crash_job_are_read_only(tmp_path):
             db.execute("DROP TABLE control_jobs")
             db.execute("PRAGMA user_version=5")
         runtime = SessionRuntime(paths, CaptureProviders())
-        assert runtime._db.execute("PRAGMA user_version").fetchone()[0] == 6
+        assert runtime._db.execute("PRAGMA user_version").fetchone()[0] == 7
         assert runtime.get_session(sid)["turns"]
-        assert not (paths.backups / "conversation-pre-migration-v6.sqlite").exists()
+        assert not (paths.backups / "conversation-pre-migration-v7.sqlite").exists()
         await runtime.close()
 
     asyncio.run(run())

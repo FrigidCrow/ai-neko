@@ -17,6 +17,8 @@
   const LAST_SESSION = "ai-neko.desktop.last-session";
   const terminalStatuses = new Set(["completed", "complete", "done", "cancelled", "canceled", "failed", "error", "interrupted"]);
   const state = {
+    settingsDirty: new Set(), settingsVersions: new Map(), settingsSave: null, configEpoch: 0, connectionEpoch: 0,
+    preferenceVersions: { scale: 0, alwaysOnTop: 0 }, preferencePending: {}, preferenceSaving: null,
     connected: false, stopped: false, initializing: true, loadingSession: false, historyError: false, config: {}, sessions: [],
     sessionId: null, guide: true, generation: 0, active: null, submitting: false,
     pollController: null, noticeAction: null, pendingRequest: null, submission: null,
@@ -153,7 +155,7 @@
     state.connected = connected;
     byId("connection-label").textContent = label;
     // The user can open settings before the backend finishes starting.
-    byId("save-settings").disabled = !connected;
+    updateSettingsSave();
     if (connected && elements.settingsMessage.textContent.includes("本地服务尚未连接")) elements.settingsMessage.textContent = "";
     updateComposer();
   }
@@ -396,7 +398,7 @@
 
   function closeSidebar() { showPanel("chat"); }
 
-  function resetView() {
+  function resetView({ preservePanel = false } = {}) {
     window.aiNekoCompanion?.stopSpeech();
     window.aiNekoCompanion?.stopRecording(true);
     state.generation += 1;
@@ -415,7 +417,7 @@
     elements.messages.hidden = true;
     elements.welcome.hidden = false;
     updateComposer();
-    closeSidebar();
+    if (!preservePanel) closeSidebar();
     return state.generation;
   }
 
@@ -617,9 +619,9 @@
     view.result.classList.toggle("is-error", Boolean(view.errorMessage) || ["failed", "error", "interrupted"].includes(status));
   }
 
-  async function openSession(id, { controlRefresh = false } = {}) {
+  async function openSession(id, { controlRefresh = false, preservePanel = false } = {}) {
     if (state.submitting || state.stopped || (state.controlBusy && !controlRefresh)) return;
-    const generation = resetView();
+    const generation = resetView({ preservePanel });
     state.loadingSession = true;
     updateComposer();
     elements.status.textContent = "正在恢复这段对话…";
@@ -872,6 +874,7 @@
 
   async function sendMessage(event, owner = {}) {
     event.preventDefault();
+    const submittedAt = globalThis.performance?.now() ?? Date.now();
     requireCurrentSubmission(owner);
     const text = elements.input.value.trim();
     if (!text) return;
@@ -896,6 +899,7 @@
     // Submission now owns this text. Stopping its recorder deliberately aborts
     // that recorder's signal; only this attempt's lifecycle applies from here.
     window.aiNekoCompanion?.stopRecording(true, { quiet: true });
+    window.aiNekoCompanion?.prepareSpeech?.({ newTurn: true });
     elements.status.textContent = "正在发送…";
     updateComposer();
     try {
@@ -958,7 +962,7 @@
       const view = createTurnView({ ...turn, text, input: text });
       view.hasImage = request.hasImage;
       view.liveTurnId = String(turnId);
-      window.aiNekoCompanion?.beginTurn(view.liveTurnId, id, turn.context?.match);
+      window.aiNekoCompanion?.beginTurn(view.liveTurnId, id, turn.context?.match, false, { submittedAt, inputEndedAt: owner.inputEndedAt });
       scrollBottom(true);
       startPolling(id, String(turnId), view, Number(turn.sent_seq || 0), generation);
       refreshSessions().catch(() => {});
@@ -1030,23 +1034,44 @@
   }
 
   function keyState(kind, configured) {
-    byId(`${kind}-key-state`).textContent = configured ? "已设置 · 留空则保留" : "尚未设置";
-    byId(`${kind}-key-state`).classList.toggle("is-set", configured);
-    byId(`clear-${kind}-label`).hidden = !configured;
-    byId(`clear-${kind}-key`).checked = false;
+    byId(kind + "-key-state").textContent = configured ? "已设置 · 留空则保留" : "尚未设置";
+    byId(kind + "-key-state").classList.toggle("is-set", configured);
+    byId("clear-" + kind + "-label").hidden = !configured;
   }
-
+  const settingsFieldIds = ["model-base-url", "model-name", "model-api-key", "clear-model-key",
+    "search-provider", "search-base-url", "search-api-key", "clear-search-key"];
+  const settingsVersion = (id) => state.settingsVersions.get(id) || 0;
+  function settingsMessage(message, kind = "") {
+    elements.settingsMessage.textContent = message;
+    elements.settingsMessage.classList.toggle("is-error", kind === "error");
+    elements.settingsMessage.classList.toggle("is-success", kind === "success");
+  }
+  function updateSettingsSave() {
+    byId("save-settings").disabled = !state.connected || Boolean(state.settingsSave);
+    byId("save-settings").textContent = state.settingsSave ? "正在保存…" : "保存模型与搜索";
+    elements.settingsForm.setAttribute("aria-busy", String(Boolean(state.settingsSave)));
+  }
+  function markSettingsField(id) {
+    if (!settingsFieldIds.includes(id)) return;
+    state.settingsVersions.set(id, settingsVersion(id) + 1);
+    state.settingsDirty.add(id);
+    settingsMessage(state.settingsSave ? "正在保存上次提交；新的修改尚未保存。" : "模型或搜索设置有未保存的修改。");
+  }
+  function clearDraftKey(id) {
+    byId(id).value = "";
+    state.settingsVersions.set(id, settingsVersion(id) + 1);
+    state.settingsDirty.delete(id);
+  }
   function searchDefaultURL() {
     return elements.searchProvider?.value === "anysearch" ? "https://api.anysearch.com/v1" : "https://api.tavily.com";
   }
-
   function updateSearchSettings(changed = false) {
     const anonymous = elements.searchProvider?.value === "anysearch";
     const current = elements.searchUrl.value.trim().replace(/\/$/, "");
     if (changed && (!current || ["https://api.tavily.com", "https://api.anysearch.com/v1"].includes(current))) {
       elements.searchUrl.value = searchDefaultURL();
     }
-    if (changed) elements.searchKey.value = "";
+    if (changed) clearDraftKey("search-api-key");
     elements.searchKey.disabled = anonymous;
     elements.searchKey.placeholder = anonymous ? "匿名模式无需填写" : "填写 Tavily API Key";
     keyState("search", Boolean(configValue("search_key_set", "search_api_key_set")));
@@ -1060,44 +1085,56 @@
       "匿名免费搜索，无需注册。按 IP 限流并有每日额度；不会使用已保存的搜索 Key。" :
       "填写 Tavily API Key。此搜索配置供所有对话模型共用。";
   }
-
   function clearKeyInputs() {
-    elements.modelKey.value = "";
-    elements.searchKey.value = "";
+    clearDraftKey("model-api-key");
+    clearDraftKey("search-api-key");
   }
-
-  function openSettings() {
-    closeSidebar();
-    elements.modelUrl.value = configValue("model_base_url") || "";
-    elements.model.value = configValue("model") || "";
-    if (elements.searchProvider) elements.searchProvider.value = configValue("search_provider") || "tavily";
-    elements.searchUrl.value = configValue("search_base_url") || searchDefaultURL();
+  function syncSettingsFields(savedVersions = null) {
+    const canApply = (id) => savedVersions ? settingsVersion(id) === savedVersions.get(id) :
+      !state.settingsSave && !state.settingsDirty.has(id);
+    const fields = [
+      ["model-base-url", configValue("model_base_url") || ""],
+      ["model-name", configValue("model") || ""],
+      ["search-provider", configValue("search_provider") || "tavily"],
+    ];
+    for (const [id, value] of fields) if (canApply(id)) {
+      byId(id).value = value; state.settingsDirty.delete(id);
+    }
+    if (canApply("search-base-url")) {
+      elements.searchUrl.value = configValue("search_base_url") || searchDefaultURL();
+      state.settingsDirty.delete("search-base-url");
+    }
+    for (const kind of ["model", "search"]) {
+      if (canApply("clear-" + kind + "-key")) { byId("clear-" + kind + "-key").checked = false; state.settingsDirty.delete("clear-" + kind + "-key"); }
+      if (savedVersions && canApply(kind + "-api-key")) clearDraftKey(kind + "-api-key");
+    }
     byId("credential-note").textContent = configValue("credential_storage") === "windows_credential_manager" ?
       "API Key 使用 Windows 凭据管理器保存，不写入界面存储。" :
       "此平台的 Key 仅保留在当前服务进程，重启后需重新填写；环境变量中的 Key 需自行移除。不写入界面存储。";
-    clearKeyInputs();
     keyState("model", Boolean(configValue("model_key_set", "model_api_key_set")));
     updateSearchSettings();
-    elements.settingsMessage.textContent = state.connected ? "" : "本地服务尚未连接，请等待服务准备完成。";
-    byId("save-settings").disabled = !state.connected;
+  }
+  function openSettings() {
+    syncSettingsFields();
+    if (!state.connected) settingsMessage("本地服务尚未连接，请等待服务准备完成；你可以先编辑设置。");
+    else if (state.settingsDirty.size && !state.settingsSave) settingsMessage("模型或搜索设置有未保存的修改。");
+    updateSettingsSave();
     showPanel("settings");
     window.dispatchEvent(new Event("ai-neko-settings"));
   }
-
   function validEndpoint(value) {
     const url = safeWebURL(value);
     return Boolean(url && !url.search && !url.hash);
   }
-
   async function saveSettings(event) {
     event.preventDefault();
-    if (!state.connected) return;
-    const modelUrl = elements.modelUrl.value.trim();
-    const searchUrl = elements.searchUrl.value.trim();
+    if (!state.connected || state.settingsSave) return;
+    const modelUrl = elements.modelUrl.value.trim(), searchUrl = elements.searchUrl.value.trim();
     if (!validEndpoint(modelUrl) || (searchUrl && !validEndpoint(searchUrl))) {
-      elements.settingsMessage.textContent = "请填写完整的 http(s) API 基础地址，不包含账号、密码、查询参数或片段。";
+      settingsMessage("设置未保存。请填写完整的 http(s) API 地址，不包含账号、密码、查询参数或片段。", "error");
       return;
     }
+    if (!elements.model.value.trim()) { settingsMessage("设置未保存。请填写模型名称。", "error"); return; }
     const payload = {
       model_base_url: modelUrl, model: elements.model.value.trim(), model_api_key: elements.modelKey.value.trim(),
       search_provider: elements.searchProvider?.value || "tavily", search_base_url: searchUrl,
@@ -1106,60 +1143,102 @@
         search_api_key: elements.searchKey.value.trim(), clear_search_api_key: byId("clear-search-key").checked,
       }),
     };
-    byId("save-settings").disabled = true;
-    elements.settingsMessage.textContent = "正在保存…";
+    const operation = { versions: new Map(settingsFieldIds.map((id) => [id, settingsVersion(id)])) };
+    state.settingsSave = operation; state.configEpoch += 1;
+    updateSettingsSave(); settingsMessage("正在保存模型与搜索设置…");
     try {
       const response = await api("/api/config", { method: "PUT", body: payload });
+      if (state.settingsSave !== operation) return;
       state.config = response.config || response;
-      // The public response must never return provider credentials. Do not copy it to browser storage.
-      clearKeyInputs();
-      showPanel("chat");
-      showConfigurationNotice();
-      elements.status.textContent = "设置已保存。可以开始提问了。";
-      elements.input.focus();
+      // Apply only fields untouched since submission; never persist a draft or a Key in renderer storage.
+      syncSettingsFields(operation.versions);
+      if (state.connected) showConfigurationNotice();
+      settingsMessage(state.settingsDirty.size ? "上次提交已保存；当前修改尚未保存。" : "模型与搜索设置已保存。", state.settingsDirty.size ? "" : "success");
     } catch (error) {
-      elements.settingsMessage.textContent = error.status === 422 || error.status === 400 ?
-        "设置未保存。请检查地址、模型名称和 Key；新 Key 与清除选项不能同时填写。" : friendlyError(error);
+      if (state.settingsSave !== operation) return;
+      settingsMessage(error.status === 422 || error.status === 400 ?
+        "设置未保存。请检查地址、模型名称和 Key；新 Key 与清除选项不能同时填写。" :
+        "设置未保存。" + friendlyError(error), "error");
     } finally {
-      // Credential strings exist only for the duration of this request and the user's input.
-      payload.model_api_key = "";
-      payload.search_api_key = "";
-      byId("save-settings").disabled = !state.connected;
+      payload.model_api_key = ""; payload.search_api_key = "";
+      if (state.settingsSave === operation) {
+        state.configEpoch += 1; state.settingsSave = null; updateSettingsSave();
+      }
+    }
+  }
+  function appearanceMessage(message, error = false) {
+    byId("appearance-status").textContent = message;
+    byId("appearance-status").classList.toggle("is-error", error);
+  }
+  function saveAppearance(changes) {
+    Object.assign(state.preferencePending, changes);
+    return flushAppearance();
+  }
+  async function flushAppearance() {
+    if (state.preferenceSaving || !Object.keys(state.preferencePending).length) return;
+    const operation = { values: { ...state.preferencePending } };
+    state.preferencePending = {}; state.preferenceSaving = operation;
+    byId("retry-appearance").hidden = true; byId("retry-appearance").disabled = true;
+    appearanceMessage("正在自动保存外观…");
+    let saved = false;
+    try {
+      await bridge.setPreferences(operation.values);
+      saved = true;
+      appearanceMessage(Object.keys(state.preferencePending).length ? "正在保存最新外观…" : "外观已保存，下次启动会保留。");
+    } catch {
+      state.preferencePending = { ...operation.values, ...state.preferencePending };
+      appearanceMessage("外观未保存，当前显示的调整仍保留。请重试保存。", true);
+      byId("retry-appearance").hidden = false;
+    } finally {
+      state.preferenceSaving = null; byId("retry-appearance").disabled = false;
+      if (saved && Object.keys(state.preferencePending).length) void flushAppearance();
     }
   }
 
-  let connecting = false;
+  let connecting = false, pendingReady = false;
   async function connect() {
     if (connecting || state.connected) return;
     connecting = true;
+    const connectionEpoch = state.connectionEpoch;
     state.initializing = true;
     connectionState(false, "正在连接");
     try {
+      const configEpoch = state.configEpoch;
       const response = await api("/api/config");
-      state.config = response.config || response;
+      if (connectionEpoch !== state.connectionEpoch) return;
+      if (configEpoch === state.configEpoch) {
+        state.config = response.config || response;
+        syncSettingsFields();
+      }
       await refreshSessions();
+      if (connectionEpoch !== state.connectionEpoch) return;
       connectionState(true, "正在恢复对话…");
       window.dispatchEvent(new Event("ai-neko-connected"));
       showConfigurationNotice();
       let previous = "";
       try { previous = localStorage.getItem(LAST_SESSION) || ""; } catch { /* Optional preference. */ }
       const latest = state.sessions.find((item) => sessionId(item) === previous) || state.sessions[0];
-      if (latest && !state.sessionId) await openSession(sessionId(latest));
+      // Restoring history must not dismiss settings opened while connecting.
+      if (latest && !state.sessionId) await openSession(sessionId(latest), { preservePanel: !elements.settings.hidden });
       else await refreshContext();
       if (state.connected) byId("connection-label").textContent = "在你身边 · 记录保存在本机";
     } catch (error) {
+      if (connectionEpoch !== state.connectionEpoch) return;
       connectionState(false, "连接暂时中断");
       showNotice(friendlyError(error), { error: true, label: "重新连接", action: connect });
     } finally {
       connecting = false;
       state.initializing = false;
       updateComposer();
+      if (pendingReady) { pendingReady = false; void connect(); }
     }
   }
 
   function hostStatus(status) {
-    if (status.state === "ready") connect();
+    state.connectionEpoch += 1;
+    if (status.state === "ready") { if (connecting) pendingReady = true; else void connect(); }
     else {
+      pendingReady = false;
       connectionState(false, status.state === "starting" ? "正在准备见面" : "服务暂时不可用");
       if (status.state === "failed" || status.state === "stopped") {
         state.pollController?.abort();
@@ -1180,17 +1259,27 @@
       if (action === "settings") openSettings();
       if (action === "show-chat") { showPanel("chat"); elements.input.focus(); }
     });
+    const preferenceVersions = { ...state.preferenceVersions };
     try {
       const preferences = await bridge.getPreferences();
-      byId("pet-scale").value = preferences.scale;
-      byId("scale-value").value = `${Math.round(preferences.scale * 100)}%`;
-      byId("always-on-top").checked = preferences.alwaysOnTop;
-      window.aiNekoPet?.setScale(preferences.scale);
-      const version = statusVersion;
+      if (state.preferenceVersions.scale === preferenceVersions.scale) {
+        byId("pet-scale").value = preferences.scale;
+        byId("scale-value").value = Math.round(preferences.scale * 100) + "%";
+        window.aiNekoPet?.setScale(preferences.scale);
+      }
+      if (state.preferenceVersions.alwaysOnTop === preferenceVersions.alwaysOnTop) byId("always-on-top").checked = preferences.alwaysOnTop;
+    } catch {
+      if (Object.keys(preferenceVersions).every((key) => state.preferenceVersions[key] === preferenceVersions[key])) {
+        appearanceMessage("外观设置未能读取；当前调整仍可保存，请重试。", true);
+      }
+    }
+    const version = statusVersion;
+    try {
       const snapshot = await bridge.status();
-      // A ready event can arrive while this snapshot request is in flight.
       if (version === statusVersion) hostStatus(snapshot);
-    } catch { hostStatus({ state: "failed", message: "桌面连接未能加载，请重新启动 ai-neko。" }); }
+    } catch {
+      if (version === statusVersion) hostStatus({ state: "failed", message: "桌面连接未能加载，请重新启动 ai-neko。" });
+    }
   }
 
   byId("message-form").addEventListener("submit", sendMessage);
@@ -1209,7 +1298,8 @@
   byId("open-settings").addEventListener("click", openSettings);
   byId("welcome-settings").addEventListener("click", openSettings);
   byId("close-settings").addEventListener("click", () => showPanel("chat"));
-  elements.searchProvider?.addEventListener("change", () => updateSearchSettings(true));
+  elements.searchProvider?.addEventListener("change", () => { updateSearchSettings(true); markSettingsField("search-provider"); markSettingsField("search-base-url"); });
+  for (const event of ["input", "change"]) elements.settingsForm.addEventListener(event, (value) => markSettingsField(value.target?.id));
   elements.settingsForm.addEventListener("submit", saveSettings);
   byId("exit-app").addEventListener("click", () => bridge.quit());
   byId("open-history").addEventListener("click", () => { showPanel("history"); refreshSessions().catch(() => {}); });
@@ -1219,16 +1309,20 @@
   byId("pet-menu").addEventListener("click", () => bridge.showMenu());
   window.addEventListener("pet-click", () => { showPanel("chat"); elements.input.focus(); });
   byId("pet-scale").addEventListener("input", (event) => {
+    state.preferenceVersions.scale += 1;
     const scale = Number(event.target.value);
     byId("scale-value").value = `${Math.round(scale * 100)}%`;
     window.aiNekoPet?.setScale(scale);
   });
   byId("pet-scale").addEventListener("change", (event) => {
-    bridge.setPreferences({ scale: Number(event.target.value) }).catch(() => { elements.settingsMessage.textContent = "角色大小未能保存，请重试。"; });
+    state.preferenceVersions.scale += 1;
+    void saveAppearance({ scale: Number(event.target.value) });
   });
   byId("always-on-top").addEventListener("change", (event) => {
-    bridge.setPreferences({ alwaysOnTop: event.target.checked }).catch(() => { elements.settingsMessage.textContent = "置顶设置未能保存，请重试。"; });
+    state.preferenceVersions.alwaysOnTop += 1;
+    void saveAppearance({ alwaysOnTop: event.target.checked });
   });
+  byId("retry-appearance").addEventListener("click", () => { void flushAppearance(); });
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && !event.isComposing) { showPanel("none"); window.aiNekoPet?.endDrag(); }
   });

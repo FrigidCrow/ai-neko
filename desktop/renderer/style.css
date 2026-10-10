@@ -15,3 +15,38 @@ body[data-recording=true] .pet-indicator{background:#bd6684;animation:blink 1s e
 .match-evidence{font-size:10px;color:#927a8a}.match-observation{padding:8px 10px;margin:7px 0;background:#f8f2f6;border-left:2px solid #ccb0c0;border-radius:0 8px 8px 0}.match-observation strong{font-size:10px;font-weight:550;color:#826178}.match-observation p{white-space:pre-wrap;overflow-wrap:anywhere;margin:4px 0;user-select:text}.match-observation small{display:block;font-size:9px;color:#a1889b}
 
 #search-provider{width:100%;padding:8px;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--ink);font:inherit}#search-provider:focus-visible{outline:2px solid #bd87a2;outline-offset:3px}
+
+/* Settings remain readable independently of the compact chat/pet styles. */
+#settings-panel{width:min(440px,calc(100% - 40px));background:#fffcfd;color:#493646}
+#settings-panel .settings-scroll{flex:1;min-height:0;padding:0 20px 20px;scroll-padding:12px;overflow-y:auto;overflow-x:hidden}
+#settings-panel .panel-header{min-height:76px;padding:14px 20px;flex-shrink:0}
+#settings-panel h2{font-size:20px;color:#493646}
+#settings-panel :is(h3,legend){font-size:16px;font-weight:600;color:#493646}
+#settings-panel :is(p,label,summary,small,output,.key-state,.settings-footer){font-size:13px;line-height:1.65;color:#6d5364}
+#settings-panel :is(label,.range-label){font-size:14px;color:#594052}
+#settings-panel legend small{font-size:12px;color:#6d5364}
+#settings-panel :is(.field-help,.asset-notice,.memory-evidence,.backup-card small){font-size:13px;color:#6d5364;overflow-wrap:anywhere}
+#settings-panel :is(input:not([type=checkbox]):not([type=range]),textarea,select){width:100%;min-width:0;min-height:40px;font-size:14px;line-height:1.5;padding:9px 10px;color:#493646;border:1px solid #a38b9a;background:#fff;border-radius:9px}
+#settings-panel :is(input,textarea)::placeholder{color:#796573;opacity:1}
+#settings-panel input[type=checkbox]{width:16px;height:16px;flex-shrink:0}
+#settings-panel .check-label{align-items:flex-start;gap:8px}
+#settings-panel .check-label input{margin-top:4px}
+#settings-panel .label-row{flex-wrap:wrap;gap:4px 10px}
+#settings-panel :is(button,.text-button,.soft-button){min-height:36px;font-size:14px;line-height:1.4}
+#settings-panel .primary-button{min-height:40px;background:#785069;color:#fff;font-weight:600;padding:10px 16px}
+#settings-panel .primary-button:hover{background:#654258}
+#settings-panel .soft-button{background:#f5eaf1;color:#654258;border-color:#a38b9a}
+#settings-panel .text-button{color:#785069}
+#settings-panel button:disabled{opacity:1;color:#71636c;background:#eee8ed;border-color:#c8b9c3;cursor:default}
+#settings-panel :is(input,textarea,select,button,summary):focus-visible{outline:3px solid #785069;outline-offset:3px}
+#settings-panel .key-state.is-set{color:#36644e}
+#settings-panel .settings-message{font-size:13px;line-height:1.6;color:#654258;overflow-wrap:anywhere}
+#settings-panel .settings-message:empty{display:none}
+#settings-panel .settings-message.is-error{color:#96364a}
+#settings-panel .settings-message.is-success{color:#36644e}
+#settings-panel .settings-savebar{flex-shrink:0;padding:12px 20px 15px;border-top:1px solid #d4c2cf;background:#fff7fb}
+#settings-panel .settings-savebar .settings-message{margin:0 0 9px;max-height:6.4em;overflow:auto}
+#settings-panel .settings-savebar .primary-button{width:100%;margin:0}
+#settings-panel .appearance-settings{padding-top:16px}
+#settings-panel :is(fieldset,.companion-settings){padding-top:20px;padding-bottom:16px}
+@media(max-width:540px){#settings-panel{left:12px;right:12px;width:auto}#settings-panel :is(.panel-header,.settings-savebar){padding-left:16px;padding-right:16px}#settings-panel .settings-scroll{padding-left:16px;padding-right:16px}}

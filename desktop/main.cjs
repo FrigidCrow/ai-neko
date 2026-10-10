@@ -7,7 +7,9 @@ const { ENTRY_URL, CONSENT_URL, CSP, trustedSender, validateRequest, externalURL
 const { clampBounds, validatePreferences, loadPreferences, savePreferences } = require('./lib/preferences.cjs');
 const { commandFor, initializePaths, OwnedBackend } = require('./lib/backend.cjs');
 const { VisionCapture, microphonePermission } = require('./lib/vision.cjs');
-const vision = new VisionCapture((options) => desktopCapturer.getSources(options));
+const { createWindowCapture } = require('./lib/window-capture.cjs');
+const vision = new VisionCapture((options) => desktopCapturer.getSources(options), createWindowCapture(),
+  (bytes) => nativeImage.createFromBuffer(bytes));
 let microphoneUntil = 0;
 const { trayIconPNG } = require('./lib/tray-icon.cjs');
 const { readTerms, hasConsent, acceptTerms } = require('./lib/consent.cjs');
@@ -124,7 +126,7 @@ function installIPC() {
   ipcMain.handle('ai-neko:vision-list', async (event) => { requireSender(event); return vision.list(); });
   ipcMain.handle('ai-neko:vision-select', async (event, id) => { requireSender(event); return vision.select(id); });
   ipcMain.handle('ai-neko:vision-capture', async (event) => { requireSender(event); return vision.capture(); });
-  ipcMain.handle('ai-neko:vision-stop', (event) => { requireSender(event); return vision.disable(); });
+  ipcMain.handle('ai-neko:vision-stop', (event) => { requireSender(event); return vision.stop(); });
   ipcMain.handle('ai-neko:microphone', (event, enabled) => {
     requireSender(event);
     microphoneUntil = enabled === true ? Date.now() + 15000 : 0;
@@ -145,9 +147,16 @@ function installIPC() {
   ipcMain.handle('ai-neko:get-preferences', (event) => { requireSender(event); return publicPreferences(); });
   ipcMain.handle('ai-neko:preferences', (event, value) => {
     requireSender(event);
-    Object.assign(preferences, validatePreferences(value));
+    if (!preferences || !paths || !mainWindow || mainWindow.isDestroyed()) {
+      throw new Error('外观未保存，请重试。');
+    }
+    const next = { ...preferences, ...validatePreferences(value), bounds: mainWindow.getBounds() };
+    // Explicit appearance saves must reject on disk failure. Keep rejected
+    // drafts out of preferences so later position saves cannot commit them.
+    try { savePreferences(paths.desktop_root, next); }
+    catch { throw new Error('外观未保存，请重试。'); }
+    preferences = next;
     mainWindow.setAlwaysOnTop(preferences.alwaysOnTop);
-    persist();
     return publicPreferences();
   });
   ipcMain.handle('ai-neko:external', async (event, value) => {
@@ -327,10 +336,12 @@ app.on('before-quit', (event) => {
   event.preventDefault();
   if (quitting) return;
   quitting = true;
+  vision.disable();
   stopDrag();
   clearTimeout(persistTimer);
   persist();
   void (async () => {
+    await vision.settled();
     await backend?.stop();
     allowedToQuit = true;
     tray?.destroy();

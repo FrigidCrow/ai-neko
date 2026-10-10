@@ -14,6 +14,7 @@ import os
 import signal
 import sys
 import threading
+import time
 import wave
 from pathlib import Path
 
@@ -21,9 +22,11 @@ MAX_WIRE = 12 * 1024 * 1024
 MAX_AUDIO = 8 * 1024 * 1024
 ASR_NAME = "sherpa-onnx-sense-voice-zh-en-ja-ko-yue-int8-2024-07-17"
 TTS_NAME = "kokoro-int8-multi-lang-v1_1"
+_runtime_identity = None
+_engines = {}
 
 
-def _watch_windows_pipe(kernel, pipe, stopped: threading.Event) -> None:
+def _watch_windows_pipe(kernel, pipe, stopped: threading.Event, persistent: bool = False) -> None:
     """Observe owner EOF without a pending read on the CRT stdin handle.
 
     A blocking stdin read can deadlock NumPy's Windows native import when its
@@ -37,14 +40,14 @@ def _watch_windows_pipe(kernel, pipe, stopped: threading.Event) -> None:
         alive = kernel.PeekNamedPipe(pipe, None, 0, None, ctypes.byref(available), None)
         if stopped.is_set():
             return
-        if not alive or available.value:
+        if not alive or (available.value and not persistent):
             # EOF, invalid pipe, or additional protocol data all fail closed.
             os._exit(91)
             return
         stopped.wait(0.05)
 
 
-def guard_parent(parent: int):
+def guard_parent(parent: int, *, persistent: bool = False):
     if type(parent) is not int or parent <= 0 or parent == os.getpid():
         raise ValueError("invalid owner")
     if sys.platform == "linux":
@@ -99,7 +102,7 @@ def guard_parent(parent: int):
             threading.Thread(target=watch_handle, daemon=True, name="voice-owner-handle"),
             threading.Thread(
                 target=_watch_windows_pipe,
-                args=(kernel, pipe, stopped),
+                args=(kernel, pipe, stopped, persistent),
                 daemon=True,
                 name="voice-owner-pipe",
             ),
@@ -120,6 +123,30 @@ def guard_parent(parent: int):
         return close
     elif os.getppid() != parent:
         raise ValueError("owner unavailable")
+
+    if persistent:
+        # Do not consume the next JSON request. POLLHUP observes owner EOF even
+        # during native inference; Linux additionally enforces parent death.
+        import select
+
+        stopped = threading.Event()
+
+        def watch_owner():
+            poll = select.poll()
+            poll.register(sys.stdin.fileno(), select.POLLHUP | select.POLLERR)
+            while not stopped.is_set():
+                lost = bool(poll.poll(50)) or os.getppid() != parent
+                if not stopped.is_set() and lost:
+                    os._exit(91)
+
+        watcher = threading.Thread(target=watch_owner, daemon=True, name="voice-owner-pipe")
+        watcher.start()
+
+        def close():
+            stopped.set()
+            watcher.join()
+
+        return close
 
     def watch_pipe():
         # POSIX read does not involve Windows' CRT/file-handle import deadlock.
@@ -149,7 +176,10 @@ def prepare_native_paths(models: Path) -> tuple[Path, Path]:
 
 
 def run(request: dict) -> dict:
-    sys.addaudithook(deny_network)
+    global _runtime_identity
+    started = time.perf_counter()
+    if _runtime_identity is None:
+        sys.addaudithook(deny_network)
     # The parent runs the actual managed interpreter, not a Windows venv
     # launcher. Add precisely the app-owned locked wheels, never PYTHONPATH or
     # another project's environment, and do not execute arbitrary .pth files.
@@ -164,13 +194,20 @@ def run(request: dict) -> dict:
         or not packages.resolve().is_relative_to((models.parent / "venv").resolve())
     ):
         raise ValueError("private packages unavailable")
-    sys.path.insert(0, str(packages))
+    identity = (str(models), str(packages))
+    if _runtime_identity is not None and identity != _runtime_identity:
+        raise ValueError("runtime changed")
+    if _runtime_identity is None:
+        sys.path.insert(0, str(packages))
     import numpy as np
     import sherpa_onnx
+
+    imported = time.perf_counter()
 
     # packages and models remain absolute for Python's Unicode-safe checks.
     # Every native path below is formed from these fixed ASCII model names.
     asr, tts = prepare_native_paths(models)
+    _runtime_identity = identity
     operation = request.get("operation")
     if operation == "check":
         needed = json.loads(Path(__file__).with_name("model_files.json").read_text())
@@ -195,50 +232,45 @@ def run(request: dict) -> dict:
                 np.frombuffer(audio.readframes(audio.getnframes()), dtype="<i2").astype(np.float32)
                 / 32768.0
             )
-        recognizer = sherpa_onnx.OfflineRecognizer.from_sense_voice(
-            model=str(asr / "model.int8.onnx"),
-            tokens=str(asr / "tokens.txt"),
-            num_threads=2,
-            use_itn=True,
-            debug=False,
-            language="auto",
-            provider="cpu",
-        )
+        cold = "asr" not in _engines
+        loading = time.perf_counter()
+        if cold:
+            _engines["asr"] = sherpa_onnx.OfflineRecognizer.from_sense_voice(
+                model=str(asr / "model.int8.onnx"),
+                tokens=str(asr / "tokens.txt"),
+                num_threads=2,
+                use_itn=True,
+                debug=False,
+                language="auto",
+                provider="cpu",
+            )
+        recognizer = _engines["asr"]
+        loaded = time.perf_counter()
         stream = recognizer.create_stream()
         stream.accept_waveform(16000, samples)
         recognizer.decode_stream(stream)
-        return {"ok": True, "text": stream.result.text[:8000]}
+        inferred = time.perf_counter()
+        result = {"ok": True, "text": stream.result.text[:8000]}
+        result["timings"] = timings(started, imported, loading, loaded, inferred, cold)
+        return result
     if operation == "tts":
         text = request.get("text")
         if not isinstance(text, str) or not 0 < len(text) <= 600:
             raise ValueError("text limit")
-        config = sherpa_onnx.OfflineTtsConfig(
-            model=sherpa_onnx.OfflineTtsModelConfig(
-                kokoro=sherpa_onnx.OfflineTtsKokoroModelConfig(
-                    model=str(tts / "model.int8.onnx"),
-                    voices=str(tts / "voices.bin"),
-                    tokens=str(tts / "tokens.txt"),
-                    data_dir=str(tts / "espeak-ng-data"),
-                    dict_dir=str(tts / "dict"),
-                    lang="zh",
-                    lexicon=f"{tts / 'lexicon-us-en.txt'},{tts / 'lexicon-zh.txt'}",
-                ),
-                num_threads=2,
-                debug=False,
-                provider="cpu",
-            ),
-            max_num_sentences=1,
-            rule_fsts=",".join(
-                str(tts / name) for name in ("date-zh.fst", "number-zh.fst", "phone-zh.fst")
-            ),
-        )
-        if not config.validate():
-            raise ValueError("tts config")
-        engine = sherpa_onnx.OfflineTts(config)
+        speaker_id = request.get("speaker_id", 46)
+        if type(speaker_id) is not int or not 0 <= speaker_id <= 102:
+            raise ValueError("speaker limit")
+        cold = "tts" not in _engines
+        loading = time.perf_counter()
+        if cold:
+            _engines["tts"] = create_tts(sherpa_onnx, tts)
+        engine = _engines["tts"]
+        loaded = time.perf_counter()
         generation = sherpa_onnx.GenerationConfig()
-        generation.sid = 46  # Mandarin female voice in the pinned v1.1 model.
+        generation.sid = speaker_id
         generation.speed = 1.0
         audio = engine.generate(text, generation)
+        inferred = time.perf_counter()
         if not 0 < len(audio.samples) * 2 <= MAX_AUDIO - 44:
             raise ValueError("output limit")
         if not np.isfinite(audio.samples).all():
@@ -250,8 +282,48 @@ def run(request: dict) -> dict:
             result.setsampwidth(2)
             result.setframerate(audio.sample_rate)
             result.writeframes(pcm)
-        return {"ok": True, "audio": base64.b64encode(output.getvalue()).decode("ascii")}
+        result = {"ok": True, "audio": base64.b64encode(output.getvalue()).decode("ascii")}
+        result["timings"] = timings(started, imported, loading, loaded, inferred, cold)
+        return result
     raise ValueError("unsupported operation")
+
+
+def timings(started, imported, loading, loaded, inferred, cold):
+    return {
+        "model_cold": cold,
+        "import_ms": (imported - started) * 1000,
+        "prepare_ms": (loading - imported) * 1000,
+        "model_load_ms": (loaded - loading) * 1000,
+        "inference_ms": (inferred - loaded) * 1000,
+        "encode_ms": (time.perf_counter() - inferred) * 1000,
+        "worker_total_ms": (time.perf_counter() - started) * 1000,
+    }
+
+
+def create_tts(sherpa_onnx, tts):
+    config = sherpa_onnx.OfflineTtsConfig(
+        model=sherpa_onnx.OfflineTtsModelConfig(
+            kokoro=sherpa_onnx.OfflineTtsKokoroModelConfig(
+                model=str(tts / "model.int8.onnx"),
+                voices=str(tts / "voices.bin"),
+                tokens=str(tts / "tokens.txt"),
+                data_dir=str(tts / "espeak-ng-data"),
+                dict_dir=str(tts / "dict"),
+                lang="zh",
+                lexicon=f"{tts / 'lexicon-us-en.txt'},{tts / 'lexicon-zh.txt'}",
+            ),
+            num_threads=2,
+            debug=False,
+            provider="cpu",
+        ),
+        max_num_sentences=1,
+        rule_fsts=",".join(
+            str(tts / name) for name in ("date-zh.fst", "number-zh.fst", "phone-zh.fst")
+        ),
+    )
+    if not config.validate():
+        raise ValueError("tts config")
+    return sherpa_onnx.OfflineTts(config)
 
 
 def main() -> None:
@@ -260,26 +332,52 @@ def main() -> None:
     output_fd = os.dup(sys.stdout.fileno())
     os.dup2(sys.stderr.fileno(), sys.stdout.fileno())
     close_guard = None
+    persistent = sys.argv[1:] == ["--persistent"]
     try:
-        wire = sys.stdin.buffer.readline(MAX_WIRE + 1)
-        if len(wire) > MAX_WIRE or not wire.endswith(b"\n"):
-            raise ValueError("request limit")
-        request = json.loads(wire)
-        if not isinstance(request, dict):
-            raise ValueError("request format")
-        close_guard = guard_parent(request["parent"])
-        result = run(request)
-    except Exception:
-        result = {"ok": False, "code": "inference_failed"}
+        with os.fdopen(output_fd, "wb", closefd=True) as output:
+            owner = None
+            sequence = 0
+            while True:
+                request = {}
+                try:
+                    wire = sys.stdin.buffer.readline(MAX_WIRE + 1)
+                    if not wire and persistent:
+                        break
+                    if len(wire) > MAX_WIRE or not wire.endswith(b"\n"):
+                        raise ValueError("request limit")
+                    request = json.loads(wire)
+                    if not isinstance(request, dict):
+                        raise ValueError("request format")
+                    if close_guard is None:
+                        owner = request["parent"]
+                        close_guard = guard_parent(owner, persistent=persistent)
+                    elif request.get("parent") != owner:
+                        raise ValueError("owner changed")
+                    if persistent:
+                        sequence += 1
+                        if (
+                            type(request.get("request_id")) is not int
+                            or request["request_id"] != sequence
+                        ):
+                            raise ValueError("request sequence")
+                    result = run(request)
+                except Exception:
+                    result = {"ok": False, "code": "inference_failed"}
+                result["pid"] = os.getpid()
+                if persistent:
+                    result["request_id"] = sequence
+                wire = json.dumps(result, ensure_ascii=False).encode("utf-8")
+                if len(wire) > MAX_WIRE - 1:
+                    break
+                output.write(wire + (b"\n" if persistent else b""))
+                output.flush()
+                if not persistent or result.get("ok") is not True:
+                    break
+                # Retain models, never the previous request/response media.
+                del request, result, wire
     finally:
         if close_guard is not None:
             close_guard()
-    result["pid"] = os.getpid()
-    wire = json.dumps(result, ensure_ascii=False).encode("utf-8")
-    if len(wire) > MAX_WIRE:
-        wire = b'{"ok":false,"code":"output_limit"}'
-    with os.fdopen(output_fd, "wb", closefd=True) as output:
-        output.write(wire)
 
 
 if __name__ == "__main__":

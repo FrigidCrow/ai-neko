@@ -1,5 +1,47 @@
 # ai-neko 工作记录
 
+## 2026-10-04 — 本地语音常驻、预取、声线与实测
+
+先登记PLAN19，再由Astra Ultra并行实施worker生命周期及前端/配置，并独立只读复核。只复制本工程已安装voice模型、私有Python/wheels及owner/ready到 `reports/voice-performance-20261004/offline-profile`；没有复制配置/Key/历史。基线源码快照与有效源码SHA保留。新增测试修复锁外媒体校验，以及Windows恶意超长无换行stdout导致kill后wait仍卡住的问题；安装check默认一次性协议仍兼容旧实例。
+
+实际命令（均在本工程）：
+
+- `.\.venv\Scripts\python.exe -B reports/voice-performance-20261004/benchmark.py baseline`；`... benchmark.py candidate`；`... benchmark.py candidate --threads 1`；`... benchmark.py candidate --threads 4`。共15次真实离线TTS，三条不同speaker试听包含在candidate七次中，无新模型下载/ASR/录音/云请求/自动扬声器播放。已有应用资产目录及新0700 profile在sandbox下WinError5，授权以实际用户上下文执行隔离基准；没有放宽ACL或绕过审批。
+- `python -B -m pytest -q tests/test_local_voice.py tests/test_voice_persistent.py tests/test_voice_import_smoke.py`：92/92；配置/接口98/98、前端定向61/61。上述均为全套子集。修正既有测试用默认GBK读取UTF-8源码的问题。
+- `.\.venv\Scripts\python.exe -B -m pytest -q --junitxml=reports/voice-performance-20261004/pytest-full.xml`：1703 passed、13 Windows符号链接权限skip、1 pytest缓存权限warning，181.16秒；完整stdout为pytest-full.log。
+- 固定Node24.21.0执行 `node --test desktop/tests/*.test.cjs`（驱动以glob展开实际文件）：121/121，703.538ms，desktop-full.log。测试本身exit0；外层首次打印Unicode对勾因GBK失败，随后UTF-8读日志确认结果，未把输出错误当成产品测试失败或重复全套。
+- `.\.venv\Scripts\python.exe -B -m ruff check src tests scripts packaging`；`... ruff format --check src tests scripts packaging`：全部通过，134文件格式；`git diff --check`通过。
+- `... runtime-info.py`读取固定组件版本及CPU执行配置；CIM仅查询CPU名/12核24线程。未声称已核实可用GPU provider，有限1/2/4档实验后保留默认2线程。
+- 固定Node运行 `reports/voice-performance-20261004/desktop-readiness.cjs`；11:04:27 UTC加 `--quit-if-idle`，重新确认无录音/播放/待发输入/新Key输入/公开配置差异后正常quit。确认PID188936和CDP55941退出，再用原 `AI_NEKO_DATA_DIR`、`PYTHONUTF8=1`、去除ELECTRON_RUN_AS_NODE、`Start-Process ...electron.exe -ArgumentList ...desktop,--remote-debugging-port=55941 -WindowStyle Hidden` 重开PID187040。
+- 11:05:30只读确认新界面与计时接口已加载、local ready、model_key_set=true、观察关闭。`desktop-clean-handoff.cjs`在空闲下点击新对话和仅聊天，11:06:15核对空消息/空输入/空session binding，未提交任何请求。computer-use技能所需node_repl未暴露，遵循先读技能与guidance后使用已有项目CDP接口；未操作Windows安全/隐私或授权弹窗。
+
+全部原始结果、试听、隔离基准脚本、摘要与限制见 [本轮报告](reports/voice-performance-20261004/REPORT.md)。默认46未替用户更换，Key未读取或改写，未推送/打包/发布。热合成仍8.6–8.7秒，实际首音改善和主观音色Pending，不记为体验问题已解决。
+
+补充准备“朗读回复”选项时，干净会话脚本在首个 `#new-session` 点击前因按钮已不可见超时30秒；没有执行点击或后续勾选，也未强行展开用户界面。保留11:06:15已成功准备的证据，朗读开关须下一轮确认。最终源码摘要复核发现初次2线程基准后父端文件发生格式化，worker摘要完全一致；1/4线程实验使用最终父端。各次有效源码SHA保留，不宣称全部字节相同。
+
+为消除最终父端源码字节差异，补跑 `.\.venv\Scripts\python.exe -B reports/voice-performance-20261004/benchmark.py candidate --final-check`，只增加同句冷/热各一次、不扩大调参。最终2线程冷9.611913秒、热8.392748秒；父端与worker SHA均逐字节匹配最终源码并保留快照，记录final-benchmark.json。全部离线真实TTS计数更新为15。verification.json关联最终源码、全套结果和运行实例；实际首音仍未测量。
+
+## 2026-10-04 10:14 UTC — 设备刷新反馈不可见
+
+用户反馈“允许麦克风并刷新设备”无反应。仅运行 `node reports/media_mic_diagnostic_20261004.cjs` 读取已运行桌宠的指定状态文字、按钮状态、设备选项数量及DOM可见性，未调用getUserMedia或读取聊天/输入/Key。现场反馈为“声音设备列表已更新。”；麦克风4选项、扬声器5选项；`#media-status` 因祖先隐藏而不可见。`navigator.permissions.query` 的denied发生在刷新结束撤销临时授权后，不能据此声称OS拒绝。根代理同一用户上下文只读核验Windows麦克风ConsentStore三个开关均Allow。
+
+先更新PLAN，再在设备刷新按钮旁添加aria-live状态；显示读取中、完成输入/输出选项数量、失败原因并管理按钮busy状态。取消/迟到回调继续按owner隔离。NotAllowedError仅提示本次访问未获许可，不推断OS开关关闭。执行 `node --test desktop/tests/companion-lifecycle.test.cjs desktop/tests/companion.test.cjs`（52/52），日志 `reports/media-device-feedback-tests-20261004.log`；`git diff --check`通过。未重跑无关全套，先前109/109属于前一补丁版本。
+
+当前PID188936桌宠未重启/未reload，故新反馈尚未加载；当前已刷出的设备选项仍可直接选择。没有自动刷新设备、没有启动录音、没有改OS或Electron权限策略，B页和当前输入保留。此补丁待用户方便时重新加载/重开应用后由Sol验收可见反馈。
+
+## 2026-10-04 — Windows 本地语音安装与媒体实施交接
+
+- 基线：`afb560f13995895afad7acb3c10ee327d037e3ab`；初始仅 `reports/` 未跟踪。先更新 PLAN，再修改代码。独占实施/配置，Sol 在交接后执行黑盒。
+- `git status --short`、`git rev-parse HEAD`；只读检查本地语音安装器、runtime 锁/许可、媒体 API/renderer、现有报告。现有旧后端未运行，读取 app-owned connection 文件初遇 ACL PermissionError；升权获自动批准后公开 API 返回 URLError，确认旧端口不可达。没有读取模型凭据值或私人历史。
+- 用 `Start-Process ... .venv\Scripts\python.exe -B -m ai_neko serve --data-dir <既有已授权test-data> -WindowStyle Hidden` 启动临时后端；只打印 PID。`python -B reports/media_api_20261004.py status/install/select` 调鉴权 loopback API。实时模型为 `deepseek-flash` / `https://api.deepseek.com` / `model_key_set=true`；`/api/memory/config` 的 `auto_extract=false`。
+- 官方安装器完成 uv 0.11.8、独立 CPython 3.11.15、锁定 sherpa-onnx / sherpa-onnx-core 1.13.8、NumPy 2.4.4、SenseVoice int8 与 Kokoro int8 v1_1；固定下载 333,564,297 bytes。各下载 SHA-256 与源码固定值一致，原始许可及 wheel notices 保留于独立资源目录。来源/许可见 `src/ai_neko/media/local_runtime/LICENSES.md`（SenseVoice 权重为 FunASR Model License v1.1，不能称全套 Apache）。
+- `python -B reports/media_voice_probe_20261004.py`：首轮测试脚本模块导入路径失败，补足项目路径后重跑。真正调用本地 Kokoro/SenseVoice；固定句 TTS 8.851s，24kHz/mono/PCM16、5.414s、259916 bytes、非静音；ASR 1.785s，18字1字差异，CER 0.0556。证据 `reports/media-voice-20261004.json`、`.wav`。麦克风0次、云模型0次；合成回读不冒充真实录音。
+- `companion.js` 将解码与输出 sink/resume 分开；只在自动时限停止时明确提示并裁剪前60秒；设备刷新受独立所有权约束，停止/关闭/新录音可撤销，迟到回调只释放自己的流并保留有效设备选择。增加/调整生命周期回归；无视觉路径改动、无权限扩大。
+- `node --test desktop/tests/companion-lifecycle.test.cjs desktop/tests/companion.test.cjs`：49/49。`node --test desktop/tests/*.test.cjs`：sandbox 下102/109，7项仅因自身临时目录创建 EPERM；同命令升权重新执行109/109通过，日志 `reports/media-desktop-tests-20261004.log`。`git diff --check` 通过。未改 Python 产品代码，未重跑无关全量 Python 测试。
+- `python -B -m ai_neko stop --data-dir <同根>` 正常停止本轮临时后端，随后 `Start-Process desktop/node_modules/electron/dist/electron.exe <desktop> --remote-debugging-port=55941`，设置该进程的 AI_NEKO_DATA_DIR 为同根。桌宠 PID188936，后端由桌宠持有；无双实例争用。
+- 已阅读 computer-use 技能及 guidance/confirmations；本会话无 node_repl 工具入口，桌面窄检查使用项目已有 Playwright：`node reports/media_desktop_handoff_20261004.cjs`。设置页显示 local ready，点击一次内置固定文本试听，真实本地队列启动/结束且无播放错误；未请求麦克风、未调用聊天模型，听感需用户确认。证据 `reports/media-desktop-20261004.json`。
+- 阅读 Sol 的 E2E TEST-PLAN；复用其离线测试窗口/音频，不另建夹具。交接后停止配置/实例改动；本轮不推送、不发布。
+
 ## 2026-09-25 — 独立工程与计划（更名前的历史记录）
 
 用户明确要求单独建立项目，使用 LangGraph，具体实现参照既有 N.E.K.O 教程和代码。沿用 Windows 11 x64 优先、记忆本地保存/允许云模型，以及复用已有界面/语音/角色能力的方向；新工程独立于 N.E.K.O fork 和 Personal OS。
@@ -786,3 +828,259 @@ CI37134902832 Windows前置新增命令在uv参数解析失败：全局UV_PYTHON
 Root实际查看本轮免费语音设置及G6新进程聊天两图，入口/下载提示/麦克风区域/采用原文与YUI呈现正常，visual-review.json单列范围；没有声称所有DPI/真实游戏/声学通过。下载入口更新为0.4.0-dev.b443768df012，artifact11278787928到期2026-10-17 16:14:17 UTC，通常需GitHub登录；没有tag/Release。对话模型仍需单配，真实Windows11麦克风、噪声/术语/主观音色和完整MVP2质量/性能仍Pending。免费语音本批实现与Windows包交付范围完成。
 
 文档交付复核：`uv run --locked python docs/diagrams/tools/validate-docs.py > artifacts/free-voice/docs-final-delivery-validation.json` PASS（42 Markdown、613本地链接、20图，issues=[]，参考工程指纹保持不变）；`git diff --check`通过。便携归档逐字节核对下载报告、构建信息、WAV/截图和实际核验脚本SHA均一致，当前文档改动与包226份源码输入交集为空。只提交文档与证据并以`[skip ci]`推送，已验证产品仍为b443768，不因记录更新重新打包。
+
+
+## 2026-10-04 — Isolated Qwen VoiceDesign audition (authorized)
+
+Scope and acceptance were appended to docs/PLAN.md before installation. Read-only resource checks: Get-PSDrive D; Get-CimInstance Win32_OperatingSystem (escalated read after sandbox denied); nvidia-smi GPU memory/driver query. Checked project and parent .agents/skills (absent). Existing application/project changes preserved. Dedicated experiment: reports/qwen3-voicedesign-20261004.
+
+Actual installation commands (official channels):
+- D:\dev\.ai-neko-tools\20261003-164747\uv\uv.exe venv reports/qwen3-voicedesign-20261004/.venv --python D:\dev\.ai-neko-tools\20261003-164747\python\cpython-3.11-windows-x86_64-none\python.exe
+- UV_CACHE_DIR scoped to experiment; uv pip install --python <experiment>/.venv/Scripts/python.exe --index-url https://download.pytorch.org/whl/cu128 torch==2.10.0 torchaudio==2.10.0 (10 packages; torch 2.7 GiB download; prepared49.85s, installed1.79s).
+- uv pip install --python <experiment>/.venv/Scripts/python.exe --index-url https://pypi.org/simple qwen-tts==0.1.1 torch==2.10.0+cu128 torchaudio==2.10.0+cu128 (79 additional packages, prepared10.27s, installed0.969s). Resolver retained transformers4.57.3, accelerate1.12.0; complete versions saved by generator.
+- Existing project Python executed experiment/download_model.py: official Qwen HF revision5ecdb67327fd37bb2e042aab12ff7391903235d3, all13 files4,520,163,832B,59.437s; both weight SHA256 equal official LFS hashes. No Base or separate tokenizer download. Official QwenLM commit022e286b98fbec7e1e916cb940cdf532cd9f488e LICENSE saved.
+- <experiment>/.venv/Scripts/python.exe -u <experiment>/generate_auditions.py: offline-only local model, GPU bfloat16, SDPA, sequential3 fixed-seed voice designs, rawFLOAT WAV plus finite/non-silent/exact decode checks; started, result pending. Import warned missing optional flash-attn and SoX executable; no unauthorized source installed; actual synthesis will determine whether SoX is required here.
+
+Initial sandbox network and default uv cache access failed; authorized network/install retried with require_escalated and experiment-local UV_CACHE_DIR. No automatic approval review rejection. No user apps closed, driver/global Python changes, app integration, microphone, screenshot or paid API.
+
+Qwen audition completed: generation process exit0, three outputs verified; timings/resources and limits in REVIEW.md and audition-manifest.json. `uv pip check --python <experiment>/.venv/Scripts/python.exe` checked89 installed packages, all compatible. Footprint uses stat sizes deduplicated by filesystem IDs; no caches removed.
+
+
+Qwen audition delivery result: local3/3 completed and verified. Library initially failed at official hosted tool discovery (Library prepare_uploads is not available), before any prepare or finalize. Reconciled same batch through currently exposed MCP tools using the unchanged official Workflow and SignedUrlUploader; prepare succeeded for3 files, all3 byte transfers explicitly returned transfer_failed, zero finalize calls and zero library_file_id. No unknown-result files were retried. Windows metadata/temporary-directory adaptation saved auditable receipts, but did not bypass transfer failures. Original WAVs remain at reports/qwen3-voicedesign-20261004/audio; Library delivery Blocked, no successful upload claimed.
+
+
+2026-10-04 Qwen WAV delivery completed after explicit AzCopy authorization. Downloaded Microsoft official portable Windows x64 AzCopy10.32.7 from https://aka.ms/downloadazcopy-v10-windows into experiment/tools/azcopy; Authenticode Valid, Microsoft Corporation, binarySHA2561d44b549dfc8c45c30b7424536f04140ff1f061c7d251912d67b98c6184a4945. Only child-process PATH modified. Existing3 WAV SHA256 matched original generation manifest before upload. Current official Library helpers refreshed/identical; prepared-upload workflow plus official AzCopy transfer completed3/3, exactly1 successful finalize batch, no uncertain-result retries. IDs: 01_playful_sweet.wav=libfile_c15c941523308191a2b811748f31b2f7;02_soft_companion.wav=libfile_0830a41ac81c8191a9613bb4e9ef9b9d;03_playful_tsundere.wav=libfile_fa5f805a72e88191a877f95c65f9575c. Windows xattrs unavailable; identities and authoritative receipt saved in library-helper/azcopy-upload-receipt.json and library-delivery.json, not falsely reported as filesystem xattrs. Previous Library delivery blocker resolved. No new synthesis, original audio edits, system-wide config or application changes.
+
+
+2026-10-05 Base06B setup: read AGENTS and absent repo/parent .agents/skills; reference01 SHA256 matches prior manifest. Official HF revision5d83992436eae1d760afd27aff78a71d676296fc,13files2,516,106,051B, download_model.py run36.609s with both official LFS SHA256 matches. Attempted reuse of tokenizer main weight failed with Windows read_bytes Invalid argument; downloader then fetched and verified it officially, no partial model used. Existing isolated Python3.11.15/qwen-tts0.1.1/torch2.10.0+cu128 reused unchanged. Created generate_clone_samples.py, AST parse passed; generated run-sol.ps1 and handoff.json. Root has not loaded Base or run generation/black-box checks. Conservative preflight:1536MiBRAM,8GiBcommit,3072MiBGPU; postload/per-sentence256MiBRAM floor. GPT-6.1 Sol assigned actual execution.
+
+
+2026-10-05 Base06B Sol final preflight: after40.21s the sole recheck at03:59:53.750137Z foundRAM1,300,840,448B (1240.578MiB), commit12,914,180,096B, GPU5918MiB. RAM falls309,772,288B (295.422MiB) short of this experiment conservative1536MiB guard; this is not an official model minimum. GPT-6.1 Sol stopped without native model loading, prompt creation, generation, playback or ASR. NewWAV0, LibraryIDs0. Cold-load/synthesis speed, text coverage and timbre similarity remain Blocked/Pending. Environment, fixed reference, run-sol.ps1, handoff.json and four-file official Library/AzCopy upload workflow ready; no other apps closed or thresholds lowered. Next action after user frees memory is rerun the same run-sol.ps1 through designated Sol executor, then black-box output checks and Library upload. No1.7B Base or app integration performed.
+
+
+2026-10-05 15:23UTC Library recovery diagnosis: Sol completed four actual Base06B WAVs; progress evidence C:/Users/17218/Documents/Codex/2026-10-04/task/qwen-progress-20261005-1519.json read. In this thread default wudi/CodexSandboxOffline reads helper and runs --help successfully. Get-Acl confirms library-helper ownerCodexSandboxOffline, AreAccessRulesProtected=True and sole grantCodexSandboxOffline FullControl. Read-only formal execution identifies wudi/17218 and reproduces Access denied on exact helper/request files (exit1), so existing filesystem ACL/identity mismatch is proved, not a nonexistent path or unsupported Library tool. Current prepare/finalize tools remain available. No ACL edits, alternate-path copying, upload calls, new receipts/IDs or model reruns. Parent must authorize narrowly scoped helper read/execute and temporary-state write permissions for formal user before recovery. Artifact upload-access-diagnosis.json retained.
+
+
+2026-10-06 authorized narrow ACL repair and Base06B WAV delivery complete. User explicitly approved access for wudi/17218 under this exact experiment/library-helper. Reconfirmed prior sole CodexSandboxOffline FullControl/protected ACL and non-reparse path, saved before/after snapshots plus original icacls backup in acl-repair-20261006. Added inherited ReadAndExecute only at library-helper; added Modify only to its dedicated upload-state-20261006 child for IPC/temporary state/receipts. Preserved prior owner/accessor and byte-identical parent SDDL; no Everyone or broader-directory grants. Task wrapper now inherits this verified state ACL instead of replacing ACLs at launch; official3 helper sources refreshed unchanged from current skill, staging provenance retained. Formal wudi/17218 read and --help succeeded. Existing official AzCopy plus prepared Library workflow uploaded4/4 original WAVs in one successful finalize batch, no regeneration/uncertain replay. IDs:01_daily.wav=libfile_5431dced66bc819194cee959903805d2;02_emotion.wav=libfile_ed14ca18a89c819191888e058f3dffa7;03_numbers_time.wav=libfile_e6acbaeb13f48191907fb0ff750454a5;04_mixed_language.wav=libfile_706d7a01881481918ebcd1d929040405. Full identities/texts/local mapping in library-delivery.json and durable upload receipt. Windows xattrs unsupported, local_metadata_applied=false is explicit; identities retained in receipt. All prior latency/resource numbers unchanged; subjective similarity/word coverage still awaiting listening. No new tools/models/app integration or push.
+
+
+### 2026-10-06 Qwen application integration (in progress)
+
+User accepted all four Base0.6B examples and requested actual dynamic-reply integration with lower audible latency. Implementation runs on source commit afb560f13995895afad7acb3c10ee327d037e3ab with pre-existing uncommitted changes preserved. Main Python 3.11.15, pytest9.1.1, ruff0.16.9, FastAPI0.141.1, LangGraph1.2.12, httpx0.28.1. PATH Node is24.19.0; use already installed D:/dev/.ai-neko-tools/20261003-164747/node/node-v24.21.0-win-x64/node.exe for required Node24.21.0 tests. No dependencies installed.
+
+Actual commands, all rooted at D:/dev/ai-neko:
+- `.venv/Scripts/python.exe -c "import sys,importlib.metadata as m; ..."` verified main runtime/package versions; `git rev-parse HEAD`, `git status --short` recorded source state.
+- `reports/qwen3-voicedesign-20261004/.venv/Scripts/python.exe -B reports/qwen-integration-20261006/profile/profile_qwen.py` performed bounded preflight.
+- Same script with `--run-gpu-slot-authorized`: initial guard passed, native import25.6108s, post-import commit6.03GiB below8GiB; stopped before model load. Generated0, no new benchmark speed claim. Full evidence in profile/benchmark.json and WHITEBOX-REVIEW.md.
+- Application-user read-only `whoami` and `Get-Item` for authorized test-data/Qwen source/runtime/prompt confirmed wudi/17218 can access them; default sandbox could not access this existing test-data root. No permissions changed and no credentials/config/history read.
+- `.venv/Scripts/python.exe -B scripts/register_qwen_runtime.py --data-dir reports/blackbox/windows-20261003-164747/dom-run-2026-10-03T17-42-23-294Z/test-data --idle-unload-seconds 300` failed before registration on overly strict reparse rejection. Read-only file-link metadata located the already approved uv Python alias junction cpython-3.11-windows-x86_64-none -> cpython-3.11.15-windows-x86_64-none. Narrow fixed-target normalization being implemented; no broad reparse permission or ACL change.
+
+Backend synthetic tests initially75 passed. UI/config/API tests and full regression are still in progress, not complete. Designated GPT-6.1 Sol prepared12 Pending end-to-end cases and HANDOFF.md under reports/qwen-integration-20261006/blackbox; actual application/model execution has not started in that phase.
+
+
+### 2026-10-08 resume and directly confirmed cancellation repair
+
+Restored branch codex/companion-five-capabilities at afb560f13995895afad7acb3c10ee327d037e3ab, retaining existing uncommitted changes. No python/node/electron entries in initial/follow-up process-name checks; historical desktopPID309468/CDP55843 are stale. Default executor failed before command start with setup refresh errors; normally reviewed require_escalated application-identity commands succeeded, with no ACL changes.
+
+Before the new repair: full `.venv/Scripts/python.exe -m pytest -q --basetemp reports/qwen-integration-20261008/pytest-all -o cache_dir=reports/qwen-integration-20261008/pytest-cache --junitxml reports/qwen-integration-20261008/pytest.xml` completed1834passed13skipped177.74s. The3 prior Windows failures passed unmodified in identity-tests;5 preload lifecycle checks also passed. Existing desktop137/137 was rerun with installedNode24.21.0. Ruff check and format--check --no-cache passed143files;git diff--check exit0. These results precede this cancellation repair.
+
+Synthetic ASGI probe demonstrated load/unload arrival-order bug (identity-tests/late-preload-probe.json). Initial source-write approval and one evidence-backed retry were rejected under the stale read-only delegation. Parent then asked the user about exact companion.js/api.py/test edits; user directly replied “继续啊”. Under that new confirmation the original UI and API owners received approval and wrote the fixes; no workaround or permission change. UI added operation identity, paired request_id, cancel/release control and14 regression cases: desktop151/151pass in ui-cancel-tests/desktop-tests.log and summary.json. API targeted tests and independent review remain in progress at this entry.
+
+Fresh read-only resource command at07:47:47UTC: Get-CimInstance Win32_PerfFormattedData_PerfOS_Memory and nvidia-smi --query-gpu=name,memory.free,memory.total --format=csv,noheader,nounits. AvailableRAM529731584B (~505MiB), availablecommit2940891136B (~2.74GiB), GPU6005MiB/8188MiB. Below1536MiB/8GiB guards; no native model import/loading/generation. Earlier04:39 values remain historical. QwenVoice.status(), constructed only from read-only DataPaths without credential service, reported ready/supported=true/loaded=false/idle300s; ready denotes valid registration, not sufficient load resources.
+
+
+### 2026-10-08 final cancellation implementation and deterministic verification
+
+Directly confirmed frontend/API/test edits are complete. Every preload has a named operation; bounded180s/1024 cancellation records block requests delayed before body/admission, a new owner can share existing loading, and an old cancel cannot release the new owner. Successful or failed same-ID load retries are idempotent; a genuine new demand uses a new ID. Named operations fence off legacy empty-body loads (409); empty-body unload remains explicit global release. Cleanup failure retains ownership until a real retry succeeds, including configuration transitions. UI permits release during loading, waits for cleanup, invalidates late success/failure/finally and config/status reads at both start and completion boundaries, and preserves release-failure retry. Internal beginTurn stopSpeech does not cancel its own just-started prewarm.
+
+Final source verification:1861Python passed,13Windows symlink skips,0failures in173.74s;155desktop passed,0failed/0skipped underNode24.21.0. The80-case API/local targeted result and155desktop result are subsets, not additive totals. Ruff check and format--check --no-cache pass143files;gitdiff--check exit0. Independent Astra/Ultra review identified and confirmed closure of two additional completion/retry defects. Final source hashes/environment/counts in reports/qwen-integration-20261008/final-evidence.json; full Python log/JUnit pytest-after-cancel-fix-final.*, final desktop logs ui-cancel-tests/desktop-completion-tests.log and completion-summary.json. Earlier1857/151 counts precede the last review fixes and are not final.
+
+Resource check 2026-10-08T08:09:07.3345863Z: availableRAM399183872B, commit4491673600B, GPU6036MiB: Blocked. This phase performed0native model imports/0real generations, no paid API, key reads, microphone/private screen, new dependencies/models/drivers/permissions, other-app closure, push or publication. Accepted voice and installed resources preserved. No actual dynamic first-audio, warm latency, multi-sentence-gap or new inference-candidate speed-up claim. No new Windows package or acoustic verification. Parent should assign GPT-6.1 Sol using the self-contained reports/qwen-integration-20261008/SOL-HANDOFF.md after resource guards and permitted chat-model prerequisites pass.
+
+Final actual regression command: `.venv/Scripts/python.exe -m pytest -q --basetemp reports/qwen-integration-20261008/pytest-after-cancel-fix-final -o cache_dir=reports/qwen-integration-20261008/pytest-cache --junitxml reports/qwen-integration-20261008/pytest-after-cancel-fix-final.xml`, stdout/stderr retained in matching.log. Static commands: `.venv/Scripts/python.exe -m ruff check --no-cache src tests scripts packaging`; same interpreter `-m ruff format --check --no-cache src tests scripts packaging`; `git diff --check`. Desktop final command and exact environment/source hashes retained in ui-cancel-tests/completion-summary.json.
+
+
+### 2026-10-08 — Sol initial resource error repair
+
+Continued explicitly authorized companion/API/test scope after Sol reported10PASS/1FAIL/7BLOCKED. Existing HTTP contract already exposed safe code/detail, so only companion.js product code changed; related desktop/Python tests added. No model load, app launch/config change, threshold reduction, process closure, installation or paid call. Normal approved application-identity execution succeeded; no ACL changes or approval bypass. Read-only memory snapshot used Get-CimInstance Win32_PerfFormattedData_PerfOS_Memory plus Get-Process grouped by ProcessName with only WorkingSet64/PrivateMemorySize64. Numeric evidence is in resource-error-fix/memory-snapshot.json.
+
+Actual Python commands, repository cwd:
+```powershell
+$testReport = Join-Path (Get-Location) 'reports\qwen-integration-20261008\safe-error-api'
+$testTemp = Join-Path $testReport 'basetemp-run1'
+& .venv\Scripts\python.exe -m ruff format tests/test_voice_qwen_integration.py
+& .venv\Scripts\python.exe -m ruff check src/ai_neko/app/api.py tests/test_voice_qwen_integration.py
+& .venv\Scripts\python.exe -m pytest tests/test_voice_qwen_integration.py tests/test_qwen_voice.py --basetemp=$testTemp -o "cache_dir=$testReport\cache" --junitxml="$testReport\pytest.xml" -q --tb=short 2>&1 | Tee-Object -FilePath "$testReport\pytest.log"
+& .venv\Scripts\python.exe -m ruff format --check src/ai_neko/app/api.py tests/test_voice_qwen_integration.py
+git diff --check -- src/ai_neko/app/api.py tests/test_voice_qwen_integration.py
+```
+Desktop cwd `desktop`, fixed Node24.21.0 executable under `D:\dev\.ai-neko-tools\20261003-164747\node\node-v24.21.0-win-x64\node.exe`: `node --test tests/*.test.cjs`; process-local TEMP/TMP under project evidence. Results/log/hash metadata in reports/qwen-integration-20261008/ui-resource-errors/summary.json and desktop-tests.log:166passed/0fail/0skip. Python:93passed/0fail in8.19s (includes8new cases); related subset, not additive to prior1861. Root independent `git diff --check` exit0. Read-only reviewer found no blocker. Full Python was not rerun for this narrow UI product change; prior1861/13skip remains dated baseline.
+
+Guard audit identified experimental thresholds rather than official minima, and stricter post-import reuse of8GiB; no threshold changed. Delivery: reports/qwen-integration-20261008/resource-error-fix/{REPORT.md,evidence.json,GUARD-AUDIT.md,SOL-RETEST.md}. Initial docs append attempt had a Python parsing error before any write; corrected command then succeeded. Original Sol FAIL still needs actual UI retest and7dynamic voice cases stayBlocked. Existing config remains last Sol-restored local/Kokoro SID46.
+
+
+### 2026-10-08 — ASR release and manual Qwen retry stage frozen
+
+Implemented approved api.py/test cleanup and companion.js/test manual retry. API targeted invocation: `.venv/Scripts/python.exe -m pytest tests/test_voice_qwen_integration.py tests/test_voice_local_integration.py tests/test_qwen_voice.py tests/test_voice_persistent.py --basetemp reports/qwen-integration-20261008/local-cloud-cleanup/basetemp-run1 -o cache_dir=reports/qwen-integration-20261008/local-cloud-cleanup/pytest-cache --junitxml reports/qwen-integration-20261008/local-cloud-cleanup/pytest.xml -q` (PowerShell original used equivalent absolute report variables, Tee-Object log):159passed in13.00s. API/test Ruff check and format--check passed.
+
+Full Python actual command used fresh absolute finalReport/finalTemp variables rooted at reports/qwen-integration-20261008/asr-release-retry-final: `.venv/Scripts/python.exe -m pytest -q --basetemp $finalTemp -o cache_dir=$finalReport/pytest-cache --junitxml $finalReport/pytest-full.xml`, all streams redirected to pytest-full.log;1874passed,13symlink skipped,173.10s. Desktop cwd desktop, fixed Node24.21.0: `node --test tests/*.test.cjs`;177/177passed, evidence ui-resource-retry. Independent API/UI review completed; no blocking issues. UI summary parser corrected from TAP-only to actual Node test output without rerunning passed suite.
+
+Pre-streaming source/test/dependency inputs copied into asr-release-retry-final/source-snapshot; evidence.json holds base commit and SHA256 manifest. This preserves stage results while subsequent user-authorized true streaming work proceeds. No actual model/UI run or performance claim; parent reports prior first-error UI retestPASS and application restored/exited.
+
+
+### 2026-10-08 — Optimization design and candidate decision gate
+
+Read-only inspected installed Qwen/Transformers source and safetensors JSON headers (no tensor/native import). Confirmed full-codebook forward output, current whole-WAV wrapper, canonical tokenizer300/25 chunk implementation, directCUDA/meta loading and limited unusedencoder weight estimate. Agents remained read-only on stream worker/adapter/player; no prototype implemented. Reviewed official Qwen/HuggingFace/Microsoft sources and candidate GitHub landing READMEs. Current faster-qwen3-tts README warns qwen-tts-hf shares qwen_tts package and must not coexist with qwen-tts; no install attempted.
+
+Saved complete Chinese technical plan docs/QWEN-VOICE-OPTIMIZATION.md. Latest requested sequence pauses custom decoder expansion until candidate code/license/dependency/benchmark review and selection; new software/model downloads still require a concrete separate approval. Existing narrow fix stage source snapshot remains authoritative for1874Python/177desktop counts.
+
+### 2026-10-08 MOSS-TTS-Nano isolated preparation
+
+Authorized trial environment completed under reports/moss-tts-nano-20261008; no actual model sessions or synthesis have run. Python3.11.15 uses its own venv, with fixed numpy2.3.5, onnxruntime1.30.0, sentencepiece0.2.2, psutil7.2.2, scipy1.16.3, flatbuffers25.12.19, packaging26.3 and protobuf7.36.2. No torch/torchaudio/transformers. Official code and both model cards declare Apache-2.0; 22 dependency license/notice artifacts retained. Two wheels omitted license text, so exact-version upstream texts were preserved with that limitation stated. Model payload763,191,513B; with cards763,202,500B; pinned wheels68,106,821B. Size/hash manifests and frozen preparation evidence are in metadata/.
+
+Actual setup commands (cwd D:\dev\ai-neko; ordinary approved application-identity executor because default sandbox fails before execution):
+```powershell
+$trialRoot='D:\dev\ai-neko\reports\moss-tts-nano-20261008'
+$env:UV_CACHE_DIR=Join-Path $trialRoot 'uv-cache'
+$env:UV_PYTHON_DOWNLOADS='never'
+.\.venv\Scripts\python.exe -u "$trialRoot\prepare_environment.py" 2>&1 | Tee-Object -FilePath "$trialRoot\logs\download-final.log"
+& 'D:\dev\.ai-neko-tools\20261003-164747\uv\uv.exe' --no-config venv --python 'D:\dev\.ai-neko-tools\20261003-164747\python\cpython-3.11.15-windows-x86_64-none\python.exe' "$trialRoot\venv" 2>&1 | Tee-Object -FilePath "$trialRoot\logs\venv-create.log"
+& 'D:\dev\.ai-neko-tools\20261003-164747\uv\uv.exe' --no-config pip install --python "$trialRoot\venv\Scripts\python.exe" --no-index --find-links "$trialRoot\wheelhouse" --require-hashes --only-binary :all: --requirement "$trialRoot\requirements.lock" 2>&1 | Tee-Object -FilePath "$trialRoot\logs\install.log"
+.\.venv\Scripts\python.exe "$trialRoot\collect_supplemental_licenses.py" 2>&1 | Tee-Object -FilePath "$trialRoot\logs\supplemental-licenses.log"
+& "$trialRoot\venv\Scripts\python.exe" -I -B "$trialRoot\verify_environment.py" 2>&1 | Tee-Object -FilePath "$trialRoot\logs\environment-verification-final.log"
+& 'D:\dev\.ai-neko-tools\20261003-164747\uv\uv.exe' --no-config pip check --python "$trialRoot\venv\Scripts\python.exe" 2>&1 | Tee-Object -FilePath "$trialRoot\logs\dependency-check.log"
+```
+
+Environment validation PASS and8packages compatible. CPU provider explicitly selected; import-only check and synthetic resampling do not establish runtime session allocation or synthesis performance. Existing Qwen/app environments and settings unchanged. Real streaming harness/independent review and explicit GPT-6.1Sol blackbox remain in progress.
+
+Final isolated-harness command (main project Python, no native model or real audio):
+```powershell
+.\.venv\Scripts\python.exe -B -m unittest discover -s reports\moss-tts-nano-20261008\tests -p test_*.py -v
+```
+Result40/40PASS,0.185s,exit0; synthetic-tests/final-summary.json freezes7script/test hashes. Prior21/35counts are subsets/earlier revisions, not additive. Independent AstraUltra confirmed START/thread-start/Job cleanup repair. Explicit gpt-6.1-sol task /root/moss_sol_blackbox checked preparation+lock, took oneGetPerformanceInfo sample at10:58:25UTC and wrote sol-preliminary.json; subsequent sol-result.json preserved that sample without retry. AvailableRAM992,874,496B (0.924686GiB), commit7,046,438,912B (6.562508GiB); conditionBlocked, below startupRAM budget and1GiB running floor.0modelchildren/0sessions/0syntheses/0playback/0newWAV/0LibraryIDs. Future preflight/probe/run commands are documented only, not executed. Root documented REPORT/SOL-HANDOFF and evidence manifest, preserving production/Qwen settings and previous source-stage results.
+
+Final verification: inline standard-library SHA256 check matched9 preparation artifacts and7 frozen script/test files; reports/moss-tts-nano-20261008/evidence.json indexes38 evidence artifacts. Actual command git diff --check exited0 (only existing LF/CRLF notices). No broader suite rerun or actual model retry was required for this isolated preparation.
+
+
+### 2026-10-09 Non-voice first-batch work
+
+User pauses all voice work. Read local AGENTS, git status --short, git diff --stat, git diff -- desktop/renderer/app.js desktop/renderer/index.html, desktop/package.json and related prior handoffs; searched scoped repository paths for nested AGENTS/SKILL (none found). Default executor setup refresh failed before command execution; ordinary approved application-identity execution works, with no permission/ACL change. Added acceptance to PLAN before implementation, froze33desktop/source/test inputs plus git diff -- desktop into reports/nonvoice-settings-20261009/baseline and baseline-diff.patch. Owners preserve prior local voice patches and do no inference/download/config-key access.
+
+Confirmed local issues before fixes: small/low-contrast settings text and buried save; model save leaves settings; repeat-save gating can be reopened by connection events; openSettings/reconnection can replace drafts; memory/backups successful loads leave old errors and late failures race newer success; persona/memory list refresh can destroy edits; appearance init/save feedback has shared-status/late-response issues. Changes/test results are still in progress in this entry; actual Sol desktop/DPI acceptance remainsPending.
+
+Parallel readonly inventory: reports/nonvoice-settings-20261009/voice-cleanup-inventory.json;68,764files,18,839,904,238logicalB,13,475,683,010B by uniqueWindowsfileidentity; candidate13,368,076,554B after preserving metadata/audio/prompt/tools. Hardlink pairs are accounted within experiment roots, no reparse outsidelinks. No deletion/move/ACL change; recycle path exists but restore is not verified. Existing public Qwen handoff/runner still references VDvenv/BaseModel; pause does not erase bindings. Full physical recoverable bytes unknown, and same-volume recycle alone does not free allocation.
+
+
+First-batch final regression: Node24.21.0,223/223PASS,0fail/cancel/skip,1.10s. Actual cwd D:\dev\ai-neko\desktop; actual expanded command:
+```powershell
+D:\dev\.ai-neko-tools\20261003-164747\node\node-v24.21.0-win-x64\node.exe --test --test-reporter=tap tests/backend.test.cjs tests/companion-lifecycle.test.cjs tests/companion.test.cjs tests/control-client.test.cjs tests/guide-panel.test.cjs tests/guide-security.test.cjs tests/match-security.test.cjs tests/preferences.test.cjs tests/request-lifecycle.test.cjs tests/security.test.cjs tests/settings-lifecycle.test.cjs tests/speech-prefetch.test.cjs
+```
+Full stdout desktop-full.tap and exact argv/timestamps/source hashes desktop-full-summary.json. UI targeted42/42 and companion final28/28 are subsets; earlier failing targeted assertion/variable-fix runs are retained, not final results. app Node syntax and git diff --check passed. Compared33baseline inputs: only4renderer plus companion-lifecycle changed, new settings-lifecycle test;28unchanged. Full-test source hashes rechecked after completion, batch-only.patch generated. Independent reviewers closed reported ownership/late-response/draft-loss issues. Actual Windows visual/DPI/restart tests are Pending for Sol; no app/model/audio/cloud call or deletion this round.
+
+
+### 2026-10-09 — Recoverable voice-trial cleanup completed
+
+User reissued explicit execution authorization after the unrelated historical read-only diagnostic was closed. Exact22-object manifest SHA256 e791aa98fe83b45f71ff9df42d796cc1062fef773a295ac306ef88c6261d7120 was frozen. Read-only revalidation passed before actual operations. Commands ran from D:\dev\ai-neko via ordinary approved require_escalated execution because default executor setup refresh failed; no permission/ACL changes or review bypass.
+
+Canary actual commands loaded RecycleOnly.cs with Add-Type, called RecycleOnlySession.Recycle on only newly created file/folder, and persisted receipts before recovery. Original filesystem-item RestoreLast returned0x80070483 with the34B file intact in bin. Loaded RestoreOnly.cs, called exact Recycle Bin IShellFolder Probe then canonical undelete Restore; file and directory succeeded, SHA/fileID/nlink unchanged. No global undo, filesystem Move fallback, unrelated-bin enumeration or deletion.
+
+Actual resource command:
+```powershell
+& 'D:\dev\ai-neko\reports\nonvoice-settings-20261009\voice-cleanup\run-recoverable-cleanup.ps1'
+```
+2026-10-09 16:27:19–16:27:53UTC:22/22 recycled successfully, with per-item path/identity/count/size/reparse/process/capacity guards and receipts. Exact namespace Probe for22items then passed without Restore invocation. Independent verification command:
+```powershell
+& 'D:\dev\ai-neko\.venv\Scripts\python.exe' -B 'D:\dev\ai-neko\reports\nonvoice-settings-20261009\voice-cleanup\verify-recycled.py'
+```
+PASS_COMPLETE/0issues:68,571files,18,732,297,782logicalB/13,368,076,554unique-identityB;31,874hardlinkgroups;193preservedmetadatafiles;7WAVSHA;6frozen-sourceSHA. Mainenvironment/sharedresources excluded; no new tests/models/audio/UI interactions. REPORT.md, RESTORE.md, cleanup-result.json and receipts in reports/nonvoice-settings-20261009/voice-cleanup. Recycling does not free disk allocation; no permanent deletion/bin emptying.
+
+
+### 2026-10-09 — Sol appearance write-denial fix
+
+Read Sol sol-blackbox-20261009-1608/REPORT.md, actual-appearance-write-denial-audit.json and restoration records before implementation. Actual independent r+ open EBUSY under owned CreateFileW share-read lock; UI105/disk100false-success at700ms/5s. UpdatedPLAN and froze6relevant inputs before edits. Only production edit desktop/main.cjs explicit appearanceIPC: save candidate first, reject fixed error on storage failure, commit preferences/native alwaysOnTop only after success. Existing best-effort position persist and frozen6renderer/oldtests unchanged. New tests/main-preferences.test.cjs uses actual registered mainIPC in isolated VM+real syntheticprefs; noElectron/backend/model starts.
+
+Initialnew3tests against originalmain:2PASS/1FAIL(Missing expected rejection), thenmain+preferences7/7PASS. Added boundedtarget renameEBUSY injection anddestroyedwindowguard; finaltargeted9/9PASS. EEXISTisrealownedtmpconflict, EBUSYisdeterministicrenameinjection, distinct fromSolactualnativehandle evidence. NoACL/read-onlyattribute/systemchange. Before/after/final-targeted outputs preserved separately.
+
+Actual full command (cwd D:\dev\ai-neko\desktop):
+```powershell
+D:\dev\.ai-neko-tools\20261003-164747\node\node-v24.21.0-win-x64\node.exe --test --test-reporter=tap tests/backend.test.cjs tests/companion-lifecycle.test.cjs tests/companion.test.cjs tests/control-client.test.cjs tests/guide-panel.test.cjs tests/guide-security.test.cjs tests/main-preferences.test.cjs tests/match-security.test.cjs tests/preferences.test.cjs tests/request-lifecycle.test.cjs tests/security.test.cjs tests/settings-lifecycle.test.cjs tests/speech-prefetch.test.cjs
+```
+2026-10-09 16:47:37–16:47:38UTC,Node24.21.0,228/228PASS,0fail/cancel/skip,1.08s; stderrempty. node --check desktop/main.cjs and scopedgit diff --check pass. Independentreadonlyreview no blocker,6frozenhashesmatch. mainSHA591e1385b1cbe0d89f8a8b72b19d1fe4e5368dfb265875dd471103a26fe768b1;newtestSHAfc478319d69739c9688a4e264af81c9a75d0b106f7a5333f5d456a87a5a3f882. Artifacts in reports/nonvoice-settings-20261009/appearance-write-failure-fix inclactualminimain diff,wholepatch,evidence andSOL-RETEST. No remote/push. ActualpostfixSolnativeEBUSY/retry/restart remainsPending.
+
+
+### 2026-10-09 — Durable text-provider usage work
+
+Inspected current local providers/graph/runtime and provider/migration tests before changing code; existing ModelAdapter parses whitelisted usage but ordinary graph consumers do not persist it. Existing delivery events are truncated on cancellation, confirming the need for a separate conversation database ledger. Updated PLAN before implementation and froze 11 relevant input files plus 15 unrelated desktop/API/voice/dependency hashes in reports/text-provider-usage-20261009/baseline-manifest.json. Current task preserves all earlier uncommitted work and keeps UI/voice frozen.
+
+Default executor setup fails before running commands; ordinary require_escalated calls were approved by the configured automatic reviewer. No ACL/permission changes or review bypass. Current environment recorded by standard-library importlib.metadata/platform: Python3.11.15, pytest9.1.1, ruff0.16.9, httpx0.28.1, LangGraph1.2.12; lock and installed runtime package versions are recorded in environment.json. Base HEAD afb560f13995895afad7acb3c10ee327d037e3ab; this is a dirty local checkout.
+
+Provider owner implemented an optional synchronous HTTP lifecycle observer without changing the default request payload, include_usage opt-in, normal stream events or no-retry behavior. Actual targeted command: `.venv\Scripts\python.exe -m pytest tests/test_providers.py tests/test_provider_usage.py tests/test_provider_observer.py -v -p no:cacheprovider`; 48 passed. Provider scoped ruff check and format check passed; earlier formatting-only failure/output is preserved in provider-* evidence. Runtime schema7 persistence and consumer-close integration are still under implementation/review in this entry. All HTTP fixtures are synthetic; real paid provider calls:0.
+
+Runtime integration frozen after90/90PASS,15.64s. Actual targeted command (cwd D:\dev\ai-neko):
+```powershell
+.venv\Scripts\python.exe -m pytest tests/test_runtime_provider_usage.py tests/test_runtime.py tests/test_runtime_lifecycle.py tests/test_schema_migration.py tests/test_v04_upgrade.py -q --basetemp reports/text-provider-usage-20261009/pytest-storage-final -o cache_dir=reports/text-provider-usage-20261009/pytest-cache-storage 2>&1 | Tee-Object -FilePath reports/text-provider-usage-20261009/storage-regression.log
+```
+Owner additionally ran ruff check/format on its6files; root independently verified all8then9changed source/test files with no-cache ruff and scoped git diff --check. Consumer length-limit checks pass without graph/extraction changes. Independent review tightened unfinished-record finality and recovered memory-extraction finality; then passed final source.
+
+Full regression command: `.venv\Scripts\python.exe -B reports\text-provider-usage-20261009\run-full-regression.py`. Runner invokes projectPython `-B -m pytest tests -q -p no:cacheprovider --basetemp <fresh task-owned WindowsTemp path>`, recording exact argv/environment/source hashes and full output. First full result:1916passed,13Windows-symlink skips,1failed in197.09s; preserved as first-full-python.stdout.txt and first-full-python-summary.json. Sole failure: test_control_runtime.py current-schema assertion still expected6. Captured that file immediately before changing exactly two schema/automatic-backup expectations to7; independent follow-up review passed with production hashes unchanged. Single failed-case rerun1/1PASS in0.46s; second complete regression now in progress.
+
+Original11-file baseline did not include tests/test_runtime_lifecycle.py. Its3schema expectation changes were reversed by the owner and verified byte-for-byte against HEAD; root preserved this reconstructed original separately with explicit provenance in baseline-addendum.json, not presented as a pre-edit capture. Control test received its own actual pre-edit snapshot. Scoped baseline-relative patch reverse --check passes; no patch was applied/reverted.
+
+Final complete rerun PASS:1917passed,13Windows-symlink skips,0failed,193.64s pytest / 194.906s wrapper elapsed; UTC 2026-10-09T18:00:43.414612+00:00 through 2026-10-09T18:03:58.323317+00:00. Exact expandedargv, freshTemp root and11source hashes in full-python-summary.json; all unchanged during run. Scope final9files:3production/6tests. Independent final/follow-up reviews PASS;15frozen and7otherbaseline files unchanged. source-changes.patch reverse --check exit0, no apply/revert. Final REPORT/evidence/SOL-HANDOFF supplied. Real provider/paid calls0, no dependency/voice/UI/push work. ActualSol provider acceptance remainsPending, separate from this deterministic result.
+
+
+### 2026-10-09 — Real-history isolated migration-copy validation
+
+The user authorized migration validation only on isolated copies after Sol's real usage acceptance and restoration of four original databases. Read Sol's restoration/isolation manifests for exact paths and hashes, then inspected the production migration entry. Updated PLAN before writing the harness. Independent review confirmed that apply_migrations with service._MIGRATIONS is the same entry used by Runtime; avoided Runtime/server construction and their separate recovery and memory-worker behavior.
+
+Created reports/text-provider-usage-20261009/migration-copy-validation-20261009-1915/validate_copy_migration.py. The harness explicitly closes SQLite connections, copies four databases to fresh private WindowsTemp roots, checks before/copy/after hashes and independent file identity, and rejects SQLite connections outside those copies. Source WAL/SHM/journal files must be absent. Original databases are never opened through SQLite. Reports contain table counts, comparison results and file hashes, not records or secrets. The child reads only named OS environment variables. Ruff and syntax checks passed.
+
+Actual command from D:\dev\ai-neko:
+```powershell
+.venv\Scripts\python.exe -B reports\text-provider-usage-20261009\migration-copy-validation-20261009-1915\validate_copy_migration.py
+```
+Explicit process environment: PYTHONUTF8=1 and PYTHONDONTWRITEBYTECODE=1. The first run ended FAILED_OR_BLOCKED at19:22:48UTC because the guard counted an import-time urllib3 IPv6 loopback bind probe. Core migration/rollback checks had passed and all four original hashes were unchanged. A guard-only import probe identified _has_ipv6 at connection.py:127, invoked with ::1 at line137. The operation was blocked before execution. Preserved the first result, script and static-check record.
+
+Refined only the harness classification to match the exact event, address, direct caller, file and line. Both known probes and unexpected operations still raise; known probes must be at most one per process and unexpected events must be zero. This changed no approval or network permission. The final complete rerun passed at19:26:05–19:26:06UTC; exact argv, cwd, timing and script hash are in command.json.
+
+Final result:23 old tables,2738 rows and101 turns preserved through6→7; schema, complete typed-row comparisons, integrity and foreign-key checks passed. All101 old turns remain legacy/unknown and both new usage tables are empty. Repeat migration is byte-identical without a second backup. A failure after real v7 DDL rolls back to6; both direct retry and restoration from the retained backup migrate safely to7. An owned child exits86 before commit, then rollback/retry also passes. Parent and child each have one blocked IPv6 probe and zero other network events; real provider calls:0.
+
+Four original hashes, file identities, sizes and modification times remain unchanged, as do all four baseline-copy hashes. Fifteen final private-copy files are indexed without copying raw databases into the report directory. Five production source hashes are unchanged; no production defect or patch was needed. Independent final review rehashed the originals at19:27:21UTC and passed. Original databases remain unmigrated. Final report and evidence are in migration-copy-validation-20261009-1915.
+
+
+### 2026-10-09 — Strict selected-window capture scope fix
+
+Read Sol safety REPORT/ASTRA-REPRO, current capture/main/renderer/test/build files, and pinned Electron44.4.5/Chromium152 sources plus Microsoft PrintWindow/DPI documentation. Captured a dirty-tree baseline before implementation and updated PLAN. Independent review explicitly used gpt-6-astra reasoning_effort ultra; implementation owners had disjoint source/test/build files. No secrets/user databases/otherprojects were inspected.
+
+Replaced nonzero thumbnail enumeration with zero-size window metadata and a bounded PrintWindow-only C# helper; full title/PID/creation time bound internally, source/epoch checks, abort and actualchildclose cleanup. Main stops helper before backend exit; permission/microphone and priorappearance savehandler unchanged. Screen capture is unavailable; renderer wording/options updated accordingly. Smoke scripts inject explicit owned-window fixtures and were not run.
+
+Initial PowerShell -File -ValidateOnly was rejected by systemExecutionPolicy before compiler execution; preserved initialscript as report/PREFLIGHT evidence, removed production.ps1, did not change/bypass policy. Native standalone build uses existing C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe4.8.9221.0. Actual maintained command from projectroot: `D:\dev\.ai-neko-tools\20261003-164747\node\node-v24.21.0-win-x64\node.exe desktop/scripts/build-window-capture.cjs`; compile+--validate-onlyPASS19:58:17.736–19:58:18.346UTC. No valididentify/capture operation. Manifest/native-build-command record hashes/exactargv.
+
+Actual complete desktop command: Node24.21.0 `--test` with16expandeddesktop/tests/*.test.cjs paths, recorded in desktop-command.json.288passed,0fail/skip,1.125s wrapper (19:59:22.341UTC). Includes60newtests. Priorvisionfixture hang was corrected by waiting one event-loop turn after list started; only that owned Node invocation was interrupted. Existing26testsubset and newwrapper/build subsets are included, not added to288.
+
+Actual remaining validation: `.venv\Scripts\python.exe -B reports/controlled-screen-20261009/capture-scope-fix/run-validation.py --remaining`. Reuses recorded desktop result, then runs `-m pytest tests/test_packaging.py tests/test_window_capture_packaging.py -q -p no:cacheprovider --basetemp <freshownedWindowsTemp>`:33passed2.69s pytest/3.484s wrapper at20:01:05UTC. It runs11malformedrequests against the compiledhelper: all rejected beforeDPI/Win32dispatch with fixedinvalid_request andempty stderr. Exactargv/outcomes in validation.json. A transientexec-server transport disconnect rejected the first launch before processcreation; ordinary retry succeeded, no policy bypass.
+
+Scoped `.venv\Scripts\python.exe -B -m ruff check --no-cache scripts/build_windows.py tests/test_window_capture_packaging.py` PASS; formatcheck firstfound whitespaceonly innewtest, then ruffformat corrected it andbothcheck/formatPASS. Source/testbaseline-relative patch and hash evidence generated;8untouchedbaselinefiles plus3providerfiles and3sensitivefunctionalblocks verified unchanged. FinalAstrareview/followupPASS includingnewpackingfixturesandactualresults. No app/Electron/voice/paidAPI/dependencyinstall/fullpackage/push. See capture-scope-fix/REPORT.md andSOL-HANDOFF.md for remainingrealacceptance.
+
+
+### 2026-10-10 — Complete pending-code release readiness
+
+Current authorization covers review, UT/integration, real functional acceptance and later push/release. This implementation stage preserves all pending work, prepares a local candidate, and leaves actual Sol functional acceptance and remote publication to the coordinating thread. Reviewed root AGENTS and checked project/ancestor skill locations; no applicable additional local skill was present. Ordinary require_escalated execution was approved because default executor setup fails; no ACL/policy changes or approval bypass. A subreview initially received the obsolete read-only scope; the same normal read request succeeded after supplying current explicit code-review authorization.
+
+Captured original pending source and every newly touched source/document before editing into reports/release-readiness-20261010/baseline with SHA256 metadata. Parallel full-diff reviews covered desktop/capture/IPC, provider accounting/SQLite/recovery, voice worker lifecycle and release/CI. Independent cross-review verified final fixes for serialized settings/persona/memory mutations, initial settings draft retention, voice UI/state ownership and child EOF cleanup, and extraction usage finality across enqueue/claim/complete/fail/status cancellation boundaries. No real provider, screenshot, microphone or model execution was used. Reviews and patches remain private report evidence; no private raw reports or environments will be staged.
+
+Actual initial command: `.venv\Scripts\python.exe -B reports/release-readiness-20261010/run-initial-validation.py`, launching complete pytest through `scripts/m0_smoke.py --pytest-progress ... -- tests -q --tb=short -p no:cacheprovider --basetemp <new owned WindowsTemp path> --junitxml ...`, all16 desktop `*.test.cjs` paths with Node24.21.0, and Ruff check/format across src/tests/scripts/packaging. Python1925PASS/13Windows-symlinkSKIP and desktop288PASS; source hashes stable. The optional PyInstaller metadata lookup failed only after checks completed; initial-validation.json was recovered from retained command/JUnit evidence, without silently rerunning or reclassifying tests.
+
+Prepared a separate build environment with uv0.11.8, Python3.11.15, unchanged uv.lock: `uv.exe sync --locked --group build --no-dev --no-install-project --no-python-downloads --link-mode copy --python <managed Python3.11.15>`, setting UV_PROJECT_ENVIRONMENT to reports/release-readiness-20261010/build-venv and the existing task cache. The first --offline attempt could not find PyInstaller in cache; the ordinary approved online run installed53locked runtime/build packages, including PyInstaller6.22.3 and hooks2026.7. No voice/model dependency installation; main project .venv unchanged.
+
+Actual supplemental commands: `.venv\Scripts\python.exe -B scripts/evaluate_guides.py --output reports/release-readiness-20261010/guide-evaluation.json` and `scripts/benchmark_guides.py --output reports/release-readiness-20261010/guide-benchmark.json`. Evaluation24/24 evidence hits,6/6 absent rejections,0cross-game/version/source leaks; benchmark100samples,p95=22.321ms against150ms,0network attempts, owned temporary data removed. Node24.21.0 `--check` over37project JS/CJS files passed. Full exact argv/timing/output are retained in command.json and stdout/stderr report files.
+
+Final full invocation after all owners and independent reviewer froze code: `.venv\Scripts\python.exe -B reports/release-readiness-20261010/run-final-validation.py`. This collector handles optional missing build-only distribution metadata explicitly. Complete results and unchanged source verification are recorded in final-validation.json. Model/provider/audio calls remain0; physical Windows GUI/capture and Sol acceptance are not inferred from deterministic tests.
+
+Default CI real-voice import and model smoke were made manual opt-in via run_real_voice=false; default/tag results truthfully write SKIPPED_PAUSED while all synthetic/nonvoice checks remain. Release reads versioned notes at exact github.sha and refuses pending readiness. Read-only remote audit found existing development branch at afb560f13995895afad7acb3c10ee327d037e3ab, old default codex/initial-plan, last release v0.4.0-alpha.1, and no CI run for current HEAD. Historical CI37135192000 is not this candidate's acceptance. No push, tag, workflow dispatch or release performed.
+
+Candidate build command reserved after the curated local source commit: `.venv\Scripts\python.exe -B reports/release-readiness-20261010/run-candidate-build.py`; it invokes the isolated locked build Python on scripts/build_windows.py --version 0.4.0-alpha.2 from an exact-commit detached worktree, into a fresh private report output. Preserve exact candidate-build.command.json, build-info.json and ZIP SHA256; publication and functional status remain pending until corresponding evidence exists.
+
+Final frozen regression completed: Python1942PASS/13knownWindows-symlinkSKIP/0FAIL/0ERROR (203.88s pytest,205.031s wrapper), desktop306PASS/0FAIL/0SKIP, Ruff check and147-file format checkPASS. Source hashes unchanged throughout. This adds17Python and18desktop regression cases over the initial baseline; targeted suites are subsets, not additional counts. The13host-permission skips remain unexecuted and do not satisfy the stricter CI skip gate. No OS privilege adjustment was attempted.
+
+Local candidate commit initially failed because this Windows Git has no author identity configured; no commit was created. Retried with per-command `git -c user.name=Codex -c user.email=codex@localhost commit`, explicitly an automation identity, with no global/repository identity configuration change.

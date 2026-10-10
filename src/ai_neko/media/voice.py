@@ -29,6 +29,8 @@ DEFAULTS = {
     "tts_base_url": "https://api.openai.com/v1",
     "tts_model": "",
     "tts_voice": "alloy",
+    "local_tts_speaker_id": 46,
+    "local_tts_engine": "kokoro",
 }
 MAX_AUDIO_BYTES = 8 * 1024 * 1024
 MAX_AUDIO_BASE64 = 4 * ((MAX_AUDIO_BYTES + 2) // 3)
@@ -63,12 +65,27 @@ class VoiceError(RuntimeError):
 def _validate(config):
     if not isinstance(config, dict):
         raise ValueError("invalid_voice_config")
-    # Existing schema-1 files have exactly the original five cloud fields.
-    if set(config) == set(DEFAULTS) - {"voice_provider"}:
-        config = {"voice_provider": "openai", **config}
+    # Upgrade only the three released schema-1 shapes. Unknown partial shapes
+    # remain invalid; every existing cloud field and Kokoro speaker is retained.
+    legacy_fields = set(DEFAULTS) - {"local_tts_engine"}
+    if set(config) in (
+        legacy_fields - {"voice_provider", "local_tts_speaker_id"},
+        legacy_fields - {"local_tts_speaker_id"},
+        legacy_fields,
+    ):
+        config = {**DEFAULTS, **config}
     if set(config) != set(DEFAULTS) or config["voice_provider"] not in ("openai", "local"):
         raise ValueError("invalid_voice_config")
-    result = {"voice_provider": config["voice_provider"]}
+    if config["local_tts_engine"] not in ("kokoro", "qwen"):
+        raise ValueError("invalid_voice_config")
+    speaker_id = config["local_tts_speaker_id"]
+    if type(speaker_id) is not int or not 0 <= speaker_id <= 102:
+        raise ValueError("invalid_voice_config")
+    result = {
+        "voice_provider": config["voice_provider"],
+        "local_tts_speaker_id": speaker_id,
+        "local_tts_engine": config["local_tts_engine"],
+    }
     try:
         for name in ("asr_base_url", "tts_base_url"):
             result[name] = endpoint(config[name], model=True)
@@ -138,9 +155,11 @@ def _decode_audio(audio_base64, mime_type):
 class VoiceService:
     def __init__(self, paths: DataPaths):
         from ai_neko.media.local_voice import LocalVoice
+        from ai_neko.media.qwen_voice import QwenVoice
 
         self.paths = paths
         self.local = LocalVoice(paths)
+        self.qwen = QwenVoice(paths)
         self._lock = threading.RLock()
         self._credentials = Credentials(paths.root)
         self._config = dict(DEFAULTS)
@@ -170,6 +189,7 @@ class VoiceService:
                 "tts_key_set": bool(self._credentials.get("tts")),
                 "credential_storage": self._credentials.storage,
                 "local": self.local.status(),
+                "qwen": self.qwen.status(),
             }
 
     def update(self, changes: dict) -> dict:
@@ -370,7 +390,12 @@ class VoiceService:
             from ai_neko.media.local_voice import LocalVoiceError
 
             try:
-                body = await self.local.synthesize(text)
+                if config["local_tts_engine"] == "qwen":
+                    body = await self.qwen.synthesize(text)
+                else:
+                    body = await self.local.synthesize(
+                        text, speaker_id=config["local_tts_speaker_id"]
+                    )
             except LocalVoiceError as exc:
                 raise VoiceError(exc.code, exc.message) from None
             if not isinstance(body, bytes) or len(body) > MAX_AUDIO_BYTES:
@@ -400,4 +425,7 @@ class VoiceService:
         return {"audio_base64": base64.b64encode(body).decode("ascii"), "mime_type": "audio/mpeg"}
 
     async def close(self):
-        await self.local.close()
+        try:
+            await self.local.close()
+        finally:
+            await self.qwen.close()

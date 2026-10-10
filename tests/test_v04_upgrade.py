@@ -179,7 +179,7 @@ async def candidate_probe(root):
     runtime = SessionRuntime(paths, providers)
     try:
         assert_preserved(runtime)
-        assert runtime._db.execute("PRAGMA user_version").fetchone()[0] == 6
+        assert runtime._db.execute("PRAGMA user_version").fetchone()[0] == 7
         assert runtime.memory._db.execute("PRAGMA user_version").fetchone()[0] == 2
         assert providers.messages == []  # No generation or audio replay on upgrade.
         async with AsyncSqliteSaver.from_conn_string(
@@ -375,7 +375,7 @@ def test_actual_v04_migration_failure_retains_old_program_recovery_and_retries(
             SessionRuntime(paths, Providers())
     recovery = copy_fixture(tmp_path / "old program recovery")
     backup = paths.backups / (
-        "conversation-pre-migration-v6.sqlite"
+        "conversation-pre-migration-v7.sqlite"
         if failure == "conversation"
         else "long-term-pre-migration-v2.sqlite"
     )

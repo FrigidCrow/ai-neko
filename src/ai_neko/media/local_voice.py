@@ -2,7 +2,8 @@
 
 The main application never imports the native inference dependencies. A pinned
 uv bootstraps a separate managed Python and locked wheels after explicit setup.
-Each inference is a bounded child process with an owner pipe held open by us.
+Inference uses a bounded reusable child with an owner pipe held open by us.
+Cancellation or failure kills that child before the next request can proceed.
 """
 
 from __future__ import annotations
@@ -14,12 +15,14 @@ import ctypes
 import hashlib
 import io
 import json
+import math
 import os
 import platform
 import stat
 import sys
 import sysconfig
 import tarfile
+import time
 import wave
 import zipfile
 from dataclasses import dataclass
@@ -124,17 +127,60 @@ class _WindowsDllDirectory:
 
 async def _reap_spawn_result(process) -> None:
     """Reap even when a setup failure prevents handing the child to its owner."""
-    if process.returncode is None:
-        with contextlib.suppress(ProcessLookupError):
-            process.kill()
-    reaped = asyncio.create_task(process.wait())
+
+    async def finish():
+        try:
+            try:
+                if process.returncode is None:
+                    try:
+                        process.kill()
+                    except ProcessLookupError:
+                        pass
+                    except OSError:
+                        # The worker also exits on owner-pipe EOF. Signal that
+                        # fallback before draining/waiting: a failed kill must
+                        # not leave us waiting for a child whose owner stays open.
+                        if process.stdin:
+                            with contextlib.suppress(OSError):
+                                process.stdin.close()
+                        raise
+            finally:
+                try:
+                    # A readuntil failure can leave a paused pipe. Drain it, or
+                    # close its transport if the pipe is already broken, so
+                    # Windows process.wait() can finish transport shutdown.
+                    reader = getattr(process, "stdout", None)
+                    if reader is not None:
+                        try:
+                            while await reader.read(65536):
+                                pass
+                        except OSError:
+                            transport = getattr(reader, "_transport", None)
+                            if transport is not None:
+                                with contextlib.suppress(OSError):
+                                    transport.close()
+                finally:
+                    await process.wait()
+        finally:
+            if process.stdin:
+                with contextlib.suppress(OSError):
+                    process.stdin.close()
+
+    reaped = asyncio.create_task(finish())
+    cancelled = bool(asyncio.current_task().cancelling())
     while not reaped.done():
         try:
             await asyncio.shield(reaped)
         except asyncio.CancelledError:
-            continue
-    if process.stdin:
-        process.stdin.close()
+            cancelled = True
+        except Exception:
+            # Inspect only after cleanup and prioritize any original cancel.
+            break
+    if cancelled:
+        if not reaped.cancelled():
+            reaped.exception()
+        raise asyncio.CancelledError
+    reaped.result()
 
 
 async def _spawn_external(*args, **kwargs):
@@ -304,7 +350,12 @@ class LocalVoice:
         self._processes: set[asyncio.subprocess.Process] = set()
         self._requests: set[asyncio.Task] = set()
         self._inference_lock = asyncio.Lock()
+        self._inference_process: asyncio.subprocess.Process | None = None
+        self._inference_sequence = 0
+        self._last_diagnostics: dict = {}
         self._closed = False
+        self._unloading = False
+        self._unload_task: asyncio.Task | None = None
 
     def _owned(self, create: bool = False) -> Path:
         root = safe_child(self.paths.assets, "voice")
@@ -661,6 +712,8 @@ class LocalVoice:
     ) -> dict:
         if self._closed or (require_ready and self.status()["state"] != "ready"):
             raise LocalVoiceError("local_voice_not_ready", "请先下载免费本地语音资源。")
+        if request.get("operation") in {"asr", "tts"}:
+            return await self._exchange(request, timeout=timeout)
         request.update(
             {
                 "models": str(_child(self.root, "models")),
@@ -682,16 +735,158 @@ class LocalVoice:
         except (ValueError, UnicodeError):
             raise LocalVoiceError("local_voice_failed", "本地语音处理失败，请重试。") from None
 
+    def diagnostics(self) -> dict:
+        """Last successful inference's bounded numeric timing snapshot; no text/audio."""
+        return dict(self._last_diagnostics)
+
+    async def _discard_inference_process(self) -> None:
+        process = self._inference_process
+        self._inference_process = None
+        self._inference_sequence = 0
+        if process is not None:
+            try:
+                await _reap_spawn_result(process)
+            finally:
+                self._processes.discard(process)
+
+    async def _start_inference_process(self):
+        spawn = asyncio.create_task(
+            _spawn_external(
+                str(self._python()),
+                "-I",
+                "-B",
+                str(RUNTIME_SOURCE / "worker.py"),
+                "--persistent",
+                cwd=str(self.root),
+                env=_environment(self.root),
+                stdin=asyncio.subprocess.PIPE,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.DEVNULL,
+                limit=MAX_WIRE + 1,
+                creationflags=0x08000000 if sys.platform == "win32" else 0,
+            )
+        )
+        try:
+            process = await asyncio.shield(spawn)
+        except asyncio.CancelledError:
+            while not spawn.done():
+                with contextlib.suppress(asyncio.CancelledError):
+                    await asyncio.shield(spawn)
+            if not spawn.cancelled() and spawn.exception() is None:
+                await _reap_spawn_result(spawn.result())
+            raise
+        self._inference_process = process
+        self._processes.add(process)
+        return process
+
+    async def _exchange(self, request: dict, *, timeout: float) -> dict:
+        """One request/response under _inference_lock; failures never auto-replay media."""
+        started = time.perf_counter()
+        try:
+            async with asyncio.timeout(timeout):
+                process = self._inference_process
+                if process is not None and process.returncode is not None:
+                    await self._discard_inference_process()
+                    process = None
+                reused = process is not None
+                spawning = time.perf_counter()
+                if process is None:
+                    process = await self._start_inference_process()
+                spawn_ms = 0.0 if reused else (time.perf_counter() - spawning) * 1000
+                self._inference_sequence += 1
+                sequence = self._inference_sequence
+                payload = {
+                    **request,
+                    "models": str(_child(self.root, "models")),
+                    "site_packages": str(self._site_packages()),
+                    "parent": os.getpid(),
+                    "request_id": sequence,
+                }
+                wire = json.dumps(payload, ensure_ascii=False).encode("utf-8") + b"\n"
+                if len(wire) > MAX_WIRE:
+                    raise ValueError("request size")
+                process.stdin.write(wire)
+                await process.stdin.drain()
+                wire = await process.stdout.readuntil(b"\n")
+                if len(wire) > MAX_WIRE:
+                    raise ValueError("response size")
+                result = json.loads(wire)
+                if (
+                    not isinstance(result, dict)
+                    or result.get("ok") is not True
+                    or type(result.get("pid")) is not int
+                    or result["pid"] != process.pid
+                    or type(result.get("request_id")) is not int
+                    or result["request_id"] != sequence
+                ):
+                    raise ValueError("response identity")
+                timing = result.get("timings")
+                fields = {
+                    "import_ms",
+                    "prepare_ms",
+                    "model_load_ms",
+                    "inference_ms",
+                    "encode_ms",
+                    "worker_total_ms",
+                }
+                if (
+                    not isinstance(timing, dict)
+                    or set(timing) != fields | {"model_cold"}
+                    or type(timing["model_cold"]) is not bool
+                    or any(
+                        type(timing[name]) not in (float, int)
+                        or not math.isfinite(timing[name])
+                        or not 0 <= timing[name] <= 600000
+                        for name in fields
+                    )
+                ):
+                    raise ValueError("timing protocol")
+                # Validate media while this request still owns the inference
+                # lock. A corrupt success envelope must never leave a worker
+                # available to the next queued request or publish success timing.
+                if request["operation"] == "tts":
+                    self._synthesized_audio(result)
+                else:
+                    self._recognized_text(result)
+                self._last_diagnostics = {
+                    **timing,
+                    "operation": request["operation"],
+                    "worker_reused": reused,
+                    "worker_pid": process.pid,
+                    "spawn_ms": spawn_ms,
+                    "roundtrip_ms": (time.perf_counter() - started) * 1000,
+                }
+                return result
+        except BaseException as error:
+            await self._discard_inference_process()
+            if isinstance(error, asyncio.CancelledError):
+                raise
+            if isinstance(error, TimeoutError):
+                raise LocalVoiceError(
+                    "local_voice_timeout", "本地语音处理超时，请缩短内容后重试。"
+                ) from None
+            if isinstance(error, LocalVoiceError):
+                raise
+            if not isinstance(error, Exception):
+                raise
+            raise LocalVoiceError("local_voice_failed", "本地语音处理失败，请重试。") from None
+
     async def _infer(self, request: dict) -> dict:
+        if self._closed or self._unloading:
+            raise LocalVoiceError("local_voice_not_ready", "本地语音正在卸载或已关闭。")
         task = asyncio.current_task()
         self._requests.add(task)
+        started = time.perf_counter()
         try:
             # This deadline covers queueing as well as native inference. A
             # request that has already timed out must never acquire the lock
             # later and start work after its desktop caller has given up.
             async with asyncio.timeout(INFERENCE_TIMEOUT):
                 async with self._inference_lock:
-                    return await self._worker(request)
+                    queued_ms = (time.perf_counter() - started) * 1000
+                    result = await self._worker(request)
+                    self._last_diagnostics["queue_ms"] = queued_ms
+                    return result
         except TimeoutError:
             raise LocalVoiceError(
                 "local_voice_timeout", "本地语音处理超时，请缩短内容后重试。"
@@ -704,15 +899,27 @@ class LocalVoice:
         value = await self._infer(
             {"operation": "asr", "audio": base64.b64encode(wav_bytes).decode("ascii")}
         )
+        return self._recognized_text(value)
+
+    @staticmethod
+    def _recognized_text(value: dict) -> str:
         text = value.get("text")
         if not isinstance(text, str) or not 0 < len(text.strip()) <= 8000:
             raise LocalVoiceError("empty_transcript", "没有识别到说话内容，请重试。")
         return text.strip()
 
-    async def synthesize(self, text: str) -> bytes:
+    async def synthesize(self, text: str, *, speaker_id: int = 46) -> bytes:
         if not isinstance(text, str) or not 0 < len(text.strip()) <= MAX_TEXT:
             raise LocalVoiceError("speech_too_long", "本地朗读每次支持 1 至 600 字。")
-        value = await self._infer({"operation": "tts", "text": text.strip()})
+        if type(speaker_id) is not int or not 0 <= speaker_id <= 102:
+            raise LocalVoiceError("invalid_local_speaker", "本地音色编号必须在 0 至 102 之间。")
+        value = await self._infer(
+            {"operation": "tts", "text": text.strip(), "speaker_id": speaker_id}
+        )
+        return self._synthesized_audio(value)
+
+    @staticmethod
+    def _synthesized_audio(value: dict) -> bytes:
         try:
             audio = base64.b64decode(value["audio"], validate=True)
             if not 44 <= len(audio) <= MAX_AUDIO:
@@ -741,14 +948,39 @@ class LocalVoice:
             await asyncio.gather(self._install, return_exceptions=True)
         return self.status()
 
+    async def unload(self) -> None:
+        """Reap the shared ASR/Kokoro child without disabling later requests."""
+        if self._unload_task is None or self._unload_task.done():
+            self._unloading = True
+
+            async def finish():
+                try:
+                    tasks = tuple(self._requests)
+                    for task in tasks:
+                        if not task.cancelling():
+                            task.cancel()
+                    if tasks:
+                        await asyncio.gather(*tasks, return_exceptions=True)
+                    async with self._inference_lock:
+                        await self._discard_inference_process()
+                finally:
+                    self._unloading = False
+
+            self._unload_task = asyncio.create_task(finish(), name="local-voice-unload")
+        cancelled = False
+        while not self._unload_task.done():
+            try:
+                await asyncio.shield(self._unload_task)
+            except asyncio.CancelledError:
+                cancelled = True
+        self._unload_task.result()
+        if cancelled:
+            raise asyncio.CancelledError
+
     async def close(self) -> None:
         self._closed = True
         await self.cancel_install()
-        tasks = tuple(self._requests)
-        for task in tasks:
-            task.cancel()
-        if tasks:
-            await asyncio.gather(*tasks, return_exceptions=True)
+        await self.unload()
         for process in tuple(self._processes):
             if process.returncode is None:
                 with contextlib.suppress(ProcessLookupError):

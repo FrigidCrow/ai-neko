@@ -1,8 +1,20 @@
 # Windows 下载与 GitHub CI/CD
 
-最新 [MVP2 Windows 开发包](https://github.com/FrigidCrow/ai-neko/actions/runs/37135192000/artifacts/11278787928)为 `0.4.0-dev.b443768df012`，已通过 Windows CI、真实免费语音测试及实际下载核对。提供可见白裙 YUI 猫娘、流式聊天、人格、当轮视觉、按键语音、长期记忆，以及攻略保存/采用/复用、当前对局管理、免费 AnySearch 搜索和无需 Key 的本地中文语音。本轮是分支开发包，未创建新 tag 或 Release；Windows 11 x64 真机、聊天模型建议质量和用户麦克风/音色验收仍待完成，不能据此宣称完整 MVP2 通过。完整证据见 [Windows 验证报告](MVP2-WINDOWS-VERIFICATION.md)。
+## 当前：0.4.0-alpha.2 发布候选，尚未发布
 
-## 下载和运行
+2026-10-10 正在审查全部待提交代码并执行完整单元与集成回归，随后冻结候选供 GPT-6.1 Sol 进行真实功能验收。[候选发布说明](releases/v0.4.0-alpha.2.md)当前为 **PENDING**，没有本轮已发布的 tag、Release 或可据此认定通过的远端 CI/应用 ZIP。旧提交和历史功能报告不能为这个候选背书。发布前还须核对最终源 commit、精确 commit 对应的 CI、包内外构建信息、附件摘要和实际包功能结果。
+
+候选的观察画面仅支持明确选中的 Windows 窗口：枚举不生成图片，实际捕获绑定选中窗口，失效、撤销或过期时停止，不回退到整屏或其他窗口。实际游戏窗口兼容性及完整 GUI 问答以本候选的 Sol 验收为准，不能由合成图片或单元测试推断。
+
+**语音接入与真实语音验收继续暂停。** 保留既有语音代码的单元/合成回归；普通 push、PR、tag 和默认手动 CI 均不安装专用语音运行环境、不下载语音模型、不执行真实语音推理。只有后续明确选择手动 `workflow_dispatch` 的 `run_real_voice=true` 才执行原有真实语音检查，本轮不触发。暂停报告使用 `SKIPPED_PAUSED` 和零下载/调用计数，不记为 PASS。实验性 Qwen 代码不等于可用的已验收语音功能，私人模型、环境与语音样本不随候选提交。
+
+兼容版本建议为新预发布标签 `v0.4.0-alpha.2`，基础版本维持 `0.4.0`；建议发布分支 `release/v0.4.0-alpha.2` 来自受审查的当前候选，不使用旧远端默认分支覆盖本地。现阶段不推送或发布。版本化说明保持 `release-readiness: pending`；完成实际功能验收、填写结果并由发布负责人改为 `ready` 后，tag 流水线才允许创建 prerelease。此标记不能代替验收证据。
+
+## 历史下载：2026-10-03 免费本地语音开发包
+
+以下链接、使用说明、数字和附件均对应此前的 [MVP2 Windows 开发包](https://github.com/FrigidCrow/ai-neko/actions/runs/37135192000/artifacts/11278787928) `0.4.0-dev.b443768df012`，不是本次 alpha.2 候选。该历史包已通过当时的 Windows CI、真实免费语音测试及实际下载核对，提供可见白裙 YUI 猫娘、流式聊天、人格、当轮视觉、按键语音、长期记忆，以及攻略保存/采用/复用、当前对局管理、免费 AnySearch 搜索和无需 Key 的本地中文语音。当时为分支开发包，未创建新 tag 或 Release；Windows 11 x64 真机、聊天模型建议质量和用户麦克风/音色验收仍待完成，不能据此宣称完整 MVP2 通过。完整历史证据见 [Windows 验证报告](MVP2-WINDOWS-VERIFICATION.md)。
+
+### 历史包下载和运行
 
 - 在上方 Actions 链接下载 `ai-neko-windows-x64` 产物；解开产物容器，取其中 **`ai-neko-0.4.0-dev.b443768df012-windows-x64.zip`**。通常需登录 GitHub，产物保留至 **2026-10-17 16:14:17 UTC**。GitHub 自动生成的 Source code 是源码，不是应用。
 - 完整解压到独立程序文件夹，保留根目录`ai-neko.exe`、`resources`和其他文件。包内含Electron、Python、猫娘及运行依赖，无需另装Python、Node或uv。
@@ -17,7 +29,7 @@
 
 详细功能与边界见[五项能力使用说明](COMPANION-IMPLEMENTATION.md)。[版本列表](https://github.com/FrigidCrow/ai-neko/releases)保留历史包：0.4.0-alpha.1 为早期陪伴版，0.3.0-alpha.1 为基础桌宠版，0.2.0-alpha.1 为网页预览，0.1.0-alpha.1 为基础诊断版；这些历史 Release 均不包含本次 MVP2 攻略、对局和免费搜索能力。
 
-## 文件与校验
+## 历史包文件与校验
 
 Actions 应用产物提供应用 ZIP、`build-info.json`、`SHA256SUMS.txt` 和五份运行报告。同次运行的 `evidence-Windows` / `evidence-Linux` 产物保留源码测试、冻结 30 题与 200 篇检索报告；`package-evidence` 保留包报告、截图及真实合成 WAV，Windows 源码证据另含原生导入前置报告。五份包报告均实际执行同一个 ZIP 解压后的程序：
 
@@ -45,16 +57,16 @@ Get-FileHash .\ai-neko-0.4.0-dev.b443768df012-windows-x64.zip -Algorithm SHA256
 
 [workflow](../.github/workflows/windows-preview.yml)使用固定action commit、uv 0.11.8、Node.js 24.21.0、Python锁版本和`desktop/package-lock.json`，Electron锁定44.4.5。
 
-1. push、PR和手动运行在Ubuntu 24.04及Windows Server 2022执行依赖锁安装、素材/许可检查、桌面宿主单元测试、Python格式和合成测试，以及冻结30题评测和200篇攻略检索基准。失败或非预期跳过阻止后续；Linux的Windows凭据专属用例可跳过，报告保留PARTIAL并另列ci_gate。Windows 在完整回归前另用锁定的三个私有 wheel 检查真实 NumPy/Sherpa 导入和 worker 协议：保持 stdin 管道打开，20 秒内自然退出；18 个占位文件仅供导入检查，不是模型推理。
+1. push、PR和手动运行在Ubuntu 24.04及Windows Server 2022执行依赖锁安装、素材/许可检查、桌面宿主单元测试、Python格式和完整合成测试，以及冻结30题评测和200篇攻略检索基准。失败或非预期跳过阻止后续；Linux的Windows凭据专属用例可跳过，报告保留PARTIAL并另列ci_gate。语音源码的合成回归仍执行。Windows 专用语音环境安装和真实 NumPy/Sherpa 导入仅在手动显式选择 `run_real_voice=true` 时执行；默认记录 `Windows-voice-import-smoke.json` 为 `SKIPPED_PAUSED`，专用语音组件/模型下载与真实语音调用均为0。
 2. 两平台通过后，在Windows原生构建PyInstaller后端并与Electron、角色及许可证组装。根目录`ai-neko.exe`是桌面入口，后端在`resources/backend/ai-neko.exe`，前端在`resources/app/`。
-3. 对同一ZIP解压后的真实程序检查鉴权、中文路径、实例/端口、退出、图恢复和流式聊天；随后执行桌宠基线及人格/记忆/视觉/语音闭环。G6 使用 `--archive` 继续验证采用后退出、新进程新聊天复用、配置与禁用搜索各五问，以及旧局/新局/明确复盘隔离。以上四套测试使用合成资料和服务。随后免费语音检查在独立临时数据根安装固定版本的真实运行组件与模型，完成 TTS→16 kHz WAV→ASR 和重启复用；不读取用户麦克风、桌面或凭据。
-4. 普通构建上传带源码commit的Actions开发产物，保留14天，通常需登录GitHub。版本tag在所有必需检查通过后自动创建新的prerelease，附包、报告、截图和摘要。只有发布job具有`contents: write`权限。
+3. 对同一ZIP解压后的真实程序检查鉴权、中文路径、实例/端口、退出、图恢复和流式聊天；随后执行桌宠基线及人格/记忆/视觉/语音合成闭环。G6 使用 `--archive` 继续验证采用后退出、新进程新聊天复用、配置与禁用搜索各五问，以及旧局/新局/明确复盘隔离。以上四套测试使用合成资料和服务，并全部保持必需门禁；不能证明真实窗口截图、供应商服务或语音效果。免费语音模型安装与 TTS/ASR 仅在手动显式选择 `run_real_voice=true` 时执行，默认 `free-voice-smoke.json` 记录 `SKIPPED_PAUSED`、未执行、零下载/调用，不能记为真实语音通过。
+4. 普通构建上传带源码commit的Actions开发产物，保留14天，通常需登录GitHub。版本tag在全部必需检查通过且同一源码commit中的 `docs/releases/v<版本>.md` 明确标记 `release-readiness: ready` 后，才自动创建新的prerelease，附包、报告、合成截图和摘要。发布说明缺失或仍为pending会阻止发布；既有版本不覆盖。只有发布job具有`contents: write`权限。
 
-版本标签为`v<基础版本>-<预发布后缀>`，已有Release为`v0.4.0-alpha.1`。Python/Electron及锁文件基础版统一为0.4.0；分支包附带源码commit，tag包保留完整alpha后缀。已发布版本不覆盖，后续发布使用新tag；本次MVP2交付没有创建新tag或Release。稳定发布、签名、自动升级与完整迁移仍需后续验收。
+版本标签为`v<基础版本>-<预发布后缀>`，截至2026-10-10核查，已有最新Release为`v0.4.0-alpha.1`，`v0.4.0-alpha.2`仍是候选。Python/Electron及锁文件基础版统一为0.4.0；分支包附带源码commit，tag包保留完整alpha后缀。已发布版本不覆盖，后续发布使用新tag。稳定发布、签名、自动升级与完整迁移仍需后续验收。
 
 ## 验证记录
 
-### 当前：免费本地语音 Windows 开发包，2026-10-04
+### 历史：免费本地语音 Windows 开发包，2026-10-04
 
 [CI 37135192000](https://github.com/FrigidCrow/ai-neko/actions/runs/37135192000)三个必需 jobs 全部通过，发布 job 因非 tag 按设计跳过。CI 与下载发生于 2026-10-03 UTC，本地记录日期为 2026-10-04。源码为 `b443768df012fa4c88036f2fc13321b1e79d1d84`，构建时工作区干净。Windows Server 2022 x64 的 Python 测试 **1,673 通过 / 0 跳过，473.937 秒**；Ubuntu 24.04 为 **1,672 通过 / 1 项 Windows 凭据平台跳过，105.268 秒**；两平台桌面单测各 **106/106**。Linux 报告保留 PARTIAL，`ci_gate=PASS`。
 

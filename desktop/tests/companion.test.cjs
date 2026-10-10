@@ -6,15 +6,25 @@ const { SpeechQueue, encodeVoiceWav } = require('../renderer/media.js');
 const { validateRequest, ENTRY_URL } = require('../lib/security.cjs');
 const tick = () => new Promise((resolve) => setImmediate(resolve));
 const deferred = () => { let resolve; const promise = new Promise((done) => { resolve = done; }); return { promise, resolve }; };
-const source = (id, name) => ({ id, name, thumbnail: { isEmpty: () => false, toBitmap: () => Buffer.from([90, 110, 140, 255]), toJPEG: () => Buffer.from('synthetic image only') } });
+const source = (id, name) => ({ id, name });
+const adapter = {
+  identify: async (sources, { signal }) => { assert.equal(signal.aborted, false); return sources.map((item) => ({ ...item, pid: 123, started: '1' })); },
+  capture: async (_selected, { signal }) => { assert.equal(signal.aborted, false); return Buffer.from('synthetic image only'); },
+};
+const decode = () => ({ isEmpty: () => false, getSize: () => ({ width: 1, height: 1 }), toBitmap: () => Buffer.from([90, 110, 140, 255]) });
+const metadataOnly = (options) => assert.deepEqual(options,
+  { types: ['window'], thumbnailSize: { width: 0, height: 0 }, fetchWindowIcons: false });
 
 test('vision requires explicit listed source and returns only that source with current metadata', async () => {
   const requests = [];
-  const capture = new VisionCapture(async (options) => { requests.push(options); return [source('window:1:0', 'synthetic game'), source('screen:0:0', 'private screen')]; });
+  const captured = [];
+  const capture = new VisionCapture(async (options) => { metadataOnly(options); requests.push(options); return [source('window:1:0', 'synthetic game'), source('screen:0:0', 'private screen')]; },
+    { ...adapter, capture: async (selected, options) => { captured.push(selected); return adapter.capture(selected, options); } }, decode);
   await assert.rejects(capture.capture());
   await assert.rejects(capture.select('window:1:0'));
   const list = await capture.list();
   assert.equal('data_url' in list[0], false);
+  assert.deepEqual(list, [{ id: 'window:1:0', name: 'synthetic game', kind: 'window' }]);
   assert.equal(requests[0].thumbnailSize.width, 0);
   const first = await capture.select('window:1:0');
   assert.equal(first.source_name, 'synthetic game');
@@ -23,23 +33,28 @@ test('vision requires explicit listed source and returns only that source with c
   assert.deepEqual(requests[1].types, ['window']);
   const second = await capture.capture();
   assert.notEqual(first.frame_id, second.frame_id);
+  assert.deepEqual(captured.map(({ id }) => id), ['window:1:0', 'window:1:0']);
+  assert.ok(captured.every(({ pid, started }) => pid === 123 && started === '1'));
+  assert.equal(requests.length, 5, 'list and before/after validation request metadata only');
 });
 
 test('revoking vision rejects already pending capture and makes no further captures', async () => {
   const wait = deferred(); let calls = 0;
-  const capture = new VisionCapture(async () => { calls += 1; return calls === 1 ? [source('window:1:0', 'game')] : wait.promise; });
+  const capture = new VisionCapture(async (options) => { metadataOnly(options); calls += 1; return calls === 1 ? [source('window:1:0', 'game')] : wait.promise; }, adapter, decode);
   await capture.list();
   const selected = capture.select('window:1:0');
+  const rejected = assert.rejects(selected, /关闭/);
+  await tick();
   capture.disable();
   wait.resolve([source('window:1:0', 'game')]);
-  await assert.rejects(selected, /关闭/);
+  await rejected;
   await assert.rejects(capture.capture(), /未开启/);
   assert.equal(calls, 2);
 });
 
 test('closed or replaced source cannot silently become a screen or similarly named window', async () => {
   let sources = [source('window:1:0', 'game')];
-  const capture = new VisionCapture(async () => sources);
+  const capture = new VisionCapture(async (options) => { metadataOnly(options); return sources; }, adapter, decode);
   await capture.list(); await capture.select('window:1:0');
   sources = [source('window:2:0', 'game'), source('screen:0:0', 'full screen')];
   await assert.rejects(capture.capture(), /关闭/);
@@ -48,8 +63,8 @@ test('closed or replaced source cannot silently become a screen or similarly nam
 
 test('empty and black source failures remain explicit', async () => {
   const item = source('window:1:0', 'game');
-  item.thumbnail.toBitmap = () => Buffer.from([0, 0, 0, 255]);
-  const capture = new VisionCapture(async () => [item]);
+  const capture = new VisionCapture(async (options) => { metadataOnly(options); return [item]; }, adapter,
+    () => ({ ...decode(), toBitmap: () => Buffer.from([0, 0, 0, 255]) }));
   await capture.list();
   await assert.rejects(capture.select(item.id), /黑屏/);
   await assert.rejects(capture.capture(), /未开启/);
@@ -109,6 +124,20 @@ test('local voice IPC exposes only status, install and cancel with exact methods
   for (const [method, path] of [['POST', '/api/voice/local'], ['PUT', '/api/voice/local'], ['GET', '/api/voice/local/install'], ['GET', '/api/voice/local/cancel'], ['DELETE', '/api/voice/local/cancel']]) assert.throws(() => validateRequest({ method, path }));
 });
 
+test('Qwen IPC allows only fixed status, load and unload routes with exact methods', () => {
+  const allowed = new Set(['GET /api/voice/qwen/status', 'POST /api/voice/qwen/load', 'POST /api/voice/qwen/unload']);
+  for (const method of ['GET', 'POST', 'PUT', 'DELETE']) {
+    for (const route of ['/api/voice/qwen/status', '/api/voice/qwen/load', '/api/voice/qwen/unload',
+      '/api/voice/qwen/install', '/api/voice/qwen/load/', '/api/voice/qwen/load?path=C:/foreign',
+      '/api/voice/qwen/../config', '/api/voice/qwen', '/api/voice/qwen/status?all=true']) {
+      const validate = () => validateRequest({ method, path: route });
+      if (allowed.has(`${method} ${route}`)) assert.doesNotThrow(validate);
+      else assert.throws(validate);
+    }
+  }
+  assert.throws(() => validateRequest({ method: 'GET', path: '/api/voice/qwen/status', body: {} }));
+});
+
 const audioBuffer = (sampleRate, ...data) => ({ sampleRate, length: data[0].length, numberOfChannels: data.length, getChannelData: (channel) => Float32Array.from(data[channel]) });
 test('voice WAV has a truthful mono 16 kHz PCM header and mixes before downsampling', () => {
   const result = Buffer.from(encodeVoiceWav(audioBuffer(48000, [1, 0, -1, 1, 1, 1], [-1, 0, 1, 0, 0, 0])));
@@ -138,10 +167,12 @@ test('voice WAV rejects empty, oversized and over-duration inputs before allocat
 test('superseded selection failure cannot revoke a newer successful selection', async () => {
   const wait = deferred(); let calls = 0;
   const sources = [source('window:1:0', 'first'), source('window:2:0', 'second')];
-  const capture = new VisionCapture(async () => { calls++; return calls === 2 ? wait.promise : sources; });
+  const capture = new VisionCapture(async (options) => { metadataOnly(options); calls++; return calls === 2 ? wait.promise : sources; }, adapter, decode);
   await capture.list(); const first = capture.select('window:1:0');
+  const rejected = assert.rejects(first, /关闭/);
+  await tick();
   await capture.select('window:2:0'); wait.resolve(sources);
-  await assert.rejects(first, /关闭/);
+  await rejected;
   assert.equal((await capture.capture()).source_id, 'window:2:0');
 });
 

@@ -113,11 +113,11 @@
     <section id="settings-panel" class="companion-panel secondary-panel" data-interactive aria-labelledby="settings-title" hidden>
       <header class="panel-header"><div><span class="eyebrow">让陪伴准备就绪</span><h2 id="settings-title">小猫的设置</h2></div><button id="close-settings" class="icon-button" type="button" aria-label="返回聊天">×</button></header>
       <div class="settings-scroll">
-        <section class="appearance-settings" aria-label="桌宠外观"><h3>在桌面上</h3><label class="range-label" for="pet-scale">角色大小 <output id="scale-value">100%</output></label><input id="pet-scale" type="range" min="0.7" max="1.35" step="0.05" value="1"><label class="check-label"><input id="always-on-top" type="checkbox" checked>让小猫保持在最前面</label><p class="field-help">拖动角色移动位置；右键打开菜单。放大时自动适应可见区域。</p></section>
+        <section class="appearance-settings" aria-label="桌宠外观"><h3>在桌面上</h3><label class="range-label" for="pet-scale">角色大小 <output id="scale-value">100%</output></label><input id="pet-scale" type="range" min="0.7" max="1.35" step="0.05" value="1"><label class="check-label"><input id="always-on-top" type="checkbox" checked>让小猫保持在最前面</label><p class="field-help">拖动角色移动位置；右键打开菜单。放大时自动适应可见区域。外观调整会自动保存。</p><p id="appearance-status" class="settings-message" role="status" aria-live="polite"></p><button id="retry-appearance" class="soft-button" type="button" hidden>重试保存外观</button></section>
         <form id="settings-form" autocomplete="off">
           <fieldset><legend>对话模型 <small>OpenAI 兼容接口</small></legend><p class="field-help">观察画面需要支持图片输入的模型。按需联网需要工具调用能力；不支持时可选仅聊天。不同模型共用下方搜索服务。</p><label for="model-base-url">API 地址</label><input id="model-base-url" type="url" placeholder="https://api.example.com/v1" spellcheck="false" required><label for="model-name">模型名称</label><input id="model-name" type="text" placeholder="供应商支持的模型名称" spellcheck="false" required><div class="label-row"><label for="model-api-key">API Key</label><span id="model-key-state" class="key-state">尚未设置</span></div><input id="model-api-key" type="password" autocomplete="new-password" spellcheck="false" placeholder="填写模型 API Key"><label id="clear-model-label" class="check-label" hidden><input id="clear-model-key" type="checkbox">清除已保存的模型 Key</label></fieldset>
           <fieldset><legend>共享联网搜索</legend><label for="search-provider">搜索服务</label><select id="search-provider"><option value="tavily">Tavily（需要 Key）</option><option value="anysearch">AnySearch（免费免 Key）</option></select><label for="search-base-url">API 地址</label><input id="search-base-url" type="url" placeholder="https://api.tavily.com" spellcheck="false"><div class="label-row"><label for="search-api-key">API Key</label><span id="search-key-state" class="key-state">尚未设置</span></div><input id="search-api-key" type="password" autocomplete="new-password" spellcheck="false" placeholder="查攻略时需要"><label id="clear-search-label" class="check-label" hidden><input id="clear-search-key" type="checkbox">清除已保存的搜索 Key</label><p id="search-help" class="field-help">填写 Tavily API Key，或选择 AnySearch 免费搜索。</p></fieldset>
-          <p id="credential-note" class="field-help">Key 不会写入界面存储。</p><p class="field-help">请求及费用由你配置的模型和搜索供应商处理。</p><p id="settings-message" class="settings-message" role="status" aria-live="polite"></p><button id="save-settings" class="primary-button" type="submit">保存连接设置</button>
+          <p id="credential-note" class="field-help">Key 不会写入界面存储。</p><p class="field-help">请求及费用由你配置的模型和搜索供应商处理。</p>
         </form>
 
         <form id="persona-form" class="companion-settings" autocomplete="off">
@@ -128,10 +128,10 @@
           <label for="persona-speaking-style">说话风格</label><textarea id="persona-speaking-style" maxlength="400" rows="2"></textarea>
           <label for="persona-catchphrase">口癖（可以留空）</label><input id="persona-catchphrase" maxlength="60">
           <label for="persona-game-style">游戏陪伴风格</label><textarea id="persona-game-style" maxlength="400" rows="2"></textarea>
-          <p id="persona-status" class="settings-message" role="status"></p><button type="submit" class="primary-button">保存人格</button>
+          <p id="persona-status" class="settings-message" role="status" aria-live="polite"></p><button type="submit" class="primary-button">保存人格</button>
         </form>
         <section class="companion-settings" aria-label="桌面观察">
-          <h3>桌面视觉</h3><p class="field-help">明确选定窗口或屏幕后，每次提问才取一张新图。图片会随问题发送给配置的模型服务；不会保存为本地相册。</p>
+          <h3>桌面视觉</h3><p class="field-help">当前支持 Windows 窗口观察。选择后先预览，每次提问再取一张新图；不支持整屏或最小化窗口。图片会随问题发送给配置的模型服务；不会保存为本地相册。</p>
           <button id="refresh-vision" type="button" class="soft-button">刷新可观察的窗口</button>
           <label for="vision-source">画面来源</label><select id="vision-source"><option value="">请先刷新并选择</option></select>
           <label class="check-label"><input id="vision-enabled" type="checkbox">允许提问时观察此来源</label>
@@ -142,7 +142,19 @@
           <h3>语音输入与输出</h3><p class="field-help">免费语音负责听写和朗读。聊天回答仍需在上方连接对话模型；试听不需要对话模型。</p>
           <label for="voice-provider">语音方案</label><select id="voice-provider"><option value="local">免费本地语音（无需 Key）</option><option value="openai" selected>兼容云语音服务</option></select>
           <div id="local-voice-settings" hidden>
-            <p class="field-help">中文识别与中文女声，在本机运行。首次需下载约310MB模型，运行环境另需少量空间；之后语音不消耗云服务额度。</p>
+            <label for="local-tts-engine">本地朗读引擎</label><select id="local-tts-engine"><option value="kokoro">CPU / Kokoro</option><option value="qwen">Qwen 清甜俏皮（NVIDIA GPU）</option></select>
+            <p class="field-help">两种引擎都在本机朗读，语音识别仍使用 SenseVoice。切换后请保存；已保存的云语音设置和 Kokoro 声线会保留。</p>
+            <div id="kokoro-voice-settings">
+            <p class="field-help">CPU / Kokoro 与 SenseVoice 首次需下载约310MB模型，运行环境另需少量空间；之后语音不消耗云服务额度。</p>
+            <label for="local-tts-speaker-id">Kokoro 声线编号</label><input id="local-tts-speaker-id" type="number" min="0" max="102" step="1" value="46" aria-describedby="local-speaker-help">
+            <p id="local-speaker-help" class="field-help">可选 0–102；中文女声为 3–57，默认 46（zf_079）。保存后点击“试听已保存的音色”。此编号仅用于 Kokoro，Qwen 使用已配置的清甜俏皮声音。</p>
+            </div>
+            <div id="qwen-voice-settings" hidden>
+              <p class="field-help">使用本机已配置的 Qwen 实验环境与声音，需要 NVIDIA GPU、显存及磁盘空间。首次加载可能等待数十秒，每段声音也需要生成时间；可提前预热，使用后释放显存。</p>
+              <p id="qwen-voice-status" class="settings-message" role="status" aria-live="polite">正在读取 Qwen 资源状态…</p>
+              <button id="load-qwen-voice" type="button" class="soft-button">预热 Qwen</button><button id="unload-qwen-voice" type="button" class="text-button">释放 Qwen 显存</button><button id="refresh-qwen-voice" type="button" class="text-button">刷新 Qwen 状态</button>
+            </div>
+            <p class="field-help">SenseVoice / Kokoro 基础资源（Qwen 的语音识别也需要 SenseVoice）：</p>
             <p id="local-voice-status" class="settings-message" role="status" aria-live="polite">正在读取资源状态…</p>
             <button id="install-local-voice" type="button" class="soft-button">下载并启用免费语音</button><button id="cancel-local-voice" type="button" class="text-button" hidden>取消下载</button>
           </div>
@@ -161,6 +173,7 @@
         </form>
         <section class="companion-settings" aria-label="声音设备">
           <button id="refresh-audio-devices" type="button" class="soft-button">允许麦克风并刷新设备</button>
+          <p id="audio-device-status" class="settings-message" role="status" aria-live="polite"></p>
           <label for="microphone-device">麦克风</label><select id="microphone-device"><option value="">系统默认麦克风</option></select>
           <label for="speaker-device">播放设备</label><select id="speaker-device"><option value="">系统默认扬声器</option></select>
           <button id="test-voice" type="button" class="soft-button">试听已保存的音色</button>
@@ -169,16 +182,16 @@
         </section>
         <section class="companion-settings" aria-label="长期记忆">
           <h3>长期记忆</h3><p class="field-help">跨对话保留的事实和偏好；可以查看、纠正或遗忘。</p>
-          <label class="check-label"><input id="memory-auto-extract" type="checkbox">自动整理之后的对话记忆</label><p class="field-help">从之后的对话整理偏好和事件，会调用已配置模型。默认关闭，明确保存随时可用。</p><form id="memory-form"><label for="memory-content">明确让小猫记住</label><textarea id="memory-content" maxlength="1000" rows="2" required></textarea>
+          <label class="check-label"><input id="memory-auto-extract" type="checkbox">自动整理之后的对话记忆</label><p class="field-help">从之后的对话整理偏好和事件，会调用已配置模型。默认关闭，明确保存随时可用。</p><p id="memory-config-status" class="settings-message" role="status" aria-live="polite"></p><form id="memory-form"><label for="memory-content">明确让小猫记住</label><textarea id="memory-content" maxlength="1000" rows="2" required></textarea>
           <label for="memory-kind">类型</label><select id="memory-kind"><option value="preference">偏好</option><option value="fact">事实</option><option value="event">事件</option></select>
           <button type="submit" class="primary-button">保存记忆</button></form>
-          <button id="refresh-memories" type="button" class="text-button">刷新记忆</button><p id="memory-status" class="settings-message" role="status"></p><div id="memory-list"></div>
+          <button id="refresh-memories" type="button" class="text-button">刷新记忆</button><p id="memory-status" class="settings-message" role="status" aria-live="polite"></p><div id="memory-list"></div>
         </section>
         <section class="companion-settings" aria-label="记忆快照">
           <h3>记忆快照</h3><p class="field-help">本机保存人格和长期记忆。恢复旧快照会保留之后的纠正和遗忘，不会恢复已遗忘的内容。</p>
           <button id="create-memory-backup" type="button" class="soft-button">创建快照</button>
           <button id="refresh-memory-backups" type="button" class="text-button">刷新快照</button>
-          <p id="memory-backup-status" class="settings-message" role="status"></p>
+          <p id="memory-backup-status" class="settings-message" role="status" aria-live="polite"></p>
           <section id="memory-backup-confirmation" class="backup-confirmation" role="alertdialog" aria-modal="false" aria-labelledby="memory-backup-confirm-title" hidden>
             <strong id="memory-backup-confirm-title"></strong><p id="memory-backup-confirm-detail"></p>
             <button id="confirm-memory-backup" type="button" class="primary-button"></button>
@@ -187,6 +200,10 @@
           <div id="memory-backup-list"></div>
         </section>
         <details class="asset-notice"><summary>角色与组件署名</summary><p>角色资源：YUI Lolita，来源 Project N.E.K.O.。Copyright 2025–2026 Project N.E.K.O. Team / Copyright (c) 2025 Hongzhi Wen。随包保留上游 Apache-2.0 LICENSE、NOTICE 与贡献许可声明。Live2D Cubism SDK 另依其独立条款。</p><p>ai-neko 是独立项目，不代表原版或官方背书。</p></details><div class="settings-footer"><span>ai-neko · 桌宠工程预览<br>角色：YUI Lolita</span><button id="exit-app" class="text-button" type="button">退出应用</button></div>
+      </div>
+      <div class="settings-savebar" aria-label="模型与搜索保存">
+        <p id="settings-message" class="settings-message" role="status" aria-live="polite"></p>
+        <button id="save-settings" class="primary-button" type="submit" form="settings-form">保存模型与搜索</button>
       </div>
     </section>
 

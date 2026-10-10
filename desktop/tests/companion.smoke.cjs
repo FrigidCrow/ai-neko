@@ -353,11 +353,48 @@ report.executable_sha256 = crypto.createHash('sha256').update(fs.readFileSync(ex
     assert.equal(await page.locator('#mode-guide').getAttribute('aria-pressed'), 'true');
   });
   await check('selected_synthetic_window_preview_and_per_turn_fresh_image', async () => {
-    await application.evaluate(async ({ BrowserWindow, desktopCapturer, nativeImage }) => {
+    await application.evaluate(async ({ app, BrowserWindow, desktopCapturer }) => {
+      const load = process.getBuiltinModule('module').createRequire(process.getBuiltinModule('path').join(app.getAppPath(), 'main.cjs'));
+      const { VisionCapture } = load('./lib/vision.cjs');
+      const strict = load('node:assert/strict');
       const fixture = new BrowserWindow({ show: false, width: 680, height: 420, webPreferences: { sandbox: true, partition: 'ai-neko-synthetic-fixture' } });
       await fixture.loadURL('data:text/html,<body style="background:%23adc;color:%23234;font-size:36px">SYNTHETIC GAME<br>Round 8 / Coins 20<br><canvas width="320" height="180"></canvas></body>');
+      const source = { id: 'window:98765:0', name: 'Synthetic game only' };
+      const identity = { ...source, pid: process.pid, started: '1' };
       globalThis.syntheticVisionCalls = 0;
-      desktopCapturer.getSources = async (options) => { globalThis.syntheticVisionCalls++; return [{ id: 'window:98765:0', name: 'Synthetic game only', thumbnail: options.thumbnailSize.width ? await fixture.webContents.capturePage() : nativeImage.createEmpty() }]; };
+      globalThis.syntheticFrameCalls = 0;
+      // Enumeration returns metadata only. This fixture never enumerates real
+      // OS sources and never sends its invented window ID to native capture.
+      desktopCapturer.getSources = async (options) => {
+        strict.deepEqual(options, { types: ['window'], thumbnailSize: { width: 0, height: 0 }, fetchWindowIcons: false });
+        globalThis.syntheticVisionCalls++;
+        return fixture.isDestroyed() ? [] : [{ ...source }];
+      };
+      const fixtureAdapter = Object.freeze({
+        async identify(sources, { signal }) {
+          signal.throwIfAborted();
+          strict.deepEqual(sources, fixture.isDestroyed() ? [] : [source]);
+          return fixture.isDestroyed() ? [] : [{ ...identity }];
+        },
+        async capture(selected, { signal }) {
+          signal.throwIfAborted();
+          strict.deepEqual(selected, { ...identity, kind: 'window' });
+          if (fixture.isDestroyed()) throw new Error('Synthetic fixture window closed');
+          globalThis.syntheticFrameCalls++;
+          const frame = await fixture.webContents.capturePage();
+          signal.throwIfAborted();
+          if (fixture.isDestroyed()) throw new Error('Synthetic fixture window closed');
+          return frame.toJPEG(82);
+        },
+      });
+      // Main has already constructed VisionCapture. Inject this adapter at its
+      // native boundary while retaining production cancellation/settling logic.
+      // capturePage reads only this script-created WebContents, never the desktop.
+      const native = VisionCapture.prototype.native;
+      VisionCapture.prototype.native = function (operation, value) {
+        this.adapter = fixtureAdapter;
+        return native.call(this, operation, value);
+      };
     });
     await page.locator('#open-settings').click(); await page.locator('#refresh-vision').click();
     await page.locator('#vision-source').selectOption('window:98765:0'); await page.locator('#vision-enabled').check();
@@ -367,7 +404,8 @@ report.executable_sha256 = crypto.createHash('sha256').update(fs.readFileSync(ex
     await page.waitForFunction(() => document.querySelector('body').dataset.speaking === 'true');
     const last = calls.models.at(-1).messages.findLast((item) => item.role === 'user').content;
     assert.ok(Array.isArray(last) && last.some((part) => part.type === 'image_url'));
-    assert.equal(await application.evaluate(() => globalThis.syntheticVisionCalls), 3);
+    assert.equal(await application.evaluate(() => globalThis.syntheticVisionCalls), 5);
+    assert.equal(await application.evaluate(() => globalThis.syntheticFrameCalls), 2);
     assert.ok(calls.models.some((request) => request.tools?.some((tool) => tool.function?.name === 'search_web')));
     assert.ok(calls.models.every((request) => !request.messages.some((message) => message.role === 'tool')));
     assert.equal(await page.locator('#notice').isHidden(), true);
@@ -531,11 +569,13 @@ report.executable_sha256 = crypto.createHash('sha256').update(fs.readFileSync(ex
     await page.locator('#open-settings').click(); await page.locator('#vision-enabled').uncheck();
     await page.waitForSelector('#vision-preview', { state: 'hidden' });
     const count = await application.evaluate(() => globalThis.syntheticVisionCalls);
+    const frames = await application.evaluate(() => globalThis.syntheticFrameCalls);
     await page.locator('#close-settings').click(); await page.locator('#speak-replies').uncheck();
     const beforeReplies = await page.locator('.assistant-output').count();
     await page.locator('#message-input').fill('关闭观察后的合成文字问题'); await page.locator('#message-form').evaluate((form) => form.requestSubmit());
     await page.waitForFunction((count) => document.querySelector('#cancel-turn').hidden && [...document.querySelectorAll('.assistant-output')].length === count + 1 && [...document.querySelectorAll('.assistant-output')].at(-1).textContent.includes('再决定下一步。'), beforeReplies);
     assert.equal(await application.evaluate(() => globalThis.syntheticVisionCalls), count);
+    assert.equal(await application.evaluate(() => globalThis.syntheticFrameCalls), frames);
     const last = calls.models.at(-1).messages.findLast((item) => item.role === 'user').content;
     assert.equal(typeof last, 'string');
     await page.screenshot({ path: screenshotPath, omitBackground: true });

@@ -339,7 +339,41 @@ def assemble_desktop(package: Path, backend: Path) -> dict:
     for name in ("main.cjs", "preload.cjs", "package.json"):
         shutil.copyfile(desktop / name, app / name)
     for name in ("lib", "renderer", "consent", "vendor", "assets"):
-        shutil.copytree(desktop / name, app / name)
+        shutil.copytree(
+            desktop / name,
+            app / name,
+            ignore=(
+                shutil.ignore_patterns(
+                    "window-capture.exe", "window-capture.build.json", ".window-capture-build-*"
+                )
+                if name == "lib"
+                else None
+            ),
+        )
+    node = shutil.which("node")
+    if not node:
+        raise RuntimeError("Node is required to build the native window capture helper")
+    subprocess.run(
+        [
+            node,
+            str(desktop / "scripts" / "build-window-capture.cjs"),
+            "--output-dir",
+            str(app / "lib"),
+        ],
+        cwd=desktop,
+        check=True,
+        timeout=60,
+        creationflags=subprocess.CREATE_NO_WINDOW,
+    )
+    capture_build = json.loads(
+        (app / "lib" / "window-capture.build.json").read_text(encoding="utf-8")
+    )
+    if (
+        capture_build.get("version") != 1
+        or capture_build.get("source_sha256") != sha256(app / "lib" / "window-capture.cs")
+        or capture_build.get("executable_sha256") != sha256(app / "lib" / "window-capture.exe")
+    ):
+        raise RuntimeError("Native window capture build does not match the packaged source")
     shutil.move(str(backend), package / "resources" / "backend")
     for name in ("MVP1-ASSETS.md", "mvp1-assets-manifest.json"):
         shutil.copyfile(ROOT / "docs" / name, package / name)
@@ -352,6 +386,7 @@ def assemble_desktop(package: Path, backend: Path) -> dict:
         "backend_entry": "resources/backend/ai-neko.exe",
         "backend_sha256": sha256(package / "resources" / "backend" / "ai-neko.exe"),
         "core_sha256": sha256(core),
+        "window_capture": capture_build,
     }
 
 
@@ -443,7 +478,7 @@ def main(argv: list[str] | None = None) -> int:
             )
         )
         return 0
-    except (ValueError, RuntimeError, OSError, subprocess.CalledProcessError) as exc:
+    except (ValueError, RuntimeError, OSError, subprocess.SubprocessError) as exc:
         print(f"build_windows: {exc}", file=sys.stderr)
         return 2
 

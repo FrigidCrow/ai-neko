@@ -4,10 +4,28 @@ from __future__ import annotations
 
 import asyncio
 import json
+from collections.abc import Callable
+from uuid import uuid4
 
 import httpx
 
 from ai_neko.tools import network
+
+_REQUEST_ERROR_CODES = {
+    "authentication_failed",
+    "rate_limited",
+    "provider_http_error",
+    "invalid_response",
+    "output_limit",
+    "stream_interrupted",
+    "timeout",
+    "blocked_endpoint",
+    "network_error",
+    "provider_tracking_failed",
+    "cancelled",
+    "stream_closed",
+    "unexpected_error",
+}
 
 
 class ProviderError(RuntimeError):
@@ -69,8 +87,32 @@ class ModelAdapter:
         self.config = dict(config)
         self._key = api_key
         self.request_usage = request_usage
+        self._request_observer: Callable[[dict], None] | None = None
+
+    def set_request_observer(self, callback: Callable[[dict], None] | None):
+        """Observe local HTTP attempts without adding events to the model stream."""
+        if callback is not None and not callable(callback):
+            raise TypeError("request observer must be callable")
+        self._request_observer = callback
+
+    @staticmethod
+    def _notify_request(observer, event):
+        try:
+            observer(event)
+        except Exception:
+            # A failed durable start must stop dispatch, and a failed settlement
+            # must not look successful. Never expose storage details or secrets.
+            raise ProviderError(
+                "provider_tracking_failed", "模型调用记录保存失败，请重试。"
+            ) from None
 
     async def stream(self, messages: list, tools: list | None = None):
+        observer = self._request_observer
+        call_id = None
+        started = False
+        finished = False
+        usage = None
+        outcome, error_code = "interrupted", "stream_closed"
         model = self.config.get("model")
         if not isinstance(model, str) or not model.strip():
             raise ProviderError("model_not_configured", "请先填写模型名称和模型服务。")
@@ -102,98 +144,152 @@ class ModelAdapter:
             if tools:
                 payload.update(tools=tools, tool_choice="auto", parallel_tool_calls=False)
             async with asyncio.timeout(self.TIMEOUT):
-                async with (
-                    network.client() as client,
-                    client.stream(
+                async with network.client() as client:
+                    if observer is not None:
+                        call_id = uuid4().hex
+                        self._notify_request(
+                            observer,
+                            {"type": "provider_request", "phase": "started", "call_id": call_id},
+                        )
+                        # This is a local dispatch attempt, not proof that the
+                        # provider received the request or charged the account.
+                        started = True
+                    async with client.stream(
                         "POST", target, json=payload, headers=headers, extensions=extensions
-                    ) as response,
-                ):
-                    if response.status_code != 200:
-                        raise http_error(response.status_code)
-                    if response.headers.get("content-encoding", "identity") not in {
-                        "",
-                        "identity",
-                    }:
-                        raise ProviderError("invalid_response", "模型流格式不受支持。")
-                    calls: dict[int, dict] = {}
-                    reasoning = ""
-                    total_text = 0
-                    finished = False
-                    usage = None
-                    async for data in self._events(response):
-                        if data == "[DONE]":
-                            finished = True
-                            break
-                        packet = json.loads(data)
-                        if not isinstance(packet, dict) or packet.get("error"):
-                            raise ValueError
-                        if packet.get("usage") is not None:
-                            # Usage chunks may have empty choices. A repeated
-                            # total replaces the earlier snapshot; never sum it.
-                            usage = token_usage(packet["usage"])
-                        choices = packet.get("choices", [])
-                        if not choices:
-                            continue
-                        choice = choices[0]
-                        if choice.get("finish_reason") == "length":
-                            raise ProviderError(
-                                "output_limit", "模型输出达到长度上限，请缩小问题范围。"
+                    ) as response:
+                        if observer is not None:
+                            self._notify_request(
+                                observer,
+                                {
+                                    "type": "provider_request",
+                                    "phase": "response",
+                                    "call_id": call_id,
+                                    "http_status": response.status_code,
+                                },
                             )
-                        delta = choice.get("delta", {})
-                        thought = delta.get("reasoning_content")
-                        if thought:
-                            if not isinstance(thought, str):
+                        if response.status_code != 200:
+                            raise http_error(response.status_code)
+                        if response.headers.get("content-encoding", "identity") not in {
+                            "",
+                            "identity",
+                        }:
+                            raise ProviderError("invalid_response", "模型流格式不受支持。")
+                        calls: dict[int, dict] = {}
+                        reasoning = ""
+                        total_text = 0
+                        async for data in self._events(response):
+                            if data == "[DONE]":
+                                finished = True
+                                break
+                            packet = json.loads(data)
+                            if not isinstance(packet, dict) or packet.get("error"):
                                 raise ValueError
-                            reasoning += thought
-                            if len(reasoning) > self.MAX_TEXT:
-                                raise ProviderError("output_limit", "模型输出达到长度上限。")
-                        content = delta.get("content")
-                        if content:
-                            if not isinstance(content, str):
-                                raise ValueError
-                            total_text += len(content)
-                            if total_text > self.MAX_TEXT:
-                                raise ProviderError("output_limit", "模型输出达到长度上限。")
-                            yield {"type": "text", "text": content}
-                        for part in delta.get("tool_calls") or []:
-                            index = part["index"]
-                            if type(index) is not int or not 0 <= index < 8:
-                                raise ValueError
-                            call = calls.setdefault(index, {"id": "", "name": "", "arguments": ""})
-                            function = part.get("function", {})
-                            for key, value in (
-                                ("id", part.get("id", "")),
-                                ("name", function.get("name", "")),
-                                ("arguments", function.get("arguments", "")),
+                            if packet.get("usage") is not None:
+                                # Usage chunks may have empty choices. A repeated
+                                # total replaces the earlier snapshot; never sum it.
+                                usage = token_usage(packet["usage"])
+                            choices = packet.get("choices", [])
+                            if not choices:
+                                continue
+                            choice = choices[0]
+                            if choice.get("finish_reason") == "length":
+                                raise ProviderError(
+                                    "output_limit", "模型输出达到长度上限，请缩小问题范围。"
+                                )
+                            delta = choice.get("delta", {})
+                            thought = delta.get("reasoning_content")
+                            if thought:
+                                if not isinstance(thought, str):
+                                    raise ValueError
+                                reasoning += thought
+                                if len(reasoning) > self.MAX_TEXT:
+                                    raise ProviderError("output_limit", "模型输出达到长度上限。")
+                            content = delta.get("content")
+                            if content:
+                                if not isinstance(content, str):
+                                    raise ValueError
+                                total_text += len(content)
+                                if total_text > self.MAX_TEXT:
+                                    raise ProviderError("output_limit", "模型输出达到长度上限。")
+                                yield {"type": "text", "text": content}
+                            for part in delta.get("tool_calls") or []:
+                                index = part["index"]
+                                if type(index) is not int or not 0 <= index < 8:
+                                    raise ValueError
+                                call = calls.setdefault(
+                                    index, {"id": "", "name": "", "arguments": ""}
+                                )
+                                function = part.get("function", {})
+                                for key, value in (
+                                    ("id", part.get("id", "")),
+                                    ("name", function.get("name", "")),
+                                    ("arguments", function.get("arguments", "")),
+                                ):
+                                    if not isinstance(value, str):
+                                        raise ValueError
+                                    call[key] += value
+                                    if len(call[key]) > (16_384 if key == "arguments" else 128):
+                                        raise ValueError
+                        if not finished:
+                            raise ProviderError("stream_interrupted", "模型连接中断，请重试。")
+                        if usage is not None:
+                            yield {"type": "usage", "usage": usage}
+                        if reasoning and calls:
+                            # Protocol-only context: graph keeps it in memory, never emits it.
+                            yield {"type": "assistant_context", "reasoning_content": reasoning}
+                        for index in sorted(calls):
+                            call = calls[index]
+                            arguments = json.loads(call["arguments"])
+                            if (
+                                not call["id"]
+                                or not call["name"]
+                                or not isinstance(arguments, dict)
                             ):
-                                if not isinstance(value, str):
-                                    raise ValueError
-                                call[key] += value
-                                if len(call[key]) > (16_384 if key == "arguments" else 128):
-                                    raise ValueError
-                    if not finished:
-                        raise ProviderError("stream_interrupted", "模型连接中断，请重试。")
-                    if usage is not None:
-                        yield {"type": "usage", "usage": usage}
-                    if reasoning and calls:
-                        # Protocol-only context: graph keeps it in memory, never emits it.
-                        yield {"type": "assistant_context", "reasoning_content": reasoning}
-                    for index in sorted(calls):
-                        call = calls[index]
-                        arguments = json.loads(call["arguments"])
-                        if not call["id"] or not call["name"] or not isinstance(arguments, dict):
-                            raise ValueError
-                        yield {"type": "tool_call", **call, "arguments": arguments}
-        except ProviderError:
+                                raise ValueError
+                            yield {"type": "tool_call", **call, "arguments": arguments}
+            outcome, error_code = "completed", None
+        except ProviderError as exc:
+            outcome = "failed"
+            error_code = exc.code if exc.code in _REQUEST_ERROR_CODES else "unexpected_error"
+            raise
+        except asyncio.CancelledError:
+            outcome, error_code = "cancelled", "cancelled"
+            raise
+        except GeneratorExit:
+            outcome, error_code = "interrupted", "stream_closed"
             raise
         except (TimeoutError, httpx.TimeoutException):
+            outcome, error_code = "failed", "timeout"
             raise ProviderError("timeout", "模型请求超时，请重试。") from None
         except network.NetworkPolicyError:
+            outcome, error_code = "failed", "blocked_endpoint"
             raise ProviderError("blocked_endpoint", "模型地址不可访问或不符合网络策略。") from None
         except httpx.HTTPError:
+            outcome, error_code = "failed", "network_error"
             raise ProviderError("network_error", "无法连接模型服务，请检查网络。") from None
         except (ValueError, KeyError, TypeError, AttributeError, IndexError):
+            outcome, error_code = "failed", "invalid_response"
             raise ProviderError("invalid_response", "模型返回格式不正确。") from None
+        except Exception:
+            outcome, error_code = "failed", "unexpected_error"
+            raise
+        finally:
+            if started:
+                reported_usage = token_usage(usage)
+                self._notify_request(
+                    observer,
+                    {
+                        "type": "provider_request",
+                        "phase": "finished",
+                        "call_id": call_id,
+                        "outcome": outcome,
+                        "error_code": error_code,
+                        "usage": reported_usage,
+                        "usage_status": ("reported" if finished else "partial")
+                        if reported_usage is not None
+                        else "unknown",
+                    },
+                )
 
     async def _events(self, response):
         buffer = b""

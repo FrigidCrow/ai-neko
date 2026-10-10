@@ -1,5 +1,11 @@
 ai-neko desktop catgirl and guide companion preview (Windows x64)
 
+2026-10-10 candidate scope: real functional acceptance is pending; consult the matching
+versioned release notes and reports for the exact source/build and any later acceptance.
+Voice integration and real voice validation are paused for this candidate. Existing voice
+code has synthetic regression coverage; this round does not install new voice runtimes,
+download models or add providers. Experimental Qwen code is not an accepted voice feature.
+
 1. Extract the ENTIRE ZIP to a separate folder. Keep resources and all runtime files.
 2. Double-click ai-neko.exe (or Start ai-neko.cmd). No Python/Node/uv installation is needed.
 3. On first launch, read the bundled Live2D terms and choose whether to accept.
@@ -13,9 +19,13 @@ ai-neko desktop catgirl and guide companion preview (Windows x64)
 
 Companion settings:
 - Edit the catgirl persona; saved changes apply from the next question.
-- Choose a window/screen, enable observation and verify the preview. Each question captures one new
-  frame and sends it to your configured image-capable model. Turning observation off revokes it.
-- For free speech, select Local free voice in Settings and download its components once.
+- Choose one Windows window, enable observation and verify the preview. Each question captures
+  one new frame from that selected window and sends it to your configured image-capable model.
+  Enumeration creates no images; cancellation or a lost source never falls back to a screen or
+  another window. Whole-screen and minimized-window capture are unsupported; some games and
+  protected windows may not provide a usable frame. Turning observation off revokes capture.
+- Existing voice setup reference only (paused for this candidate; do not run these setup steps
+  as part of this round): Local free voice in Settings downloads its components on first setup.
   SenseVoice handles speech recognition and Kokoro provides Mandarin speech on your CPU.
   Models total about 310 MB, plus a private Python runtime; internet is needed for setup.
   After setup, speech runs locally without an account, API key or per-call voice charges.

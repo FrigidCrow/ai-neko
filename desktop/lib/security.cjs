@@ -34,7 +34,7 @@ function validateRequest(value) {
   const matchId = 'match-[a-f0-9]{32}';
   const routes = {
     GET: [ /^\/api\/(?:persona|memories|memory\/(?:config|backups)|voice\/(?:config|local))$/, /^\/api\/config$/, /^\/api\/sessions$/,
-      /^\/api\/guides$/, /^\/api\/guide-backups$/,
+      /^\/api\/guides$/, /^\/api\/guide-backups$/, /^\/api\/voice\/qwen\/status$/,
       new RegExp(`^/api/guides/${guideId}(?:\\?revision_id=${guideRevisionId})?$`),
       new RegExp(`^/api/guide-operations/${guideRequestId}$`),
       new RegExp(`^/api/sessions/${matchSessionId}/matches(?:/${matchId})?$`),
@@ -46,7 +46,7 @@ function validateRequest(value) {
     DELETE: [ new RegExp(`^/api/memories/${id}$`), new RegExp(`^/api/memory/backups/${backupId}$`),
       new RegExp(`^/api/guides/${guideId}$`), new RegExp(`^/api/guide-backups/${guideBackupId}$`) ],
     POST: [ /^\/api\/memories$/, /^\/api\/memory\/backups$/, new RegExp(`^/api/memory/backups/${backupId}/restore$`), /^\/api\/voice\/(?:transcribe|synthesize|cancel)$/, /^\/api\/voice\/local\/(?:install|cancel)$/, /^\/api\/sessions$/, new RegExp(`^/api/sessions/${id}/turns$`),
-      /^\/api\/guides$/, /^\/api\/guide-backups$/,
+      /^\/api\/guides$/, /^\/api\/guide-backups$/, /^\/api\/voice\/qwen\/(?:load|unload)$/,
       new RegExp(`^/api/guides/${guideId}/refresh$`),
       new RegExp(`^/api/guide-operations/${guideRequestId}/cancel$`),
       new RegExp(`^/api/guide-backups/${guideBackupId}/restore$`),

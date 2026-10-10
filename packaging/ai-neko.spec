@@ -18,12 +18,16 @@ hidden = collect_submodules("langchain_core") + [
 metadata = []
 for name in ("langgraph", "langgraph-checkpoint-sqlite", "fastapi", "uvicorn", "websockets", "filelock", "httpx"):
     metadata += copy_metadata(name, recursive=True)
-voice_runtime = repo / "src" / "ai_neko" / "media" / "local_runtime"
-voice_sources = [
-    (str(path), str(Path("ai_neko/media/local_runtime") / path.relative_to(voice_runtime).parent))
-    for path in voice_runtime.rglob("*")
-    if path.is_file() and "__pycache__" not in path.parts
-]
+# External voice interpreters execute these workers as files; PYZ imports alone
+# do not provide them. Qwen also reads the shared local worker's owner guards.
+voice_sources = []
+for runtime_name in ("local_runtime", "qwen_runtime"):
+    voice_runtime = repo / "src" / "ai_neko" / "media" / runtime_name
+    voice_sources += [
+        (str(path), str(Path("ai_neko/media") / runtime_name / path.relative_to(voice_runtime).parent))
+        for path in voice_runtime.rglob("*")
+        if path.is_file() and "__pycache__" not in path.parts
+    ]
 
 a = Analysis(
     [str(repo / "packaging" / "entry.py")],

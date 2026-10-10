@@ -748,6 +748,17 @@ class MemoryService:
             ).fetchall()
             return [self._job(row[0]) for row in rows]
 
+    def extraction_status(self, job_id: str) -> dict:
+        """Read only scheduling metadata, never the source text or extracted facts."""
+        with self._transaction():
+            row = self._db.execute(
+                "SELECT status,attempts,lease_until FROM memory_jobs WHERE scope=? AND id=?",
+                (self.scope, job_id),
+            ).fetchone()
+            if row is None:
+                raise MemoryAccessError("memory_job_not_found")
+            return dict(row)
+
     def claim_extraction(self, job_id: str, *, lease_seconds: int = 60) -> dict | None:
         _integer(lease_seconds, 1, 3600, "lease_seconds")
         with self._transaction():

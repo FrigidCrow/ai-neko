@@ -26,3 +26,17 @@ artifacts/
 # Cubism Core is fetched with a pinned source/hash for the complete desktop app.
 desktop/vendor/live2dcubismcore.min.js
 .workbuddy/
+# Built explicitly for development or freshly into each Windows package.
+desktop/lib/window-capture.exe
+desktop/lib/window-capture.build.json
+
+# Local acceptance reports can contain private conversations, screenshots and data.
+/reports/
+/pytest-of-*/
+/torchinductor_*/
+# Runtime model weights are installed locally, never shipped as source changes.
+*.safetensors
+*.onnx
+*.ckpt
+*.pt
+*.pth

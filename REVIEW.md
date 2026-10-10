@@ -1,5 +1,35 @@
 # ai-neko 验收记录
 
+## 2026-10-04 本地语音性能局部修复
+
+实现与白盒通过：常驻worker/懒加载模型、最多下一段预取、本地speaker ID合法整数0–102与旧配置兼容、无正文的有界阶段计时。取消/含排队120秒期限/崩溃/坏PID序号/超长无换行/错误音频/父退出/关闭及后续重建有合成与实际子进程回归；无失败自动重放。独立复核指出的锁外载荷校验已移入锁内，实际超限回归发现的Windows管道wait卡住已修复。
+
+全套Python1703通过/13符号链接权限skip/1缓存权限warning，桌面121通过；Ruff与134文件格式通过。定向98、92、61都是子集，不相加。真实模型单列15次离线TTS，无新增录音/云请求/模型下载或自动播放。三条现有女声3/zf_001、31/zf_048、54/zf_092的WAV及SHA/RMS可交用户试听，原始speed1.0，无变调，默认46未更换。
+
+本机12核24线程Ryzen9 7845HX，旧同句冷12.997/10.250秒；新2线程冷9.780、热8.628/8.560/8.709秒。同组热中位数比冷少约1.152秒/11.8%，加载1.301秒被去掉，但纯推理仍8.5–8.7秒，生成约5.4秒音频仍慢于实时。1/4线程有限实验热9.174/7.893秒；4线程单样本约快8.5%，不值得无证据提升游戏时CPU占用，默认保留2。TTS worker峰值工作集从旧最高约389.8MiB到新七请求后479.3MiB，后者采样私有内存最高574.5MiB；不是全应用或ASR+TTS总内存。新PID201552确实复用七次，close0.032秒后已退出。
+
+**未完成：实际端到端首音改善未知，年轻/自然音色待用户选择，语音慢未解决。** 修复前Sol的5.285秒文字完成/31.038秒播放停止不能作为首音，也不能与不同离线样本直接相减。预取重叠通过确定性验收，实际句间收益需要下一轮测量。系统实时聊天若要求更快，需另评估替代引擎/流式方案，未擅自下载或切换。
+
+最终父端格式化后额外复测两次，默认2线程冷9.612秒/热8.393秒，差1.219秒/12.7%；父端与worker摘要均与最终源码一致，原报告和快照保留。这解决测量源码对应关系，未改变低延迟未达标结论。
+
+11:04:27 UTC正常退出空闲旧PID188936，确认退出后同根重开PID187040；11:05:30已核对新代码、local ready和Key已设置公开标志；11:06:15准备空白新会话/仅聊天/观察关闭，未录音或发请求。没有改屏幕策略：启动默认关闭、无观察持久化或自动整屏回退，同次运行切会话保持显式观察。详见[报告与全部证据](reports/voice-performance-20261004/REPORT.md)。未推送或发布；下方历史“补丁尚未加载”状态以本条重启证据更新。
+
+## 2026-10-04 设备刷新反馈补丁
+
+用户实际刷新已成功（输入下拉4项、输出下拉5项，含系统别名，不能当成物理设备数），但成功/错误提示位于隐藏聊天面板。现场证据 `reports/media-mic-diagnostic-20261004.json`。临时授权撤销后的permissions.query=denied不代表OS拒绝，本次没有开麦复测。
+
+源码已补设置页就近aria-live反馈、busy按钮、成功选项数量和准确的访问拒绝提示；52/52定向确定性测试通过，迟到刷新不得覆盖新owner或撤销新录音。当前运行窗口保持不变，补丁尚未加载、可见UI验收Pending；不把离线测试记成真实麦克风通过。未改OS/权限策略、未触发录音或自动设备刷新。
+
+## 2026-10-04 本地语音实施白盒与桌面试听
+
+本轮已完成官方固定本地资源安装并保存 `voice_provider=local`。模型端点、模型名及 Key 已设置布尔状态保持原值，自动记忆整理关闭。证据 `reports/media-voice-20261004.json` 显示 Kokoro 真实推理生成5.414秒非静音PCM WAV，SenseVoice真实回读18字仅1字差异；资源hash与固定源码值一致。没有付费/云模型调用，没有真实麦克风录音。
+
+代码修复：输出设备失败不再阻断麦克风解码；自动60秒停止的最终缓冲越界会明确告知并限至前60秒；过时设备刷新不能覆盖设备选择、撤销新录音权限或保留旧麦克风流。确定性桌面回归109/109通过，定向49/49是其子集，不重复累计。初次全套7项因sandbox临时目录权限失败，获批升权后全部通过，未将环境失败隐去。
+
+桌宠重开到同一已安装数据根并显示local ready。实际点击内置试听，队列启动/结束且未报播放错误（`reports/media-desktop-20261004.json`），这只证明应用播放调用成功，不证明物理扬声器可听。TTS WAV hash为 `6aebcfaa25b652a00dd21126763af7fc5396511deb881b8978f4c668cb523c9d`。
+
+仍待Sol/用户验收：真实麦克风录音及识别、用户确认扬声器声音、受控测试窗口原生截图、DeepSeek真实图像理解、语音+视觉+回复+播放连续链路。源码没有本地OCR，当前 `deepseek-flash` 官方支持标准image_url，已有链路可供实测；不将文档或接口通过当成视觉识别成功。窗口标题变化时保守要求重选，最小化窗口是否旧缩略图/小字质量尚未验证。本轮不宣称完整MVP2或游戏视觉验收完成。
+
 2026-09-28 当前状态：M0/M1/M2/M4/M5 Partial，M3/M6 Pending。五项能力的本地实现与合成闭环已推进，详见文末及[实施及验收](docs/COMPANION-IMPLEMENTATION.md)；真实服务与Windows11真机尚待。v0.4.0-alpha.1已发布并核对下载；当前MVP2 G1–G5已完成本机合成验收，G6仍待，详见文末及[G5报告](docs/MVP2-G5-REPORT.md)。历史记录保留当时实际状态。
 
 ## P0 — 独立工程与可实施计划
@@ -487,3 +517,144 @@ CI37134902832 Windows前置新增命令在uv参数解析失败：全局UV_PYTHON
 Root实际查看本轮免费语音设置及G6新进程聊天两图，入口/下载提示/麦克风区域/采用原文与YUI呈现正常，visual-review.json单列范围；没有声称所有DPI/真实游戏/声学通过。下载入口更新为0.4.0-dev.b443768df012，artifact11278787928到期2026-10-17 16:14:17 UTC，通常需GitHub登录；没有tag/Release。对话模型仍需单配，真实Windows11麦克风、噪声/术语/主观音色和完整MVP2质量/性能仍Pending。免费语音本批实现与Windows包交付范围完成。
 
 文档交付复核：`uv run --locked python docs/diagrams/tools/validate-docs.py > artifacts/free-voice/docs-final-delivery-validation.json` PASS（42 Markdown、613本地链接、20图，issues=[]，参考工程指纹保持不变）；`git diff --check`通过。便携归档逐字节核对下载报告、构建信息、WAV/截图和实际核验脚本SHA均一致，当前文档改动与包226份源码输入交集为空。只提交文档与证据并以`[skip ci]`推送，已验证产品仍为b443768，不因记录更新重新打包。
+
+
+## 2026-10-04 — Qwen VoiceDesign local audition completed; delivery pending
+
+Authorized isolated experiment only, no application integration/config edits. Official Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign fixed revision5ecdb67327fd37bb2e042aab12ff7391903235d3,13 files4,520,163,832B; both weight SHA256 matched official LFS. Python3.11.15, qwen-tts0.1.1, torch/torchaudio2.10.0+cu128, transformers4.57.3, accelerate1.12.0; uv pip check:89 packages compatible. Complete environment/prompts/seeds/generation parameters/model hash manifest retained under reports/qwen3-voicedesign-20261004. No Base model or reference sound loaded.
+
+Three real local generations, zero retries. Same neutral Chinese text; naturally adult female style requests; no postprocessing, music, pitch shifts or autoplay. Raw24kHz monoFLOAT WAV: playful4.88s/468560B in11.328875s; soft6.64s/637520B in13.379408s; lightly tsundere5.12s/491600B in10.155077s. All3 decode exactly to generated float32 samples, finite and non-silent (RMS0.095–0.109), peak below1.0. Sound preference and subjective quality await user audition; this is not Momo cloning/matching.
+
+Actual cuda:0 BF16+SDPA, all model parameter devices cuda:0, initial load6.481845s. CUDA allocated peak4,332,857,856B/reserved4,481,613,824B. CPU4 intraop/2 interop threads; per-generation process CPU10.625/13.3125/10.15625s, with GPU inference. Process peakRSS3,339,739,136B, privatecommit10,680,107,008B; minimum available systemRAM64,606,208B. Thus successful synthesis still caused substantial memory pressure, not evidence for ordinary8GB PCs or realtime performance (RTF1.98–2.32). Process exited normally; GPU returned~6003MiBfree and later availableRAM3,541,356,544B. No other processes stopped.
+
+Installed venv logical5,249,501,180B, model4,520,163,832B; uv cache shares hardlinks. Full experiment sum14,981,884,666B logically,9,824,134,546B after filesystem ID dedup (not exact disk allocation). Optional missing SoX/flash-attn import warnings did not block any generation; no unapproved binary sources installed. Library original-WAV delivery in progress; do not claim upload until actual IDs returned.
+
+
+Qwen audition delivery result: local3/3 completed and verified. Library initially failed at official hosted tool discovery (Library prepare_uploads is not available), before any prepare or finalize. Reconciled same batch through currently exposed MCP tools using the unchanged official Workflow and SignedUrlUploader; prepare succeeded for3 files, all3 byte transfers explicitly returned transfer_failed, zero finalize calls and zero library_file_id. No unknown-result files were retried. Windows metadata/temporary-directory adaptation saved auditable receipts, but did not bypass transfer failures. Original WAVs remain at reports/qwen3-voicedesign-20261004/audio; Library delivery Blocked, no successful upload claimed.
+
+
+2026-10-04 Qwen WAV delivery completed after explicit AzCopy authorization. Downloaded Microsoft official portable Windows x64 AzCopy10.32.7 from https://aka.ms/downloadazcopy-v10-windows into experiment/tools/azcopy; Authenticode Valid, Microsoft Corporation, binarySHA2561d44b549dfc8c45c30b7424536f04140ff1f061c7d251912d67b98c6184a4945. Only child-process PATH modified. Existing3 WAV SHA256 matched original generation manifest before upload. Current official Library helpers refreshed/identical; prepared-upload workflow plus official AzCopy transfer completed3/3, exactly1 successful finalize batch, no uncertain-result retries. IDs: 01_playful_sweet.wav=libfile_c15c941523308191a2b811748f31b2f7;02_soft_companion.wav=libfile_0830a41ac81c8191a9613bb4e9ef9b9d;03_playful_tsundere.wav=libfile_fa5f805a72e88191a877f95c65f9575c. Windows xattrs unavailable; identities and authoritative receipt saved in library-helper/azcopy-upload-receipt.json and library-delivery.json, not falsely reported as filesystem xattrs. Previous Library delivery blocker resolved. No new synthesis, original audio edits, system-wide config or application changes.
+
+
+2026-10-05 Qwen Base06B setup ready: official fixed snapshot5d83992436eae1d760afd27aff78a71d676296fc/13files/2,516,106,051B verified; selected original01 reference SHA/text matched. Existing isolated environment unchanged; no1.7B Base, app changes or root-run generation. Actual black-box execution delegated to explicit model gpt-6.1-sol (/root/base06b_sol_blackbox). First Sol preflight blocked before native imports with availableRAM1,386,835,968B (<1536MiB conservative guard), commit12,942,905,344B, GPU5918MiB. A single delayed recheck pending. No clone prompt/new WAV/Library IDs yet; setup completion does not mean synthesis/timbre/AI-chain acceptance. Self-contained run-sol.ps1 and handoff.json retained.
+
+
+2026-10-05 Base06B Sol final preflight: after40.21s the sole recheck at03:59:53.750137Z foundRAM1,300,840,448B (1240.578MiB), commit12,914,180,096B, GPU5918MiB. RAM falls309,772,288B (295.422MiB) short of this experiment conservative1536MiB guard; this is not an official model minimum. GPT-6.1 Sol stopped without native model loading, prompt creation, generation, playback or ASR. NewWAV0, LibraryIDs0. Cold-load/synthesis speed, text coverage and timbre similarity remain Blocked/Pending. Environment, fixed reference, run-sol.ps1, handoff.json and four-file official Library/AzCopy upload workflow ready; no other apps closed or thresholds lowered. Next action after user frees memory is rerun the same run-sol.ps1 through designated Sol executor, then black-box output checks and Library upload. No1.7B Base or app integration performed.
+
+
+2026-10-05 15:23UTC Library recovery diagnosis: Sol completed four actual Base06B WAVs; progress evidence C:/Users/17218/Documents/Codex/2026-10-04/task/qwen-progress-20261005-1519.json read. In this thread default wudi/CodexSandboxOffline reads helper and runs --help successfully. Get-Acl confirms library-helper ownerCodexSandboxOffline, AreAccessRulesProtected=True and sole grantCodexSandboxOffline FullControl. Read-only formal execution identifies wudi/17218 and reproduces Access denied on exact helper/request files (exit1), so existing filesystem ACL/identity mismatch is proved, not a nonexistent path or unsupported Library tool. Current prepare/finalize tools remain available. No ACL edits, alternate-path copying, upload calls, new receipts/IDs or model reruns. Parent must authorize narrowly scoped helper read/execute and temporary-state write permissions for formal user before recovery. Artifact upload-access-diagnosis.json retained.
+
+
+2026-10-06 authorized narrow ACL repair and Base06B WAV delivery complete. User explicitly approved access for wudi/17218 under this exact experiment/library-helper. Reconfirmed prior sole CodexSandboxOffline FullControl/protected ACL and non-reparse path, saved before/after snapshots plus original icacls backup in acl-repair-20261006. Added inherited ReadAndExecute only at library-helper; added Modify only to its dedicated upload-state-20261006 child for IPC/temporary state/receipts. Preserved prior owner/accessor and byte-identical parent SDDL; no Everyone or broader-directory grants. Task wrapper now inherits this verified state ACL instead of replacing ACLs at launch; official3 helper sources refreshed unchanged from current skill, staging provenance retained. Formal wudi/17218 read and --help succeeded. Existing official AzCopy plus prepared Library workflow uploaded4/4 original WAVs in one successful finalize batch, no regeneration/uncertain replay. IDs:01_daily.wav=libfile_5431dced66bc819194cee959903805d2;02_emotion.wav=libfile_ed14ca18a89c819191888e058f3dffa7;03_numbers_time.wav=libfile_e6acbaeb13f48191907fb0ff750454a5;04_mixed_language.wav=libfile_706d7a01881481918ebcd1d929040405. Full identities/texts/local mapping in library-delivery.json and durable upload receipt. Windows xattrs unsupported, local_metadata_applied=false is explicit; identities retained in receipt. All prior latency/resource numbers unchanged; subjective similarity/word coverage still awaiting listening. No new tools/models/app integration or push.
+
+
+### 2026-10-06 Qwen integration: current evidence and limits
+
+User listening acceptance of the four previous Base0.6B files is confirmed. Application integration is in progress and does not yet constitute dynamic AI-chain acceptance. Independent white-box profiling identified approximately25.6s native-import cold start and serial15-subcode generation per codec frame. Existing full-waveform API is not genuine streaming audio. Previous RTF1.70–1.81 is historical evidence, not today's optimized result; sentence prefetch cannot by itself guarantee gapless long replies.
+
+Current real profiling is Blocked before model load: post-import available commit6.03GiB<8GiB conservative guard, despite RAM1762MiB and freeGPU6179MiB. No current model generations, candidate speed comparison, actual-player first-audio measurement, warm-chain result or multi-sentence-gap result yet. The1–2second warm first-audio goal remains a target, not a claim. Default GPU resident period planned300s with explicit release, cancellation and app-exit cleanup; no CPU/8GiB suitability claim. Registration currently blocked by approved uv Python alias-junction handling; fix is narrowly scoped to its fixed installed3.11.15 destination. No new packages/models/driver/autostart/permissions, no other apps closed, no push.
+
+Evidence: reports/qwen-integration-20261006/profile/{benchmark.json,WHITEBOX-REVIEW.md,profile_qwen.py}; final Sol blackbox plan has12 Pending cases. Synthetic test success will be counted separately from real model and UI-chain results.
+
+
+### 2026-10-08 cancellation repair in progress
+
+Current registration is valid and no model is loaded. Existing source regression passed1834Python tests (13Windows symlink skips) and137desktop tests before repair; these do not close the subsequently reproduced late-preload admission bug. A synthetic request-body-delay probe proved that a released model could be reloaded by an old request. The earlier write-approval blocker was resolved by the user's direct reply to the concrete file-modification question; original UI/API owners have now actually written the repair. UI post-repair151/151tests pass; API post-repair regression and independent review are pending in this entry.
+
+Performance remains Blocked: fresh07:47UTC RAM~505MiB andcommit~2.74GiB are below existing guards, despite GPU6005MiB free. No new real generation, candidate comparison, dynamic first-audio, warm latency or multi-sentence gap results. Preserve exact accepted voice and fixed installed resources. Final GPT-6.1 Sol blackbox is to be delegated by parent after this white-box handoff, not claimed complete by synthetic tests.
+
+
+### 2026-10-08 final cancellation implementation and deterministic verification
+
+Directly confirmed frontend/API/test edits are complete. Every preload has a named operation; bounded180s/1024 cancellation records block requests delayed before body/admission, a new owner can share existing loading, and an old cancel cannot release the new owner. Successful or failed same-ID load retries are idempotent; a genuine new demand uses a new ID. Named operations fence off legacy empty-body loads (409); empty-body unload remains explicit global release. Cleanup failure retains ownership until a real retry succeeds, including configuration transitions. UI permits release during loading, waits for cleanup, invalidates late success/failure/finally and config/status reads at both start and completion boundaries, and preserves release-failure retry. Internal beginTurn stopSpeech does not cancel its own just-started prewarm.
+
+Final source verification:1861Python passed,13Windows symlink skips,0failures in173.74s;155desktop passed,0failed/0skipped underNode24.21.0. The80-case API/local targeted result and155desktop result are subsets, not additive totals. Ruff check and format--check --no-cache pass143files;gitdiff--check exit0. Independent Astra/Ultra review identified and confirmed closure of two additional completion/retry defects. Final source hashes/environment/counts in reports/qwen-integration-20261008/final-evidence.json; full Python log/JUnit pytest-after-cancel-fix-final.*, final desktop logs ui-cancel-tests/desktop-completion-tests.log and completion-summary.json. Earlier1857/151 counts precede the last review fixes and are not final.
+
+Resource check 2026-10-08T08:09:07.3345863Z: availableRAM399183872B, commit4491673600B, GPU6036MiB: Blocked. This phase performed0native model imports/0real generations, no paid API, key reads, microphone/private screen, new dependencies/models/drivers/permissions, other-app closure, push or publication. Accepted voice and installed resources preserved. No actual dynamic first-audio, warm latency, multi-sentence-gap or new inference-candidate speed-up claim. No new Windows package or acoustic verification. Parent should assign GPT-6.1 Sol using the self-contained reports/qwen-integration-20261008/SOL-HANDOFF.md after resource guards and permitted chat-model prerequisites pass.
+
+
+### 2026-10-08 — Immediate safe Qwen resource error fixed in source
+
+Sol initial blackbox remains10PASS/1FAIL/7BLOCKED. Root cause of FAIL: API supplies safe detail/code immediately, but generic renderer handling loses the string detail and cannot explain qwen_* codes. Companion now maps stable codes to safe fixed explanations and validated numeric preflight requirements; unknown/raw message/detail/publicMessage is not rendered. First memory-pressure response displays RAM1536MiB/commit8192MiB(8GiB) as current preload protection requirements, without refresh or extra load. Existing owner/requestID/epoch fences remain. API and guard product code unchanged this round.
+
+Verified166/166full desktop and93/93related Python, corresponding Ruff and diff checks pass. Added11desktop and8HTTP synthetic cases; independent read-only review found no blocker. This is not an updated full-Python result; prior1861/13skip predates this fix and counts are not additive. See reports/qwen-integration-20261008/resource-error-fix/REPORT.md and evidence.json. Sol actual first-error retest Pending;7real model/voice/timing cases remainBlocked. No native import/model load or app/config operation occurred, so last-restored local/Kokoro SID46 remains unchanged.
+
+Read-only guard audit:1536MiB/8GiB are conservative experimental choices, not official minima or proven sufficient conditions. A second identical commit check after imports strengthens admission; Oct6 observed delta2.561GiB would imply initial~10.561GiBcommit absent external changes. Snapshot checks do not reserve twice. Limited samples cannot establish a final lower value; current Sol failure already occurs before imports. At08:41:22UTC availableRAM1229553664B andcommit7190642688B remainbelowguards. Process-name numeric totals recorded without titles/commands/private data; no process closed or system settings changed. Detailed audit and minimal Sol retest are adjacent deliverables.
+
+
+### 2026-10-08 — Resource cleanup and manual retry stage acceptance
+
+API idleSenseVoice cleanup and companion known-recoverable preload manual retry complete.1874Python passed/13Windows symlink skips;177desktop passed; targeted159 is a subset. Independent reviews/lint pass. Snapshotted source and evidence: reports/qwen-integration-20261008/asr-release-retry-final/REPORT.md. New renderer historicalerror without known code remains conservative; same-renderer refresh/reopen manualretry covered. Actual newly added retry UI test remainsPending; prior first-error UI testPASS per parent. No native model/performance measurement, guard decrease or engine implementation change in this stage. Subsequent streaming scope receives separate evidence.
+
+### 2026-10-08 MOSS isolated preparation evidence
+
+Preparation PASS, actual inference Pending. reports/moss-tts-nano-20261008/metadata/preparation-record.json freezes source/provenance/download/dependency/license/environment hashes. Official source8b7bcc9341b3b4ef3a3a58ba1338a7d85ff133eb; TTS ONNX f52645cb467506d8e18e746ddd59482685b74e58; codec ONNX ceff0d0749bfb3fa2d61149794ec6feef0d1e1ae. CPU core imported successfully without torch; explicit CPUExecutionProvider, no CUDA provider. Import smoke test uses124,399,616B RSS but is NOT a model-memory estimate. Official CLI imports torch/torchaudio; trial instead uses unchanged official CPU core and separately reviewed lightweight orchestration.
+
+Initial host snapshot10:42:39UTC: availableRAM1,105,813,504B (~1.03GiB), commit6,958,002,176B (~6.48GiB), disk449,244,037,120B. Fresh Sol preflight decides admission. Initial4.25GiB RAM/commit budget is a conservative bounded-load experiment choice from possible per-session duplicated weight allocation (2*1.58657GiB plus1GiB margin rounded up), not an official minimum or measured runtime requirement. Watchdog thresholds and results remain separate from acoustic or performance acceptance. Upstream issue61 describes potentially duplicated thread-keyed cached runtimes, not a proved6GB minimum; issue65 discusses separately synthesized text segments, not verified failure of continuous stateful PCM chunks. No new audio or Library identities yet.
+
+MOSS final setup/harness review:40/40syntheticPASS, independent review found no remaining code blocker after owned-child cleanup correction. Genuine streaming timing is instrumented in callback, but native inference/WinMM sound and metrics remain unvalidated. waveOutWrite is scheduling proxy; active_compute_rtf subtracts measured sink work and is only unpaced proxy. Solsingle-sample result is CONDITION_BLOCKED; noactualmodel/audio/Librarydelivery. AvailableRAM0.924686GiB is below even1GiB experimental runtimefloor; do not present4.25GiB startupbudget as official minimum or measuredfootprint. No resource retry, threshold change, other-app closure or system change. All5canonical+2warm cases Pending/Blocked; preserve sol-preliminary.json and authoritative sol-result.json. Self-contained frozen evidence and future CLI in reports/moss-tts-nano-20261008.
+
+
+### 2026-10-09 Non-voice settings/recovery first batch
+
+Source and deterministic acceptance complete:223desktop tests pass,0failure/skip onNode24.21.0. Fixed scoped readability/save discoverability, save-in-settings feedback/deduplication, field ownership and connection epochs, separate appearance feedback/ordered updates, memory/persona draft preservation and per-section read/action error ownership. Independent Astra/Ultra narrow review reports no remaining scoped High/Medium blocker. Full evidence, before/after diff and hashes in reports/nonvoice-settings-20261009; previous voice changes retained. Python/backend and native desktop internals unchanged, so no new fullPython or native build result claimed. Sol100/125/150percent/keyboard/restart/actual recovery remainPending; simulations do not establish these outcomes.
+
+Voice cleanup is inventory-only:13,368,076,554B unique candidates after preserving accepted audio/reference/model metadata/source/reports/sharedtools; not measured physical space freed. Registered/publicQwen references still point to VDenv/BaseModel. D:$RECYCLE.BIN exists but recoverability unverified; no delete/move/ACL changes, no permanent fallback or emptying. Exact file candidates and preserved groups are in voice-cleanup-inventory.json; model group rows are not whole-directory deletion instructions.
+
+
+### 2026-10-09 — Recoverable cleanup acceptance
+
+Authorized22/22trial objects are now in Windows Recycle Bin,5environment/cache directories plus17individual payloads. Canary file and hardlinked directory normal Restore and SHA/fileidentity/nlink checks PASS. First filesystem-menu restore failure0x80070483 is retained; exact Recycle Bin namespace undelete solved it before any real resource was moved. All22actualobjects expose normal Restore at final probe.
+
+Independent post-recycle verification PASS_COMPLETE,0issues:68,571files/18,732,297,782logicalB and13,368,076,554unique-identityB;193preservedfile metadata,7accepted WAV hashes,6frozen source hashes unchanged;31,874hardlinkgroups retained. No permanent delete, bin empty, ACL/system change, process termination, model launch or frozen source edit. Disk allocation remains in bin. Mainenv/node_modules root presence checked; active/shared SenseVoice/Kokoro are excluded but their private/live asset trees were not read or individually rehashed. Non-hardlink descendant old inode coverage was unavailable in original inventory, so no claim of complete pre/post leaf-ID comparison. Existing public Qwen registrations reference recycled resources; restore/revalidate before future Qwen use, live config unchanged.
+
+Authoritative current result: reports/nonvoice-settings-20261009/voice-cleanup/REPORT.md and cleanup-result.json; exact original/bin paths batch-receipts.json; recovery RESTORE.md. No remaining cleanup blocker. Earlier inventory-only entries and old first-batch report describe their original stages and are preserved. Sol's current UI acceptance remains separate.
+
+
+### 2026-10-09 — Appearance false-save correction
+
+ConfirmedSolFAIL was mainIPC swallowing persistencefailure throughbest-effortpersist thenresolving. Fixedonly main.cjs appearancehandler; explicitwrite mustsucceed beforecommittedpreferences/alwaysOnTopchange. Rejectedvalues cannot beimplicitlypersistedbylaterposition/quit. Fixederrorhasno path. New5main tests plus existingpreferencesandrenderercoverage: finaltargeted9/9subset, full228/228PASS0fail/skip. Independentreadonlyreview no blocker;original6frozenhashesunchanged.
+
+Astra-side evidence is deterministic: realown-fileEEXIST andtargetedrenameEBUSYinjection, not actualnativewindow/lockretest. SolpostfixEBUSY→manualretry→restartPending; use appearance-write-failure-fix/SOL-RETEST.md andevidence.json. OriginalSol23PASS/1FAIL/9BLOCKED retained; do not closeactualFAIL untilindependentretest. PriorrealElectron100/125/150device-scalePASS does not establishWindowsOS125/150DPI; observedOS96only. NoACLchange/Keyread/voice/model/appstart orscopeexpansion.
+
+
+### 2026-10-09 — Text provider accounting acceptance
+
+Current local implementation gap repaired with optional adapter HTTP observer and independent conversation schema7 ledger; existing request defaults/no automatic HTTP retry preserved. Read-only turn summary distinguishes chat_generation/memory_extraction, known local attempts/unknown coverage, reported/partial/unknown usage and job lineage. No keys/headers/URLs/content/raw errors in new ledger. Stable IDs persist across delivery/reconnect/cancel/restart and integrate erasure; incomplete records and recovered memory retries are not falsely final.
+
+Final fullPython1917PASS/13Windows-symlinkSKIP/0FAIL; provider48 and storage90 are subsets. New43tests include4actual child-process crash boundaries with synthetic network. First full run1916PASS/13SKIP/1FAIL retained; solely stale schema6 expectation, minimal two-test-assertion update independently reviewed, then whole suite reran successfully. Scope3production+6testfiles, independent review/static checks PASS;15frozen UI/API/voice/dependency plus7otherbaseline hashes unchanged. No paidAPI, real model/audio inference, interactive desktop testing or push.
+
+Source/fixtures acceptance complete, actualSol provider usage verification remainsPending via reports/text-provider-usage-20261009/SOL-HANDOFF.md. Local dispatch is not provider acceptance/billing; crash-before-finish usage remainsunknown, partial snapshots excluded from complete totals, old/uninstrumented turns unknown, memoryjob attempts notHTTP retries. Full evidence, source-only patch and explicit baseline provenance in REPORT/evidence.json; no real-account billing result claimed.
+
+
+### 2026-10-09 — Existing-history migration copy acceptance
+
+PASS_COPY_ONLY: the formal migration entry upgraded an exact isolated copy from schema6 to7. All23 old tables,2738 rows and old schema objects remain identical by structure and complete typed-row digest. All101 historical turns retain legacy/unknown counts and usage; the two new tables have zero rows. Integrity, foreign keys, repeat migration, exception rollback, backup restoration and owned-process interruption/retry checks passed.
+
+All four original hashes match Sol's restored baseline before copying, after copying and after validation. File identity, size and modification time are unchanged; no SQLite sidecars appeared. An independent reviewer repeated original-file hashing at19:27:21UTC and confirmed five production source hashes were unchanged. No original database was migrated or opened through SQLite.
+
+The first harness failure is preserved: urllib3's local IPv6 capability probe was blocked and counted conservatively. The final harness still blocks every network operation, separately recording one exact loopback probe in each process and zero unexpected events. No provider calls, credential/configuration copies, memory worker, voice or application server were started. No production defect was found. Private baseline and recovery copies remain available via the manifest in reports/text-provider-usage-20261009/migration-copy-validation-20261009-1915. This verifies isolated schema migration, not a real upgrade, complete startup recovery or physical power loss.
+
+
+### 2026-10-09 — Selected-window privacy correction acceptance
+
+Sol's capture-all-thumbnails-before-filter defect repaired. Every enumeration now requests windowmetadata0x0/noicons. ExactselectedHWND PrintWindow is the only acquisitionAPI; fulltitle/PID/starttime guards, before/aftermetadata andepoch checks, ownedhelpertimeout/abort/wait-close andearlyquit revocation implemented. No display/camera/media permission relaxation or screenfallback. Runtimechecks helper/source hashes; builds useexisting systemC# compiler, stale developmentbinaries excluded frompackages. PowerShellpolicy rejection did not causeanybypass; production no longerusesPS.
+
+Deterministic/source acceptancePASS: desktop288/288; packaging33/33 (new8syntheticassembly); nativeinvalidinput11/11 beforeWin32; realcompile/validate-onlyPASS, noframe. IndependentAstraUltra final+followupreviews have no unresolvedcodeblocker. Eightbaselinefiles unchanged, previousappearancehandler andpermissionblocks preserved, threeacceptedprovider-sourcehashes unchanged. NewPython test hadformat-onlycorrection; scopedlint/formatchecksPASS. Taskpatch is relative topre-editdirtybaseline, notHEAD.
+
+RemainingPending: actualselectedself-ownedwindowA/B, actualmodelimageanswer, GUIincrementaltext, physicalDPIscales, GPU/game/protectedwindowcompatibility andfullWindowspackage. PrintWindowcanfail; noalternatecapture. HWNDvalidationcannotatomicallyreserveawindowhandle; extreme sameprocessreuse race remains. PersistentOSchildterminationfailure leavesstop/quitwaitingforrealclose, neverclaimsreleasedresources. Currenttesttaskmade0realcaptures/0providerrequests; originalseries5attemptbudgetunchanged. Handoff/evidence: reports/controlled-screen-20261009/capture-scope-fix/{REPORT.md,INDEPENDENT-REVIEW.md,SOL-HANDOFF.md,evidence.json,source-changes.patch}.
+
+
+### 2026-10-10 — Complete release-readiness source review
+
+**PASS_SOURCE_AND_DETERMINISTIC_REGRESSION; real functional/package/remote publication still pending at source freeze.** All pending desktop, provider/runtime/API, memory, voice, packaging and CI changes were reviewed against afb560f13995895afad7acb3c10ee327d037e3ab and the preserved dirty baseline. Six desktop race/state issues, one voice child-cleanup deadlock and four reproduced extraction-finality defects were corrected; adjacent claim/status cancellation boundaries were covered. Independent Astra review verified the final desktop/runtime/voice fixes and hashes; separate CI cross-review found no confirmed blocker. No remaining confirmed source blocker was reported.
+
+Final complete Python:1942passed,13skipped,0failed/errors; desktop306passed with0skips; full Ruff lint/format and37Node syntax checks passed. All source hashes remained unchanged during the run. The13Python skips are host symlink privileges, not passed tests; no machine security settings changed. The fixed guide corpus passes24/24 evidence hits and6/6 absent rejections;100retrieval samples p95=22.321ms against150ms,0network attempts. Initial and targeted results are preserved separately and not added to final totals.
+
+Evidence: private reports/release-readiness-20261010/{desktop-review.md,runtime-review.md,voice-review.md,ci-cross-review.md,release-path-audit.md,final-validation.json,final-python-junit.xml,node-syntax.json,guide-evaluation.json,guide-benchmark.json}. These reports, raw chat/images/databases, environments, caches and models are excluded from commit/release staging; source/test/docs are explicitly allowlisted. Strong credential-pattern screening is supplemental, not proof that arbitrary secrets are impossible.
+
+Candidate version is v0.4.0-alpha.2. Build from a detached exact-commit worktree using the unchanged locked dependency set; isolated Python3.11.15/PyInstaller6.22.3 build environment is prepared. Candidate commit, clean-state evidence, binary/ZIP hashes and actual packaged backend result belong to candidate-freeze.json, build-info.json and the subsequent candidate build/smoke reports. Source freeze alone is not Windows packaged acceptance. The old default branch and historical CI must not replace or certify this candidate.
+
+Remaining gates: GPT-6.1 Sol on the actual frozen candidate (settings readability/drafts/save/reopen, appearance persistence/failure handling, memory/persona mutation order, search/source behavior, provider ledger and controlled exact-window capture/revocation/quit);13local symlink cases still require a suitable CI host; exact remote commit, fresh CI and published-asset hash verification occur only after functional acceptance. No actual game/GPU-window compatibility or physical audio quality claim is made. PrintWindow identity checks have a residual same-process HWND reuse race; permanent OS denial of child termination can prolong stop until actual close. Unsupported/minimized/black/changed windows fail closed without capture fallback.
+
+Voice integration and real voice/model downloads remain SKIPPED_PAUSED. Existing synthetic voice regressions passed, experimental Qwen code is not a portable installed/accepted feature, and recycled resources were not restored. Default/tag CI writes honest paused evidence; true voice runs require explicit manual opt-in. Versioned release notes retain pending readiness and block release until actual acceptance evidence is added. This stage made0real provider calls and has not pushed, tagged, dispatched CI or released.

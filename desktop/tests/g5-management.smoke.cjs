@@ -480,17 +480,47 @@ async function assertSource(call, doc) {
   });
   await check('active_match_fresh_vision_propagates_effective_revision_to_real_TTS', async () => {
     await closeGuides();
-    // Intercept only source enumeration, returning a newly created synthetic
-    // BrowserWindow. No real desktop/window list or user screenshot is read.
-    await application.evaluate(async ({ BrowserWindow, desktopCapturer, nativeImage }) => {
+    // Inject metadata and capture from a newly created synthetic BrowserWindow.
+    // No real desktop/window list is read; fake IDs never reach native capture.
+    await application.evaluate(async ({ app, BrowserWindow, desktopCapturer }) => {
+      const load = process.getBuiltinModule('module').createRequire(process.getBuiltinModule('path').join(app.getAppPath(), 'main.cjs'));
+      const { VisionCapture } = load('./lib/vision.cjs');
+      const strict = load('node:assert/strict');
       const fixtureWindow = new BrowserWindow({ show: false, width: 680, height: 420,
         webPreferences: { sandbox: true, partition: 'ai-neko-g5-synthetic-frame' } });
       await fixtureWindow.loadURL('data:text/html,<body style="background:%23cdf;color:%23234;font-size:40px">SYNTHETIC G5<br>Round 8<br>Coins 31</body>');
+      const source = { id: 'window:98766:0', name: 'Synthetic G5 only' };
+      const identity = { ...source, pid: process.pid, started: '1' };
       globalThis.g5VisionCalls = 0;
+      globalThis.g5VisionEnumerations = 0;
       desktopCapturer.getSources = async (options) => {
-        globalThis.g5VisionCalls++;
-        return [{ id: 'window:98766:0', name: 'Synthetic G5 only',
-          thumbnail: options.thumbnailSize.width ? await fixtureWindow.webContents.capturePage() : nativeImage.createEmpty() }];
+        strict.deepEqual(options, { types: ['window'], thumbnailSize: { width: 0, height: 0 }, fetchWindowIcons: false });
+        globalThis.g5VisionEnumerations++;
+        return fixtureWindow.isDestroyed() ? [] : [{ ...source }];
+      };
+      const fixtureAdapter = Object.freeze({
+        async identify(sources, { signal }) {
+          signal.throwIfAborted();
+          strict.deepEqual(sources, fixtureWindow.isDestroyed() ? [] : [source]);
+          return fixtureWindow.isDestroyed() ? [] : [{ ...identity }];
+        },
+        async capture(selected, { signal }) {
+          signal.throwIfAborted();
+          strict.deepEqual(selected, { ...identity, kind: 'window' });
+          if (fixtureWindow.isDestroyed()) throw new Error('Synthetic G5 fixture window closed');
+          globalThis.g5VisionCalls++;
+          const frame = await fixtureWindow.webContents.capturePage();
+          signal.throwIfAborted();
+          if (fixtureWindow.isDestroyed()) throw new Error('Synthetic G5 fixture window closed');
+          return frame.toJPEG(82);
+        },
+      });
+      // Retain production AbortController/settled behavior and replace only the
+      // adapter boundary; capturePage is bound to this owned fixture WebContents.
+      const native = VisionCapture.prototype.native;
+      VisionCapture.prototype.native = function (operation, value) {
+        this.adapter = fixtureAdapter;
+        return native.call(this, operation, value);
       };
     });
     await page.locator('#open-settings').click(); await page.locator('#refresh-vision').click();

@@ -269,7 +269,7 @@ def test_worker_owner_pipe_ends_process_before_inference(tmp_path):
 
 
 def test_worker_does_not_import_native_libraries_in_main_app():
-    source = Path(local_voice.__file__).read_text()
+    source = Path(local_voice.__file__).read_text(encoding="utf-8")
     assert "import sherpa_onnx" not in source and "import numpy" not in source
     lock = (local_voice.RUNTIME_SOURCE / "uv.lock").read_text()
     assert 'name = "sherpa-onnx"' in lock and 'version = "1.13.8"' in lock

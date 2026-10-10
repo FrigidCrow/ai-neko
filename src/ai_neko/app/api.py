@@ -48,6 +48,18 @@ def install_api(app: FastAPI, connection, authorize, runtime, providers, bootstr
     web_root = Path(__file__).resolve().parents[1] / "web"
     voice = VoiceService(runtime.paths)
     app.state.voice = voice
+    # Serialize admission with engine changes and child cleanup.
+    voice_gate = asyncio.Lock()
+    qwen_load_id = "qwen-preload"
+    qwen_epoch = 0
+    qwen_transition = False
+    qwen_identified = False
+    # The latest accepted preload owns the shared worker. Older callers may
+    # await that same task, but cannot later unload a newer caller's resource.
+    qwen_owner: str | None = None
+    qwen_job: asyncio.Task | None = None
+    qwen_cancelled: dict[str, float] = {}
+    cloud_voice_cleanup_pending = False
 
     @app.middleware("http")
     async def security_headers(request, call_next):
@@ -676,21 +688,231 @@ def install_api(app: FastAPI, connection, authorize, runtime, providers, bootstr
         auth(request)
         return voice.public_config()
 
+    def voice_available():
+        if runtime._closing or runtime._closed or runtime._memory_mutating:
+            raise HTTPException(409, "应用正在关闭或修改记忆，请稍后再试。")
+
+    def revoke_qwen(*identifiers, check_only=False):
+        # Separate from speech request tombstones: an identical random ID in
+        # /voice/synthesize must not inherit a preload cancellation.
+        now = time.monotonic()
+        expired = [key for key, expiry in qwen_cancelled.items() if expiry <= now]
+        for key in expired:
+            qwen_cancelled.pop(key)
+        identifiers = {identifier for identifier in identifiers if identifier}
+        # Keep capacity reserved for the active owner so random cancellations
+        # can never prevent releasing an already accepted worker.
+        reserved = {qwen_owner} if qwen_owner else set()
+        if len(qwen_cancelled.keys() | identifiers | reserved) > 1024:
+            raise HTTPException(429, "Too many cancelled preload requests; try again later.")
+        if not check_only:
+            for identifier in identifiers:
+                qwen_cancelled[identifier] = now + 180
+
+    async def settle_voice(*engines, cancel_requests=True):
+        """Finish cleanup even if the controlling HTTP request disconnects."""
+        from ai_neko.media.local_voice import LocalVoiceError
+
+        tasks = tuple(runtime.voice_tasks.values()) if cancel_requests else ()
+
+        async def finish():
+            for task in tasks:
+                if not task.cancelling():
+                    task.cancel()
+            if tasks:
+                await asyncio.gather(*tasks, return_exceptions=True)
+            # Each service owns a separate child. Attempt both releases before
+            # reporting failure so one broken service cannot retain the other.
+            results = await asyncio.gather(
+                *(engine.unload() for engine in engines), return_exceptions=True
+            )
+            for result in results:
+                if isinstance(result, LocalVoiceError):
+                    raise VoiceError(result.code, result.message) from None
+                if isinstance(result, BaseException):
+                    raise result
+
+        cleanup = asyncio.create_task(finish(), name="voice-engine-settlement")
+        cancelled = False
+        while not cleanup.done():
+            try:
+                await asyncio.shield(cleanup)
+            except asyncio.CancelledError:
+                cancelled = True
+        cleanup.result()
+        if cancelled:
+            raise asyncio.CancelledError
+
     @app.put("/api/voice/config")
     async def set_voice_config(request: Request):
+        nonlocal qwen_epoch, qwen_owner, qwen_job, qwen_transition
+        nonlocal cloud_voice_cleanup_pending
         auth(request)
-        try:
+        value = await body(request)
+        async with voice_gate:
+            voice_available()
+            # Reserve cancellation capacity before persisting a changed config.
+            revoke_qwen(qwen_owner, check_only=True)
+            try:
+                previous = voice.public_config()
+                result = voice.update(value)
+            except ValueError:
+                raise HTTPException(400, "语音配置未保存，请检查字段。") from None
+            changed = (
+                result["voice_provider"] != previous["voice_provider"]
+                or result["local_tts_engine"] != previous["local_tts_engine"]
+                or (
+                    result["voice_provider"] == "local"
+                    and result["local_tts_speaker_id"] != previous["local_tts_speaker_id"]
+                )
+            )
+            if result["voice_provider"] == "local":
+                # A new local configuration supersedes an earlier failed cloud
+                # transition; its live resources must not inherit that cleanup.
+                cloud_voice_cleanup_pending = False
+            if changed or cloud_voice_cleanup_pending:
+                revoke_qwen(qwen_owner)
+                qwen_epoch += 1
+                qwen_job = None
+                qwen_transition = True
+                obsolete = []
+                if result["voice_provider"] == "openai" and (
+                    previous["voice_provider"] == "local" or cloud_voice_cleanup_pending
+                ):
+                    # SenseVoice may be idle in its own child while Qwen is the
+                    # selected TTS engine. Leaving local speech retires both.
+                    obsolete.extend((voice.local, voice.qwen))
+                    cloud_voice_cleanup_pending = True
+                elif previous["voice_provider"] == "local" and (
+                    result["voice_provider"] != "local"
+                    or result["local_tts_engine"] != previous["local_tts_engine"]
+                ):
+                    obsolete.append(
+                        voice.qwen if previous["local_tts_engine"] == "qwen" else voice.local
+                    )
+                try:
+                    # A retry only retires leftover local resources; cloud
+                    # requests admitted after the failed switch remain valid.
+                    await settle_voice(*obsolete, cancel_requests=changed)
+                    cloud_voice_cleanup_pending = False
+                    if voice.qwen in obsolete:
+                        qwen_owner = None
+                finally:
+                    # A failed release keeps its owner eligible to retry. A
+                    # setting change that retains Qwen keeps its release owner.
+                    qwen_transition = False
+            return voice.public_config()
+
+    async def qwen_request(request: Request, *, read=False):
+        auth(request)
+        if request.query_params:
+            raise HTTPException(400, "Qwen endpoints do not accept query parameters.")
+        identifier = None
+        if read:
+            async for chunk in request.stream():
+                if chunk:
+                    raise HTTPException(400, "Qwen status does not accept a request body.")
+        else:
             value = await body(request)
-            previous_provider = voice.public_config()["voice_provider"]
-            result = voice.update(value)
-        except ValueError:
-            raise HTTPException(400, "语音配置未保存，请检查字段。") from None
-        if result["voice_provider"] != previous_provider:
-            tasks = tuple(runtime.voice_tasks.values())
-            for task in tasks:
-                task.cancel()
-            await asyncio.gather(*tasks, return_exceptions=True)
-        return result
+            if set(value) - {"request_id"}:
+                raise HTTPException(400, "Qwen endpoints do not accept runtime parameters.")
+            if "request_id" in value:
+                identifier = value["request_id"]
+                if not isinstance(identifier, str) or not re.fullmatch(r"[a-f0-9]{32}", identifier):
+                    raise HTTPException(400, "Invalid preload request id.")
+        voice_available()
+        return identifier
+
+    @app.get("/api/voice/qwen/status")
+    async def qwen_voice_status(request: Request):
+        await qwen_request(request, read=True)
+        return voice.qwen.status()
+
+    @app.post("/api/voice/qwen/load")
+    async def load_qwen_voice(request: Request):
+        nonlocal qwen_owner, qwen_job, qwen_identified
+        # Capture before reading a possibly delayed body or waiting on the gate.
+        generation, transitioning = qwen_epoch, qwen_transition
+        identifier = await qwen_request(request)
+        from ai_neko.media.local_voice import LocalVoiceError
+
+        async with voice_gate:
+            voice_available()
+            revoke_qwen()  # Expire bounded cancellation records.
+            if (
+                transitioning
+                or qwen_transition
+                or generation != qwen_epoch
+                or identifier in qwen_cancelled
+                or (identifier is None and qwen_identified)
+            ):
+                raise HTTPException(409, "This preload request was cancelled or superseded.")
+            config = voice.public_config()
+            if config["voice_provider"] != "local" or config["local_tts_engine"] != "qwen":
+                raise HTTPException(409, "Select local Qwen speech first.")
+            owner = identifier or ""
+            # A named retry reuses its completed result/error too; it cannot
+            # perform a second preload if the model was later unloaded by idle.
+            task = qwen_job if identifier is not None and qwen_owner == owner else None
+            if task is None:
+                task = runtime.voice_tasks.get(qwen_load_id)
+            cached = task is not None and task.done()
+            if task is None and len(runtime.voice_tasks) >= 4:
+                raise HTTPException(409, "Voice requests are still being processed.")
+            revoke_qwen(qwen_owner, owner, check_only=True)
+            if qwen_owner != owner:
+                revoke_qwen(qwen_owner)
+            qwen_owner = owner
+            qwen_identified = qwen_identified or identifier is not None
+            if task is None:
+                task = asyncio.create_task(voice.qwen.preload(), name=qwen_load_id)
+                runtime.voice_tasks[qwen_load_id] = task
+
+                def finished(completed):
+                    if runtime.voice_tasks.get(qwen_load_id) is completed:
+                        runtime.voice_tasks.pop(qwen_load_id, None)
+                    if not completed.cancelled():
+                        completed.exception()
+
+                task.add_done_callback(finished)
+            qwen_job = task
+        try:
+            # A later ID adopts this single task; its predecessor cannot cancel
+            # the worker or publish a successful response after losing ownership.
+            result = await asyncio.shield(task)
+            async with voice_gate:
+                voice_available()
+                if generation != qwen_epoch or qwen_owner != owner or identifier in qwen_cancelled:
+                    raise HTTPException(409, "This preload request was cancelled or superseded.")
+                return voice.qwen.status() if cached else result
+        except asyncio.CancelledError:
+            raise HTTPException(409, "Qwen preload was stopped.") from None
+        except LocalVoiceError as exc:
+            raise VoiceError(exc.code, exc.message) from None
+
+    @app.post("/api/voice/qwen/unload")
+    async def unload_qwen_voice(request: Request):
+        nonlocal qwen_epoch, qwen_owner, qwen_job, qwen_transition, qwen_identified
+        identifier = await qwen_request(request)
+        async with voice_gate:
+            voice_available()
+            # Record even when the load has not arrived yet. Named cancellation
+            # also disables unlabelled loads, which could bypass its tombstone.
+            revoke_qwen(identifier, qwen_owner if identifier is None else None)
+            qwen_identified = qwen_identified or identifier is not None
+            if identifier is not None and qwen_owner != identifier:
+                return voice.qwen.status()
+            qwen_epoch += 1
+            qwen_job = None
+            qwen_transition = True
+            try:
+                await settle_voice(voice.qwen)
+                # Clear ownership only after cleanup succeeds. A same-ID retry
+                # after failure must actually release the retained resource.
+                qwen_owner = None
+            finally:
+                qwen_transition = False
+            return voice.qwen.status()
 
     @app.get("/api/voice/local")
     async def local_voice_status(request: Request):
@@ -744,18 +966,19 @@ def install_api(app: FastAPI, connection, authorize, runtime, providers, bootstr
         required = {"audio_base64", "mime_type"} if kind == "transcribe" else {"text"}
         if set(value) != required:
             raise HTTPException(400, "invalid voice fields")
-        if runtime._closing or runtime._closed or runtime._memory_mutating:
-            raise HTTPException(409, "应用正在关闭或更新记忆，请稍后重试。")
-        if runtime.voice_cancelled.get(identifier, 0) > time.monotonic():
-            raise HTTPException(409, "语音请求已停止。")
-        if identifier in runtime.voice_tasks or len(runtime.voice_tasks) >= 4:
-            raise HTTPException(409, "语音请求仍在处理中。")
-        if has_session:
-            runtime.validate_match_request(session_id, binding)
-            if turn_id is not None:
-                runtime.validate_voice_turn(session_id, turn_id)
-        task = asyncio.create_task(getattr(voice, kind)(**value))
-        runtime.voice_tasks[identifier] = task
+        async with voice_gate:
+            if runtime._closing or runtime._closed or runtime._memory_mutating:
+                raise HTTPException(409, "应用正在关闭或更新记忆，请稍后重试。")
+            if runtime.voice_cancelled.get(identifier, 0) > time.monotonic():
+                raise HTTPException(409, "语音请求已停止。")
+            if identifier in runtime.voice_tasks or len(runtime.voice_tasks) >= 4:
+                raise HTTPException(409, "语音请求仍在处理中。")
+            if has_session:
+                runtime.validate_match_request(session_id, binding)
+                if turn_id is not None:
+                    runtime.validate_voice_turn(session_id, turn_id)
+            task = asyncio.create_task(getattr(voice, kind)(**value))
+            runtime.voice_tasks[identifier] = task
         try:
             result = await task
             if has_session:
