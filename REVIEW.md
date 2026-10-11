@@ -691,3 +691,26 @@ Initial complete regression failed one stale test payload assertion (2004 PASS/1
 
 
 Final source regression PASS:2005 Python PASS/13 Windows symlink SKIP/0 FAIL/0 ERROR,339 desktop PASS,43 JS syntax PASS,full Ruff lint/format PASS;329 relevant inputs unchanged during final run. First full failure and focused correction remain recorded, not relabeled. Independent injection addendum confirms all original security assertions remain. Local skips need an appropriate CI host; no machine privilege policy changed. Source commit is now eligible for exact candidate rebuild and deterministic packaged integration, but Sol real-model/GUI retest and remote CI/publication remain PENDING. Private final candidate reports must identify the actual successor SHA and ZIP; old96510 Sol results cannot certify it.
+
+
+### 2026-10-11 — 有限 alpha 发布门槛
+
+Sol 对精确 1ed2e2f/8082aefe 的定向复测关闭了观察范围内的 D1 原阻塞，并验证了选定 D2 状态、D3 压缩响应提示与精确英文暖问。未重新完成旧 47 族矩阵，一般实体/措辞质量、中文/词形覆盖、完整并发/冲突/取消和 GUI 缺口继续 PARTIAL，真实语音 PAUSED。
+
+回复尾部证据不支持供应商只返回前缀：完整事件有 144 字，127 字快照截止交付 sent/ack=78，尾部 79–88/done89 均存在。原 renderer 两种确定性时序均在恢复可见后补齐；没有确认持久化或持续 UI 丢尾阻塞。当次最终可见 UI 缺失，当前助手脚本晚于样本，不能声称真实 GUI 补验通过或唯一历史原因。新增付费调用为 0。
+
+三个待推送提交的隐私审计 PASS；YUI 的上游 Apache 模型贡献依据和 Core 可再分发文件范围已核验。公开分发资格仍为 BLOCKED_REQUIRED_INPUT：须核实产品的 Expandable 分类、发行主体及适用豁免/发行协议，不能仅确认低营收就认定可发布。免费 alpha 和本机同意不等于已满足发行条件。私有 license-distribution-audit.md/json 是初次审查记录，其“只缺主体资格”的范围已由后续核查纠正；以本文后续门禁记录及 CI-RELEASES.md 为准。
+
+现有 HTTPS 和 SSH 均不能认证 Git 写入。GitHub 连接器虽有仓库写权限，其 create_commit 参数不能保留原 author/committer 元数据，不能重建不同 SHA 充当原验收提交。未读取密钥、生成 token 或绕过主机/分支保护；两个必要输入请求仍未答复。
+
+原标签流水线会直接公开重新构建的 CI ZIP。现仅三行改为 draft，并经独立 YAML 整树比较 PASS；所有旧门禁保留。ready 仅允许草稿暂存，Sol 必须先验证该次精确 ZIP，随后公开同一 draft 和原附件，不重建或替换。说明保持 pending，历史实测不得转移为新包通过。
+
+本轮只有六个文档/workflow 文件准备修改，应用、测试、素材、依赖和已验收本地 ZIP 未变。13 项本地主机权限跳过仍须在适用 CI 实际执行，不能白名单放行。当前未提交这些准备修改，也未创建新远端 CI、tag、draft 或公开 Release；发布状态为 BLOCKED_REQUIRED_INPUT。
+
+### 2026-10-11 — 源码 CI 发行资格门禁复核
+
+后续授权允许在六项准备修改上增加默认关闭的分发门禁并本地提交。当前变更为七个文本文件：两个 workflow、PLAN/WORKLOG/REVIEW、CI 说明和 alpha.2 说明。删除 test 的 Core 下载；package、release、diagnostics probe 各自显式恒假，覆盖所有现有 push/PR/tag/dispatch 通路，内部 always 上传也不执行。原合成测试、完整 pytest 和非预期 skip 拒绝逻辑不变。只有包含门禁的新提交受保护，旧分支/旧标签/历史运行未被修改。
+
+独立静态复核 PASS：14 项结构/范围检查、24 个事件/参数/job 组合和 11 条相关路径，保留的唯一上传类型为合成 JSON。正常权限的无 Core 隔离副本验证为桌面 339 PASS、两组现有打包单测 33 PASS，未安装依赖、加载模型、运行 GUI 或生成应用包。588 个其他 tracked 文件与发布准备初始基线原字节一致，既有受测 ZIP 保持 192308939 bytes / 8082aefe；Git 差异检查通过。详见私有 reports/qualification-gate-20261011。
+
+首轮默认沙箱 Node 的 12 个 EPERM 失败及未完成 guide 链保留；自动审批拒绝结束进程，未执行终止，也未把缺失的 guide/benchmark/m0 结果补记通过。当前有限验证只证明这些单测可在无 Core 条件运行。13 个符号链接用例仍须在新提交的适用远端 CI 实际执行；本轮未运行 Actions。发布资格仍待产品分类与发行主体/许可事实，不因 Git 登录、低营收、ready、手动参数或 draft 自动解除。官方问题仅为文档草稿，未发信。

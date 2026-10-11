@@ -2,13 +2,31 @@
 
 ## 当前：0.4.0-alpha.2 发布候选，尚未发布
 
-2026-10-10 正在审查全部待提交代码并执行完整单元与集成回归，随后冻结候选供 GPT-6.1 Sol 进行真实功能验收。[候选发布说明](releases/v0.4.0-alpha.2.md)当前为 **PENDING**，没有本轮已发布的 tag、Release 或可据此认定通过的远端 CI/应用 ZIP。旧提交和历史功能报告不能为这个候选背书。发布前还须核对最终源 commit、精确 commit 对应的 CI、包内外构建信息、附件摘要和实际包功能结果。
+2026-10-11 已完成修复代码审查、本地完整回归和 GPT-6.1 Sol 定向复测。[候选发布说明](releases/v0.4.0-alpha.2.md)仍保持 **`release-readiness: pending`**：素材/运行依赖分发条件、最终提交对应的远端 CI、重建包核验与 Sol 补充验收尚未完成，当前没有新 Release 下载结果。
 
-候选的观察画面仅支持明确选中的 Windows 窗口：枚举不生成图片，实际捕获绑定选中窗口，失效、撤销或过期时停止，不回退到整屏或其他窗口。实际游戏窗口兼容性及完整 GUI 问答以本候选的 Sol 验收为准，不能由合成图片或单元测试推断。
+本地受测源码为 `1ed2e2f52ce9b914c9349e27476f895001905e2a`；ZIP 为 `ai-neko-0.4.0-alpha.2-windows-x64.zip`，192,308,939 字节，SHA-256 `8082aefe7fe45e4daf23d99b9de5382a912344cef7e20bc6a94779e036e46944`。该包通过 56 项同包合成检查；Python 2,005 通过 / 13 主机符号链接权限跳过，桌面 339 通过，lint/格式及 43 项 JS 语法检查通过。13 项跳过须在适用 CI 环境实际执行，不能算通过。
 
-**语音接入与真实语音验收继续暂停。** 保留既有语音代码的单元/合成回归；普通 push、PR、tag 和默认手动 CI 均不安装专用语音运行环境、不下载语音模型、不执行真实语音推理。只有后续明确选择手动 `workflow_dispatch` 的 `run_real_voice=true` 才执行原有真实语音检查，本轮不触发。暂停报告使用 `SKIPPED_PAUSED` 和零下载/调用计数，不记为 PASS。实验性 Qwen 代码不等于可用的已验收语音功能，私人模型、环境与语音样本不随候选提交。
+Sol 已验证两次明确同一事实、引用完整旧记录的真实自动纠正，事实身份/key、修订和来源保留，新会话召回及遗忘后旧快照不复活；压缩网页的准确错误提示和既定英文充分证据暖问也通过。原 D1 阻塞仅在这些观察场景内关闭。首轮 47 族并非全部通过，本次也未全量重跑；一般实体语义、中文/词形/格式指令覆盖和未观察到的并发/取消/冲突时序仍为 PARTIAL。一次取证时观察到未收齐尾部；现存事件含完整回复，确定性回放可恢复，未取得当次最终可见界面样本，不能据此宣称一般回复质量通过。
 
-兼容版本建议为新预发布标签 `v0.4.0-alpha.2`，基础版本维持 `0.4.0`；建议发布分支 `release/v0.4.0-alpha.2` 来自受审查的当前候选，不使用旧远端默认分支覆盖本地。现阶段不推送或发布。版本化说明保持 `release-readiness: pending`；完成实际功能验收、填写结果并由发布负责人改为 `ready` 后，tag 流水线才允许创建 prerelease。此标记不能代替验收证据。
+候选观察画面仅支持明确选中的 Windows 窗口，失效或撤销后不回退到整屏或其他窗口。本轮定向复测不替代完整原生托盘、DPI/多屏、游戏窗口兼容与活跃期撤销验收。**语音接入与真实语音验收继续暂停**：保留合成回归，默认 CI 不安装专用语音环境、不下载模型或执行真实推理，记录 `SKIPPED_PAUSED`；本轮不选择 `run_real_voice=true`。实验性 Qwen 代码不等于已验收可用功能。
+
+发布沿用 `release/v0.4.0-alpha.2` 分支和新的预发布标签 `v0.4.0-alpha.2`，基础版本保持 `0.4.0`，不覆盖旧标签或用旧默认分支替换候选。说明更新会产生新提交，必须验证最终提交的精确 CI SHA；后续 CI/Release 重建 ZIP 与本地受测 ZIP 分别记录摘要，不能宣称字节相同或自动继承全部实测结论。
+
+发布分为两层：解决候选审查、说明、分发许可和发布连接等前置条件后，`release-readiness: ready` 仅授权 tag 流水线进入 **draft prerelease 暂存**，不授权公开。tag 的全部必需检查通过后产生新 CI ZIP 和草稿附件；Sol 再对该精确 ZIP 补充验收，发布负责人核对后公开同一草稿及原附件，不重新构建或替换，最后下载公开附件核对摘要。当前仍为 `pending`，没有本轮草稿或正式公开发布成功的结论。
+
+### 发行资格门禁：当前关闭
+
+包含本次修改的源码提交在普通 push、PR 和默认手动运行时只执行无需 Core 的合成测试及 JSON 证据保存；13 个符号链接用例仍在完整 pytest 内，非预期 skip 继续阻止 CI。显式 `run_real_voice=true` 仍保留 test job 原有的 native voice 导入检查，不会打开受限 job，本轮不触发。`windows-preview.yml` 的 `package` 与 `release`、`desktop-diagnostics.yml` 的 `probe` 均有字面 `false` 的 job 条件。整个 job 被阻止，内部 `always()` 上传也不会执行；不会经这些路径下载 Core、构建完整应用、上传模型/Core 包或截图/音频附件、创建 draft 或 public Release。没有新增 secrets、仓库变量或可打开门禁的 dispatch 参数。`ready` 和 `--draft` 均不能解除资格门禁。
+
+默认源码 CI 继续写 `Windows-voice-import-smoke.json` 的暂停记录；package job 被关闭期间不会生成 `free-voice-smoke.json` 或任何包验收报告。关闭不等于检查通过，也不代表已具备完整可分发制品。
+
+门禁仅适用于包含修改的新提交；不能阻止远端旧分支/旧标签或历史工作流重跑。后续只推送经核验的源码分支新 HEAD，不附带旧标签或执行旧工作流。仓库原有 YUI 素材及历史不会因此消失，因此准确范围是“源码/文档增量，不生成新应用包”，不是宣称整个仓库没有第三方素材。
+
+解除前必须记录实际产品范围、发行主体及相应许可依据。当前渲染入口固定加载 YUI，没有用户模型导入/选择功能，但解压包内资源可手工替换，不能只凭无按钮、低营收或本机接受条款判定发行豁免。[Live2D 条款 §1.5、§2.2、§6.3](https://www.live2d.com/eula/live2d-proprietary-software-license-agreement_en.html)及[Expandable 发行说明](https://www.live2d.com/en/sdk/license/expandable/)要求先区分产品类别；若为 Expandable，个人/小规模发行者也须事先获得审查和适用协议。需要澄清分类时，可由发行负责人向官方询问以下问题，当前未发送：
+
+> ai-neko 是本地 Windows AI 伴侣，发行包固定包含一个 YUI 模型，没有模型导入、选择、生成、多作品入口或市场功能；解压目录中的模型文件可被用户手工替换，兼容性不作保证。请确认这种产品是否属于 §1.5 的 Expandable Application；如不属于，实际发行主体满足 General Users/Small-Scale 条件时是否适用 §2.2；如属于，需要哪些事先审查和发行协议？
+
+有资格依据后，以独立审阅的新提交解除三个 job 门禁；Git 登录、个人身份/营收回复或既有用户同意本身不自动打开。该精确 SHA 的 CI 必须通过，新 CI ZIP 须单独记录身份并经 Sol 验收，随后才公开同一 draft 原附件。若为解决分类而改动产品能力，另做对应功能验收，不能继承旧包结论。
 
 ## 历史下载：2026-10-03 免费本地语音开发包
 
@@ -58,9 +76,10 @@ Get-FileHash .\ai-neko-0.4.0-dev.b443768df012-windows-x64.zip -Algorithm SHA256
 [workflow](../.github/workflows/windows-preview.yml)使用固定action commit、uv 0.11.8、Node.js 24.21.0、Python锁版本和`desktop/package-lock.json`，Electron锁定44.4.5。
 
 1. push、PR和手动运行在Ubuntu 24.04及Windows Server 2022执行依赖锁安装、素材/许可检查、桌面宿主单元测试、Python格式和完整合成测试，以及冻结30题评测和200篇攻略检索基准。失败或非预期跳过阻止后续；Linux的Windows凭据专属用例可跳过，报告保留PARTIAL并另列ci_gate。语音源码的合成回归仍执行。Windows 专用语音环境安装和真实 NumPy/Sherpa 导入仅在手动显式选择 `run_real_voice=true` 时执行；默认记录 `Windows-voice-import-smoke.json` 为 `SKIPPED_PAUSED`，专用语音组件/模型下载与真实语音调用均为0。
-2. 两平台通过后，在Windows原生构建PyInstaller后端并与Electron、角色及许可证组装。根目录`ai-neko.exe`是桌面入口，后端在`resources/backend/ai-neko.exe`，前端在`resources/app/`。
+2. **当前以下打包/发布步骤受发行资格门禁关闭。** 解除后，两平台通过才在Windows原生构建PyInstaller后端并与Electron、角色及许可证组装。根目录`ai-neko.exe`是桌面入口，后端在`resources/backend/ai-neko.exe`，前端在`resources/app/`。
 3. 对同一ZIP解压后的真实程序检查鉴权、中文路径、实例/端口、退出、图恢复和流式聊天；随后执行桌宠基线及人格/记忆/视觉/语音合成闭环。G6 使用 `--archive` 继续验证采用后退出、新进程新聊天复用、配置与禁用搜索各五问，以及旧局/新局/明确复盘隔离。以上四套测试使用合成资料和服务，并全部保持必需门禁；不能证明真实窗口截图、供应商服务或语音效果。免费语音模型安装与 TTS/ASR 仅在手动显式选择 `run_real_voice=true` 时执行，默认 `free-voice-smoke.json` 记录 `SKIPPED_PAUSED`、未执行、零下载/调用，不能记为真实语音通过。
-4. 普通构建上传带源码commit的Actions开发产物，保留14天，通常需登录GitHub。版本tag在全部必需检查通过且同一源码commit中的 `docs/releases/v<版本>.md` 明确标记 `release-readiness: ready` 后，才自动创建新的prerelease，附包、报告、合成截图和摘要。发布说明缺失或仍为pending会阻止发布；既有版本不覆盖。只有发布job具有`contents: write`权限。
+4. 普通构建上传带源码 commit 的 Actions 开发产物，保留14天，通常需登录 GitHub。版本 tag 在全部必需检查通过且同一源码 commit 中的 `docs/releases/v<版本>.md` 标记 `release-readiness: ready` 后，只创建新的 **draft prerelease**，附精确 tag CI 产生的包、报告、安全合成证据与摘要。`ready` 仅授权草稿暂存；说明缺失或 pending 仍阻止该步骤，既有版本不覆盖，只有发布 job 具有 `contents: write` 权限。
+5. 下载并核对草稿的精确 ZIP、源码 commit、包内外构建信息和摘要；由 Sol 对这份新 CI ZIP 补充验收。通过后发布负责人公开同一既有 draft，保留原 tag 与全部已验附件，不重建、不替换；再下载公开附件复核 SHA-256。草稿生成成功或旧本地包通过均不等于这一步已完成。
 
 版本标签为`v<基础版本>-<预发布后缀>`，截至2026-10-10核查，已有最新Release为`v0.4.0-alpha.1`，`v0.4.0-alpha.2`仍是候选。Python/Electron及锁文件基础版统一为0.4.0；分支包附带源码commit，tag包保留完整alpha后缀。已发布版本不覆盖，后续发布使用新tag。稳定发布、签名、自动升级与完整迁移仍需后续验收。
 

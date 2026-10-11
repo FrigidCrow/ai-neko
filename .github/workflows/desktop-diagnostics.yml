@@ -7,6 +7,9 @@ permissions:
   contents: read
 jobs:
   probe:
+    # This probe downloads Core and launches the renderer. Qualification is pending;
+    # reopen only by a reviewed commit under docs/CI-RELEASES.md, never a dispatch input.
+    if: ${{ false }}
     runs-on: windows-2022
     timeout-minutes: 12
     steps:

@@ -1125,3 +1125,39 @@ Executed Node24.21.0 `--check` for all 43 tracked desktop/scripts JavaScript fil
 Final rerun completed: `.venv\Scripts\python.exe -B reports\sol-remediation-20261011\run-final2-validation.py` exit0,222.703s Python,2005 PASS/13 SKIP/0 FAIL/0 ERROR; Ruff check/format PASS,329 source hashes unchanged. Only the independently-reviewed test payload assertion differs from first-run source, so339 desktop PASS and43 syntax PASS map unchanged to this freeze. Evidence: final2-validation.json/final2-python-junit.xml, final-validation.json, node-syntax.json, memory-independent-injection-addendum.md. Initial full failure retained.
 
 Prepared local freeze/build commands (execution evidence will be saved privately after this source commit): `.venv\Scripts\python.exe -B reports\sol-remediation-20261011\freeze-candidate.py`, then `run-candidate-build.py`, `run-candidate-validation.py`, and `run-g5-validation.py` in the same directory. Freeze stages only the explicit28source/test/docs allowlist and uses per-command Codex identity; clean detached worktree advances from96510 to the new commit. The locked PyInstaller6.22.3 build environment remains in reports/release-readiness-20261010/build-venv. No dependency changes or network installs. Exact completion/commands, new ZIP/build/helper hashes and post-run process audit go to the new private report, preserving old artifacts. These prepared commands are not claimed as passed before execution.
+
+
+### 2026-10-11 — Sol 定向复测与发布准备
+
+读取父任务指定的复测 REPORT/defect handoff 和上一轮 47 族报告。输入摘要、595 个 tracked 文件基线及远端检查保存至私有 reports/release-publication-20261011。Sol 对精确 1ed2e2f/8082aefe 的限定结论已写入公开说明，不复制私人报告、聊天、截图或账本；本阶段新增付费调用为 0。
+
+实际执行的仓库/连接检查：
+- `git ls-remote --symref origin HEAD refs/heads/release/v0.4.0-alpha.2 refs/tags/v0.4.0-alpha.2*`、`git fetch --no-tags origin`、`git for-each-ref`、`git log/rev-list HEAD --not --remotes=origin`。目标分支/标签不存在，三个新提交为 c462035、96510cf、1ed2e2f，远端基线 afb560f，默认分支仍为 codex/initial-plan。
+- GitHub 连接器只读查询 repository/profile/releases/rulesets：仓库为 public，连接器有写权限，无 alpha.2 Release，返回 rulesets 为空。没有远端修改。
+- `git config --show-origin --get-all credential.helper`、`git credential-manager github list`、gh 路径检查以及 GH_TOKEN/GITHUB_TOKEN 的存在性检查：GCM 无账号，gh 和上述环境凭据均不存在；未输出凭据值。
+- 设置 GIT_TERMINAL_PROMPT=0、GCM_INTERACTIVE=Never 后执行 `git push --dry-run origin 1ed2e2f52ce9b914c9349e27476f895001905e2a:refs/heads/release/v0.4.0-alpha.2`，因无法读取用户名失败。连接器 create_commit 缺少原 author/committer 元数据参数，不能保持验收 SHA，因此未用替代历史绕过。
+- `ssh-add -l` 显示无 agent。严格 SSH 首次因本机无 GitHub 主机记录失败；从 GitHub 官方文档核验 ED25519 公钥及 SHA256 指纹，仅写入任务私有 github-known-hosts，再用 BatchMode=yes、StrictHostKeyChecking=yes、指定 UserKnownHostsFile 和 HostKeyAlgorithms=ssh-ed25519 连接，返回 Permission denied(publickey)。没有修改全局 known_hosts、关闭校验或生成密钥/token。
+
+独立尾部诊断：现存事件持久保存 144 字，早期 UI/turn 快照 127 字对应 sent/ack=78，余下 17 字位于事件 79–88，done=89。原 renderer 零网络回放 2/2 在恢复可见后收齐并 ACK 89。当前测试助手脚本晚于历史样本，所以只保留采样时机的有根据解释；缺少当次最终可见 UI 和 provider finish_reason，未虚构实测或供应商截断原因。命令、输入和源码摘要见 incomplete-reply-probe/diagnosis 报告。
+
+先更新 PLAN，再仅改三行 workflow：两个标签和创建命令增加 --draft。独立 PyYAML BaseLoader 6.0.3 整树比较通过，除三处预期值外与 HEAD 相同；原测试、包校验、ready、禁止覆盖及暂停语音门禁全部保留。workflow SHA256 为 e29f004eb68c8e05491d99b0289deabb1462c142be149b6c5022a9f725136970。公开说明及当前 CI 流程独立复核通过，历史下载段落保留，pending 标记 1、ready 标记 0。生产代码未改，未重复运行无关完整套件。
+
+发行审计核验 afb560f..1ed2e2f 的 147 个对象、102 个 blob、85 个路径，隐私检查通过。YUI 上游模型贡献 Apache 依据、Core 官方可分发文件与固定单模型普通应用路径已核验；仅发行主体资格或已有适用协议尚待确认。免费发行、本机许可同意不能替代该事实，无需用户提供财务明细。私有 license-distribution-audit.md/json 保留来源、条款和判断边界。
+
+已请求现有 Git 登录方式和发行主体资格，等待回复；不是再次询问是否允许继续。未 stage/commit 本轮六项准备修改，未推送、打标签、触发远端 CI、创建 draft 或公开 Release。后续须对新提交执行 CI，Sol 验证新 CI 原附件后再公开同一 draft，并下载核对摘要；不得将旧 ZIP 标作新 SHA。
+
+### 2026-10-11 — 默认关闭发行资格门禁
+
+后续只读核查纠正了初次审计的范围：固定 YUI 加载没有产品模型导入入口，但包内普通资源可手工替换，因此“只缺主体资格”不足以覆盖 Expandable 分类问题。两个工作流均有 Core 下载路径；原 windows-preview 的普通源码 push 还会构建、上传完整应用 ZIP，draft 只约束最后的 Release 创建。用户尚未回复 Git 登录或发行资格，本轮没有重试连接、读取凭据、登录或接受协议。
+
+先更新 PLAN 后实施：删除合成 test job 的 Core 下载；在 windows-preview.package、windows-preview.release、desktop-diagnostics.probe 分别加字面 false 的 job 条件，release 保留原 tag 条件。其余测试、完整 pytest、skip 规则、依赖锁和语音显式 opt-in 不变。默认只保留合成 JSON 证据，受限 job 内的 always 上传也不能执行。既有六个准备文件继续保留，另修改 diagnostics workflow，共七个文本文件；应用/测试/依赖/素材/构建脚本不变。
+
+实际核查包括 `git status --short`、`git rev-parse HEAD`、完整读取两个 YAML、检查 desktop/package.json、m0_smoke、资产和合成打包测试；本机 Git/GCM 版本及 `git credential-manager github login --help` 仅查看帮助。重新读取 Live2D §1.5/§2.2/§6.3、Expandable 官方页及 GitHub job.if 文档，明确解除须有分类与主体/许可依据，并经新提交复核。官方询问问题仅存于 CI-RELEASES.md，未向第三方发送。
+
+验证产物保存在忽略目录 reports/qualification-gate-20261011。已再次计算既有 ZIP 的 SHA-256，仍为 8082aefe7fe45e4daf23d99b9de5382a912344cef7e20bc6a94779e036e46944、192308939 bytes。无 Core 的隔离副本仅从 595 个 tracked 文件复制，不复制虚拟环境、node_modules 或未跟踪 Core；使用本机现有锁版本执行合成检查，不安装依赖或新建包。静态事件矩阵和本地合成结果不代表远端 Actions 已运行。
+
+验证结果：独立 `verify_workflows.py` 使用现有 PyYAML BaseLoader 6.0.3，14 项结构/范围检查及 24 个事件/语音参数/job 组合通过，枚举 11 条相关路径（其中仅合成 JSON 上传可运行）；`git diff --check` 通过。无 Core 副本中使用 Node 24.21.0 执行 `node --test tests/*.test.cjs`，339 PASS；Python 3.11.15 执行 `python -B -m pytest tests/test_packaging.py tests/test_window_capture_packaging.py -q --tb=short -p no:cacheprovider --junitxml=<任务报告路径>`，33 PASS。两项有限验证在正常批准权限及独立任务临时目录执行，Core 前后均不存在，副本 595 文件摘要未变。
+
+保留失败及未完成项：首轮默认沙箱 Node 为 327 PASS/12 FAIL，出现临时目录 rename/realpath EPERM；后续 guide evaluation 没有日志/CPU推进证据。结束本轮自有测试链的请求被自动审批拒绝，理由为最初“不停止任何进程”的限制仍有效，故未结束或绕过。首轮链保留，guide 为 RUNNING/BLOCKED，后续 benchmark/m0 尚未启动；不再启动第二套全链。上述有限正常权限通过不将首轮改记 PASS，也不替代完整无 Core 回归或远端 13 项符号链接实测。
+
+本地提交只暂存上述七个文本文件；使用单次命令的 `git -c user.name=Codex -c user.email=codex@localhost commit`，不写 Git 全局或仓库身份配置。记录最终提交及提交后状态于私有 qualification-gate 报告；不推送、不打标签、不执行远端工作流，不触发完整打包或 Release。恢复先核实 Git 认证，再仅推受控源码分支新 HEAD；解除资格门禁仍须分类/主体及适用许可依据、独立复核的新提交和后续精确制品验收。

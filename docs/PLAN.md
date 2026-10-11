@@ -752,3 +752,28 @@ The first complete repair regression recorded 2004 Python PASS, 1 FAIL, 13 Windo
 
 
 Sol-remediation source freeze gate PASS: final full Python 2005 PASS/13 known Windows symlink SKIP/0 FAIL, desktop 339 PASS, Ruff check/format and43 JavaScript syntax checks PASS;329 source inputs stable. Guide evaluation24+6 and14 warm diagnostics are separate evidence. Independent memory/guide/package/injection-follow-up reviews pass. Next exact-commit package checks and Sol retest remain pending; no real provider/voice calls or publication occurred.
+
+
+### 2026-10-11 — Sol 定向复测后的有限 alpha 发布
+
+父任务依据用户明确授权，要求继续推送和发布 v0.4.0-alpha.2 预发布。先核验 Sol 对精确提交 1ed2e2f 与 ZIP 8082aefe 的复测和旧 47 族报告；D1 明确引用旧值的两次真实纠正、召回、遗忘和旧快照恢复在观察范围内通过，D3 错误提示与精确英文暖問通过。一般语义、中文覆盖、未观察时序和暂停语音仍须如实保留。回复尾部观察只用现存证据与确定性检查诊断，不新增付费调用。若证明产品阻塞，修复后重新验收。
+
+任何远端写入前检查 afb560f 之后三个提交与全部拟分发资源的隐私、来源和许可；本机接受 Live2D 条款不等于发行授权。使用现有授权凭据，不生成 token，不强推、不改全局 Git 身份、不绕过保护。沿用现有发布分支及新版本标签，禁止覆盖旧版本。最终提交须有精确 CI 证据，13 项本地符号链接跳过必须实际执行；按当前测试集，Windows 应为 2018 通过且无跳过，Linux 仅允许 Windows 凭据库一项平台跳过。
+
+当前标签流程会重建不同的 CI ZIP 后立即公开，不能满足“新制品必须先经 Sol 补验”。在保留测试、包校验、说明 ready 和禁止覆盖检查的前提下，仅将最后创建步骤改为 draft prerelease。ready 只授权草稿暂存；Sol 补验该次精确 CI ZIP 并核对身份后，才公开同一草稿及原附件，不重新构建、替换或重标摘要。草稿不是已发布。实施前已记录此范围，三行 workflow 变化须独立复核。
+
+发布前诊断现已完成：完整回复尾部存在于事件记录，早期界面/交付快照尚未收齐；原 renderer 的两种时序回放均可恢复全文，没有确认持续丢尾阻塞。当次最终可见界面样本缺失，不能称真实 GUI 补验通过。三个提交隐私检查及草稿 workflow/说明独立复核通过，生产、测试、素材、依赖及已验收 ZIP 保持不变。
+
+当前确需输入：Windows 的 Git Credential Manager 没有账号，HTTPS 推送试运行缺凭据；严格验证 GitHub 官方主机公钥后的 SSH 也被拒绝。连接器创建 commit 不暴露原 author/committer 元数据，不能以重建不同 SHA 绕开。另需确认发行主体符合 Live2D General Users/Small-Scale 条件，或已有适用发行协议，无需财务明细。已发起两个输入请求，尚未收到答案。六个本地文件仅涉及说明和 workflow；readiness 保持 pending，未创建远端分支、CI、标签、草稿或公开 Release。
+
+### 2026-10-11 — 发行资格未决时的源码 CI 门禁
+
+在上述六项准备修改上继续实施并创建本地文本提交，不登录、不推送、不接受协议。先前把分发条件简化为发行主体资格不充分：当前固定加载 YUI，没有产品模型导入入口，但包内普通资源可手工替换；仍需结合实际发行范围核实 Live2D §1.5 的 Expandable Application 分类、§2.2 豁免及 §6.3 发行要求。未收到主体/既有许可答复前不得代为确认。
+
+实施：移除 windows-preview 的合成测试 job 中 Core 下载；使用代码内不可由 dispatch 输入或仓库变量打开的字面 false 条件，分别关闭完整 package、release 和 desktop-diagnostics probe job。保留所有合成测试、指南评估及 JSON 证据，不改变 m0_smoke 的 skip 规则。普通分支、PR、tag、手动运行均不得通过这三个 job 下载 Core、构建/上传完整包或创建 Release；draft 标志只是后续制品验收措施，不是许可门禁。门禁只约束包含新修改的提交，不代表远端旧工作流已关闭。
+
+验收：枚举所有工作流及 Core/打包/上传/发布命令，核对 job 条件与事件矩阵；在不含 Core 的隔离源码副本执行适用合成检查，验证 13 个符号链接用例仍被完整测试入口收集、其跳过仍会阻止 CI。独立复核七个文本文件及运行输入/已验收 ZIP 未变。明确记录尚未执行远端精确 SHA 的 Windows/Linux CI，不能把本机权限跳过改成 PASS。
+
+解除须先有实际产品分类及发行主体资格/适用协议依据，再以审阅过的新提交修改三个门禁；本机点击同意、低营收、ready 标记、tag、手动参数或 Git 登录均不能单独解除。随后验证精确 SHA 的 CI 和新 CI ZIP，Sol 补验通过后才公开同一 draft 原附件。当前只创建本地文本提交，已验收 1ed2e2f/8082aefe 身份不变。
+
+门禁静态验收完成：14 项独立结构检查、24 个事件/参数/job 组合均通过，11 条相关路径已枚举。无 Core 正常权限副本的桌面 339 项和打包单测 33 项通过。首轮默认沙箱产生 EPERM 失败，guide 链无推进证据，自动审批未允许终止，保留 RUNNING/BLOCKED；完整无 Core 回归与精确远端 CI 尚未完成。未改应用/测试/素材/依赖或原受测包，不扩大 skip 白名单。七文件文本改动具备本地提交条件；不执行 push 或发布。
