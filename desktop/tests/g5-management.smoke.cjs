@@ -160,6 +160,22 @@ async function get(route) {
     await pause(80);
   }
 }
+async function saveModelSettings(expected) {
+  // Editing must invalidate the previous success before this submission.
+  assert.equal(await page.locator('#settings-form').getAttribute('aria-busy'), 'false');
+  assert.equal(await page.locator('#settings-message').innerText(), '模型或搜索设置有未保存的修改。');
+  assert.equal(await page.locator('#settings-message').evaluate((node) => node.classList.contains('is-success')), false);
+  await page.locator('#save-settings').click();
+  await page.waitForFunction(() => document.querySelector('#settings-form').getAttribute('aria-busy') === 'false' &&
+    document.querySelector('#settings-message').textContent === '模型与搜索设置已保存。' &&
+    document.querySelector('#settings-message').classList.contains('is-success'));
+  const saved = await get('/api/config');
+  for (const [key, value] of Object.entries(expected)) assert.equal(saved[key], value, `Saved config: ${key}`);
+  assert.equal(await page.locator('#settings-panel').isVisible(), true);
+  await page.locator('#close-settings').click();
+  await page.waitForSelector('#settings-panel', { state: 'hidden' });
+  return saved;
+}
 async function sessionId() { return page.evaluate(() => localStorage.getItem('ai-neko.desktop.last-session')); }
 async function session() { const id = await sessionId(); return id ? get('/api/sessions/' + id) : { turns: [] }; }
 async function matches() { return get('/api/sessions/' + await sessionId() + '/matches'); }
@@ -359,7 +375,8 @@ async function assertSource(call, doc) {
     await page.locator('#model-base-url').fill(endpoint); await page.locator('#model-name').fill('synthetic-g5');
     await page.locator('#model-api-key').fill(''); await page.locator('#search-api-key').fill('');
     await page.locator('#search-base-url').fill('https://api.tavily.com');
-    await page.locator('#save-settings').click(); await page.waitForSelector('#settings-panel', { state: 'hidden' });
+    await saveModelSettings({ model_base_url: endpoint, model: 'synthetic-g5', search_base_url: 'https://api.tavily.com',
+      search_key_set: false, search_configured: false });
     await page.locator('#mode-chat').click();
     return { search_configured: false, endpoint, actual_settings_forms: true };
   });

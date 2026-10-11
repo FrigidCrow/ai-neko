@@ -67,6 +67,22 @@ if (archive) {
 }
 report.executable_sha256 = crypto.createHash('sha256').update(fs.readFileSync(executablePath)).digest('hex');
 let electronApp; let page; let modelCalls = 0;
+async function saveModelSettings(expected) {
+  // Editing must invalidate the previous success before this submission.
+  assert.equal(await page.locator('#settings-form').getAttribute('aria-busy'), 'false');
+  assert.equal(await page.locator('#settings-message').innerText(), '模型或搜索设置有未保存的修改。');
+  assert.equal(await page.locator('#settings-message').evaluate((node) => node.classList.contains('is-success')), false);
+  await page.locator('#save-settings').click();
+  await page.waitForFunction(() => document.querySelector('#settings-form').getAttribute('aria-busy') === 'false' &&
+    document.querySelector('#settings-message').textContent === '模型与搜索设置已保存。' &&
+    document.querySelector('#settings-message').classList.contains('is-success'));
+  const saved = await page.evaluate(() => window.aiNekoChat.api('/api/config'));
+  for (const [key, value] of Object.entries(expected)) assert.equal(saved[key], value, `Saved config: ${key}`);
+  assert.equal(await page.locator('#settings-panel').isVisible(), true);
+  await page.locator('#close-settings').click();
+  await page.waitForSelector('#settings-panel', { state: 'hidden' });
+  return saved;
+}
 const modelRequests = [];
 const rendererErrors = [];
 const model = http.createServer((request, response) => {
@@ -160,8 +176,7 @@ async function quit() {
     await page.locator('#model-base-url').fill(`http://127.0.0.1:${model.address().port}/v1`);
     await page.locator('#model-name').fill('synthetic-desktop-model');
     await snap('desktop-settings');
-    await page.locator('#save-settings').click();
-    await page.waitForFunction(() => document.querySelector('#settings-panel').hidden && document.querySelector('#turn-status').textContent.includes('设置已保存'));
+    await saveModelSettings({ model_base_url: `http://127.0.0.1:${model.address().port}/v1`, model: 'synthetic-desktop-model' });
   });
   await check('incremental_reply_cancel_and_old_delta_rejection', async () => {
     await page.locator('#mode-chat').click();

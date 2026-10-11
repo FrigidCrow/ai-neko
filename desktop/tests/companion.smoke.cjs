@@ -27,6 +27,12 @@ let asrText = '合成语音问题，请看当前棋盘。';
 let failHistoricalQuestion = false;
 let releaseVisualResponse;
 let releaseTextResponse;
+let stopPrefetchFixture;
+const deferred = () => { let release; const promise = new Promise((resolve) => { release = resolve; }); return { promise, release }; };
+async function waitForFixture(predicate, label) {
+  for (let attempt = 0; attempt < 200; attempt++) { if (predicate()) return; await pause(50); }
+  throw new Error(`Synthetic fixture timed out: ${label}`);
+}
 const mp3 = fs.readFileSync(path.join(__dirname, 'fixtures/synthetic-tone.mp3'));
 const server = http.createServer((req, res) => {
   const chunks = []; req.on('data', (chunk) => chunks.push(chunk)); req.on('end', async () => {
@@ -37,7 +43,25 @@ const server = http.createServer((req, res) => {
       }
       calls.wav_uploads++; res.writeHead(200, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ text: asrText })); return;
     }
-    if (req.url === '/v1/audio/speech') { calls.tts++; res.writeHead(200, { 'Content-Type': 'audio/mpeg' }); res.end(mp3); return; }
+    if (req.url === '/v1/audio/speech') {
+      calls.tts++;
+      const fixture = stopPrefetchFixture;
+      if (fixture) {
+        const entry = { request_number: calls.tts, received_at: Date.now(), response_sent: false };
+        fixture.requests.push(entry);
+        if (fixture.requests.length === 2) {
+          fixture.prefetchEntered = true;
+          res.once('close', () => {
+            entry.closed_at = Date.now(); entry.cancelled_before_response = !res.writableFinished;
+            fixture.prefetch.release();
+          });
+          await fixture.prefetch.promise;
+          if (res.destroyed) return;
+        }
+        entry.response_sent = true;
+      }
+      res.writeHead(200, { 'Content-Type': 'audio/mpeg' }); res.end(mp3); return;
+    }
     if (req.url !== '/v1/chat/completions') { res.writeHead(404); res.end(); return; }
     const body = JSON.parse(Buffer.concat(chunks)); calls.models.push(body);
     const lastUser = body.messages.findLast((message) => message.role === 'user')?.content;
@@ -61,10 +85,33 @@ const server = http.createServer((req, res) => {
     }
     const answer = userText.includes('合成实际听到测试') ? ['**第一句🐾已经听完。', '**\n第二句还没有听完。'] : ['合成场景建议：先观察。', '再决定下一步。'];
     for (const content of answer) { res.write('data: ' + JSON.stringify({ choices: [{ delta: { content } }] }) + '\n\n'); await pause(180); }
+    if (stopPrefetchFixture && !body.tools && userText === '合成画面提问') {
+      const fixture = stopPrefetchFixture; fixture.tailEntered = true;
+      await fixture.tail.promise;
+      if (res.destroyed) return;
+      res.write('data: ' + JSON.stringify({ choices: [{ delta: { content: '停止声音之后才到达的第三句。' } }] }) + '\n\n');
+      fixture.tailSent = true;
+    }
     res.end('data: [DONE]\n\n');
   });
 });
 let application; let page; const errors = [];
+async function saveModelSettings(expected) {
+  // Editing must invalidate the previous success before this submission.
+  assert.equal(await page.locator('#settings-form').getAttribute('aria-busy'), 'false');
+  assert.equal(await page.locator('#settings-message').innerText(), '模型或搜索设置有未保存的修改。');
+  assert.equal(await page.locator('#settings-message').evaluate((node) => node.classList.contains('is-success')), false);
+  await page.locator('#save-settings').click();
+  await page.waitForFunction(() => document.querySelector('#settings-form').getAttribute('aria-busy') === 'false' &&
+    document.querySelector('#settings-message').textContent === '模型与搜索设置已保存。' &&
+    document.querySelector('#settings-message').classList.contains('is-success'));
+  const saved = await page.evaluate(() => window.aiNekoChat.api('/api/config'));
+  for (const [key, value] of Object.entries(expected)) assert.equal(saved[key], value, `Saved config: ${key}`);
+  assert.equal(await page.locator('#settings-panel').isVisible(), true);
+  await page.locator('#close-settings').click();
+  await page.waitForSelector('#settings-panel', { state: 'hidden' });
+  return saved;
+}
 async function check(name, operation) {
   const value = { name, status: 'RUNNING' }; report.cases.push(value); save();
   try { await operation(); value.status = 'PASS'; } catch (error) { value.status = 'FAIL'; throw error; } finally { save(); }
@@ -78,7 +125,7 @@ async function waitForBackend(predicate, timeout = 20000) {
   throw new Error(`Backend condition timed out: ${String(predicate)}`);
 }
 function personaSaveComplete({ version, name }) {
-  return document.querySelector('#persona-status').textContent === `当前人格版本 ${version} · 下一轮生效` &&
+  return document.querySelector('#persona-status').textContent === `当前人格版本 ${version} 已保存，下一轮生效。` &&
     document.querySelector('#persona-name').value === name &&
     document.querySelector('.identity strong').textContent === name;
 }
@@ -146,17 +193,19 @@ report.executable_sha256 = crypto.createHash('sha256').update(fs.readFileSync(ex
     await page.locator('#memory-content').fill('合成测试偏好：先给结论。');
     await page.locator('#memory-form').evaluate((form) => form.requestSubmit());
     await page.waitForSelector('.memory-card');
-    await page.locator('.memory-card button').filter({ hasText: '查看依据' }).click();
+    await page.locator('.memory-card button').filter({ hasText: '查看来源' }).click();
     await page.waitForFunction(() => document.querySelector('.memory-evidence').textContent.includes('合成测试偏好：先给结论。'));
     await page.locator('.memory-card textarea').fill('合成测试偏好：简短解释。');
     await page.locator('.memory-card button').first().click();
-    await page.waitForFunction(() => document.querySelector('#memory-status').textContent.includes('纠正'));
+    await page.waitForFunction(() => document.querySelector('#memory-status').textContent.includes('记忆已经更新。'));
     assert.equal((await page.evaluate(() => window.aiNekoChat.api('/api/memories'))).memories[0].content, '合成测试偏好：简短解释。');
     await page.locator('.memory-card button').filter({ hasText: '遗忘' }).click(); await page.waitForSelector('.memory-card', { state: 'detached' });
     await page.locator('#memory-auto-extract').check();
-    await page.waitForFunction(() => document.querySelector('#memory-status').textContent.includes('自动整理'));
+    await page.waitForFunction(() => document.querySelector('#memory-config-status').textContent === '之后的对话会自动整理记忆。');
+    assert.equal((await page.evaluate(() => window.aiNekoChat.api('/api/memory/config'))).auto_extract, true);
     await page.locator('#memory-auto-extract').uncheck();
-    await page.waitForFunction(() => document.querySelector('#memory-status').textContent.includes('关闭自动'));
+    await page.waitForFunction(() => document.querySelector('#memory-config-status').textContent === '已关闭自动整理。');
+    assert.equal((await page.evaluate(() => window.aiNekoChat.api('/api/memory/config'))).auto_extract, false);
   });
   await check('memory_snapshot_ui_requires_confirmation_and_preserves_corrections_and_forgetting', async () => {
     for (const content of ['快照偏好：喜欢慢节奏。', '快照遗忘：旧的事件。']) {
@@ -311,17 +360,15 @@ report.executable_sha256 = crypto.createHash('sha256').update(fs.readFileSync(ex
     await page.locator('#voice-form').evaluate((form) => form.requestSubmit());
     await page.waitForFunction(() => document.querySelector('#voice-config-status').textContent.includes('已保存'));
     await page.locator('#model-base-url').fill(endpoint); await page.locator('#model-name').fill('synthetic-vision');
-    await page.locator('#settings-form').evaluate((form) => form.requestSubmit());
-    await page.waitForFunction(() => document.querySelector('#settings-panel').hidden);
+    await saveModelSettings({ model_base_url: endpoint, model: 'synthetic-vision' });
   });
   await check('anonymous_search_settings_save_without_a_key_and_restore_tavily', async () => {
     await page.locator('#open-settings').click();
     await page.locator('#search-provider').selectOption('anysearch');
     assert.equal(await page.locator('#search-api-key').isDisabled(), true);
     assert.equal(await page.locator('#search-base-url').inputValue(), 'https://api.anysearch.com/v1');
-    await page.locator('#settings-form').evaluate((form) => form.requestSubmit());
-    await page.waitForFunction(() => document.querySelector('#settings-panel').hidden);
-    const configured = await page.evaluate(() => window.aiNekoChat.api('/api/config'));
+    const configured = await saveModelSettings({ search_provider: 'anysearch', search_base_url: 'https://api.anysearch.com/v1',
+      search_configured: true, search_key_set: false });
     assert.equal(configured.search_provider, 'anysearch');
     assert.equal(configured.search_configured, true);
     assert.equal(configured.search_key_set, false);
@@ -335,9 +382,8 @@ report.executable_sha256 = crypto.createHash('sha256').update(fs.readFileSync(ex
     report.search_settings_screenshot_sha256 = crypto.createHash('sha256').update(fs.readFileSync(settingsImage)).digest('hex');
     await page.locator('#search-provider').selectOption('tavily');
     assert.equal(await page.locator('#search-api-key').isDisabled(), false);
-    await page.locator('#settings-form').evaluate((form) => form.requestSubmit());
-    await page.waitForFunction(() => document.querySelector('#settings-panel').hidden);
-    const restored = await page.evaluate(() => window.aiNekoChat.api('/api/config'));
+    const restored = await saveModelSettings({ search_provider: 'tavily', search_base_url: 'https://api.tavily.com',
+      search_configured: false, search_key_set: false });
     assert.equal(restored.search_provider, 'tavily');
     assert.equal(restored.search_base_url, 'https://api.tavily.com');
     assert.equal(restored.search_configured, false);
@@ -400,6 +446,21 @@ report.executable_sha256 = crypto.createHash('sha256').update(fs.readFileSync(ex
     await page.locator('#vision-source').selectOption('window:98765:0'); await page.locator('#vision-enabled').check();
     await page.waitForSelector('#vision-preview:not([hidden])');
     await page.locator('#close-settings').click(); await page.locator('#speak-replies').check();
+    stopPrefetchFixture = { before: calls.tts, requests: [], prefetch: deferred(), tail: deferred() };
+    await page.evaluate(() => {
+      const original = AudioBufferSourceNode.prototype.start;
+      const probe = { starts: [] };
+      AudioBufferSourceNode.prototype.start = function (...args) {
+        const result = original.apply(this, args); probe.starts.push(performance.now()); return result;
+      };
+      probe.captureStop = () => { probe.boundary = { at_ms: performance.now(), speaking: document.body.dataset.speaking,
+        starts: [...probe.starts], timings: window.aiNekoCompanion.voiceTimings() }; };
+      probe.restore = () => {
+        AudioBufferSourceNode.prototype.start = original;
+        document.getElementById('stop-audio').removeEventListener('click', probe.captureStop, true);
+      };
+      window.syntheticStopQueueProbe = probe;
+    });
     await page.locator('#message-input').fill('合成画面提问'); await page.locator('#message-form').evaluate((form) => form.requestSubmit());
     await page.waitForFunction(() => document.querySelector('body').dataset.speaking === 'true');
     const last = calls.models.at(-1).messages.findLast((item) => item.role === 'user').content;
@@ -412,13 +473,56 @@ report.executable_sha256 = crypto.createHash('sha256').update(fs.readFileSync(ex
     report.on_demand_plain_question = { tool_schemas_available: true, search_calls: 0, missing_search_key_did_not_block: true };
   });
   await check('real_web_audio_playback_cancel_stops_queue', async () => {
-    const before = calls.tts;
-    const start = Date.now(); await page.locator('#stop-audio').click();
-    await page.waitForFunction(() => document.querySelector('body').dataset.speaking === 'false');
-    report.stop_observed_ms = Date.now() - start;
-    await pause(650); assert.equal(calls.tts, before);
-    await page.waitForFunction(() => document.querySelector('#cancel-turn').hidden);
-    await waitForBackend(async () => { const id = localStorage.getItem('ai-neko.desktop.last-session'); return (await window.aiNekoChat.api(`/api/sessions/${id}`)).turns.at(-1).audio_playback?.some((segment) => segment.state === 'stopped'); });
+    const fixture = stopPrefetchFixture;
+    const evidence = report.prefetch_stop = { synthetic_http_requests: fixture.requests, stage: 'waiting_for_prefetch',
+      hardware_acoustic_measurement: false };
+    try {
+      // Align the baseline with the supported one-successor prefetch, keeping
+      // that HTTP response in flight and the third model sentence unreleased.
+      await waitForFixture(() => fixture.prefetchEntered && fixture.tailEntered, 'one in-flight successor and held model tail');
+      assert.equal(calls.tts, fixture.before + 2); assert.equal(fixture.requests.length, 2);
+      assert.equal(fixture.requests[1].response_sent, false);
+      await page.evaluate(() => document.getElementById('stop-audio').addEventListener('click', window.syntheticStopQueueProbe.captureStop, { capture: true, once: true }));
+      const start = Date.now(); await page.locator('#stop-audio').click();
+      await page.waitForFunction(() => document.body.dataset.speaking === 'false');
+      report.stop_observed_ms = Date.now() - start;
+      const boundary = await page.evaluate(() => window.syntheticStopQueueProbe.boundary);
+      evidence.stop_boundary = boundary; evidence.stage = 'waiting_for_prefetch_cancellation';
+      assert.equal(boundary.speaking, 'true'); assert.equal(boundary.starts.length, 1);
+      const generation = boundary.timings.findLast((item) => item.stage === 'playback_started').generation;
+      const before = boundary.timings.filter((item) => item.generation === generation);
+      assert.deepEqual(before.filter((item) => item.stage === 'synthesis_started').map((item) => item.segment_index), [1, 2]);
+      assert.deepEqual(before.filter((item) => item.stage === 'playback_started').map((item) => item.segment_index), [1]);
+      await waitForFixture(() => fixture.requests[1].cancelled_before_response === true, 'prefetched HTTP response cancelled before completion');
+      evidence.stage = 'releasing_late_model_tail';
+      fixture.prefetch.release(); fixture.tail.release();
+      await page.waitForFunction(() => document.querySelector('#cancel-turn').hidden &&
+        [...document.querySelectorAll('.assistant-output')].at(-1)?.textContent.includes('停止声音之后才到达的第三句。'));
+      assert.equal(fixture.tailSent, true);
+      await pause(650);
+      assert.equal(calls.tts, fixture.before + 2, 'stop must prevent all subsequent synthesis requests');
+      assert.equal(fixture.requests.length, 2); assert.equal(fixture.requests[1].response_sent, false);
+      const after = await page.evaluate(() => ({ starts: window.syntheticStopQueueProbe.starts, timings: window.aiNekoCompanion.voiceTimings() }));
+      assert.deepEqual(after.starts, boundary.starts, 'neither prefetched audio nor the late model tail may start WebAudio');
+      const oldGeneration = after.timings.filter((item) => item.generation === generation);
+      assert.deepEqual(oldGeneration.filter((item) => item.stage === 'playback_started').map((item) => item.segment_index), [1]);
+      assert.deepEqual(oldGeneration.filter((item) => item.stage === 'playback_stopped').map((item) => item.segment_index), [1]);
+      assert.equal(oldGeneration.some((item) => item.stage === 'playback_completed'), false);
+      assert.equal(after.timings.slice(boundary.timings.length).some((item) => ['synthesis_started', 'playback_started'].includes(item.stage)), false);
+      await page.evaluate(() => window.aiNekoCompanion.flushPlayback());
+      const turn = await page.evaluate(async () => { const id = localStorage.getItem('ai-neko.desktop.last-session'); return (await window.aiNekoChat.api(`/api/sessions/${id}`)).turns.at(-1); });
+      assert.equal(turn.status, 'completed'); assert.equal(turn.audio_playback.length, 1);
+      assert.equal(turn.audio_playback[0].state, 'stopped');
+      assert.equal(turn.audio_playback[0].text_start, 0);
+      assert.equal(turn.audio_playback[0].text_end, [...'合成场景建议：先观察。'].length);
+      Object.assign(evidence, { stage: 'verified', synthesis_requests_before_stop: 2,
+        synthesis_requests_after_stop: 0, actual_web_audio_starts_before_stop: boundary.starts.length,
+        actual_web_audio_starts_after_stop: after.starts.length - boundary.starts.length, delayed_third_sentence_after_stop: true,
+        generation, timings: oldGeneration, stopped_receipt: turn.audio_playback[0] });
+    } finally {
+      fixture.prefetch.release(); fixture.tail.release(); stopPrefetchFixture = null;
+      await page.evaluate(() => { window.syntheticStopQueueProbe?.restore(); delete window.syntheticStopQueueProbe; }).catch(() => {});
+    }
   });
   await check('fake_microphone_asr_image_chat_sentence_tts_loop', async () => {
     await page.locator('#record-voice').click();
@@ -658,6 +762,8 @@ report.executable_sha256 = crypto.createHash('sha256').update(fs.readFileSync(ex
   });
   assert.deepEqual(errors, []); assert.equal(calls.wav_uploads, calls.asr); report.status = 'PASS';
 })().catch(async (error) => { report.status = 'FAIL'; report.error = error.stack; if (page && !page.isClosed()) { report.ui_state = await page.evaluate(() => Object.fromEntries(['memory-status', 'persona-status', 'voice-config-status', 'media-status', 'notice-text'].map((id) => [id, document.getElementById(id)?.textContent]))).catch(() => ({})); } process.exitCode = 1; console.error(error.stack); }).finally(async () => {
+  stopPrefetchFixture?.prefetch.release(); stopPrefetchFixture?.tail.release();
+  if (page && !page.isClosed()) await page.evaluate(() => { window.syntheticStopQueueProbe?.restore(); delete window.syntheticStopQueueProbe; }).catch(() => {});
   if (application) await application.close().catch(() => {});
   server.closeAllConnections(); await new Promise((resolve) => server.close(resolve));
   report.screenshot = path.basename(screenshotPath);

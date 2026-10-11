@@ -139,6 +139,22 @@ async function get(route) {
     await pause(80);
   }
 }
+async function saveModelSettings(expected) {
+  // Editing must invalidate the previous success before this submission.
+  assert.equal(await page.locator('#settings-form').getAttribute('aria-busy'), 'false');
+  assert.equal(await page.locator('#settings-message').innerText(), '模型或搜索设置有未保存的修改。');
+  assert.equal(await page.locator('#settings-message').evaluate((node) => node.classList.contains('is-success')), false);
+  await page.locator('#save-settings').click();
+  await page.waitForFunction(() => document.querySelector('#settings-form').getAttribute('aria-busy') === 'false' &&
+    document.querySelector('#settings-message').textContent === '模型与搜索设置已保存。' &&
+    document.querySelector('#settings-message').classList.contains('is-success'));
+  const saved = await get('/api/config');
+  for (const [key, value] of Object.entries(expected)) assert.equal(saved[key], value, `Saved config: ${key}`);
+  assert.equal(await page.locator('#settings-panel').isVisible(), true);
+  await page.locator('#close-settings').click();
+  await page.waitForSelector('#settings-panel', { state: 'hidden' });
+  return saved;
+}
 async function sessionId() { return page.evaluate(() => localStorage.getItem('ai-neko.desktop.last-session')); }
 async function session() { const id = await sessionId(); return id ? get('/api/sessions/' + id) : { turns: [] }; }
 async function matches() { return get('/api/sessions/' + await sessionId() + '/matches'); }
@@ -267,7 +283,8 @@ async function ask(question, { doc, requireLocal = false } = {}) {
     await page.locator('#model-name').fill('synthetic-g6'); await page.locator('#model-api-key').fill('');
     await page.locator('#search-base-url').fill(searchEndpoint);
     await page.locator('#search-api-key').fill('synthetic-g6-search-key');
-    await page.locator('#save-settings').click(); await page.waitForSelector('#settings-panel', { state: 'hidden' });
+    await saveModelSettings({ model_base_url: `http://127.0.0.1:${server.address().port}/v1`, model: 'synthetic-g6',
+      search_base_url: searchEndpoint, search_key_set: true });
     assert.equal((await get('/api/config')).search_key_set, true); await page.locator('#mode-guide').click();
     return { search_key_set: true, preference_saved: (await get('/api/memories')).memories.some((item) => item.content === preference) };
   });
@@ -295,7 +312,7 @@ async function ask(question, { doc, requireLocal = false } = {}) {
     if (reenteredAfterRestart) {
       await page.locator('#open-settings').click();
       await page.locator('#search-api-key').fill('synthetic-g6-search-key');
-      await page.locator('#save-settings').click(); await page.waitForSelector('#settings-panel', { state: 'hidden' });
+      await saveModelSettings({ search_base_url: searchEndpoint, search_key_set: true });
     }
     assert.equal((await get('/api/config')).search_key_set, true);
     for (const question of questions) await ask(question, { doc: docA, requireLocal: true });
@@ -304,7 +321,7 @@ async function ask(question, { doc, requireLocal = false } = {}) {
   });
   await check('A02_same_five_questions_after_UI_search_disable_have_zero_network_tools', async () => {
     await page.locator('#open-settings').click(); await page.locator('#clear-search-key').check();
-    await page.locator('#save-settings').click(); await page.waitForSelector('#settings-panel', { state: 'hidden' });
+    await saveModelSettings({ search_base_url: searchEndpoint, search_key_set: false });
     assert.equal((await get('/api/config')).search_key_set, false);
     for (const question of questions) await ask(question, { doc: docA, requireLocal: true });
     assert.equal(await sessionId(), reuseSession); await screenshot('A02-search-disabled');
