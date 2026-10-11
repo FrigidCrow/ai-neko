@@ -28,12 +28,12 @@ class Element {
   removeAttribute(name) { delete this[name]; }
   append(...children) { this.children.push(...children); }
   replaceChildren(...children) { this.children = children; }
-  focus() {} add() {}
+  focus() {} add() {} scrollIntoView() {} reportValidity() { return true; }
 }
 
 // Production renderer scripts run unchanged. The bridge, device and provider
 // surfaces are synthetic; no operating-system media permission is requested.
-async function harness({ request, selectedSource = () => null, realMedia = false, vision = {} } = {}) {
+async function harness({ request, selectedSource = () => null, realMedia = false, realGuidePanel = false, now, vision = {} } = {}) {
   const elements = new Map(), requests = [], storage = new Map(), listeners = new Map();
   const calls = { begin: [], text: [], audioStarts: 0, audioStops: 0, vision: [] };
   let selectedVision = null;
@@ -90,7 +90,10 @@ async function harness({ request, selectedSource = () => null, realMedia = false
     localStorage: { setItem: (key, value) => storage.set(key, value), getItem: (key) => storage.get(key), removeItem: (key) => storage.delete(key) },
     setTimeout: (callback, milliseconds) => { const timer = setTimeout(callback, milliseconds); if (milliseconds > 1000) timer.unref(); return timer; },
     clearTimeout, requestAnimationFrame: (callback) => callback.name === 'meter' ? 1 : setImmediate(callback), cancelAnimationFrame: clearImmediate,
+    setInterval: () => 1, clearInterval() {},
+    Date: class extends Date { static now() { return now ? now() : Date.now(); } },
   });
+  if (realGuidePanel) vm.runInContext(source('guide-panel.js'), context, { filename: 'desktop/renderer/guide-panel.js' });
   vm.runInContext(source('app.js'), context, { filename: 'desktop/renderer/app.js' });
   if (realMedia) {
     byId('speak-replies').checked = true;
@@ -204,7 +207,9 @@ test('guide fetch cancellation rejects a late completed result before any save/a
       lateCompletion.resolve();
       const result = await outcome;
       assert.equal(result.error?.code, 'cancelled', trigger);
-      assert.equal(result.error?.status, 409, trigger);
+      assert.equal(result.error?.status, undefined, trigger);
+      assert.equal(result.error?.controlSettled, true, trigger);
+      assert.match(result.error?.publicMessage, /已停止.*不再继续采用/, trigger);
       assert.equal(continued, false, 'a rejected operation must never continue into adoption');
       assert.equal(app.requests.some((item) => item.path === '/api/guide-selection'), false);
       assert.equal(app.byId('cancel-guide-operation').hidden, true);
@@ -255,6 +260,102 @@ test('a lost guide fetch response retains exact request ID, CAS and fields while
     assert.equal(app.requests.filter((item) => item.path === '/api/guide-backups' && item.method === 'POST').length, 1);
   } finally { await app.dispose(); }
 });
+
+for (const [terminal, message] of [
+  [{ status: 'error', error: 'guide_fetch_failed' }, /读取或保存未能完成/],
+  [{ status: 'error', error: 'guide_fetch_timeout' }, /网页读取超时/],
+  [{ status: 'error', error: 'guide_unsupported_encoding' }, /不支持的压缩响应/],
+  [{ status: 'error', error: 'guide_unsupported_content_type' }, /不是受支持的网页或纯文本/],
+  [{ status: 'error', error: 'guide_response_too_large' }, /超过读取大小限制/],
+  [{ status: 'error', error: 'guide_access_blocked' }, /不符合公开网页访问要求/],
+  [{ status: 'error', error: 'guide_page_unavailable' }, /拒绝访问、需要登录或暂不提供正文/],
+  [{ status: 'cancelled', error: null }, /操作已取消/],
+  [{ status: 'cancelled', error: 'guide_removed' }, /攻略已被移除/],
+  [{ status: 'error', error: 'guide_request_conflict' }, /资料或对局已更新/],
+]) test(`real guide form renders ${terminal.error || terminal.status} and permits a fresh retry`, async () => {
+  let requestId, polls = 0;
+  const app = await harness({ realGuidePanel: true, request: (payload) => {
+    if (payload.path === '/api/guides' && payload.method === 'POST') {
+      requestId = payload.body.request_id;
+      return { status: 202, body: { request_id: requestId, status: 'running' } };
+    }
+    if (payload.path === `/api/guide-operations/${requestId}`) {
+      polls++;
+      return { status: 200, body: { request_id: requestId, result: null, ...terminal } };
+    }
+  } });
+  try {
+    app.byId('guide-url').value = 'https://example.invalid/synthetic-guide';
+    for (let attempt = 1; attempt <= 2; attempt++) {
+      app.byId('guide-save-form').listeners.get('submit')({ preventDefault() {} });
+      const deadline = Date.now() + 3000;
+      while (polls < attempt || app.byId('guide-panel')['aria-busy'] !== 'false') {
+        assert.ok(Date.now() < deadline, 'guide form must settle');
+        await new Promise((resolve) => setTimeout(resolve, 10));
+      }
+      assert.match(app.byId('guide-status').textContent, message);
+      assert.doesNotMatch(app.byId('guide-status').textContent, /已保存到本机|已采用/);
+      if (terminal.error !== 'guide_request_conflict') assert.doesNotMatch(app.byId('guide-status').textContent, /资料或对局已更新/);
+    }
+    const posts = app.requests.filter((item) => item.path === '/api/guides' && item.method === 'POST');
+    assert.equal(posts.length, 2);
+    assert.notEqual(posts[0].body.request_id, posts[1].body.request_id, 'known terminal result frees the request slot');
+    assert.equal(app.requests.some((item) => item.path === '/api/guide-selection'), false);
+  } finally { await app.dispose(); }
+});
+
+test('real guide form keeps genuine HTTP revision conflict distinct from read failure', async () => {
+  const app = await harness({ realGuidePanel: true, request: (payload) => {
+    if (payload.path === '/api/guides' && payload.method === 'POST') return { status: 409, body: { detail: { code: 'guide_request_conflict' } } };
+  } });
+  try {
+    app.byId('guide-url').value = 'https://example.invalid/synthetic-guide';
+    app.byId('guide-save-form').listeners.get('submit')({ preventDefault() {} }); await drain();
+    assert.match(app.byId('guide-status').textContent, /资料或对局已更新/);
+    assert.equal(app.requests.some((item) => item.path.startsWith('/api/guide-operations/')), false);
+  } finally { await app.dispose(); }
+});
+
+for (const failure of ['POST-500', 'POST-500-then-409', 'poll-503', 'poll-408', 'poll-401', 'poll-404', 'poll-deadline', 'unknown-status']) {
+  test(`guide fetch ${failure} retains its exact operation until the committed outcome is recovered`, async () => {
+    let posts = 0, requestId, catalogRevision = 7, clockReads = 0;
+    const app = await harness({
+      now: failure === 'poll-deadline' ? () => ++clockReads * 130001 : undefined,
+      request: (payload) => {
+        if (payload.path === '/api/guides' && payload.method === 'GET') return { status: 200, body: { revision: catalogRevision, guides: [], selections: [] } };
+        if (payload.path === '/api/guides' && payload.method === 'POST') {
+          requestId = payload.body.request_id;
+          posts++;
+          if (failure === 'POST-500-then-409' && posts === 2) return { status: 409, body: { detail: { code: 'guide_request_conflict' } } };
+          if (posts > 1) return { status: 202, body: { request_id: requestId, status: 'completed', result: { ...TARGET_A } } };
+          catalogRevision = 8;
+          return failure.startsWith('POST-500') ? { status: 500, body: {} }
+            : { status: 202, body: { request_id: requestId, status: failure === 'unknown-status' ? 'unexpected' : 'running' } };
+        }
+        if (payload.path === `/api/guide-operations/${requestId}`) return { status: Number(failure.slice(5)), body: {} };
+      },
+    });
+    const command = { kind: 'guide-fetch', expectedRevision: 7, fields: { url: 'https://example.invalid/synthetic-guide' } };
+    try {
+      await assert.rejects(app.chat.runControl(command), (error) => {
+        assert.notEqual(error.controlSettled, true);
+        if (failure === 'poll-deadline') assert.match(error.publicMessage, /查询超时.*可能仍在运行/);
+        if (failure === 'unknown-status') assert.match(error.publicMessage, /结果尚未确认/);
+        return true;
+      });
+      await assert.rejects(app.chat.runControl({ kind: 'guide-backup' }), (error) => /先重试同一操作/.test(error.publicMessage));
+      if (failure === 'POST-500-then-409') {
+        await assert.rejects(app.chat.runControl(command), (error) => error.status === 409);
+        await assert.rejects(app.chat.runControl({ kind: 'guide-backup' }), (error) => /先重试同一操作/.test(error.publicMessage));
+      }
+      const result = await app.chat.runControl({ ...command, expectedRevision: 8 });
+      assert.equal(result.guide_id, TARGET_A.guide_id);
+      const sent = app.requests.filter((item) => item.path === '/api/guides' && item.method === 'POST');
+      for (const retry of sent.slice(1)) assert.deepEqual(retry, sent[0], 'retry must preserve accepted ID, CAS and complete payload');
+      await app.chat.runControl({ kind: 'guide-backup' });
+    } finally { await app.dispose(); }
+  });
+}
 
 test('an explicitly newly selected source changes the intent of an otherwise identical retry', async () => {
   let selected = TARGET_A, posts = 0;

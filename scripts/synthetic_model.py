@@ -33,8 +33,15 @@ class SyntheticModel:
                 pieces = ["合成回复：", "你好，", "本轮已收到。"]
                 if slow:
                     pieces = ["合成慢速片段。"] * 30
+                override = owner.response(value)
+                if override is not None:
+                    pieces = [override]
                 deltas = [{"content": piece} for piece in pieces]
-                if value.get("tools") and not any(m.get("role") == "tool" for m in messages):
+                if (
+                    override is None
+                    and value.get("tools")
+                    and not any(m.get("role") == "tool" for m in messages)
+                ):
                     deltas = [
                         {
                             "tool_calls": [
@@ -86,6 +93,9 @@ class SyntheticModel:
         self.server.daemon_threads = True
         self.thread = threading.Thread(target=self.server.serve_forever, daemon=True)
 
+    def response(self, request: dict) -> str | None:
+        return None
+
     @property
     def url(self):
         return f"http://127.0.0.1:{self.server.server_port}/v1"
@@ -98,3 +108,61 @@ class SyntheticModel:
         self.server.shutdown()
         self.server.server_close()
         self.thread.join(timeout=3)
+
+
+class SyntheticMemoryModel(SyntheticModel):
+    """Deterministic responses to the extraction protocol, not an AI evaluator."""
+
+    old_content = "合成用户PACKAGE在虚构游戏星河棋中长期喜欢保守防守策略"
+    new_content = "合成用户PACKAGE在虚构游戏星河棋中长期喜欢主动进攻策略"
+    first_statement = old_content + "。这是稳定偏好。"
+    correction_statement = "把" + old_content + "更正为" + new_content + "。"
+    recall_statement = "合成用户PACKAGE在虚构游戏星河棋中的长期策略偏好是什么？"
+    fact_key = "package_xingheqi_strategy_preference"
+
+    def __init__(self):
+        self.chats: list[dict] = []
+        self.extractions: list[dict] = []
+        super().__init__()
+
+    def response(self, request: dict) -> str:
+        messages = request["messages"]
+        if "从用户原话中整理" not in messages[0]["content"]:
+            self.chats.append(request)
+            return "合成协议回复；不作为真实模型理解或记忆保存的证据。"
+        source = json.loads(messages[-1]["content"])
+        self.extractions.append(source)
+        if source["user_statement"] == self.first_statement:
+            facts = [
+                {
+                    "operation": "create",
+                    "content": self.old_content,
+                    "quote": self.old_content,
+                    "fact_key": self.fact_key,
+                    "kind": "preference",
+                }
+            ]
+        elif source["user_statement"] == self.correction_statement:
+            # The application must supply the persisted identity; the fixture
+            # cannot invent it or fall back to an independently generated key.
+            targets = [
+                fact for fact in source["existing_facts"] if fact["content"] == self.old_content
+            ]
+            facts = (
+                [
+                    {
+                        "operation": "correct",
+                        "target_fact_id": targets[0]["id"],
+                        "target_revision": targets[0]["revision"],
+                        "previous_quote": self.old_content,
+                        "content": self.new_content,
+                        "quote": self.new_content,
+                        "correction_quote": self.correction_statement,
+                    }
+                ]
+                if len(targets) == 1
+                else []
+            )
+        else:
+            facts = []
+        return json.dumps({"facts": facts}, ensure_ascii=False)

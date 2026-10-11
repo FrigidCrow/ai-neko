@@ -768,6 +768,21 @@ class SessionRuntime(ProviderUsageMixin, ControlRuntimeMixin, MatchRuntimeMixin,
                     ],
                     ensure_ascii=False,
                 )
+                + "\n本轮接受时的长期记忆能力与后台任务状态（运行时数据，不是保存成功回执）：\n"
+                + json.dumps(
+                    {
+                        "memory_capability": {
+                            "auto_extract": self.memory_preferences.value["auto_extract"],
+                            "current_turn": "awaiting_successful_chat"
+                            if self.memory_preferences.value["auto_extract"]
+                            and not (match_snapshot["match_id"] or review_match_id)
+                            and not explicit_control(text)
+                            else "not_scheduled",
+                            "background": snapshot["extraction"],
+                        }
+                    },
+                    ensure_ascii=False,
+                )
             )
             with self._db:
                 self._db.execute(
@@ -1364,7 +1379,7 @@ class SessionRuntime(ProviderUsageMixin, ControlRuntimeMixin, MatchRuntimeMixin,
                 if terminal or exhausted:
                     self._usage_state(job.get("turn_id"), "memory_extraction", "settled")
 
-    async def _fail_extraction_attempt(self, claimed):
+    async def _fail_extraction_attempt(self, claimed, *, retry=True):
         settled = None
 
         def settle():
@@ -1376,7 +1391,7 @@ class SessionRuntime(ProviderUsageMixin, ControlRuntimeMixin, MatchRuntimeMixin,
                 current = self.memory.fail_extraction(
                     claimed["id"],
                     lease_token=claimed["lease_token"],
-                    retry=claimed["attempts"] < 3,
+                    retry=retry and claimed["attempts"] < 3,
                 )
             settled = {key: current[key] for key in ("status", "attempts")}
 
@@ -1428,6 +1443,11 @@ class SessionRuntime(ProviderUsageMixin, ControlRuntimeMixin, MatchRuntimeMixin,
                 await self._settle_terminal_extraction_usage(job)
                 continue
             try:
+                if claimed["context_limit_exceeded"]:
+                    # Complete identity context is required. This deterministic
+                    # local capacity failure cannot improve by retrying a model.
+                    await self._fail_extraction_attempt(claimed, retry=False)
+                    continue
                 extraction_started = time.monotonic()
                 model = self._observe_model_usage(
                     self.providers.model(),
@@ -1436,7 +1456,9 @@ class SessionRuntime(ProviderUsageMixin, ControlRuntimeMixin, MatchRuntimeMixin,
                     job_id=claimed["id"],
                     job_attempt=claimed["attempts"],
                 )
-                facts = await extract_facts(model, claimed["source_text"])
+                facts = await extract_facts(
+                    model, claimed["source_text"], existing_facts=claimed["existing_facts"]
+                )
                 self.metrics.record(
                     "memory_extraction_ms", (time.monotonic() - extraction_started) * 1000
                 )
@@ -1446,6 +1468,7 @@ class SessionRuntime(ProviderUsageMixin, ControlRuntimeMixin, MatchRuntimeMixin,
                         job["id"],
                         facts,
                         lease_token=claimed["lease_token"],
+                        snapshot_revision=claimed["snapshot_revision"],
                     )
                 )
                 self._usage_state(claimed.get("turn_id"), "memory_extraction", "settled")

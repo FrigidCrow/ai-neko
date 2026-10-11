@@ -608,7 +608,12 @@ class WebTools:
                     "error": None,
                 }
         except (network.NetworkPolicyError, httpx.HTTPError, TimeoutError) as exc:
-            code = str(exc) if isinstance(exc, network.NetworkPolicyError) else "page_network_error"
+            if isinstance(exc, network.NetworkPolicyError):
+                code = str(exc)
+            elif isinstance(exc, (TimeoutError, httpx.TimeoutException)):
+                code = "timeout"
+            else:
+                code = "page_network_error"
             return {
                 "status": "error",
                 "sources": [source(url, original_url=original_url, error=code)],

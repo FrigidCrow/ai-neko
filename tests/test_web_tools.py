@@ -272,3 +272,35 @@ def test_streamed_body_limit_without_content_length(web_http):
     web_http(lambda request: reply("x" * 2_000_001))
     result = run(WebTools({}, None).execute("read_web_page", {"url": "https://example.com/"}))
     assert result["error"] == "response_too_large"
+
+
+@pytest.mark.parametrize("exception", [httpx.ConnectTimeout, httpx.ReadTimeout, TimeoutError])
+def test_page_transport_timeout_remains_distinct_from_other_network_failures(web_http, exception):
+    def respond(request):
+        raise exception("SYNTHETIC_SECRET https://synthetic.invalid/private")
+
+    web_http(respond)
+    result = run(WebTools({}, None).execute("read_web_page", {"url": "https://example.com/"}))
+    assert result["status"] == "error" and result["error"] == "timeout"
+    assert result["sources"][0]["status"] == "unreadable"
+    assert result["sources"][0]["text"] == ""
+    assert "SYNTHETIC_SECRET" not in json.dumps(result)
+
+
+@pytest.mark.parametrize("encoding", ["gzip", "br", "deflate"])
+def test_compressed_page_is_rejected_before_stream_read_or_decompression(web_http, encoding):
+    class NeverRead(httpx.AsyncByteStream):
+        async def __aiter__(self):
+            raise AssertionError("compressed body must never be read or decompressed")
+            yield b""  # pragma: no cover
+
+    web_http(
+        lambda request: httpx.Response(
+            200,
+            headers={"content-type": "text/html", "content-encoding": encoding},
+            stream=NeverRead(),
+        )
+    )
+    result = run(WebTools({}, None).execute("read_web_page", {"url": "https://example.com/"}))
+    assert result["error"] == "unsupported_encoding"
+    assert result["sources"][0]["text"] == ""

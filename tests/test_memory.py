@@ -181,15 +181,39 @@ def test_job_idempotency_atomic_commit_and_duplicate_completion(memory):
     result = memory.complete_extraction(
         job["id"],
         [
-            {"content": "喜欢蓝色", "fact_key": "color"},
-            {"content": "昨天去了公园", "fact_key": "park", "kind": "event"},
+            {
+                "operation": "create",
+                "quote": "喜欢蓝色",
+                "content": "喜欢蓝色",
+                "fact_key": "color",
+                "kind": "preference",
+            },
+            {
+                "operation": "create",
+                "quote": "昨天去了公园",
+                "content": "昨天去了公园",
+                "fact_key": "park",
+                "kind": "event",
+            },
         ],
         lease_token=claimed["lease_token"],
+        snapshot_revision=claimed["snapshot_revision"],
     )
     assert result["status"] == "completed"
     assert len(result["facts"]) == 2 and result["revision"] == revision + 1
     retry = memory.complete_extraction(
-        job["id"], [{"content": "不能重复写"}], lease_token=claimed["lease_token"]
+        job["id"],
+        [
+            {
+                "operation": "create",
+                "quote": "不能重复写",
+                "content": "不能重复写",
+                "fact_key": "不能重复写",
+                "kind": "preference",
+            }
+        ],
+        lease_token=claimed["lease_token"],
+        snapshot_revision=claimed["snapshot_revision"],
     )
     assert retry["status"] == "completed" and retry["facts"] == []
     assert len(memory.list_facts()) == 2
@@ -232,10 +256,32 @@ time.sleep(60)
         assert resumed["lease_token"] != claimed["lease_token"]
         with pytest.raises(MemoryConflictError, match="lease"):
             memory.complete_extraction(
-                jobs[0]["id"], [{"content": "迟到写入"}], lease_token=claimed["lease_token"]
+                jobs[0]["id"],
+                [
+                    {
+                        "operation": "create",
+                        "quote": "迟到写入",
+                        "content": "迟到写入",
+                        "fact_key": "迟到写入",
+                        "kind": "preference",
+                    }
+                ],
+                lease_token=claimed["lease_token"],
+                snapshot_revision=claimed["snapshot_revision"],
             )
         memory.complete_extraction(
-            jobs[0]["id"], [{"content": "喜欢雨天"}], lease_token=resumed["lease_token"]
+            jobs[0]["id"],
+            [
+                {
+                    "operation": "create",
+                    "quote": "喜欢雨天",
+                    "content": "喜欢雨天",
+                    "fact_key": "喜欢雨天",
+                    "kind": "preference",
+                }
+            ],
+            lease_token=resumed["lease_token"],
+            snapshot_revision=resumed["snapshot_revision"],
         )
         assert len(memory.list_facts()) == 1
 
@@ -248,7 +294,18 @@ def test_late_job_never_revives_forgotten_source(memory, claim_first):
     assert memory.claim_extraction(job["id"]) is None
     if claimed:
         result = memory.complete_extraction(
-            job["id"], [{"content": "喜欢咖啡"}], lease_token=claimed["lease_token"]
+            job["id"],
+            [
+                {
+                    "operation": "create",
+                    "quote": "喜欢咖啡",
+                    "content": "喜欢咖啡",
+                    "fact_key": "喜欢咖啡",
+                    "kind": "preference",
+                }
+            ],
+            lease_token=claimed["lease_token"],
+            snapshot_revision=claimed["snapshot_revision"],
         )
         assert result["status"] == "cancelled"
     with pytest.raises(MemoryConflictError, match="erased"):
@@ -263,8 +320,17 @@ def test_stale_job_cannot_override_newer_manual_correction(memory):
     memory.correct(fact["id"], "现在喜欢茶", source_id="correction")
     result = memory.complete_extraction(
         job["id"],
-        [{"content": "喜欢咖啡", "fact_key": "drink"}],
+        [
+            {
+                "operation": "create",
+                "quote": "喜欢咖啡",
+                "content": "喜欢咖啡",
+                "fact_key": "drink",
+                "kind": "preference",
+            }
+        ],
         lease_token=claimed["lease_token"],
+        snapshot_revision=claimed["snapshot_revision"],
     )
     assert result["status"] == "cancelled"
     assert memory.list_facts()[0]["content"] == "现在喜欢茶"
@@ -277,7 +343,18 @@ def test_job_failure_retries_without_duplicate_facts(memory):
     resumed = memory.claim_extraction(job["id"])
     assert resumed["attempts"] == 2
     memory.complete_extraction(
-        job["id"], [{"content": "喜欢蓝色"}], lease_token=resumed["lease_token"]
+        job["id"],
+        [
+            {
+                "operation": "create",
+                "quote": "喜欢蓝色",
+                "content": "喜欢蓝色",
+                "fact_key": "喜欢蓝色",
+                "kind": "preference",
+            }
+        ],
+        lease_token=resumed["lease_token"],
+        snapshot_revision=resumed["snapshot_revision"],
     )
     assert len(memory.list_facts()) == 1
 
@@ -290,7 +367,18 @@ def test_sequential_pending_sources_survive_other_successful_extractions(memory)
         claimed = memory.claim_extraction(job["id"])
         assert claimed is not None
         result = memory.complete_extraction(
-            job["id"], [{"content": content}], lease_token=claimed["lease_token"]
+            job["id"],
+            [
+                {
+                    "operation": "create",
+                    "quote": content,
+                    "content": content,
+                    "fact_key": content,
+                    "kind": "preference",
+                }
+            ],
+            lease_token=claimed["lease_token"],
+            snapshot_revision=claimed["snapshot_revision"],
         )
         assert result["status"] == "completed"
     # A turn that was generated before another source was added can still enqueue.
@@ -304,11 +392,27 @@ def test_invalid_extraction_rolls_back_entire_result(memory):
     job = memory.enqueue_extraction("turn", "喜欢茶，喜欢蓝色")
     claimed = memory.claim_extraction(job["id"])
     revision = memory.revision()
-    with pytest.raises(MemoryConflictError):
+    with pytest.raises(MemoryInputError, match="existing_target"):
         memory.complete_extraction(
             job["id"],
-            [{"content": "喜欢蓝色"}, {"content": "喜欢茶", "fact_key": "drink"}],
+            [
+                {
+                    "operation": "create",
+                    "quote": "喜欢蓝色",
+                    "content": "喜欢蓝色",
+                    "fact_key": "喜欢蓝色",
+                    "kind": "preference",
+                },
+                {
+                    "operation": "create",
+                    "quote": "喜欢茶",
+                    "content": "喜欢茶",
+                    "fact_key": "drink",
+                    "kind": "preference",
+                },
+            ],
             lease_token=claimed["lease_token"],
+            snapshot_revision=claimed["snapshot_revision"],
         )
     assert memory.revision() == revision
     assert len(memory.list_facts()) == 1

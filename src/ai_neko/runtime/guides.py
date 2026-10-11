@@ -24,6 +24,29 @@ from ai_neko.memory.guides import (
 from ai_neko.runtime.lifecycle import _settled_mutation
 
 
+class _GuideFetchError(ValueError):
+    """Persist only bounded public categories, never provider exception text."""
+
+    def __init__(self, code):
+        categories = {
+            "timeout": "guide_fetch_timeout",
+            "unsupported_encoding": "guide_unsupported_encoding",
+            "unsupported_content_type": "guide_unsupported_content_type",
+            "response_too_large": "guide_response_too_large",
+            "blocked_address": "guide_access_blocked",
+            "invalid_url": "guide_access_blocked",
+            "page_unavailable": "guide_page_unavailable",
+            "login_required": "guide_page_unavailable",
+            "content_unavailable": "guide_page_unavailable",
+        }
+        self.code = (
+            categories.get(code, "guide_fetch_failed")
+            if isinstance(code, str)
+            else "guide_fetch_failed"
+        )
+        super().__init__(self.code)
+
+
 def conversation_guides_v4(db):
     db.execute(
         "CREATE TABLE IF NOT EXISTS turn_guides (turn_id TEXT NOT NULL, guide_id TEXT NOT NULL, "
@@ -320,11 +343,14 @@ class GuideRuntimeMixin:
                     )
         except Exception as exc:
             if not self._closed:
-                code = (
-                    "guide_request_conflict"
-                    if isinstance(exc, GuideConflictError)
-                    else "guide_fetch_failed"
-                )
+                if isinstance(exc, GuideConflictError):
+                    code = "guide_request_conflict"
+                elif isinstance(exc, _GuideFetchError):
+                    code = exc.code
+                elif isinstance(exc, TimeoutError):
+                    code = "guide_fetch_timeout"
+                else:
+                    code = "guide_fetch_failed"
                 with self._db:
                     self._db.execute(
                         "UPDATE guide_operations SET status='error',error=?,updated_at=? WHERE request_id=? AND status='running'",
@@ -364,7 +390,7 @@ class GuideRuntimeMixin:
             return
         sources = result.get("sources", [])
         if result.get("status") != "ok" or not sources or sources[0].get("status") != "read":
-            raise GuideInputError("guide_page_unreadable")
+            raise _GuideFetchError(result.get("error"))
         fields = ("game", "platform", "mode", "game_version", "version_basis")
         # A fetched new revision must not inherit an old asserted game version.
         metadata = (

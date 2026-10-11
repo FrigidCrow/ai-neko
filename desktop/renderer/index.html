@@ -185,7 +185,7 @@
           <label class="check-label"><input id="memory-auto-extract" type="checkbox">自动整理之后的对话记忆</label><p class="field-help">从之后的对话整理偏好和事件，会调用已配置模型。默认关闭，明确保存随时可用。</p><p id="memory-config-status" class="settings-message" role="status" aria-live="polite"></p><form id="memory-form"><label for="memory-content">明确让小猫记住</label><textarea id="memory-content" maxlength="1000" rows="2" required></textarea>
           <label for="memory-kind">类型</label><select id="memory-kind"><option value="preference">偏好</option><option value="fact">事实</option><option value="event">事件</option></select>
           <button type="submit" class="primary-button">保存记忆</button></form>
-          <button id="refresh-memories" type="button" class="text-button">刷新记忆</button><p id="memory-status" class="settings-message" role="status" aria-live="polite"></p><div id="memory-list"></div>
+          <button id="refresh-memories" type="button" class="text-button">刷新记忆</button><p id="memory-status" class="settings-message" role="status" aria-live="polite"></p><p id="memory-extraction-status" class="settings-message" role="status" aria-live="polite">后台抽取状态暂不可用；请刷新记忆查看。</p><div id="memory-list"></div>
         </section>
         <section class="companion-settings" aria-label="记忆快照">
           <h3>记忆快照</h3><p class="field-help">本机保存人格和长期记忆。恢复旧快照会保留之后的纠正和遗忘，不会恢复已遗忘的内容。</p>

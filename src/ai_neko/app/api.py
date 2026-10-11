@@ -430,9 +430,7 @@ def install_api(app: FastAPI, connection, authorize, runtime, providers, bootstr
     @app.get("/api/memories")
     async def memories(request: Request):
         auth(request)
-        return await runtime.memory_api(
-            lambda: {"memories": runtime.memory.list_facts(), "revision": runtime.memory.revision()}
-        )
+        return await runtime.memory_api(runtime.memory.management_snapshot)
 
     @app.post("/api/memories", status_code=201)
     async def remember(request: Request):

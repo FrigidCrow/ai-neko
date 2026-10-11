@@ -136,6 +136,32 @@ def test_chat_probe_against_real_source_service(server_factory, monkeypatch) -> 
     assert session["turns"][-1]["confirmed_text"]
 
 
+def test_memory_probe_against_real_source_service(server_factory, monkeypatch) -> None:
+    """Validate the exact future package probe through public HTTP and background jobs."""
+    monkeypatch.syspath_prepend(str(SCRIPT.parent))
+    server = server_factory()
+    evidence = {"tests": {"cases": [{"name": name, "outcome": "NOT_RUN"} for name in smoke.CASES]}}
+    probe = smoke.Probe(Path("unused-synthetic.zip"), evidence)
+    probe.connection = dict(server.connection)
+    probe.check_memory_regression()
+    cases = evidence["tests"]["cases"]
+    assert [item["name"] for item in cases if item["outcome"] == "PASS"] == [
+        "packaged_memory_correction_preserves_identity_and_sources",
+        "packaged_memory_capability_and_disabled_extraction_recall",
+    ]
+    protocol = evidence["memory_protocol"]
+    assert protocol["loopback_chat_requests"] == 3
+    assert protocol["loopback_extraction_requests"] == 2
+    assert protocol["disabled_extraction_requests"] == protocol["real_model_calls"] == 0
+    # Reopen the same isolated data root: the corrected identity/source links
+    # survive a real service process restart, independent of model responses.
+    before = probe.api("GET", "/api/memories")
+    server.close()
+    restarted = server_factory(server.root)
+    probe.connection = dict(restarted.connection)
+    assert probe.api("GET", "/api/memories") == before
+
+
 def test_packaged_process_has_a_disposable_windows_home(tmp_path, monkeypatch) -> None:
     monkeypatch.setenv("USERPROFILE", "private-runner-profile")
     monkeypatch.setenv("LOCALAPPDATA", "private-runner-appdata")
@@ -166,6 +192,11 @@ def test_unsupported_host_writes_failure_evidence_without_executing(
     monkeypatch.setattr(
         smoke.sys, "argv", [str(SCRIPT), "--archive", str(archive), "--output", str(output)]
     )
+    # Windows platform discovery can itself spawn `ver` on an uncached process.
+    # Capture it before prohibiting application subprocesses, so this safety
+    # test does not depend on another test warming platform's cache first.
+    environment = smoke.environment_info()
+    monkeypatch.setattr(smoke, "environment_info", lambda: environment)
 
     def unexpected_process(*args, **kwargs):
         pytest.fail("An unsupported host must not start the packaged executable")

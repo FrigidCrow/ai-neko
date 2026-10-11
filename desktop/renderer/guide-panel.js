@@ -48,7 +48,8 @@
       if (error?.status === 404) return resource === 'match'
         ? '这局记录已不可用，请重新载入当前对话后再试。'
         : '这份攻略或快照已不可用，请重新载入攻略库后再选择。';
-      return error?.status === 409
+      if (error?.publicMessage) return friendlyError(error);
+      return error?.status === 409 || error?.code === 'guide_request_conflict'
         ? '资料或对局已更新。请核对当前状态，再重新确认这次操作。'
         : friendlyError(error || {});
     }

@@ -13,6 +13,7 @@ function nonvoiceFixture(api) {
   const server = {
     persona: { name: 'Saved name', user_name: 'Saved user', traits: ['calm'], speaking_style: '', catchphrase: '', game_style: '', version: 1 },
     memories: [], memoryConfig: { auto_extract: false }, backups: { revision: 1, backups: [] },
+    extractionOverview: { pending: 0, running: 0, failed: 0, cancelled: 0, context_limit_exceeded: false, latest: null },
   };
   const f = fixture({ api: (route, options) => {
     const custom = api?.(route, options, server);
@@ -26,7 +27,7 @@ function nonvoiceFixture(api) {
       return { ...server.memoryConfig };
     }
     if (route === '/api/memory/backups') return { ...server.backups };
-    if (route === '/api/memories') return { memories: server.memories.map((item) => ({ ...item })) };
+    if (route === '/api/memories') return { memories: server.memories.map((item) => ({ ...item })), extraction_overview: structuredClone(server.extractionOverview) };
     if (route.startsWith('/api/memories/') && options?.method === 'PUT') {
       const item = server.memories.find((item) => route.endsWith('/' + item.id));
       Object.assign(item, options.body); return { ...item };
@@ -152,6 +153,137 @@ test('non-voice memory list and extraction configuration fail and recover indepe
   backupsFail = false; await f.el('refresh-memory-backups').onclick();
   assert.equal(f.el('memory-backup-status').textContent, '');
 });
+
+test('memory extraction overview keeps no-job state separate from stored facts', async () => {
+  const f = nonvoiceFixture();
+  f.server.memories = [{ id: 'one', kind: 'fact', content: 'explicitly saved fact' }];
+  f.openSettings(); await tick();
+  assert.match(f.el('memory-extraction-status').textContent, /还没有自动抽取任务记录/);
+  assert.equal(f.el('memory-list').children[0].children[0].value, 'explicitly saved fact');
+  assert.equal(f.el('memory-status').textContent, '');
+});
+
+for (const latest of ['pending', 'running']) for (const attempts of [1, 3]) {
+  test('memory extraction ' + latest + ' attempt ' + attempts + ' does not claim content was saved or will be retried', async () => {
+    const f = nonvoiceFixture();
+    Object.assign(f.server.extractionOverview, { pending: 2, running: 1, latest: { status: latest, attempts } });
+    f.openSettings(); await tick();
+    const message = f.el('memory-extraction-status').textContent;
+    assert.match(message, /待处理 2，运行状态 1/);
+    assert.match(message, /未完成状态不保证会继续处理/);
+    assert.match(message, /尚未确认是否保存/);
+    assert.doesNotMatch(message, /已保存|一定|自动重试/);
+    assert.equal(f.el('memory-list').children.length, 0);
+  });
+}
+
+test('memory extraction historical failures do not override a successful manual save or drafts', async () => {
+  const f = nonvoiceFixture();
+  f.server.memories = [{ id: 'one', kind: 'fact', content: 'first' }, { id: 'two', kind: 'fact', content: 'second' }];
+  Object.assign(f.server.extractionOverview, { failed: 3, cancelled: 2, latest: { status: 'completed', attempts: 1 } });
+  f.openSettings(); await tick();
+  const first = f.el('memory-list').children[0], second = f.el('memory-list').children[1];
+  first.children[0].value = 'unsaved draft'; second.children[0].value = 'edited second';
+  await second.children[2].onclick();
+  const message = f.el('memory-extraction-status').textContent;
+  assert.match(message, /历史任务累计：失败 3，取消 2/);
+  assert.match(message, /不代表本次手动保存的结果/);
+  assert.match(message, /抽取完成；是否保存内容请以下方记忆列表为准/);
+  assert.match(message, /新消息中明确重述/);
+  assert.doesNotMatch(message, /最近提交的任务：抽取失败|已保存|自动重试/);
+  assert.match(f.el('memory-status').textContent, /记忆已经更新/);
+  assert.equal(f.el('memory-list').children[0], first);
+  assert.equal(first.children[0].value, 'unsaved draft');
+});
+
+for (const [latest, expected] of [['failed', /最近提交的任务：抽取失败/], ['cancelled', /已取消，不会自动重试/]]) {
+  test('memory extraction ' + latest + ' explains how to restate unsaved content', async () => {
+    const f = nonvoiceFixture();
+    Object.assign(f.server.extractionOverview, { [latest]: 1, latest: { status: latest, attempts: 3 } });
+    f.openSettings(); await tick();
+    const message = f.el('memory-extraction-status').textContent;
+    assert.match(message, expected);
+    assert.match(message, /未保存的内容需要在新消息中明确重述/);
+    assert.doesNotMatch(message, /已保存|容量/);
+  });
+}
+
+test('memory extraction current capacity warning clears independently of historical failures', async () => {
+  const f = nonvoiceFixture();
+  Object.assign(f.server.extractionOverview, { failed: 4, context_limit_exceeded: true, latest: { status: 'failed', attempts: 1 } });
+  f.openSettings(); await tick();
+  assert.match(f.el('memory-extraction-status').textContent, /当前记忆上下文超出自动整理容量/);
+  assert.match(f.el('memory-extraction-status').textContent, /明确保存仍可使用/);
+  f.server.extractionOverview.context_limit_exceeded = false;
+  await f.el('refresh-memories').onclick();
+  assert.doesNotMatch(f.el('memory-extraction-status').textContent, /容量/);
+  assert.match(f.el('memory-extraction-status').textContent, /历史任务累计：失败 4/);
+});
+
+test('memory extraction unavailable metadata does not block older response fact lists', async () => {
+  const f = nonvoiceFixture();
+  f.server.memories = [{ id: 'one', kind: 'fact', content: 'stored fact' }];
+  const valid = { ...f.server.extractionOverview };
+  const invalid = [undefined, null, {}, { ...valid, pending: -1 }, { ...valid, failed: '1' },
+    { ...valid, context_limit_exceeded: undefined }, { ...valid, latest: undefined },
+    { ...valid, latest: { status: 'unknown', attempts: 1 } }, { ...valid, latest: { status: 'completed' } }];
+  f.openSettings(); await tick();
+  for (const overview of invalid) {
+    f.server.extractionOverview = overview;
+    await f.el('refresh-memories').onclick();
+    assert.match(f.el('memory-extraction-status').textContent, /后台抽取状态暂不可用/);
+    assert.equal(f.el('memory-list').children[0].children[0].value, 'stored fact');
+    assert.equal(f.el('memory-status').textContent, '');
+  }
+});
+
+test('memory extraction reopening and read failure mark old success unknown without clearing edit errors', async () => {
+  let pendingRead = null, failRead = false;
+  const f = nonvoiceFixture((route, options) => {
+    if (route === '/api/memories/one' && options?.method === 'PUT') return Promise.reject(unavailable('save'));
+    if (route === '/api/memories' && !options?.method) {
+      if (pendingRead) return pendingRead.promise;
+      if (failRead) return Promise.reject(unavailable('list'));
+    }
+  });
+  f.server.memories = [{ id: 'one', kind: 'fact', content: 'stored fact' }];
+  f.server.extractionOverview.latest = { status: 'completed', attempts: 1 };
+  f.openSettings(); await tick();
+  const card = f.el('memory-list').children[0]; card.children[0].value = 'unsaved edit';
+  await card.children[2].onclick();
+  assert.match(f.el('memory-status').textContent, /save 503/);
+  pendingRead = deferred(); f.closeSettings(); f.openSettings();
+  assert.match(f.el('memory-extraction-status').textContent, /暂不可用/);
+  assert.doesNotMatch(f.el('memory-extraction-status').textContent, /抽取完成/);
+  pendingRead.reject(unavailable('list')); await tick(); pendingRead = null; failRead = true;
+  assert.match(f.el('memory-status').textContent, /save 503/);
+  assert.match(f.el('memory-status').textContent, /list 503/);
+  assert.match(f.el('memory-extraction-status').textContent, /暂不可用/);
+  failRead = false; await f.el('refresh-memories').onclick();
+  assert.match(f.el('memory-extraction-status').textContent, /抽取完成/);
+  assert.match(f.el('memory-status').textContent, /save 503/);
+  assert.doesNotMatch(f.el('memory-status').textContent, /list 503/);
+  assert.equal(f.el('memory-list').children[0], card);
+  assert.equal(card.children[0].value, 'unsaved edit');
+});
+
+for (const result of ['success', 'failure']) {
+  test('memory extraction stale ' + result + ' cannot replace the newest overview', async () => {
+    const pending = deferred(); let reads = 0;
+    const f = nonvoiceFixture((route) => route === '/api/memories' && ++reads === 1 ? pending.promise : undefined);
+    f.server.extractionOverview.latest = { status: 'running', attempts: 2 };
+    f.server.extractionOverview.running = 1;
+    f.openSettings(); await tick(); f.reconnect(); await tick();
+    const current = f.el('memory-extraction-status').textContent;
+    assert.match(current, /最近提交的任务：尚未完成/);
+    if (result === 'failure') pending.reject(unavailable('old list'));
+    else pending.resolve({ memories: [], extraction_overview: { pending: 0, running: 0, failed: 99, cancelled: 0,
+      context_limit_exceeded: true, latest: { status: 'failed', attempts: 3 } } });
+    await tick();
+    assert.equal(f.el('memory-extraction-status').textContent, current);
+    assert.doesNotMatch(f.el('memory-status').textContent, /old list/);
+  });
+}
 
 for (const area of ['memories', 'backups', 'persona']) for (const outcome of ['success', 'failure']) {
   test('non-voice stale ' + area + ' ' + outcome + ' cannot replace a newer recovered read', async () => {

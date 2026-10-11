@@ -294,7 +294,15 @@ def test_webpage_whole_control_sentences_cannot_change_adoption_facts_persona_or
                 await asyncio.sleep(0.005)
             assert len(model.extracts) == 1
             assert runtime._memory_task.done()
-            assert json.loads(model.extracts[0][-1]["content"]) == {"user_statement": question}
+            extraction_messages = model.extracts[0]
+            assert [message["role"] for message in extraction_messages] == ["system", "user"]
+            assert json.loads(extraction_messages[-1]["content"]) == {
+                "user_statement": question,
+                "existing_facts": [
+                    {key: fact[key] for key in ("id", "fact_key", "content", "kind", "revision")}
+                    for fact in sorted(facts, key=lambda fact: fact["id"])
+                ],
+            }
             assert poison not in json.dumps(model.extracts, ensure_ascii=False)
             assert malicious in evidence(model.messages[-1])["sources"][0]["text"]
             assert runtime.memory.guides.control_snapshot() == selection

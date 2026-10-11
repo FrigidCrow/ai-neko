@@ -173,6 +173,19 @@ test('save-and-adopt rejects failed fetch, incomplete IDs, empty body and unavai
   }
 });
 
+test('cancelled save-and-adopt preserves its settled cancellation message and never adopts', async () => {
+  const app = harness({ runControl: () => {
+    throw Object.assign(new Error('synthetic late commit'), { code: 'cancelled', controlSettled: true,
+      publicMessage: '已停止本次操作。已保存的资料保留在攻略库，不再继续采用。' });
+  } });
+  app.setSource(); await app.click('guide-save-adopt'); await app.submit('guide-selection-form');
+  assert.match(app.el('guide-status').textContent, /已停止.*不再继续采用/);
+  assert.doesNotMatch(app.el('guide-status').textContent, /资料或对局已更新/);
+  assert.deepEqual(app.commands.map((item) => item.kind), ['guide-fetch']);
+  assert.equal(app.reads.length, 0);
+  assert.equal(app.panel.selectedSource(), null);
+});
+
 test('changed, unchanged and failed refresh never switch the pinned adoption', async () => {
   for (const outcome of ['new-body', 'not-modified', 'failed']) {
     const original = { revision: 4, guides: [clone(DOC)], selections: [clone(SELECTION)] };

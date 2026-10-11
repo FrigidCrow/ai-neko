@@ -70,6 +70,16 @@
       voice_key_missing: "请填写对应语音服务的 API Key。",
       voice_invalid_response: "语音服务返回了无法使用的结果，请检查模型和接口。",
       voice_timeout: "语音服务响应超时，请重试。",
+      guide_fetch_failed: "公开网页读取或保存未能完成。请核对攻略库后重试或换一个来源。",
+      guide_fetch_timeout: "公开网页读取超时，未保存这次读取的资料。请稍后重试。",
+      guide_unsupported_encoding: "来源返回了当前读取器不支持的压缩响应，未保存资料。请换用其他公开来源。",
+      guide_unsupported_content_type: "来源返回的内容不是受支持的网页或纯文本，未保存资料。请换用其他公开来源。",
+      guide_response_too_large: "来源正文超过读取大小限制，未保存资料。请换用较短的公开来源。",
+      guide_access_blocked: "来源地址不符合公开网页访问要求，未保存资料。请选择可公开访问的网页。",
+      guide_page_unavailable: "来源拒绝访问、需要登录或暂不提供正文，未保存资料。请换用其他公开来源。",
+      guide_request_conflict: "资料或对局已更新。请核对当前状态，再重新确认这次操作。",
+      guide_removed: "这份攻略已被移除，本次操作不再继续。请重新载入攻略库。",
+      cancelled: "本次操作已取消。",
       network: "暂时无法连接本地服务。请确认 ai-neko 仍在运行，再重试连接。",
     };
     if (/^(asr|tts)_/.test(error.code || "")) {
@@ -301,23 +311,28 @@
         if (command.kind === "guide-unselect") { fields.guide_id = null; fields.revision_id = null; }
         if (["guide-delete", "guide-restore"].includes(command.kind)) fields.confirm = true;
         request = { identity, command, id, method: route[0], path: route[1], body: command.kind === "guide-delete-backup" ? undefined : fields,
-          fetch: ["guide-fetch", "guide-refresh"].includes(command.kind), cancelled: false };
+          fetch: ["guide-fetch", "guide-refresh"].includes(command.kind), accepted: false, cancelled: false };
         state.controlRequest = request;
         renderContext();
       }
       if (command.kind === "match-close-observation" && !visionAlreadyDisabled) await window.aiNekoCompanion?.disableVision({ notify: false });
       let result = await api(request.path, { method: request.method, body: request.body });
       if (request.fetch) {
+        request.accepted = true;
         const deadline = Date.now() + 130000;
         while (result.status === "running") {
-          if (Date.now() >= deadline) throw Object.assign(new Error("查询尚未完成，请重试核对本次操作。"), { code: "network" });
+          if (Date.now() >= deadline) throw Object.assign(new Error("Guide operation polling timed out"), { code: "guide_poll_timeout", publicMessage: "网页读取结果查询超时；任务可能仍在运行，请重试核对同一操作。" });
           await pause(250);
           result = await api(`/api/guide-operations/${request.id}`);
         }
-        if (result.status !== "completed") throw Object.assign(new Error(result.error || "操作已取消。"), { code: result.error || "cancelled", status: 409 });
+        if (result.status !== "completed") {
+          if (!["error", "cancelled"].includes(result.status)) throw Object.assign(new Error("Guide operation outcome is unknown"), { code: "guide_poll_unknown", publicMessage: "网页读取结果尚未确认，请重试核对同一操作。" });
+          const code = result.status === "cancelled" ? (result.error === "guide_removed" ? "guide_removed" : "cancelled") : result.error || "guide_fetch_failed";
+          throw Object.assign(new Error("Guide operation did not complete"), { code, controlSettled: true });
+        }
         result = result.result;
       }
-      if (request.cancelled) throw Object.assign(new Error("已停止本次操作。已保存的资料保留在攻略库，不再继续采用。"), { publicMessage: "已停止本次操作。已保存的资料保留在攻略库，不再继续采用。", status: 409, code: "cancelled" });
+      if (request.cancelled) throw Object.assign(new Error("已停止本次操作。已保存的资料保留在攻略库，不再继续采用。"), { publicMessage: "已停止本次操作。已保存的资料保留在攻略库，不再继续采用。", controlSettled: true, code: "cancelled" });
       state.controlRequest = null;
       await refreshContext();
       if (["guide-delete", "guide-restore"].includes(command.kind) && state.sessionId) {
@@ -326,7 +341,11 @@
       }
       return result;
     } catch (error) {
-      if (error.status && state.controlRequest === request) state.controlRequest = null;
+      // A fetch POST/GET failure can arrive after acceptance. Server errors or
+      // timeouts cannot prove the job did not commit; retry the same ID/CAS.
+      const rejected = error.status && (!request?.fetch || (!request.accepted && !request.acceptanceUncertain && error.status >= 400 && error.status < 500 && error.status !== 408));
+      if ((rejected || error.controlSettled) && state.controlRequest === request) state.controlRequest = null;
+      else if (request?.fetch) request.acceptanceUncertain = true;
       await refreshContext().catch(() => {});
       if (state.controlRequest) showNotice("上次操作的结果尚未确认；重试会核对同一操作。", { error: true, label: "核对上次操作", action: () => runControl(command, { visionAlreadyDisabled }).catch((failure) => guidePanel?.status(friendlyError(failure))) });
       throw error;

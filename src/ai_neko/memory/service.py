@@ -24,6 +24,7 @@ from uuid import uuid4
 from ai_neko.config.paths import DataPaths, DataRootError, safe_child
 from ai_neko.config.schema import apply_migrations, ensure_supported_schema
 
+from .extraction import MAX_CONTEXT_CHARACTERS, MAX_CONTEXT_FACTS, validate_operations
 from .guides import GuideStore
 from .recall import bm25_rank, tokenize
 from .script_fold import fold_script
@@ -414,22 +415,27 @@ class MemoryService:
             if fact["content"] == content and source_id in fact["source_ids"]:
                 return fact
             revision = self._bump(invalidate=True)
-            self._db.execute(
-                "INSERT INTO memory_corrections VALUES (?,?,?,?,?)",
-                (self.scope, fact_id, revision, fact["content"], source_id),
-            )
-            self._db.execute(
-                "UPDATE memory_facts SET content=?,revision=?,updated_at=? WHERE scope=? AND id=?",
-                (content, revision, time.time(), self.scope, fact_id),
-            )
-            self._db.execute(
-                "INSERT OR IGNORE INTO memory_fact_sources VALUES (?,?,?)",
-                (self.scope, fact_id, source_id),
-            )
-            # An older backup must not restore the superseded value of this fact.
-            self._tombstone("superseded", fact_id, revision)
-            self._term_cache.pop(fact_id, None)
-            return self._fact(fact_id)
+            return self._correct_fact(fact, content, source_id, revision)
+
+    def _correct_fact(self, fact: dict, content: str, source_id: str, revision: int) -> dict:
+        """Caller owns the transaction and has validated the whole mutation batch."""
+        fact_id = fact["id"]
+        self._db.execute(
+            "INSERT INTO memory_corrections VALUES (?,?,?,?,?)",
+            (self.scope, fact_id, revision, fact["content"], source_id),
+        )
+        self._db.execute(
+            "UPDATE memory_facts SET content=?,revision=?,updated_at=? WHERE scope=? AND id=?",
+            (content, revision, time.time(), self.scope, fact_id),
+        )
+        self._db.execute(
+            "INSERT OR IGNORE INTO memory_fact_sources VALUES (?,?,?)",
+            (self.scope, fact_id, source_id),
+        )
+        # An older backup must not restore the superseded value of this fact.
+        self._tombstone("superseded", fact_id, revision)
+        self._term_cache.pop(fact_id, None)
+        return self._fact(fact_id)
 
     def _tombstone(self, kind: str, token: str, revision: int):
         self._db.execute(
@@ -549,6 +555,15 @@ class MemoryService:
         with self._transaction():
             return self._list_facts()
 
+    def management_snapshot(self) -> dict:
+        """Visible facts, mutation token and task metadata from one transaction."""
+        with self._transaction():
+            return {
+                "memories": self._list_facts(),
+                "revision": self._revision(),
+                "extraction_overview": self._extraction_overview(),
+            }
+
     def _list_facts(self) -> list[dict]:
         rows = self._db.execute(
             "SELECT f.*,s.source_id AS link_source_id FROM memory_facts f "
@@ -582,7 +597,55 @@ class MemoryService:
                 "facts": self._recall(query, limit=limit),
                 "persona": self._persona(),
                 "revision": self._revision(),
+                "extraction": self._extraction_overview(),
             }
+
+    def _extraction_snapshot(self) -> dict:
+        # Complete, bounded context: silently omitting a candidate would reopen
+        # the duplicate-identity bug. Overflow does not send any facts to a model.
+        facts = [
+            dict(row)
+            for row in self._db.execute(
+                "SELECT id,fact_key,content,kind,revision FROM memory_facts "
+                "WHERE scope=? ORDER BY id LIMIT ?",
+                (self.scope, MAX_CONTEXT_FACTS + 1),
+            )
+        ]
+        overflow = (
+            len(facts) > MAX_CONTEXT_FACTS
+            or len(json.dumps(facts, ensure_ascii=False)) > MAX_CONTEXT_CHARACTERS
+        )
+        return {
+            "snapshot_revision": self._revision(),
+            "existing_facts": [] if overflow else facts,
+            "context_limit_exceeded": overflow,
+        }
+
+    def _extraction_overview(self) -> dict:
+        counts = {
+            row[0]: row[1]
+            for row in self._db.execute(
+                "SELECT status,count(*) FROM memory_jobs WHERE scope=? GROUP BY status",
+                (self.scope,),
+            )
+        }
+        latest = self._db.execute(
+            "SELECT status,attempts FROM memory_jobs WHERE scope=? ORDER BY created_at DESC,id DESC LIMIT 1",
+            (self.scope,),
+        ).fetchone()
+        return {
+            "pending": counts.get("pending", 0),
+            "running": counts.get("running", 0),
+            "failed": counts.get("failed", 0),
+            "cancelled": counts.get("cancelled", 0),
+            "context_limit_exceeded": self._extraction_snapshot()["context_limit_exceeded"],
+            "latest": dict(latest) if latest else None,
+        }
+
+    def extraction_overview(self) -> dict:
+        """Content-free status for the memory panel; no success claim per fact."""
+        with self._transaction():
+            return self._extraction_overview()
 
     def recall(self, query: str = "", *, limit: int = 10) -> list[dict]:
         with self._transaction():
@@ -777,7 +840,7 @@ class MemoryService:
                 "attempts=attempts+1 WHERE scope=? AND id=?",
                 (uuid4().hex, time.time() + lease_seconds, self.scope, job_id),
             )
-            return self._job(job_id)
+            return {**self._job(job_id), **self._extraction_snapshot()}
 
     def _cancel_job(self, job_id: str):
         self._db.execute(
@@ -786,18 +849,10 @@ class MemoryService:
             (self.scope, job_id),
         )
 
-    def complete_extraction(self, job_id: str, facts: list[dict], *, lease_token: str) -> dict:
-        if not isinstance(facts, list) or len(facts) > 10:
-            raise MemoryInputError("invalid_extracted_facts")
-        validated = []
-        for fact in facts:
-            if not isinstance(fact, dict) or set(fact) - {"content", "fact_key", "kind"}:
-                raise MemoryInputError("invalid_extracted_fact")
-            validated.append(
-                self._validate_fact(
-                    fact.get("content"), fact.get("fact_key"), fact.get("kind", "preference")
-                )
-            )
+    def complete_extraction(
+        self, job_id: str, facts: list[dict], *, lease_token: str, snapshot_revision: int
+    ) -> dict:
+        _integer(snapshot_revision, 0, 2**63 - 1, "snapshot_revision")
         with self._transaction():
             job = self._job(job_id)
             if job["status"] in {"completed", "cancelled"}:
@@ -811,11 +866,51 @@ class MemoryService:
             ):
                 self._cancel_job(job_id)
                 return {"status": "cancelled", "facts": [], "revision": self._revision()}
-            revision = self._bump() if validated else self._revision()
-            written = [
-                self._write_fact(content, key, kind, job["source_id"], revision)
-                for content, key, kind in validated
-            ]
+            self._check_revision(snapshot_revision)
+            context = self._extraction_snapshot()
+            if context["context_limit_exceeded"]:
+                raise MemoryInputError("memory_extraction_context_limit")
+            try:
+                validated = validate_operations(
+                    facts, job["source_text"], context["existing_facts"]
+                )
+            except ValueError as exc:
+                raise MemoryInputError(str(exc)) from exc
+            prepared = []
+            for item in validated:
+                if item["operation"] == "create":
+                    prepared.append(
+                        (
+                            item,
+                            None,
+                            self._validate_fact(item["content"], item["fact_key"], item["kind"]),
+                        )
+                    )
+                else:
+                    target = self._fact(item["target_fact_id"])
+                    latest_source = self._db.execute(
+                        "SELECT max(s.created_at) FROM memory_sources s JOIN memory_fact_sources l "
+                        "ON s.scope=l.scope AND s.id=l.source_id WHERE l.scope=? AND l.fact_id=?",
+                        (self.scope, target["id"]),
+                    ).fetchone()[0]
+                    if latest_source is not None and latest_source > job["created_at"]:
+                        raise MemoryConflictError("memory_source_precedes_target")
+                    content = item.get("content", target["content"])
+                    prepared.append(
+                        (
+                            item,
+                            target,
+                            self._validate_fact(content, target["fact_key"], target["kind"]),
+                        )
+                    )
+            correcting = any(item["operation"] == "correct" for item in validated)
+            revision = self._bump(invalidate=correcting) if validated else self._revision()
+            written = []
+            for item, target, (content, key, kind) in prepared:
+                if item["operation"] == "correct":
+                    written.append(self._correct_fact(target, content, job["source_id"], revision))
+                else:
+                    written.append(self._write_fact(content, key, kind, job["source_id"], revision))
             self._db.execute(
                 "UPDATE memory_jobs SET status='completed',lease_token=NULL,"
                 "lease_until=NULL WHERE scope=? AND id=?",

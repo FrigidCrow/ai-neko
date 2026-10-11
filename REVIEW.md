@@ -668,3 +668,26 @@ First c462035 candidate build and16/16packaged backend checks PASS; immutable in
 
 
 Harness remediation development verification is now PASS: desktop9/9, companion21/21, G6 8/8 against the preserved c462 package, and G5 source17/17. The initially repaired companion exposed a pre-click TTS measurement race; the strengthened fixture now proves active successor cancellation and strict no-new-request/no-late-WebAudio-start after actual Stop, including delayed third text and one persistent stopped receipt. This does not measure acoustic hardware stop. Original initial and intermediate failures remain in their separate reports. All production and Python inputs are unchanged (323non-harness snapshots match); desktop units306PASS and39JS syntax checksPASS. Final successor package and exact-SHA smoke reports are still required before Sol handoff; no prior dirty-harness report is represented as final frozen-package acceptance.
+
+
+### 2026-10-11 — Sol findings reopen release readiness
+
+Sol confirms D1 as a release blocker: independently generated fact keys leave old and corrected preferences simultaneously current. Existing extraction has neither an existing-fact identity context nor a supported automatic correction path; stabilizing the model key alone does not fix this. D2 chat capability/status is misleading, and D3 maps noncompleted guide operations to a fabricated409 conflict. These findings are being repaired with focused regressions and independent review; no fix or new real-functional PASS is claimed yet.
+
+G1 is a separate coverage limitation: the same adopted English document/revision can yield sufficient for matching English questions, while Chinese equivalents, English word-form changes and response-format instructions can conservatively produce uncovered_subject. Adoption does not prove evidence sufficiency. Keep coverage thresholds unchanged and give Sol a proven sufficient question plus known-limit comparisons. The historical warm run had4modelHTTPrequests and5tooloperations; keep these counters distinct.
+
+Current source-stage work makes0real provider calls. The13host symlink privilege skips and paused real voice remain explicit. Full Sol readiness, remote CI and publication are still pending.
+
+
+### 2026-10-11 — Sol repair boundary reviews
+
+Independent D1/D2, D3 and packaged-regression reviews found no remaining confirmed implementation blocker within the reviewed boundaries. Memory correction retains authoritative ID/key/kind, source links/history, tombstones and atomic revision checks; old snapshots, forgetting and late/concurrent jobs cannot bypass the original barrier. Existing contradictory history is not automatically rewritten. No schema, dependency, lock, native helper, CI or license change is part of this repair. The model still decides semantic identity/entailment; literal source and unique prior-value evidence is not general semantic proof.
+
+Capacity is 128 active facts/96,000 serialized characters; overflow fails locally before a model request. First accepted correction invalidates queued/accepted old-state work, including later-submitted concurrent sources. Users must restate unsaved content. An old-state turn rejected before enqueue may only have usage memory_extraction=not_scheduled and no job row; the memory panel overview cannot explain every unqueued turn. Historical unfinished/failed/cancelled/completed states do not prove current persistence or future progress. Model-facing status and UI now explicitly preserve these distinctions.
+
+D3 distinguishes timeout, encoding, access, cancellation and true conflict; uncertain acceptance/poll failures retry the same request identity. Generic fetch failure cannot claim nothing was persisted. The nonidentity compression refusal and existing network safety policy remain; Python.org can still correctly fail with a specific encoding message. G1 cross-language and lexical limitations remain PARTIAL.
+
+Initial complete regression failed one stale test payload assertion (2004 PASS/1 FAIL/13 SKIP). The repaired assertion explicitly verifies the service snapshot and two-message extraction boundary while retaining hostile-content isolation. Preserve that failed evidence; final rerun, exact new build and Sol real-model/package acceptance are separate gates. Independent reports and original failures reside in reports/sol-remediation-20261011.
+
+
+Final source regression PASS:2005 Python PASS/13 Windows symlink SKIP/0 FAIL/0 ERROR,339 desktop PASS,43 JS syntax PASS,full Ruff lint/format PASS;329 relevant inputs unchanged during final run. First full failure and focused correction remain recorded, not relabeled. Independent injection addendum confirms all original security assertions remain. Local skips need an appropriate CI host; no machine privilege policy changed. Source commit is now eligible for exact candidate rebuild and deterministic packaged integration, but Sol real-model/GUI retest and remote CI/publication remain PENDING. Private final candidate reports must identify the actual successor SHA and ZIP; old96510 Sol results cannot certify it.

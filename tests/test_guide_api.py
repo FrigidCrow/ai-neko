@@ -689,6 +689,139 @@ def test_real_http_unreadable_import_persists_safe_terminal_error(tmp_path):
     asyncio.run(run())
 
 
+@pytest.mark.parametrize(
+    "response_kind,expected_error",
+    [
+        ("identity", None),
+        ("gzip", "guide_unsupported_encoding"),
+        ("br", "guide_unsupported_encoding"),
+        ("oversized", "guide_response_too_large"),
+        ("denied", "guide_page_unavailable"),
+        ("private_redirect", "guide_access_blocked"),
+        ("read_timeout", "guide_fetch_timeout"),
+    ],
+)
+def test_real_http_fetch_safety_preserves_terminal_reason_and_retry(
+    tmp_path, monkeypatch, response_kind, expected_error
+):
+    """Real API/runtime/WebTools with synthetic DNS and no external HTTP."""
+    import socket
+
+    import httpx
+    from test_web_tools import reply
+
+    from ai_neko.tools import network
+    from ai_neko.tools.web import WebTools
+
+    requests = []
+
+    async def resolve(self, host, port, **kwargs):
+        ip = "127.0.0.1" if host == "127.0.0.1" else "93.184.216.34"
+        return [(socket.AF_INET, socket.SOCK_STREAM, 6, "", (ip, port))]
+
+    def respond(request):
+        requests.append(request)
+        assert request.url.host == "93.184.216.34"
+        assert request.headers["host"] == "example.com"
+        assert request.headers["accept-encoding"] == "identity"
+        assert "authorization" not in request.headers and "cookie" not in request.headers
+        if response_kind == "read_timeout":
+            raise httpx.ReadTimeout("SYNTHETIC_SECRET", request=request)
+        if response_kind == "private_redirect":
+            return reply("", 302, {"location": "http://127.0.0.1/private"})
+        if response_kind == "denied":
+            return reply("SYNTHETIC_SECRET", 403)
+        headers = {"content-type": "text/plain; charset=utf-8", "content-encoding": "identity"}
+        if response_kind in {"gzip", "br"}:
+            headers["content-encoding"] = response_kind
+        if response_kind == "oversized":
+            headers["content-length"] = "2000001"
+        return reply("合成公开攻略：优先防守，再积攒资源。" * 20, headers=headers)
+
+    monkeypatch.setattr(asyncio.BaseEventLoop, "getaddrinfo", resolve)
+    monkeypatch.setattr(
+        network,
+        "client",
+        lambda: httpx.AsyncClient(
+            transport=httpx.MockTransport(respond),
+            trust_env=False,
+            follow_redirects=False,
+            headers={"Accept-Encoding": "identity", "User-Agent": "ai-neko/0.2 read-only"},
+        ),
+    )
+
+    async def run():
+        async with live_guide_api(tmp_path, WebTools({}, None)) as (client, _):
+            value = await fresh_guide_controls(client, url="https://example.com/synthetic-guide")
+            await live_request(client, "POST", "/api/guides", value=value, status=202)
+            operation = await settled_guide_operation(client, value["request_id"])
+            assert operation["error"] == expected_error
+            assert operation["status"] == ("error" if expected_error else "completed")
+            assert "SYNTHETIC_SECRET" not in json.dumps(operation)
+            replay = await live_request(client, "POST", "/api/guides", value=value, status=202)
+            assert replay == operation and len(requests) == 1
+            listing = await live_request(client, "GET", "/api/guides")
+            if expected_error:
+                assert operation["result"] is None and listing["guides"] == []
+                # A new explicit retry of this same URL keeps the real reason.
+                retry = await fresh_guide_controls(client, url=value["url"])
+                await live_request(client, "POST", "/api/guides", value=retry, status=202)
+                retried = await settled_guide_operation(client, retry["request_id"])
+                assert retried["error"] == expected_error and retried["result"] is None
+                assert len(requests) == 2
+            else:
+                assert operation["result"]["saved"] is True
+                assert len(listing["guides"]) == 1
+                guide_id = operation["result"]["guide_id"]
+                detail = await live_request(client, "GET", f"/api/guides/{guide_id}")
+                assert "合成公开攻略" in detail["guide"]["text"]
+            assert listing["selections"] == []
+
+    asyncio.run(run())
+
+
+def test_real_http_revision_changed_during_fetch_is_a_true_conflict(tmp_path):
+    from uuid import uuid4
+
+    from test_chat import result
+    from test_guides import page
+
+    async def run():
+        started, release = asyncio.Event(), asyncio.Event()
+
+        class WaitingWeb:
+            async def execute(self, name, arguments):
+                started.set()
+                await release.wait()
+                return result(page(url=arguments["url"]))
+
+        async with live_guide_api(tmp_path, WaitingWeb()) as (client, runtime):
+            value = await fresh_guide_controls(client, url="https://example.com/stale")
+            await live_request(client, "POST", "/api/guides", value=value, status=202)
+            await asyncio.wait_for(started.wait(), 2)
+            # A concurrent Memory Service write exercises the ingest CAS. The
+            # ordinary selection API instead cancels pending reads on purpose.
+            changed = await runtime._memory_call(
+                runtime.memory.guides.set_selection,
+                "合成星棋",
+                "PC",
+                "排位",
+                None,
+                None,
+                expected_revision=value["expected_revision"],
+                request_id=uuid4().hex,
+            )
+            assert changed["revision"] > value["expected_revision"]
+            release.set()
+            operation = await settled_guide_operation(client, value["request_id"])
+            assert operation["status"] == "error"
+            assert operation["error"] == "guide_request_conflict"
+            assert operation["result"] is None
+            assert (await live_request(client, "GET", "/api/guides"))["guides"] == []
+
+    asyncio.run(run())
+
+
 def test_real_http_guide_snapshot_restore_retains_personal_memory_and_pinned_selection(tmp_path):
     from uuid import uuid4
 

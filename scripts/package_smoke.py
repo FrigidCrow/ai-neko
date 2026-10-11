@@ -44,6 +44,8 @@ CASES = (
     "packaged_web_assets_and_api_auth",
     "packaged_chat_stream_ack_and_cancel",
     "packaged_session_restart_recovery",
+    "packaged_memory_correction_preserves_identity_and_sources",
+    "packaged_memory_capability_and_disabled_extraction_recall",
     "second_instance_preserves_descriptor",
     "occupied_explicit_port_is_rejected",
     "graceful_stop_removes_descriptor",
@@ -396,6 +398,162 @@ class Probe:
         require(session["turns"][0]["confirmed_text"] == self.recovery_text)
         require(session["turns"][1]["status"] == "completed")
 
+    def memory_turn(self, text: str, *, extract: bool) -> dict:
+        """A fresh session, real HTTP chat, ACK, then durable extraction finality."""
+        session = self.api("POST", "/api/sessions")
+        base = f"/api/sessions/{session['id']}"
+        accepted = self.api("POST", base + "/turns", {"text": text, "guide": False})
+        path = base + "/turns/" + accepted["turn_id"]
+        deadline = time.monotonic() + 15
+        while time.monotonic() < deadline:
+            batch = self.api("GET", path + "/events?after=0")
+            if batch["status"] not in {"accepted", "running", "active"}:
+                require(batch["status"] == "completed")
+                require(any(event["type"] == "text" for event in batch["events"]))
+                self.api("POST", path + "/ack", {"sequence": batch["last_seq"]})
+                turn = self.api("GET", base)["turns"][0]
+                usage = turn["provider_usage"]["scopes"]["memory_extraction"]
+                if usage["is_final"]:
+                    require(usage["state"] == ("settled" if extract else "not_scheduled"))
+                    require(usage["attempt_count"] == int(extract))
+                    return turn
+            time.sleep(0.04)
+        raise TimeoutError("Synthetic memory turn did not settle")
+
+    @staticmethod
+    def memory_request_context(request: dict) -> tuple[list[dict], dict]:
+        """Read only the runtime's structured data in the actual model request."""
+        facts, capabilities = [], []
+        for message in request["messages"]:
+            if message["role"] != "system":
+                continue
+            for line in message["content"].splitlines():
+                try:
+                    value = json.loads(line)
+                except ValueError:
+                    continue
+                if isinstance(value, dict) and "memory_capability" in value:
+                    capabilities.append(value["memory_capability"])
+                elif isinstance(value, list) and all(
+                    isinstance(fact, dict) and set(fact) == {"id", "content", "sources"}
+                    for fact in value
+                ):
+                    facts.append(value)
+        require(len(facts) == len(capabilities) == 1)
+        return facts[0], capabilities[0]
+
+    def check_memory_correction(self, model) -> dict:
+        self.api("PUT", "/api/config", {"model_base_url": model.url, "model": "synthetic-model"})
+        require(self.api("GET", "/api/memories")["memories"] == [])
+        self.api("PUT", "/api/memory/config", {"auto_extract": True})
+        require(self.api("GET", "/api/memory/config")["auto_extract"] is True)
+        first_turn = self.memory_turn(model.first_statement, extract=True)
+        initial = self.api("GET", "/api/memories")
+        require(len(initial["memories"]) == 1)
+        first = initial["memories"][0]
+        require(first["content"] == model.old_content and first["fact_key"] == model.fact_key)
+        require(first["source_ids"] == ["turn:" + first_turn["id"]])
+        corrected_turn = self.memory_turn(model.correction_statement, extract=True)
+        require(first_turn["session_id"] != corrected_turn["session_id"])
+        current = self.api("GET", "/api/memories")
+        require(len(current["memories"]) == 1)
+        corrected = current["memories"][0]
+        require(corrected["id"] == first["id"] and corrected["fact_key"] == first["fact_key"])
+        require(corrected["content"] == model.new_content and corrected["kind"] == "preference")
+        require(corrected["revision"] > first["revision"])
+        require(current["revision"] > initial["revision"])
+        expected_sources = {
+            "turn:" + first_turn["id"]: (first_turn["id"], model.first_statement),
+            "turn:" + corrected_turn["id"]: (corrected_turn["id"], model.correction_statement),
+        }
+        require(set(corrected["source_ids"]) == set(expected_sources))
+        sources = self.api("GET", f"/api/memories/{corrected['id']}/sources")["sources"]
+        require(
+            {source["source_id"]: (source["turn_id"], source["source_text"]) for source in sources}
+            == expected_sources
+        )
+        require(len(model.extractions) == 2 and len(model.chats) == 2)
+        require(model.extractions[0]["existing_facts"] == [])
+        snapshot = model.extractions[1]["existing_facts"]
+        require(len(snapshot) == 1)
+        require(snapshot[0] == {key: first[key] for key in snapshot[0]})
+        require(set(snapshot[0]) == {"id", "fact_key", "content", "kind", "revision"})
+        self.evidence["memory_protocol"] = {
+            "same_fact_id_and_key": True,
+            "active_fact_count": len(current["memories"]),
+            "revision_increased": True,
+            "original_and_correction_sources_preserved": True,
+            "old_value_is_not_current": True,
+            "real_model_calls": 0,
+        }
+        return corrected
+
+    def check_memory_recall(self, model, corrected: dict) -> None:
+        idle = {
+            "pending": 0,
+            "running": 0,
+            "failed": 0,
+            "cancelled": 0,
+            "context_limit_exceeded": False,
+        }
+        for index, request in enumerate(model.chats):
+            _, capability = self.memory_request_context(request)
+            require(capability["auto_extract"] is True)
+            require(capability["current_turn"] == "awaiting_successful_chat")
+            require({key: capability["background"][key] for key in idle} == idle)
+            require(
+                capability["background"]["latest"]
+                == (None if index == 0 else {"status": "completed", "attempts": 1})
+            )
+        self.api("PUT", "/api/memory/config", {"auto_extract": False})
+        require(self.api("GET", "/api/memory/config")["auto_extract"] is False)
+        recall = self.memory_turn(model.recall_statement, extract=False)
+        require(len(model.chats) == 3 and len(model.extractions) == 2)
+        require(len(model.requests) == 5)
+        require(model.chats[-1]["messages"][-1]["content"] == model.recall_statement)
+        require(sum(message["role"] == "user" for message in model.chats[-1]["messages"]) == 1)
+        facts, capability = self.memory_request_context(model.chats[-1])
+        require(
+            facts
+            == [
+                {
+                    "id": corrected["id"],
+                    "content": corrected["content"],
+                    "sources": corrected["source_ids"],
+                }
+            ]
+        )
+        require(capability["auto_extract"] is False)
+        require(capability["current_turn"] == "not_scheduled")
+        require({key: capability["background"][key] for key in idle} == idle)
+        require(capability["background"]["latest"] == {"status": "completed", "attempts": 1})
+        require(self.api("GET", "/api/memories")["memories"] == [corrected])
+        require(recall["provider_usage"]["scopes"]["memory_extraction"]["attempt_count"] == 0)
+        self.evidence["memory_protocol"].update(
+            {
+                "fresh_session_recall_current_fact_only": True,
+                "extraction_on_context": "awaiting_successful_chat",
+                "extraction_off_context": "not_scheduled",
+                "loopback_chat_requests": len(model.chats),
+                "loopback_extraction_requests": len(model.extractions),
+                "disabled_extraction_requests": 0,
+                "scope": "Protocol and persisted state only; real AI understanding not tested.",
+            }
+        )
+
+    def check_memory_regression(self) -> None:
+        from synthetic_model import SyntheticMemoryModel
+
+        with SyntheticMemoryModel() as model:
+            corrected = self.case(
+                "packaged_memory_correction_preserves_identity_and_sources",
+                lambda: self.check_memory_correction(model),
+            )
+            self.case(
+                "packaged_memory_capability_and_disabled_extraction_recall",
+                lambda: self.check_memory_recall(model, corrected),
+            )
+
     def check_websocket(self) -> None:
         options = {"open_timeout": 4, "close_timeout": 2, "proxy": None}
         for origin in (None, "https://synthetic-untrusted.invalid"):
@@ -565,6 +723,7 @@ class Probe:
         self.case("packaged_web_assets_and_api_auth", self.check_web)
         self.case("packaged_chat_stream_ack_and_cancel", self.check_chat)
         self.case("packaged_session_restart_recovery", lambda: self.check_chat_recovery(data))
+        self.check_memory_regression()
         self.case("second_instance_preserves_descriptor", lambda: self.check_second_instance(data))
         self.case(
             "occupied_explicit_port_is_rejected",

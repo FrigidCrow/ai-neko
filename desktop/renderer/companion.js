@@ -512,6 +512,35 @@
   }
   let memoryEditors = new Map();
   let memoryConfigBaseline = false;
+  function showExtractionOverview(overview) {
+    const target = el('memory-extraction-status');
+    const counts = ['pending', 'running', 'failed', 'cancelled'];
+    const states = {
+      pending: '尚未完成，尚未确认是否保存。',
+      running: '尚未完成，尚未确认是否保存。',
+      failed: '抽取失败。',
+      cancelled: '已取消，不会自动重试。',
+      completed: '抽取完成；是否保存内容请以下方记忆列表为准。',
+    };
+    // A missing/older response must not make an unknown background state look
+    // successful. Render metadata only, separately from manual action notices.
+    if (!overview || !counts.every((key) => Number.isSafeInteger(overview[key]) && overview[key] >= 0) ||
+        typeof overview.context_limit_exceeded !== 'boolean' ||
+        (overview.latest !== null && (!overview.latest || !Object.hasOwn(states, overview.latest.status) ||
+          !Number.isSafeInteger(overview.latest.attempts) || overview.latest.attempts < 0))) {
+      target.textContent = '后台抽取状态暂不可用；请刷新记忆查看。'; return;
+    }
+    const lines = [
+      `后台抽取（最近一次刷新）：未完成任务记录中，待处理 ${overview.pending}，运行状态 ${overview.running}；未完成状态不保证会继续处理。`,
+      overview.latest ? `最近提交的任务：${states[overview.latest.status]}` : '还没有自动抽取任务记录。',
+      `历史任务累计：失败 ${overview.failed}，取消 ${overview.cancelled}；这些计数不代表本次手动保存的结果。`,
+    ];
+    if (overview.context_limit_exceeded) lines.push('当前记忆上下文超出自动整理容量，自动抽取受限；明确保存仍可使用。');
+    if (overview.failed || overview.cancelled || overview.context_limit_exceeded) {
+      lines.push('未保存的内容需要在新消息中明确重述，或用上方表单明确保存。');
+    }
+    target.textContent = lines.join(' ');
+  }
   async function loadMemoryConfig() {
     return readSection('memoryConfig', () => chat.api('/api/memory/config'), (config) => {
       if (settingsSections.memoryConfig.pendingAction) return;
@@ -521,7 +550,11 @@
     });
   }
   async function loadMemories({ accepted = null } = {}) {
-    return readSection('memories', () => chat.api('/api/memories'), (result) => {
+    // Invalidate the old overview immediately, including reopen and reconnect.
+    // The existing section generation protects both it and the fact list.
+    const generation = settingsSections.memories.generation + 1;
+    showExtractionOverview(null);
+    const loaded = await readSection('memories', () => chat.api('/api/memories'), (result) => {
       const next = new Map(), cards = [];
       for (const item of result.memories || []) {
         const existing = memoryEditors.get(item.id);
@@ -605,7 +638,10 @@
       memoryEditors = next; list.replaceChildren(...cards);
       if (selection && list.contains(focused)) { focused.focus({ preventScroll: true }); focused.setSelectionRange(...selection); }
       if (!cards.length) el('memory-list').textContent = '还没有长期记忆。';
+      showExtractionOverview(result.extraction_overview);
     });
+    if (!loaded && generation === settingsSections.memories.generation) showExtractionOverview(null);
+    return loaded;
   }
   let backupRevision = null;
   let backupConfirmation = null;

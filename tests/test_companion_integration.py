@@ -134,7 +134,13 @@ def test_picture_retry_must_match_original(tmp_path):
 def test_extraction_requires_literal_user_evidence():
     good = {
         "facts": [
-            {"content": "喜欢茶", "quote": "喜欢茶", "fact_key": "drink", "kind": "preference"}
+            {
+                "operation": "create",
+                "content": "喜欢茶",
+                "quote": "喜欢茶",
+                "fact_key": "drink",
+                "kind": "preference",
+            }
         ]
     }
     assert (
@@ -148,7 +154,13 @@ def test_durable_automatic_extraction_resumes_in_new_runtime(tmp_path):
     paths = initialize_data_root(tmp_path / "jobs")
     result = {
         "facts": [
-            {"content": "喜欢茶", "quote": "喜欢茶", "fact_key": "drink", "kind": "preference"}
+            {
+                "operation": "create",
+                "content": "喜欢茶",
+                "quote": "喜欢茶",
+                "fact_key": "drink",
+                "kind": "preference",
+            }
         ]
     }
 
