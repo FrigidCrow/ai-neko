@@ -336,7 +336,7 @@ def test_selection_snapshot_and_body_are_read_under_same_guard(store, monkeypatc
     doc = save(store)
     select(store, doc)
     entered, done = threading.Event(), threading.Event()
-    original = store.get_document
+    original = store.read_document_and_chunks
 
     def reading(*args):
         entered.set()
@@ -344,7 +344,7 @@ def test_selection_snapshot_and_body_are_read_under_same_guard(store, monkeypatc
         assert not done.is_set()
         return original(*args)
 
-    monkeypatch.setattr(store, "get_document", reading)
+    monkeypatch.setattr(store, "read_document_and_chunks", reading)
 
     def delete():
         assert entered.wait(2)

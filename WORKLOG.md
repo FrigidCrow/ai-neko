@@ -1185,3 +1185,15 @@ GitHub connector的rerun job115424223141请求返回403 Resource not accessible 
 只读代码定位确认每次检索三次事务、两次同文档LRU写入，另有重复正文读取；关键查询有匹配索引，计时内未见全库文件扫描、哈希或路径安全检查。先新增独立scripts/profile_guides.py以及Windows原基准实际执行后的5分钟有界诊断step，原基准及生产实现保持不变。输出仅合成环境/计数/函数相对位置与耗时，明确NOT_ACCEPTANCE，finally恢复包装，不序列化locals或用户数据；原失败不被诊断成功掩盖。脚本与workflow复核/冻结及后续CI证据继续存于私有reports/git-login-20261013，不将诊断提交或重跑通过写成性能已修复。
 
 诊断脚本执行`ruff check`、`ruff format --check`及AST编译通过；受控替身验证105次调用/5次预热、正常和异常还原、路径与异常脱敏、NOT_ACCEPTANCE标记均通过，未再跑真实基准。独立YAML整树比较确认除新增step/id外与401f4de一致，12种触发组合仅Windows且原基准已success/failure会运行；未加continue-on-error。诊断自身失败/超时也会阻止job及后续m0，属于当前定位阶段有意保留的完整性要求，不把缺失数据当成功。`git diff --check`修正新增末尾空行后通过。仅这五个诊断/工作流/记录路径进入新提交，实际提交与远端精确SHA另记私有报告。
+
+### 2026-10-13 — 合并攻略读取的重复写事务
+
+cb0f8a2正常推送后的run38437616701再次原基准失败（P95 245.6086ms）。独立诊断artifact中的105次检索wall7246.267ms/processCPU2984.375ms，315次SQLite commit累计elapsed3899.9064ms；这是提交路径的明确开销证据，但不是磁盘或调度根因证明。插桩后另测89ms明确NOT_ACCEPTANCE，不覆盖原FAIL。原artifact、全部样本与归因保存在私有windows-profile-attribution-cb0f8a2.json等文件。
+
+更新PLAN后新增GuideStore.read_document_and_chunks并由GuideRetriever调用：同一事务取得绑定scope/guide/revision的正文和分块，完成一次实际访问时间写入，不展开检索不使用的历史描述。公共get_document保持原行为，chunks复用同一解码函数；事务、PRAGMA、schema、依赖及基准均未改。完整retrieve保留control_snapshot事务，事务/commit调用为3→2、LRU写入2→1，不宣称完整retrieve只剩一个事务。拒绝MRU省写及缓存方案；访问时间进入备份/恢复，而且事务前取时的并发ingest可使省写改变淘汰顺序。
+
+执行现有Python3.11.15 `-m pytest tests/test_guides.py tests/test_guide_retrieval.py tests/test_guide_management.py tests/test_guide_snapshots.py tests/test_guide_runtime_boundaries.py tests/test_guide_query_numeric.py -q --tb=short --no-header`，254PASS/5原Windows符号链接权限SKIP，新增6case全部通过；保留一条pytest缓存目录权限warning。首次Ruff仅发现测试lambda绑定/格式问题，修正后四文件ruff check/format与diffcheck通过。独立12项合成范围、版本、LRU持久化、回滚、删除竞争和恢复检查全部通过/0SKIP，四文件摘要匹配，AST比较确认其余存储方法与配置不变。两个测试进程均已退出，未停止旧进程。
+
+之后独占执行原命令`.venv\Scripts\python.exe -B scripts/benchmark_guides.py --output reports/git-login-20261013/guide-benchmark-local-after.json`，P95 16.3082ms、中位15.5689ms、100样本、正确性/零网络/源稳定/临时库清理均通过。本机before为17.8127/17.0133ms；语料哈希相同，方法仅每轮新建语料的新鲜度时钟不同，受测9文件仅两份生产源码变化。它不是远端失败已修复的证明。
+
+准备只冻结四份实现/测试与PLAN/WORKLOG/REVIEW。提交后按精确SHA执行本机`python -B scripts/m0_smoke.py --output reports/git-login-20261013/perf-fix-local-smoke.json`及正常源码push；当前6个新case预期总收集2024，以实际JUnit为准。完整远端Windows/Linux及最终main仍Pending，不扩大平台skip白名单。提交后实际命令、完整结果、分支/SHA映射继续记录私有EXECUTION和CI审计。旧1ed2/8082候选不能验收这次生产变化。

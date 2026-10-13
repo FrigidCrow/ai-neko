@@ -1145,29 +1145,53 @@ class GuideStore:
             )
             return result
 
+    def read_document_and_chunks(self, guide_id: str, revision_id: str) -> tuple[dict, list[dict]]:
+        """Read one pinned revision for retrieval, with one durable access update.
+
+        Retrieval does not consume historical revision descriptors. Keep this
+        bounded read separate from the public document/history API, and hold the
+        transaction until both the body and its derived chunks have been read.
+        """
+        with self._transaction():
+            revision = self._revision(revision_id, guide_id=guide_id)
+            result = self._descriptor(guide_id, revision_id)
+            result["text"] = revision["body"]
+            result["headings"] = json.loads(revision["metadata"])["headings"]
+            chunks = self._read_chunks(result["revision_id"])
+            self._db.execute(
+                "UPDATE guide_documents SET last_accessed_at=? WHERE scope=? AND guide_id=?",
+                (time.time(), self.scope, guide_id),
+            )
+            return result, chunks
+
+    def _read_chunks(self, revision_id: str) -> list[dict]:
+        """Caller owns the transaction and has validated the scoped revision."""
+        rows = self._db.execute(
+            "SELECT * FROM guide_chunks WHERE scope=? AND revision_id=? ORDER BY ordinal",
+            (self.scope, revision_id),
+        ).fetchall()
+        return [
+            {
+                "chunk_id": row["chunk_id"],
+                "revision_id": revision_id,
+                "ordinal": row["ordinal"],
+                "start": row["start"],
+                "end": row["end"],
+                "text": row["body"],
+                "headings": json.loads(row["headings"]),
+            }
+            for row in rows
+        ]
+
     def chunks(self, revision_id: str) -> list[dict]:
         with self._transaction():
             revision = self._revision(revision_id)
-            rows = self._db.execute(
-                "SELECT * FROM guide_chunks WHERE scope=? AND revision_id=? ORDER BY ordinal",
-                (self.scope, revision_id),
-            ).fetchall()
+            chunks = self._read_chunks(revision_id)
             self._db.execute(
                 "UPDATE guide_documents SET last_accessed_at=? WHERE scope=? AND guide_id=?",
                 (time.time(), self.scope, revision["guide_id"]),
             )
-            return [
-                {
-                    "chunk_id": row["chunk_id"],
-                    "revision_id": revision_id,
-                    "ordinal": row["ordinal"],
-                    "start": row["start"],
-                    "end": row["end"],
-                    "text": row["body"],
-                    "headings": json.loads(row["headings"]),
-                }
-                for row in rows
-            ]
+            return chunks
 
     def rebuild_index(self, revision_id: str) -> list[dict]:
         with self._transaction():

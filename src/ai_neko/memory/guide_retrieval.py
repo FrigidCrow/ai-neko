@@ -266,8 +266,9 @@ class GuideRetriever:
                 return result | {"status": "clarify", "reason": "ambiguous_selection"}
             selection = selections[0]
             result["selection"] = selection
-            document = self.store.get_document(selection["guide_id"], selection["revision_id"])
-            chunks = self.store.chunks(selection["revision_id"])
+            document, chunks = self.store.read_document_and_chunks(
+                selection["guide_id"], selection["revision_id"]
+            )
         result["update_available"] = document["current_revision_id"] != selection["revision_id"]
         # This trusted Runtime receipt only proves that this turn checked the
         # unchanged source. It does not establish game version/applicability or

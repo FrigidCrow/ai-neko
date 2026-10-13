@@ -298,6 +298,118 @@ def test_scope_cannot_read_mutate_or_rebuild_another_scopes_documents(paths):
         assert one.get_document(saved["guide_id"])["text"] == page()["text"]
 
 
+@pytest.mark.parametrize("use_current", [False, True])
+def test_retrieval_read_matches_public_body_and_chunks_without_history(store, use_current):
+    first = store.ingest(page("first revision\n" * 500))
+    current = store.ingest(page("current revision\n" * 500))
+    selected = current if use_current else first
+    expected = store.get_document(first["guide_id"], selected["revision_id"])
+    expected_chunks = store.chunks(selected["revision_id"])
+    assert len(expected.pop("revisions")) == 2
+
+    document, chunks = store.read_document_and_chunks(first["guide_id"], selected["revision_id"])
+
+    assert document == expected
+    assert chunks == expected_chunks
+    assert "revisions" not in document
+    assert document["current_revision_id"] == current["revision_id"]
+    assert "".join(chunk["text"] for chunk in chunks) == document["text"]
+
+
+def test_retrieval_read_rejects_foreign_scope_and_wrong_revision_binding(paths):
+    with GuideStore(paths, "one") as one, GuideStore(paths, "two") as two:
+        first = one.ingest(page())
+        second = one.ingest(page("second", url="https://example.com/second"))
+        foreign = two.ingest(page())
+        for guide_id, revision_id in (
+            (first["guide_id"], second["revision_id"]),
+            (foreign["guide_id"], foreign["revision_id"]),
+            (first["guide_id"], foreign["revision_id"]),
+            (first["guide_id"], "revision-" + "0" * 32),
+            (first["guide_id"], None),
+            (first["guide_id"], ""),
+        ):
+            with pytest.raises(GuideAccessError):
+                one.read_document_and_chunks(guide_id, revision_id)
+        with pytest.raises(GuideAccessError):
+            two.read_document_and_chunks(first["guide_id"], first["revision_id"])
+        assert not one._db.in_transaction and not two._db.in_transaction
+
+
+def test_retrieval_read_commits_one_fresh_access_per_call_visible_to_other_connection(
+    store, paths, monkeypatch
+):
+    saved = store.ingest(page())
+    before_revision = store.revision()
+    with closing(sqlite3.connect(paths.guides / "guides.sqlite")) as observer:
+        for now in (2_000_000_000.0, 2_000_000_001.0):
+            statements = []
+            store._db.set_trace_callback(statements.append)
+            try:
+                with monkeypatch.context() as patch:
+                    patch.setattr(guides.time, "time", lambda now=now: now)
+                    store.read_document_and_chunks(saved["guide_id"], saved["revision_id"])
+            finally:
+                store._db.set_trace_callback(None)
+            assert statements.count("BEGIN IMMEDIATE") == statements.count("COMMIT") == 1
+            assert (
+                sum(
+                    statement.startswith("UPDATE guide_documents SET last_accessed_at=")
+                    for statement in statements
+                )
+                == 1
+            )
+            assert (
+                observer.execute(
+                    "SELECT last_accessed_at FROM guide_documents WHERE scope=? AND guide_id=?",
+                    (store.scope, saved["guide_id"]),
+                ).fetchone()[0]
+                == now
+            )
+            assert store.revision() == store.published_revision == before_revision
+
+
+def test_retrieval_read_chunk_parse_failure_preserves_access_and_transaction(store, paths):
+    saved = store.ingest(page())
+    store._db.execute(
+        "UPDATE guide_chunks SET headings='invalid json' WHERE scope=? AND revision_id=?",
+        (store.scope, saved["revision_id"]),
+    )
+    before = (paths.guides / "guides.sqlite").read_bytes()
+    with pytest.raises(json.JSONDecodeError):
+        store.read_document_and_chunks(saved["guide_id"], saved["revision_id"])
+    assert not store._db.in_transaction
+    assert (paths.guides / "guides.sqlite").read_bytes() == before
+
+
+def test_retrieval_read_commit_failure_rolls_back_access_time(store, paths, monkeypatch):
+    saved = store.ingest(page())
+    before = (paths.guides / "guides.sqlite").read_bytes()
+    before_revision = store.published_revision
+    denied = []
+
+    def reject_commit(action, first, _second, _database, _trigger):
+        if action == sqlite3.SQLITE_TRANSACTION and first == "COMMIT":
+            denied.append(first)
+            return sqlite3.SQLITE_DENY
+        return sqlite3.SQLITE_OK
+
+    store._db.set_authorizer(reject_commit)
+    try:
+        with monkeypatch.context() as patch:
+            patch.setattr(guides.time, "time", lambda: 2_000_000_000.0)
+            with pytest.raises(sqlite3.DatabaseError, match="not authorized"):
+                store.read_document_and_chunks(saved["guide_id"], saved["revision_id"])
+    finally:
+        store._db.set_authorizer(None)
+    assert denied == ["COMMIT"]
+    assert not store._db.in_transaction
+    assert store.published_revision == before_revision
+    assert (paths.guides / "guides.sqlite").read_bytes() == before
+    # The failed commit leaves the store usable for a later independent read.
+    assert store.read_document_and_chunks(saved["guide_id"], saved["revision_id"])[0]["text"]
+
+
 @pytest.mark.usefixtures("sandbox_compatible")
 def test_restart_in_fresh_process_keeps_body_metadata_ids_and_chunks(paths):
     with GuideStore(paths, "one") as store:
