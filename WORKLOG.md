@@ -1161,3 +1161,15 @@ Prepared local freeze/build commands (execution evidence will be saved privately
 保留失败及未完成项：首轮默认沙箱 Node 为 327 PASS/12 FAIL，出现临时目录 rename/realpath EPERM；后续 guide evaluation 没有日志/CPU推进证据。结束本轮自有测试链的请求被自动审批拒绝，理由为最初“不停止任何进程”的限制仍有效，故未结束或绕过。首轮链保留，guide 为 RUNNING/BLOCKED，后续 benchmark/m0 尚未启动；不再启动第二套全链。上述有限正常权限通过不将首轮改记 PASS，也不替代完整无 Core 回归或远端 13 项符号链接实测。
 
 本地提交只暂存上述七个文本文件；使用单次命令的 `git -c user.name=Codex -c user.email=codex@localhost commit`，不写 Git 全局或仓库身份配置。记录最终提交及提交后状态于私有 qualification-gate 报告；不推送、不打标签、不执行远端工作流，不触发完整打包或 Release。恢复先核实 Git 认证，再仅推受控源码分支新 HEAD；解除资格门禁仍须分类/主体及适用许可依据、独立复核的新提交和后续精确制品验收。
+
+### 2026-10-13 — Git 认证、源码推送与 Linux 夹具修复
+
+用户授权代理配置 Git、由用户亲自浏览器授权，其余源码推送和 CI 自动完成。只读版本/安装核查发现 Git 2.53.0.windows.3、GCM 2.7.3 已存在于 Codex 工具目录，机器和用户 PATH 未包含 Git；未另装软件。首次 PowerShell Split-Path 参数组合失败，保留原 PATH 条目；改用 System.IO.Path.GetDirectoryName，追加用户 PATH 并用 Machine+User PATH 验证 git/GCM 可发现，不改机器 PATH 或 Git 身份。
+
+执行 `git credential-manager github login --browser --username FrigidCrow`，登录/二次验证/OAuth 由用户完成；进程退出 0，`git credential-manager github list` 显示 FrigidCrow。禁用交互后 `git push --dry-run origin fd10a3838acfe375610fec4a8ac404bd73d12595:refs/heads/release/v0.4.0-alpha.2` 通过，随后同一显式 refspec 正常 push，`git ls-remote --heads origin refs/heads/release/v0.4.0-alpha.2` 核实精确 SHA。没有读取/输出凭据、强推、附带标签或发布包。
+
+源码 CI run 38432275371 对应该 SHA；diagnostics run 38432275408 由既有门禁 skipped。Linux 桌面为 334 PASS/5 FAIL，失败日志保存在私有 reports/git-login-20261013/linux-first-job.log，未重标通过。根因是 Linux 初始化立即创建托盘菜单并调用 mainWindow.isVisible，而 main-preferences 的合成 Window 缺此方法；Windows 初始化分支未暴露缺口。先更新 PLAN，再只在测试夹具新增 `isVisible() { return this.options.show !== false; }`，保留真实宿主 platform、生产入口及所有失败/重试/持久化断言。
+
+现有 Node 24.21.0 运行 `node --test tests/main-preferences.test.cjs` 为 5 PASS，`node --test tests/*.test.cjs` 为 339 PASS，均 0 SKIP；`git diff --check` 通过。root 独立复核唯一测试改动与生产调用对应，未改应用、测试跳过规则、依赖、素材或发行门禁。修复后提交的 Linux 真实验证和双平台完整 CI 仍须执行，私有报告记录后续精确 SHA、run、日志和证据，不能沿用 fd10a383 首轮失败结论当作新提交通过。
+
+用户进一步授权将验证后的最新版合入 main，后续在 main 开发并清理无独有工作、无 PR/工作树依赖的已合并分支。先只读核验远端、保护、PR 与 worktree；不强推或降低保护。原未获授权终止的进程不处理，非语音优先，当前不并行改语音。按最新要求停止 Live2D 新增调研/整理，既有安装包门禁继续保留。

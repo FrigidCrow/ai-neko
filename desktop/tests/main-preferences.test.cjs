@@ -37,6 +37,7 @@ async function fixture(t) {
       });
     }
     isDestroyed() { return false; }
+    isVisible() { return this.options.show !== false; }
     getBounds() { return { ...baseline.bounds }; }
     setMenu() {}
     loadURL() { return Promise.resolve(); }

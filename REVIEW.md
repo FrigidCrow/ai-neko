@@ -714,3 +714,11 @@ Sol 对精确 1ed2e2f/8082aefe 的定向复测关闭了观察范围内的 D1 原
 独立静态复核 PASS：14 项结构/范围检查、24 个事件/参数/job 组合和 11 条相关路径，保留的唯一上传类型为合成 JSON。正常权限的无 Core 隔离副本验证为桌面 339 PASS、两组现有打包单测 33 PASS，未安装依赖、加载模型、运行 GUI 或生成应用包。588 个其他 tracked 文件与发布准备初始基线原字节一致，既有受测 ZIP 保持 192308939 bytes / 8082aefe；Git 差异检查通过。详见私有 reports/qualification-gate-20261011。
 
 首轮默认沙箱 Node 的 12 个 EPERM 失败及未完成 guide 链保留；自动审批拒绝结束进程，未执行终止，也未把缺失的 guide/benchmark/m0 结果补记通过。当前有限验证只证明这些单测可在无 Core 条件运行。13 个符号链接用例仍须在新提交的适用远端 CI 实际执行；本轮未运行 Actions。发布资格仍待产品分类与发行主体/许可事实，不因 Git 登录、低营收、ready、手动参数或 draft 自动解除。官方问题仅为文档草稿，未发信。
+
+### 2026-10-13 — 首次远端 CI 与跨平台测试夹具
+
+Git/GCM 登录与 FrigidCrow/ai-neko 写入权限已用账号列表、非交互 dry-run、实际源码 push 和远端 ref 核实；fd10a383 已上 release/v0.4.0-alpha.2。安装包、Release 与桌面诊断门禁保持关闭，未分发新包。
+
+run 38432275371 的 Linux Node 为 334 PASS/5 FAIL，五例均在 main-preferences 合成 Window 缺 isVisible 导致初始化失败；不是 Core 缺失或已证明的生产偏好保存缺陷。修复只加一个遵循 constructor show 选项的 mock 方法，不强制 win32、不删除断言或增加 skip。Windows 定向 5 PASS、全桌面 339 PASS；Linux 与最终 SHA 的完整 CI 尚待后续证据。原失败记录保留。
+
+后续 main 合并/分支清理及最终 CI 的实际 SHA、run 和制品证据记录于私有 reports/git-login-20261013，未跑/失败/部分功能仍按原状态。语音不与本阶段并行修改；不新增 Live2D 来源或协议整理，保留原发行门禁。
