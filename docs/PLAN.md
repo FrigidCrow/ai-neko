@@ -803,3 +803,16 @@ Sol-remediation source freeze gate PASS: final full Python 2005 PASS/13 known Wi
 cb0f8a2诊断CI run38437616701的原基准仍为P95 245.6086ms FAIL。随后独立插桩105次检索wall7246.267ms/processCPU2984.375ms，315次SQLite commit累计elapsed3899.9064ms（检索累计约53.84%，本机对应262.29ms）；指向提交等待路径的可改开销，但不证明具体磁盘/调度根因。插桩P95不是原验收结果。下一步仅增加GuideStore专用正文+分块一致读取入口，由原检索调用，以一个事务/一次实际LRU时间更新替代两个独立写事务，并避免检索不需要的历史版本列表展开；保留公共get_document/chunks原接口、实际访问时间持久化、selection/revision锁、异常回滚、范围和路径安全边界。禁止MRU跳写或跨调用缓存，因访问时间进入备份/恢复且存在并发插入排序反例。
 
 验收覆盖新入口与原输出的一致性、LRU实际落盘、跨scope/错误revision拒绝、失败回滚及既有删除/恢复/修订竞争；运行适用检索/存储/快照/集成测试、原200文档100样本基准和完整CI。保留之前所有失败，最终以新main精确提交结果报告；若原基准仍超标，继续依据诊断定位而非重试挑样本。
+
+
+### 2026-10-13 — 记忆来源持久顺序修复
+
+e06a15f 的本机全量回归为 2010 PASS / 1 FAIL / 13 已知 Windows symlink SKIP；保留该失败，不以单例重跑或远端偶然通过覆盖。固定墙钟和回拨合成库已复现：较早入队来源可覆盖较晚事实，当前 created_at 严格比较不成立。普通用户影响是延迟异步提取可能覆盖更新的记忆，发生频率未测。
+
+实施显式、事务内分配的来源首次登记持久顺序及 scope 高水位；重试/重复 source 保留原顺序。correct/confirm 对比 job 的来源顺序与目标全部 provenance，不用事实 revision、墙钟或隐含 rowid 冒充来源全序；保留现有 lease、snapshot CAS、target revision、invalidation 与擦除边界。新增 schema 必须有真实迁移和旧备份兼容：历史无法确定顺序的来源保持 unknown，歧义旧任务保守冲突，不伪造时间排序；恢复保持高水位和来源身份，防止快照回退/纠正保留合并造成序号重用或错序。无需用户数据迁移或真实模型调用。
+
+验收：相同墙钟/回拨的旧来源拒绝与合法较晚来源成功；延后提取交错；确认 provenance、来源复用、重试、重开/多连接；迁移/旧快照/新快照、恢复高水位、correction/forget/tombstone 兼容及失败回滚。独立审查迁移和恢复语义，运行相关 memory/runtime 回归、完整 Python 与必要静态检查。后续新提交须等待 e06 当前 CI 自然结束，再正常推送；原性能阈值、失败证据、发布门禁和 main 自身精确 SHA CI 要求不变。
+
+Restore ordering policy refinement before acceptance: existing snapshots carry no counter-lineage identity, so noncolliding positive sequence numbers from separate histories cannot establish a common order. The minimal conservative policy is to mark all final sources unknown (source_order=0) on every successful restore, preserve the maximum scope high-watermark, and retain the existing cancellation of restored/pending jobs. New sources first registered after restore are reliably later; automatic correct/confirm from a reused pre-restore source is conservatively rejected. Normal fact/persona/provenance restoration remains intact. Validate snapshot sequence shape/uniqueness/range, same-source identity and transactional rollback; do not add a speculative lineage system or reconstruct old order from wall time.
+
+Memory-order implementation/focused validation completed:216 unique focused PASS/2 existing local symlink SKIP, independent25PASS/0SKIP, required static checksPASS. Original full e06 failure is retained. Next freeze the reviewed source, run full clean-commit regression and exact source CI, then main own-CI; neither old package nor earlier source CI accepts this schema change.

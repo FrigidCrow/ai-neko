@@ -39,7 +39,22 @@ def _long_term_v2(db) -> None:
         )
 
 
-_MIGRATIONS = [(2, _long_term_v2)]
+def _long_term_v3(db) -> None:
+    """Order first source registration without inferring legacy wall-clock order."""
+    for table, column in (
+        ("memory_scopes", "source_sequence"),
+        ("memory_sources", "source_order"),
+    ):
+        columns = {row[1] for row in db.execute(f"PRAGMA table_info({table})")}
+        if column not in columns:
+            db.execute(f"ALTER TABLE {table} ADD COLUMN {column} INTEGER NOT NULL DEFAULT 0")
+    db.execute(
+        "CREATE UNIQUE INDEX IF NOT EXISTS memory_source_order "
+        "ON memory_sources(scope,source_order) WHERE source_order>0"
+    )
+
+
+_MIGRATIONS = [(2, _long_term_v2), (3, _long_term_v3)]
 
 
 class MemoryInputError(ValueError):
@@ -158,11 +173,13 @@ class MemoryService:
                 CREATE TABLE IF NOT EXISTS memory_scopes (
                     scope TEXT PRIMARY KEY, revision INTEGER NOT NULL DEFAULT 0,
                     persona TEXT NOT NULL, persona_version INTEGER NOT NULL DEFAULT 1,
-                    invalidation_revision INTEGER NOT NULL DEFAULT 0
+                    invalidation_revision INTEGER NOT NULL DEFAULT 0,
+                    source_sequence INTEGER NOT NULL DEFAULT 0
                 );
                 CREATE TABLE IF NOT EXISTS memory_sources (
                     scope TEXT NOT NULL, id TEXT NOT NULL, body TEXT NOT NULL,
                     turn_id TEXT, created_at REAL NOT NULL,
+                    source_order INTEGER NOT NULL DEFAULT 0,
                     PRIMARY KEY(scope,id)
                 );
                 CREATE TABLE IF NOT EXISTS memory_facts (
@@ -321,9 +338,20 @@ class MemoryService:
         ).fetchone()
         if row and row[0] != body:
             raise MemoryConflictError("conflicting_memory_source")
+        if row:
+            return
+        sequence = self._db.execute(
+            "SELECT source_sequence FROM memory_scopes WHERE scope=?", (self.scope,)
+        ).fetchone()[0]
+        _integer(sequence, 0, 2**63 - 2, "source_sequence")
+        sequence += 1
         self._db.execute(
-            "INSERT OR IGNORE INTO memory_sources VALUES (?,?,?,?,?)",
-            (self.scope, source_id, body, turn_id, time.time()),
+            "UPDATE memory_scopes SET source_sequence=? WHERE scope=?", (sequence, self.scope)
+        )
+        self._db.execute(
+            "INSERT INTO memory_sources "
+            "(scope,id,body,turn_id,created_at,source_order) VALUES (?,?,?,?,?,?)",
+            (self.scope, source_id, body, turn_id, time.time(), sequence),
         )
 
     def _fact(self, fact_id: str) -> dict:
@@ -888,12 +916,18 @@ class MemoryService:
                     )
                 else:
                     target = self._fact(item["target_fact_id"])
+                    source_order = self._db.execute(
+                        "SELECT source_order FROM memory_sources WHERE scope=? AND id=?",
+                        (self.scope, job["source_id"]),
+                    ).fetchone()[0]
+                    if source_order == 0:
+                        raise MemoryConflictError("memory_source_order_unknown")
                     latest_source = self._db.execute(
-                        "SELECT max(s.created_at) FROM memory_sources s JOIN memory_fact_sources l "
+                        "SELECT max(s.source_order) FROM memory_sources s JOIN memory_fact_sources l "
                         "ON s.scope=l.scope AND s.id=l.source_id WHERE l.scope=? AND l.fact_id=?",
                         (self.scope, target["id"]),
                     ).fetchone()[0]
-                    if latest_source is not None and latest_source > job["created_at"]:
+                    if latest_source is not None and latest_source > source_order:
                         raise MemoryConflictError("memory_source_precedes_target")
                     content = item.get("content", target["content"])
                     prepared.append(
@@ -1001,6 +1035,7 @@ class MemoryService:
         if verify and source.execute("PRAGMA integrity_check").fetchone()[0] != "ok":
             raise MemoryInputError("invalid_memory_backup")
         tables = {}
+        actual_columns = {}
         for table in _BACKUP_TABLES:
             schema = source.execute(
                 "SELECT type FROM sqlite_master WHERE name=?", (table,)
@@ -1011,14 +1046,24 @@ class MemoryService:
             # taken from a corrupt or replaced snapshot into write statements.
             expected = {row[1] for row in self._db.execute(f"PRAGMA table_info({table})")}
             actual = {row[1] for row in source.execute(f"PRAGMA table_info({table})")}
-            if actual != expected and not (
-                table == "memory_scopes" and actual == expected - {"invalidation_revision"}
-            ):
+            actual_columns[table] = actual
+            legacy_shapes = {
+                "memory_scopes": [
+                    expected - {"source_sequence"},
+                    expected - {"source_sequence", "invalidation_revision"},
+                ],
+                "memory_sources": [expected - {"source_order"}],
+            }
+            if actual != expected and actual not in legacy_shapes.get(table, []):
                 raise MemoryInputError("invalid_memory_backup")
             tables[table] = [
                 dict(row)
                 for row in source.execute(f"SELECT * FROM {table} WHERE scope=?", (self.scope,))
             ]
+        if ("source_order" in actual_columns["memory_sources"]) != (
+            "source_sequence" in actual_columns["memory_scopes"]
+        ):
+            raise MemoryInputError("invalid_memory_backup")
         if not tables["memory_scopes"]:
             raise MemoryAccessError("memory_backup_scope_not_found")
         try:
@@ -1027,12 +1072,20 @@ class MemoryService:
             scope = tables["memory_scopes"][0]
             _integer(scope["revision"], 0, 2**63 - 2, "revision")
             _integer(scope["persona_version"], 1, 2**63 - 2, "persona_version")
+            sequence = _integer(scope.get("source_sequence", 0), 0, 2**63 - 1, "source_sequence")
             _profile(json.loads(scope["persona"]), {})
             source_ids = {row["id"] for row in tables["memory_sources"]}
             fact_ids = {row["id"] for row in tables["memory_facts"]}
+            orders = set()
             for row in tables["memory_sources"]:
                 _text(row["id"], 200, "source_id")
                 _text(row["body"], 16000, "source_text")
+                if row["turn_id"] is not None:
+                    _text(row["turn_id"], 200, "turn_id")
+                order = _integer(row.get("source_order", 0), 0, sequence, "source_order")
+                if order and order in orders:
+                    raise MemoryInputError("invalid_memory_backup")
+                orders.add(order)
             for row in tables["memory_facts"]:
                 _text(row["id"], 200, "fact_id")
                 self._validate_fact(row["content"], row["fact_key"], row["kind"])
@@ -1175,6 +1228,35 @@ class MemoryService:
                     "SELECT * FROM memory_sources WHERE scope=?", (self.scope,)
                 )
             ]
+            current_sources = {row["id"]: row for row in preserved_sources}
+            current_sequence = self._db.execute(
+                "SELECT source_sequence FROM memory_scopes WHERE scope=?", (self.scope,)
+            ).fetchone()[0]
+            source_sequence = max(
+                current_sequence, tables["memory_scopes"][0].get("source_sequence", 0)
+            )
+            # Compare identities before changing either table. A different history
+            # cannot silently reuse a source ID or a known registration position.
+            known_orders = {
+                row["source_order"]: row["id"] for row in preserved_sources if row["source_order"]
+            }
+            for row in tables["memory_sources"]:
+                order = row.get("source_order", 0)
+                old = current_sources.get(row["id"])
+                if order and known_orders.get(order, row["id"]) != row["id"]:
+                    raise MemoryInputError("invalid_memory_backup_source_order")
+                if old:
+                    if any(old[field] != row[field] for field in ("body", "turn_id")):
+                        raise MemoryInputError("invalid_memory_backup_source_identity")
+                    if order and old["source_order"] and order != old["source_order"]:
+                        raise MemoryInputError("invalid_memory_backup_source_order")
+                source_sequence = max(source_sequence, order)
+            # Snapshots have no lineage ID: even collision-free positive orders
+            # from two copies need not share a timeline. Every restore starts a
+            # conservative boundary. Existing sources become unknown, and only
+            # genuinely new sources registered afterwards have a provable order.
+            for row in tables["memory_sources"] + preserved_sources:
+                row["source_order"] = 0
             preserved_links = [
                 dict(row)
                 for row in self._db.execute(
@@ -1200,8 +1282,8 @@ class MemoryService:
             ):
                 self._db.execute(f"DELETE FROM {table} WHERE scope=?", (self.scope,))
             # Restore with the *current* schema's explicit column order; snapshot
-            # row dicts are only a value source. The single tolerated legacy gap
-            # (memory_scopes without invalidation_revision) gets its default.
+            # row dicts are only a value source. Legacy barriers and source order
+            # get zero; no wall-clock or rowid ordering is invented on restore.
             schema_columns = {
                 table: [row[1] for row in self._db.execute(f"PRAGMA table_info({table})")]
                 for table in _BACKUP_TABLES
@@ -1272,9 +1354,10 @@ class MemoryService:
                     current_facts[fact_id]["content"] for fact_id in removed_facts
                 ]
             self._db.execute(
-                "UPDATE memory_scopes SET revision=?,invalidation_revision=?,persona_version=? "
+                "UPDATE memory_scopes SET revision=?,invalidation_revision=?,persona_version=?,"
+                "source_sequence=? "
                 "WHERE scope=?",
-                (revision, revision, persona_version, self.scope),
+                (revision, revision, persona_version, source_sequence, self.scope),
             )
             self._db.execute(
                 "UPDATE memory_jobs SET status='cancelled',lease_token=NULL,"

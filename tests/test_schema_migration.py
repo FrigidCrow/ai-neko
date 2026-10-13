@@ -184,7 +184,7 @@ def test_conversation_and_memory_services_stamp_their_ledgers(tmp_path):
 
     paths = initialize_data_root(tmp_path / "roots")
     with MemoryService(paths) as memory:
-        assert schema_version(memory._db) == 2
+        assert schema_version(memory._db) == 3
     runtime = SessionRuntime(paths, Store())
     assert schema_version(runtime._db) == 7
     assert (paths.root / "guides").is_dir()

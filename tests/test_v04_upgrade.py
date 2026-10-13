@@ -180,7 +180,7 @@ async def candidate_probe(root):
     try:
         assert_preserved(runtime)
         assert runtime._db.execute("PRAGMA user_version").fetchone()[0] == 7
-        assert runtime.memory._db.execute("PRAGMA user_version").fetchone()[0] == 2
+        assert runtime.memory._db.execute("PRAGMA user_version").fetchone()[0] == 3
         assert providers.messages == []  # No generation or audio replay on upgrade.
         async with AsyncSqliteSaver.from_conn_string(
             str(paths.checkpoints / "chat-graph.sqlite")

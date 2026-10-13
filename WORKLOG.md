@@ -1197,3 +1197,24 @@ cb0f8a2正常推送后的run38437616701再次原基准失败（P95 245.6086ms）
 之后独占执行原命令`.venv\Scripts\python.exe -B scripts/benchmark_guides.py --output reports/git-login-20261013/guide-benchmark-local-after.json`，P95 16.3082ms、中位15.5689ms、100样本、正确性/零网络/源稳定/临时库清理均通过。本机before为17.8127/17.0133ms；语料哈希相同，方法仅每轮新建语料的新鲜度时钟不同，受测9文件仅两份生产源码变化。它不是远端失败已修复的证明。
 
 准备只冻结四份实现/测试与PLAN/WORKLOG/REVIEW。提交后按精确SHA执行本机`python -B scripts/m0_smoke.py --output reports/git-login-20261013/perf-fix-local-smoke.json`及正常源码push；当前6个新case预期总收集2024，以实际JUnit为准。完整远端Windows/Linux及最终main仍Pending，不扩大平台skip白名单。提交后实际命令、完整结果、分支/SHA映射继续记录私有EXECUTION和CI审计。旧1ed2/8082候选不能验收这次生产变化。
+
+
+### 2026-10-13 — Memory source-order failure investigation
+
+After clean e06a15f, `.venv\Scripts\python.exe -B scripts/m0_smoke.py --output reports/git-login-20261013/perf-fix-local-smoke.json` exited 1 after 173.891s: 2024 collected, 2010 PASS, 1 FAIL, 13 existing local symlink-capability SKIP; source unchanged and dirty=false. The failed `test_out_of_order_old_source_cannot_correct_a_newer_target` remains recorded. One separately logged focused diagnostic passed, then `reports/git-login-20261013/memory-order-diagnostic.py` froze/rolled back the clock against isolated synthetic databases and deterministically reproduced older-source overwrite. It also retained a valid delayed-extraction counterexample to a naive fact-revision guard. Diagnostic JSON/logs preserve the traceback, environment and actual synthetic outcome; no real-model or user-data operations.
+
+PLAN was updated before source edits to require durable source first-registration order, explicit migration/legacy-unknown semantics and snapshot high-watermark preservation. Implementation, independent review and final validation are pending in this entry. Original e06 remote CI is allowed to finish naturally before the next source push; no cancellation or threshold change.
+
+Memory-order implementation validation commands (project Python 3.11.15, synthetic data):
+
+```text
+.venv\Scripts\python.exe -B -m ruff format src/ai_neko/memory/service.py tests/test_memory_source_order.py tests/test_schema_migration.py tests/test_v04_upgrade.py
+.venv\Scripts\python.exe -B -m ruff check src/ai_neko/memory/service.py tests/test_memory_source_order.py tests/test_schema_migration.py tests/test_v04_upgrade.py
+.venv\Scripts\python.exe -B -m pytest tests/test_memory_source_order.py tests/test_memory_extraction.py tests/test_memory.py tests/test_memory_backups.py tests/test_memory_backup_api.py tests/test_memory_closeout.py tests/test_schema_migration.py tests/test_v04_upgrade.py -q --tb=long -p no:cacheprovider --junitxml=reports/memory-order-focused-final.xml > reports/memory-order-focused-final.log 2>&1
+.venv\Scripts\python.exe -B -m pytest tests/test_memory_source_order.py -q --tb=long -p no:cacheprovider --junitxml=reports/memory-order-regressions.xml > reports/memory-order-regressions.log 2>&1
+git diff --check -- src/ai_neko/memory/service.py tests/test_schema_migration.py tests/test_v04_upgrade.py
+.venv\Scripts\python.exe -m ruff check src tests scripts packaging
+.venv\Scripts\python.exe -m ruff format --check src tests scripts packaging
+```
+
+Frozen implementation: schema v3 adds first-registration source_order and scope source_sequence; completion compares source provenance, restores reset source orders to unknown while retaining high-watermark. First focused211PASS/2existing-symlinkSKIP, expanded214PASS/2SKIP, final source-order file43PASS; deduplicated final evidence218cases=216PASS/2SKIP, not a single full run. Independent focused25PASS/0SKIP, frozen hashes verified. Required CI Ruff scope passed151formatted files. Broader optional `ruff check .` / `ruff format --check .` failed only on unchanged archived docs/evidence/mvp2/windows/verify_windows_download.py; preserved in reports/memory-order-static-broad.json, not silently fixed or represented as passing. CI scope is unchanged, as defined in windows-preview.yml. Full clean-commit m0/source CI/main CI are pending; post-freeze evidence will be written to private EXECUTION/audit reports to keep the tested SHA stable.
