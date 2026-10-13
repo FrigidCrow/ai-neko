@@ -722,3 +722,10 @@ Git/GCM 登录与 FrigidCrow/ai-neko 写入权限已用账号列表、非交互 
 run 38432275371 的 Linux Node 为 334 PASS/5 FAIL，五例均在 main-preferences 合成 Window 缺 isVisible 导致初始化失败；不是 Core 缺失或已证明的生产偏好保存缺陷。修复只加一个遵循 constructor show 选项的 mock 方法，不强制 win32、不删除断言或增加 skip。Windows 定向 5 PASS、全桌面 339 PASS；Linux 与最终 SHA 的完整 CI 尚待后续证据。原失败记录保留。
 
 后续 main 合并/分支清理及最终 CI 的实际 SHA、run 和制品证据记录于私有 reports/git-login-20261013，未跑/失败/部分功能仍按原状态。语音不与本阶段并行修改；不新增 Live2D 来源或协议整理，保留原发行门禁。
+### 2026-10-13 — Windows 检索长尾仍待定位
+
+已修复的Linux外观测试夹具由401f4de精确CI验证，Linux完整Python2017PASS/仅Windows vault平台1SKIP，门禁PASS。该SHA的Windows两轮原基准P95分别305.5589ms与241.888ms，均超过不变的150ms；两轮均未执行m0，故401f4de的Windows完整验收与13个符号链接测试仍Pending。旧fd10a383确有Windows2018PASS/零跳过，只归属旧SHA。
+
+失败是多样本长尾超标，正确性无误；生产文件与语料哈希相同不能证明环境抖动就是根因。两次失败永久保留，后续偶然通过不能将其改为“已修复”。本机原基准17.8127ms与独立cProfile只提供对照；尚无失败runner CPU/IO/调度证据，因此先引入不改变验收的独立合成诊断。详情、原样样本、环境、可复现命令和临时分支/SHA映射见私有reports/git-login-20261013/windows-ci-review.md/json及EXECUTION.md。
+
+普通用户的本地攻略问答经过同一检索路径，长正文/历史版本下可能增加等待；本次不是GUI或完整对话实测，不能给未测用户场景承诺P95。保持main未合入、分支未清理、发行门禁关闭和语音暂停修改，等待定位后的精确源码与最终main结果。若生产输入改变，旧1ed2e2f/8082aefe候选不能验收新行为。

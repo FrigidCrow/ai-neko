@@ -1173,3 +1173,15 @@ Prepared local freeze/build commands (execution evidence will be saved privately
 现有 Node 24.21.0 运行 `node --test tests/main-preferences.test.cjs` 为 5 PASS，`node --test tests/*.test.cjs` 为 339 PASS，均 0 SKIP；`git diff --check` 通过。root 独立复核唯一测试改动与生产调用对应，未改应用、测试跳过规则、依赖、素材或发行门禁。修复后提交的 Linux 真实验证和双平台完整 CI 仍须执行，私有报告记录后续精确 SHA、run、日志和证据，不能沿用 fd10a383 首轮失败结论当作新提交通过。
 
 用户进一步授权将验证后的最新版合入 main，后续在 main 开发并清理无独有工作、无 PR/工作树依赖的已合并分支。先只读核验远端、保护、PR 与 worktree；不强推或降低保护。原未获授权终止的进程不处理，非语音优先，当前不并行改语音。按最新要求停止 Live2D 新增调研/整理，既有安装包门禁继续保留。
+
+### 2026-10-13 — Windows 检索基准连续失败与受限诊断
+
+fd10a383 的首轮 Windows job115417234229 自然完成，桌面339、Python2018全部通过且零跳过，13个原符号链接实例实际通过；Linux失败仍保留。正常 push 修复401f4de到release/v0.4.0-alpha.2并用ls-remote核对。run38434312098的Linux为2017PASS/唯一Windows vault平台1SKIP、ci_gate PASS；Windows在原基准P95 305.5589ms超过150ms，未进入m0，不能沿用前一SHA的Windows完整结果。
+
+GitHub connector的rerun job115424223141请求返回403 Resource not accessible by integration，未触发重跑。用户已授权的Git/GCM普通push通道可用；先确认ci/recheck-401f4de不存在，再将完全相同401f4de正常推送到该临时分支。run38435170114的Windows再次基准失败，P95 241.888ms，停止进一步盲重跑。两个失败的100样本、环境、语料及9份受测文件摘要保存于私有windows-ci-review报告和原artifact ZIP，不筛样本、不提高150ms或减少用例；main尚未建立。临时分支→401f4de→后续最终main须在最终报告明确对应。
+
+先更新PLAN后执行一次本机原样对照：`.venv\Scripts\python.exe -B scripts/benchmark_guides.py --output reports/git-login-20261013/guide-benchmark-local-before.json`，P95 17.8127ms、100样本、正确性通过、零网络、临时库删除、源文件稳定。再执行私有`profile-guide-retrieval.py`，只在105次retrieve调用包cProfile和wall/process CPU时钟；该计时含诊断开销，不是验收。聚合retrieve2.658s，tokenize1.567s、bm25_rank1.165s、covered_query1.014s（累计项相互包含，不能求和）、315次SQLite commit0.262s。本机未复现远端失败，不能直接认定远端磁盘、CPU或共享runner原因。
+
+只读代码定位确认每次检索三次事务、两次同文档LRU写入，另有重复正文读取；关键查询有匹配索引，计时内未见全库文件扫描、哈希或路径安全检查。先新增独立scripts/profile_guides.py以及Windows原基准实际执行后的5分钟有界诊断step，原基准及生产实现保持不变。输出仅合成环境/计数/函数相对位置与耗时，明确NOT_ACCEPTANCE，finally恢复包装，不序列化locals或用户数据；原失败不被诊断成功掩盖。脚本与workflow复核/冻结及后续CI证据继续存于私有reports/git-login-20261013，不将诊断提交或重跑通过写成性能已修复。
+
+诊断脚本执行`ruff check`、`ruff format --check`及AST编译通过；受控替身验证105次调用/5次预热、正常和异常还原、路径与异常脱敏、NOT_ACCEPTANCE标记均通过，未再跑真实基准。独立YAML整树比较确认除新增step/id外与401f4de一致，12种触发组合仅Windows且原基准已success/failure会运行；未加continue-on-error。诊断自身失败/超时也会阻止job及后续m0，属于当前定位阶段有意保留的完整性要求，不把缺失数据当成功。`git diff --check`修正新增末尾空行后通过。仅这五个诊断/工作流/记录路径进入新提交，实际提交与远端精确SHA另记私有报告。
